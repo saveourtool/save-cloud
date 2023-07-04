@@ -33,5 +33,6 @@ class Comment(
         userRating = user.rating,
         userAvatar = user.avatar,
         createDate = createDate?.toKotlinLocalDateTime(),
+        section = section,
     )
 }

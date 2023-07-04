@@ -6,9 +6,12 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.utils.getByIdOrNotFound
+
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+
+import kotlinx.datetime.toJavaLocalDateTime
 
 /**
  * Service for comments
@@ -41,4 +44,19 @@ class CommentService(
      * @return list of messages
      */
     fun findAllBySection(section: String) = commentRepository.getAllBySection(section)
+
+    /**
+     * @param comment [CommentDto] that matches the [Comment] that should be deleted
+     * @return [Unit] if comment was found, `null` otherwise
+     */
+    @Transactional
+    fun deleteComment(comment: CommentDto): Unit? {
+        val requestedComment = commentRepository.findByUserNameAndSectionAndCreateDate(
+            comment.userName,
+            comment.section,
+            comment.createDate?.toJavaLocalDateTime()
+        )
+
+        return requestedComment?.let { commentRepository.delete(it) }
+    }
 }
