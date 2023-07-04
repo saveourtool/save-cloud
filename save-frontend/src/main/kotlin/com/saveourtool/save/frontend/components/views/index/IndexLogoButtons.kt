@@ -8,7 +8,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.VFC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
