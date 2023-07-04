@@ -100,11 +100,6 @@ fun ChildrenBuilder.showContestCreationModal(
     }
 }
 
-private fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
-    LocalDate.parse(this),
-    time,
-)
-
 /**
  * @param startTime
  * @param endTime
