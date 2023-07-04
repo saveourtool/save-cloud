@@ -5,7 +5,6 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.LnkContestExecutionService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
@@ -37,7 +36,6 @@ import org.springframework.web.reactive.function.BodyInserters
 @MockBeans(
     MockBean(ProjectController::class),
     MockBean(LnkContestExecutionService::class),
-    MockBean(LnkVulnerabilityUserRepository::class),
 )
 class ExecutionControllerTest {
     @Autowired

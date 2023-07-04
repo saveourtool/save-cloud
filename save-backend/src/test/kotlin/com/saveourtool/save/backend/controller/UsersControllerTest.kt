@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
-import com.saveourtool.save.backend.repository.vulnerability.LnkVulnerabilityUserRepository
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OriginalLogin
@@ -24,7 +23,6 @@ import org.springframework.test.web.reactive.server.expectBody
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(InfraExtension::class)
-@MockBeans(MockBean(LnkVulnerabilityUserRepository::class))
 class UsersControllerTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
