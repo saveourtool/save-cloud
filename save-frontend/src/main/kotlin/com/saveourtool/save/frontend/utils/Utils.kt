@@ -26,6 +26,9 @@ import web.cssom.ClassName
 import web.dom.Element
 import web.html.HTMLInputElement
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -110,6 +113,15 @@ fun String.parsePositionString(): List<Int>? = substringAfter("(", "")
     .flatten()
     .takeIf { it.size == 4 }
     ?.mapIndexed { idx, value -> value.toInt() - idx % 2 }
+
+/**
+ * @param time time to set to [LocalDateTime]
+ * @return [LocalDateTime] from [String]
+ */
+fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
+    LocalDate.parse(this),
+    time,
+)
 
 /**
  * @return `true` if this user is a super-admin, `false` otherwise.
