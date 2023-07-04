@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.fontawesome.faPaperPlane
+import com.saveourtool.save.frontend.externals.fontawesome.faTimes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
@@ -114,11 +115,18 @@ val commentWindow: FC<CommentWindowProps> = FC { props ->
             className = ClassName("shadow-none card col-10 text-left border-0")
             val comment = props.comment
             div {
-                className = ClassName("flex-wrap")
+                className = ClassName("flex-wrap d-flex justify-content-between")
                 style = jso { background = "#f1f1f1".unsafeCast<Background>() }
                 span {
                     className = ClassName("ml-1")
                     +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
+                }
+                div {
+                    if (props.currentUserInfo?.canDelete(props.comment) == true) {
+                        buttonBuilder(faTimes, style = "", classes = "btn-sm") {
+                            props.setCommentForDeletion(props.comment)
+                        }
+                    }
                 }
             }
             div {
@@ -137,6 +145,16 @@ external interface CommentWindowProps : PropsWithChildren {
      * User comment
      */
     var comment: CommentDto
+
+    /**
+     * [UserInfo] of current user
+     */
+    var currentUserInfo: UserInfo?
+
+    /**
+     * Callback invoked to set selected comment for deletion
+     */
+    var setCommentForDeletion: (CommentDto) -> Unit
 }
 
 /**
@@ -153,6 +171,8 @@ external interface NewCommentWindowProps : PropsWithChildren {
      */
     var currentUserInfo: UserInfo
 }
+
+private fun UserInfo.canDelete(commentDto: CommentDto) = isSuperAdmin() || name == commentDto.userName
 
 @Suppress("MAGIC_NUMBER")
 private fun ChildrenBuilder.renderLeftColumn(
