@@ -63,6 +63,7 @@ $color-label-loading: $color-in-progress;
         color: $color-label-default;
         transition: all 200ms ease;
         font-weight: 5;
+        pointer-events: none;
         &.completed {
           color: $color-label-completed;
         }
@@ -80,6 +81,7 @@ $color-label-loading: $color-in-progress;
         font-weight: 700;
         width: 6.5rem;
         text-align: center;
+        pointer-events: none;
         &.completed {
           color: $color-label-completed;
         }
