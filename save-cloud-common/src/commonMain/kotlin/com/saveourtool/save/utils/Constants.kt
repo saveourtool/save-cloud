@@ -54,6 +54,12 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
+ * `X-Authorization-Source`, used to specify an _OAuth_ provider (`basic`,
+ * `github`, `dex`, etc.).
+ */
+const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
+
+/**
  * Default time to execute setup.sh
  */
 @Suppress("NON_EXPORTABLE_TYPE")

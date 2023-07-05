@@ -6,7 +6,7 @@ import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.api.errors.SaveCloudError
 import com.saveourtool.save.api.impl.DefaultSaveCloudClient
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus.CREATED
 import com.saveourtool.save.entities.contest.ContestDto
@@ -37,7 +37,7 @@ interface SaveCloudClientEx {
      * @return either the list of organizations, or the error if an error has
      *  occurred.
      */
-    suspend fun listOrganizations(): Either<SaveCloudError, List<Organization>>
+    suspend fun listOrganizations(): Either<SaveCloudError, List<OrganizationDto>>
 
     /**
      * Lists the existing (i.e. [non-deleted][CREATED]) projects within the organization.
@@ -45,7 +45,7 @@ interface SaveCloudClientEx {
      * @param organizationName the organization name.
      * @return either the list of projects, or the error if an error has
      *  occurred.
-     * @see Organization.listProjects
+     * @see OrganizationDto.listProjects
      */
     suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>>
 
@@ -55,7 +55,7 @@ interface SaveCloudClientEx {
      * @param organizationName the organization name.
      * @return either the list of test suites, or the error if an error has
      *  occurred.
-     * @see Organization.listTestSuites
+     * @see OrganizationDto.listTestSuites
      */
     suspend fun listTestSuites(organizationName: String): Either<SaveCloudError, List<TestSuiteVersioned>>
 
@@ -65,7 +65,7 @@ interface SaveCloudClientEx {
      * @param organizationName the organization name.
      * @param projectName the name of the project.
      * @return either the list of files, or the error if an error has occurred.
-     * @see Organization.listFiles
+     * @see OrganizationDto.listFiles
      */
     suspend fun listFiles(organizationName: String, projectName: String): Either<SaveCloudError, List<FileDto>>
 
@@ -81,7 +81,7 @@ interface SaveCloudClientEx {
      *   `diktat.jar`.
      * @return the descriptor of the uploaded file.
      * @throws IllegalArgumentException if [file] is not a regular file.
-     * @see Organization.uploadFile
+     * @see OrganizationDto.uploadFile
      */
     suspend fun uploadFile(
         organizationName: String,
@@ -97,7 +97,7 @@ interface SaveCloudClientEx {
      * @param contestName the optional name of the contest.
      * @return either the list of executions, or the error if an error has
      *  occurred.
-     * @see Organization.listExecutions
+     * @see OrganizationDto.listExecutions
      */
     suspend fun listExecutions(
         organizationName: String,
@@ -140,7 +140,7 @@ interface SaveCloudClientEx {
      * @param limit the maxim number of contests returned.
      * @return either the list of active contests, or the error if an error has
      *  occurred.
-     * @see Organization.listActiveContests
+     * @see OrganizationDto.listActiveContests
      */
     suspend fun listActiveContests(
         organizationName: String,
@@ -167,7 +167,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listProjects
      */
-    suspend fun Organization.listProjects(): Either<SaveCloudError, List<ProjectDto>> =
+    suspend fun OrganizationDto.listProjects(): Either<SaveCloudError, List<ProjectDto>> =
             listProjects(organizationName = name)
 
     /**
@@ -177,7 +177,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listTestSuites
      */
-    suspend fun Organization.listTestSuites(): Either<SaveCloudError, List<TestSuiteVersioned>> =
+    suspend fun OrganizationDto.listTestSuites(): Either<SaveCloudError, List<TestSuiteVersioned>> =
             listTestSuites(organizationName = name)
 
     /**
@@ -187,7 +187,7 @@ interface SaveCloudClientEx {
      * @return either the list of files, or the error if an error has occurred.
      * @see SaveCloudClientEx.listFiles
      */
-    suspend fun Organization.listFiles(projectName: String): Either<SaveCloudError, List<FileDto>> =
+    suspend fun OrganizationDto.listFiles(projectName: String): Either<SaveCloudError, List<FileDto>> =
             listFiles(organizationName = name, projectName)
 
     /**
@@ -203,7 +203,7 @@ interface SaveCloudClientEx {
      * @throws IllegalArgumentException if [file] is not a regular file.
      * @see SaveCloudClientEx.uploadFile
      */
-    suspend fun Organization.uploadFile(
+    suspend fun OrganizationDto.uploadFile(
         projectName: String,
         file: Path,
         contentType: ContentType? = null,
@@ -224,7 +224,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listExecutions
      */
-    suspend fun Organization.listExecutions(
+    suspend fun OrganizationDto.listExecutions(
         projectName: String,
         contestName: String? = null,
     ): Either<SaveCloudError, List<ExecutionDto>> =
@@ -244,7 +244,7 @@ interface SaveCloudClientEx {
      *  occurred.
      * @see SaveCloudClientEx.listActiveContests
      */
-    suspend fun Organization.listActiveContests(
+    suspend fun OrganizationDto.listActiveContests(
         projectName: String,
         limit: Int = Int.MAX_VALUE
     ): Either<SaveCloudError, List<ContestDto>> =

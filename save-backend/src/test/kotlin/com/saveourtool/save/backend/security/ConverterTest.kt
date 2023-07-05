@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
@@ -19,7 +20,7 @@ class ConverterTest {
             MockServerWebExchange.from(
                 MockServerHttpRequest.get("any")
                     .header(HttpHeaders.AUTHORIZATION, "Basic ${"user:".base64Encode()}")
-                    .header("X-Authorization-Source", "basic")
+                    .header(AUTHORIZATION_SOURCE, "basic")
             )
         )
             .block()!!
