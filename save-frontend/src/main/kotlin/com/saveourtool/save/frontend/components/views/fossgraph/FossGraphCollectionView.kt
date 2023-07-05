@@ -38,7 +38,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
     useBackground(Style.BLUE)
     val navigate = useNavigate()
 
-    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.created)
+    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.approved)
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityListTab.PUBLIC)
     val (publicTable, setPublicTable) = useState(true)
 
@@ -160,10 +160,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                                     when (VulnerabilityListTab.valueOf(value)) {
                                         VulnerabilityListTab.PUBLIC -> {
                                             setVulnerabilityFilters {
-                                                VulnerabilityFilter(
-                                                    prefixName = "",
-                                                    status = VulnerabilityStatus.APPROVED,
-                                                )
+                                                VulnerabilityFilter.approved
                                             }
                                             setPublicTable(true)
                                         }
