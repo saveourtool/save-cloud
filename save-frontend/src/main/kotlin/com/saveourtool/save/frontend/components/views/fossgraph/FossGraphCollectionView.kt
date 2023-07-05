@@ -38,8 +38,9 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
     useBackground(Style.BLUE)
     val navigate = useNavigate()
 
-    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.created)
+    val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.approved)
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityListTab.PUBLIC)
+    val (publicTable, setPublicTable) = useState(true)
 
     @Suppress(
         "TYPE_ALIAS",
@@ -69,6 +70,22 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                     Fragment.create {
                         td {
                             +"${ cellContext.row.original.progress }"
+                        }
+                    }
+                }
+                column(id = "language", header = "Language", { language }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +"${ cellContext.row.original.language }"
+                        }
+                    }
+                }
+                if (!publicTable) {
+                    column(id = "status", header = "Status", { status }) { cellContext ->
+                        Fragment.create {
+                            td {
+                                +"${cellContext.row.original.status}"
+                            }
                         }
                     }
                 }
@@ -140,23 +157,33 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                                 }
                                 tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
                                     setSelectedMenu { VulnerabilityListTab.valueOf(value) }
-                                    setVulnerabilityFilters {
-                                        when (VulnerabilityListTab.valueOf(value)) {
-                                            VulnerabilityListTab.PUBLIC -> VulnerabilityFilter(
-                                                prefixName = "",
-                                                status = VulnerabilityStatus.APPROVED,
-                                            )
+                                    when (VulnerabilityListTab.valueOf(value)) {
+                                        VulnerabilityListTab.PUBLIC -> {
+                                            setVulnerabilityFilters {
+                                                VulnerabilityFilter.approved
+                                            }
+                                            setPublicTable(true)
+                                        }
 
-                                            VulnerabilityListTab.ADMIN -> VulnerabilityFilter(
-                                                prefixName = "",
-                                                status = VulnerabilityStatus.CREATED,
-                                            )
+                                        VulnerabilityListTab.ADMIN -> {
+                                            setVulnerabilityFilters {
+                                                VulnerabilityFilter(
+                                                    prefixName = "",
+                                                    status = VulnerabilityStatus.CREATED,
+                                                )
+                                            }
+                                            setPublicTable(false)
+                                        }
 
-                                            VulnerabilityListTab.OWNER -> VulnerabilityFilter(
-                                                prefixName = "",
-                                                status = VulnerabilityStatus.CREATED,
-                                                isOwner = true,
-                                            )
+                                        VulnerabilityListTab.OWNER -> {
+                                            setVulnerabilityFilters {
+                                                VulnerabilityFilter(
+                                                    prefixName = "",
+                                                    status = VulnerabilityStatus.CREATED,
+                                                    isOwner = true,
+                                                )
+                                            }
+                                            setPublicTable(false)
                                         }
                                     }
                                 }

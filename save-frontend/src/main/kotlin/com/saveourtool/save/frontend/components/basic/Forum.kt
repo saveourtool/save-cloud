@@ -126,7 +126,9 @@ val commentWindow: FC<CommentWindowProps> = FC { props ->
                 div {
                     if (props.currentUserInfo?.canDelete(props.comment) == true) {
                         buttonBuilder(faTimes, style = "", classes = "btn-sm") {
-                            props.setCommentForDeletion(props.comment)
+                            if (window.confirm("Are you sure you want to delete a comment?")) {
+                                props.setCommentForDeletion(props.comment)
+                            }
                         }
                     }
                 }

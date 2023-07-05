@@ -129,20 +129,14 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                     position = "absolute".unsafeCast<Position>()
                     right = "0%".unsafeCast<Left>()
                 }
-                if (isSuperAdmin || isOwner) {
-                    buttonBuilder(
-                        icon = faTrash,
-                        style = "danger",
-                        isOutline = true,
-                        classes = "mr-2",
-                        title = "Delete vulnerability",
-                    ) {
-                        deleteVulnerabilityWindowOpenness.openWindow()
+                if (isSuperAdmin && vulnerability.status != VulnerabilityStatus.APPROVED) {
+                    buttonBuilder(label = "Approve", classes = "mr-2", style = "success") {
+                        enrollUpdateRequest()
                     }
                 }
-                if (isSuperAdmin && vulnerability.status != VulnerabilityStatus.APPROVED) {
-                    buttonBuilder(label = "Approve", style = "success") {
-                        enrollUpdateRequest()
+                if (isSuperAdmin || isOwner) {
+                    buttonBuilder(faTrash, "danger", isOutline = true, title = "Delete vulnerability") {
+                        deleteVulnerabilityWindowOpenness.openWindow()
                     }
                 }
             }
