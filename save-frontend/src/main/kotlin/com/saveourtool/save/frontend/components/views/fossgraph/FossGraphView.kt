@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views.fossgraph
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
@@ -55,7 +56,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityTab.INFO)
 
     val enrollUpdateRequest = useDeferredRequest {
-        val vulnerabilityUpdate = vulnerability.copy(isActive = true)
+        val vulnerabilityUpdate = vulnerability.copy(status = VulnerabilityStatus.APPROVED)
         val response = post(
             url = "$apiUrl/vulnerabilities/approve",
             headers = jsonHeaders,
@@ -139,7 +140,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         deleteVulnerabilityWindowOpenness.openWindow()
                     }
                 }
-                if (isSuperAdmin && !vulnerability.isActive) {
+                if (isSuperAdmin && vulnerability.status != VulnerabilityStatus.APPROVED) {
                     buttonBuilder(label = "Approve", style = "success") {
                         enrollUpdateRequest()
                     }

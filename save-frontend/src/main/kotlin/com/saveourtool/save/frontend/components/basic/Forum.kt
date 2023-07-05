@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.toUnixCalendarFormat
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.ChildrenBuilder
@@ -23,6 +24,7 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 import react.useState
 import web.cssom.*
 
@@ -195,12 +197,15 @@ private fun ChildrenBuilder.renderLeftColumn(
                     className = ClassName("row justify-content-center g-3 ml-3 mr-3 pb-2 pt-2 border-bottom-0")
                     div {
                         className = ClassName("md-4 pl-0 pr-0")
-                        img {
-                            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                            src = avatar
-                            height = 80.0
-                            width = 80.0
-                            onError = { setAvatar(AVATAR_PLACEHOLDER) }
+                        Link {
+                            img {
+                                className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                src = avatar
+                                height = 80.0
+                                width = 80.0
+                                onError = { setAvatar(AVATAR_PLACEHOLDER) }
+                            }
+                            to = "/${FrontendRoutes.PROFILE.path}/$name"
                         }
                     }
                     div {
@@ -219,7 +224,10 @@ private fun ChildrenBuilder.renderLeftColumn(
                         }
                         h1 {
                             className = ClassName("col-12 text-center font-weight-bold h5")
-                            +name
+                            Link {
+                                to = "/${FrontendRoutes.PROFILE.path}/$name"
+                                +name
+                            }
                         }
                     }
                 }
