@@ -39,7 +39,7 @@ fun <T : Any> ChildrenBuilder.carousel(
         className = ClassName("carousel slide card flex-md-row box-shadow $outerClasses")
         if (isIndicated && items.size > 1) {
             ol {
-                className = ClassName("carousel-indicators mb-0")
+                className = ClassName("carousel-indicators mt-2 mb-2")
                 items.forEachIndexed { index, _ ->
                     li {
                         if (index == 0) {
@@ -48,6 +48,12 @@ fun <T : Any> ChildrenBuilder.carousel(
                         style = jso { this.backgroundColor = Colors.GREY.unsafeCast<Color>() }
                         asDynamic()["data-target"] = "#$carouselBodyId"
                         asDynamic()["data-slide-to"] = index
+                        style = jso {
+                            borderRadius = 1.em
+                            height = 0.em
+                            width = 0.em
+                            border = "0.25rem solid #808080".unsafeCast<Border>()
+                        }
                     }
                 }
             }
