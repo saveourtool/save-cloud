@@ -67,6 +67,7 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(libs.ktor.client.apache)
@@ -74,6 +75,7 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             tasks.withType<Test> {
                 useJUnitPlatform()
@@ -84,12 +86,14 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val linuxX64Main by getting {
             dependencies {
                 implementation(libs.ktor.client.curl)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val linuxX64Test by getting
     }
 
