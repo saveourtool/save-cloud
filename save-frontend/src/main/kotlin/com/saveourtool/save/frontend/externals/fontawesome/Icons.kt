@@ -192,6 +192,14 @@ external val faCode: FontAwesomeIconModule
 @JsNonModule
 external val faTag: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faTable")
+@JsNonModule
+external val faTable: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faImage")
+@JsNonModule
+external val faImage: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faCodeBranch")
 @JsNonModule
 external val faCodeBranch: FontAwesomeIconModule
