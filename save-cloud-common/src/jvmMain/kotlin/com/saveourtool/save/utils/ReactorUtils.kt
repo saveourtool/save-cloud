@@ -260,6 +260,24 @@ fun ByteReadChannel.toByteArrayFlow(partSize: Long = DEFAULT_PART_SIZE): Flow<By
 }
 
 /**
+ * @param status [HttpStatus] that the [ResponseStatusException] should have
+ * @param messageCreator lazy error message
+ * @return [Mono] filled with [ResponseStatusException] with [status] and message created with [messageCreator]
+ */
+fun <T> Mono<T>.switchIfErrorToResponseException(
+    status: HttpStatus,
+    messageCreator: () -> String? = { null },
+) = onErrorMap { _ -> ResponseStatusException(status, messageCreator()) }
+
+/**
+ * @param messageCreator lazy error message
+ * @return [Mono] filled with [ResponseStatusException] with [HttpStatus.CONFLICT] status and message created with [messageCreator]
+ */
+fun <T> Mono<T>.switchIfErrorToConflict(
+    messageCreator: () -> String? = { null },
+) = switchIfErrorToResponseException(HttpStatus.CONFLICT, messageCreator)
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC

@@ -53,33 +53,17 @@ $color-label-loading: $color-in-progress;
           animation-timing-function: linear;
         }
       }
-      .text-label {
-        position: absolute;
-        filter: none;
-        bottom: 20px;
-        z-index: 3;
-        color: $color-label-default;
-        transition: all 200ms ease;
-        font-weight: 700;
-        width: 6rem;
-        text-align: center;
-        &.completed {
-          color: $color-label-completed;
-        }
-        &.loading {
-          color: $color-label-loading;
-        }
-      }
       .date-label {
         position: absolute;
-        top: 20px;
+        top: 15px;
         filter: none;
         z-index: 3;
-        width: 6rem;
+        width: 6.5rem;
         text-align: center;
         color: $color-label-default;
         transition: all 200ms ease;
         font-weight: 5;
+        pointer-events: none;
         &.completed {
           color: $color-label-completed;
         }
@@ -87,6 +71,27 @@ $color-label-loading: $color-in-progress;
           color: $color-label-loading;
         }
       }
+      .text-label {
+        position: absolute;
+        filter: none;
+        bottom: 15px;
+        z-index: 3;
+        color: $color-label-default;
+        transition: all 200ms ease;
+        font-weight: 700;
+        width: 6.5rem;
+        text-align: center;
+        pointer-events: none;
+        &.completed {
+          color: $color-label-completed;
+        }
+        &.loading {
+          color: $color-label-loading;
+        }
+      }
+    }
+    .step.completed.hoverable:hover {
+      border: 8px solid red;
     }
     .line {
       transition: all 200ms ease;

@@ -307,6 +307,73 @@
         ]
       }
     },
+    "/api/v1/comments/delete": {
+      "post": {
+        "description": "Delete comment.",
+        "operationId": "deleteComment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted comment"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "User permissions are not enough to delete requested comment"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Requested comment was not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete comment.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
     "/api/v1/comments/get-all": {
       "post": {
         "description": "Save new comment.",
@@ -9562,6 +9629,60 @@
           "vulnerabilities"
         ]
       }
+    },
+    "/api/v1/vulnerabilities/user-in-vulnerability": {
+      "get": {
+        "description": "Get list of user by vulnerability id.",
+        "operationId": "getUserInVulnerabilityByVulnerabilityId",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityId",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of user by vulnerability id"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get list of user by vulnerability id.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
     }
   },
   "components": {
@@ -11441,6 +11562,7 @@
       "VulnerabilityDto": {
         "required": [
           "dates",
+          "datesWithLabels",
           "isActive",
           "language",
           "name",
@@ -11455,6 +11577,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/VulnerabilityDateDto"
+            }
+          },
+          "datesWithLabels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           },
           "description": {
