@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.components.views.welcome.chevron
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import react.FC
@@ -18,6 +19,7 @@ import web.cssom.*
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<IndexViewProps> = FC { props ->
     useBackground(Style.BLUE)
+    particles()
     main {
         className = ClassName("main-content")
         div {
