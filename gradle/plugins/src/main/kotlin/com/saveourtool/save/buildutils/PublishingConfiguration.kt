@@ -15,6 +15,7 @@ import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Failure
@@ -158,7 +159,7 @@ private fun Project.configureSigningCommon(useKeys: SigningExtension.() -> Unit 
      *
      * See also https://github.com/gradle/gradle/issues/17043.
      */
-    val signingTasks = tasks.withType<Sign>()
+    val signingTasks: TaskCollection<Sign> = tasks.withType()
     tasks.withType<AbstractPublishToMaven>().configureEach {
         dependsOn(signingTasks)
     }
