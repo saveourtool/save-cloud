@@ -16,17 +16,19 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
 
     div {
         className = ClassName("mb-3")
-        div {
-            className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
-            +"Timeline"
+        props.title?.let { title ->
+            div {
+                className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
+                +title
+            }
         }
         div {
-            className = ClassName("card card-body p-0 timeline-container")
+            className = ClassName("p-0 timeline-container")
             div {
                 style = jso {
                     position = "absolute".unsafeCast<Position>()
-                    right = "0%".unsafeCast<Right>()
-                    top = "0%".unsafeCast<Top>()
+                    right = "1%".unsafeCast<Right>()
+                    top = "14%".unsafeCast<Top>()
                     zIndex = "4".unsafeCast<ZIndex>()
                 }
                 props.onAddClick?.let { onClickCallback ->
@@ -74,6 +76,11 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
  * [Props] of [timelineComponent]
  */
 external interface TimelineComponentProps : Props {
+    /**
+     * Timeline title
+     */
+    var title: String?
+
     /**
      * Map with dates where key is [LocalDateTime] and value is label
      */
