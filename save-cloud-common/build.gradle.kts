@@ -64,6 +64,7 @@ kotlin {
                 }
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
@@ -89,6 +90,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.reactor)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             tasks.withType<Test> {
                 useJUnitPlatform()
@@ -104,6 +106,7 @@ kotlin {
         val linuxX64Main by getting
         val macosX64Main by getting
 
+        @Suppress("UNUSED_VARIABLE")
         val nativeMain by creating {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)

@@ -29,6 +29,7 @@ kotlin {
         val macosX64Main by getting
         val linuxX64Main by getting
 
+        @Suppress("UNUSED_VARIABLE")
         val nativeMain by creating {
             macosX64Main.dependsOn(this)
             linuxX64Main.dependsOn(this)
@@ -53,6 +54,7 @@ kotlin {
         val macosX64Test by getting
         val linuxX64Test by getting
 
+        @Suppress("UNUSED_VARIABLE")
         val nativeTest by creating {
             macosX64Test.dependsOn(this)
             linuxX64Test.dependsOn(this)
