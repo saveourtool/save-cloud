@@ -38,7 +38,7 @@ internal val featuredContests = VFC {
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setFeaturedContests(contests)
     }
 

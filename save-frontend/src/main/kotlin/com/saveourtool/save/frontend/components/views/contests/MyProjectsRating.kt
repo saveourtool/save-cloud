@@ -26,7 +26,8 @@ val myProjectsRating: FC<ContestListViewProps> = FC { props ->
                 url = "$apiUrl/projects/get-for-current-user",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<Set<ProjectDto>>()
+            )
+                .unsafeMap { it.decodeFromJsonString<Set<ProjectDto>>() }
         )
     }
 

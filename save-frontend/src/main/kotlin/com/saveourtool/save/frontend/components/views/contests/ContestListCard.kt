@@ -66,7 +66,7 @@ val contestList = VFC {
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setActiveContests(contests.toSet())
     }
 
@@ -77,7 +77,7 @@ val contestList = VFC {
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setFinishedContests(contests.toSet())
     }
 
