@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
  * TODO: move all the hasPermission methods here
  */
 @Component
-class UserPermissionEvaluator {
+class CommentPermissionEvaluator {
     /**
      * Check permission for user to read, write and delete [Comment]s by its [CommentDto]
      *

@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.security.UserPermissionEvaluator
+import com.saveourtool.save.backend.security.CommentPermissionEvaluator
 import com.saveourtool.save.backend.service.CommentService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.entities.Comment
@@ -35,7 +35,7 @@ import reactor.kotlin.core.publisher.toMono
 @RequestMapping(path = ["/api/$v1/comments"])
 class CommentController(
     private val commentService: CommentService,
-    private val userPermissionEvaluator: UserPermissionEvaluator,
+    private val commentPermissionEvaluator: CommentPermissionEvaluator,
 ) {
     @PostMapping("/save")
     @Operation(
@@ -86,7 +86,7 @@ class CommentController(
         @RequestBody comment: CommentDto,
         authentication: Authentication,
     ): Mono<StringResponse> = comment.toMono()
-        .filter { userPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
+        .filter { commentPermissionEvaluator.hasPermission(authentication, it, Permission.DELETE) }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) { "Permissions required for comment deletion were not granted." }
         .flatMap { blockingToMono { commentService.deleteComment(it) } }
         .switchIfEmptyToNotFound { "Could not find requested comment." }
