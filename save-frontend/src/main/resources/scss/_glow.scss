@@ -1,8 +1,5 @@
 @import url("https://fonts.googleapis.com/css?family=Raleway");
 
-.logo-parent {
-}
-
 :root {
   --glow-color: hsl(186 100% 69%);
 }
@@ -79,28 +76,28 @@
   transition: opacity 100ms linear;
 }
 
-.glowing-btn:hover {
+.logo-main:hover .glowing-btn {
   color: rgba(0, 0, 0, 0.8);
   text-shadow: none;
   animation: none;
 }
 
-.glowing-btn:hover .glowing-txt {
+.logo-main:hover .glowing-txt {
   animation: none;
 }
 
-.glowing-btn:hover .faulty-letter {
+.logo-main:hover .faulty-letter {
   animation: none;
   text-shadow: none;
   opacity: 1;
 }
 
-.glowing-btn:hover:before {
+.logo-main:hover .glowing-btn:before{
   filter: blur(1.5em);
   opacity: 1;
 }
 
-.glowing-btn:hover:after {
+.logo-main:hover .glowing-btn:after {
   opacity: 1;
 }
 
@@ -226,11 +223,11 @@ a:hover {
 }
 
 .logo-main h3 {
-    opacity: 0.1;
-    transition: 1s
+    opacity: 0.2;
+    transition: 0.7s
 }
 
 .logo-main:hover h3 {
     opacity: 1;
-    transition: 1s
+    transition: 0.7s
 }

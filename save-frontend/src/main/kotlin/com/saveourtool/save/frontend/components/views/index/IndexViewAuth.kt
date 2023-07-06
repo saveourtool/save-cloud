@@ -55,7 +55,7 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
             @Suppress("MAGIC_NUMBER")
             oauthProviders.map {
                 oauthLogin(
-                    5.rem, it, "animate__backInUp",
+                    4.rem, it, "animate__backInUp",
                     when (it.registrationId) {
                         "github" -> faGithub
                         "codehub" -> faCopyright
