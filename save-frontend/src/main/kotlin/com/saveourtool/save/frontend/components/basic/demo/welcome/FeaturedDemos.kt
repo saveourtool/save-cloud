@@ -50,7 +50,7 @@ internal val featuredDemos = VFC {
         }
     }
 
-    carousel(featuredDemos, "demoCarousel", outerClasses = "p-2") { demoDto ->
+    carousel(featuredDemos, "demoCarousel", outerClasses = "p-2 card") { demoDto ->
         div {
             className = ClassName("col-3 ml-auto justify-content-center")
             img {

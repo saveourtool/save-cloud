@@ -15,9 +15,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
-import react.ChildrenBuilder
-import react.StateSetter
-import react.VFC
+import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -25,7 +23,6 @@ import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
-import react.useState
 import web.cssom.*
 import web.html.ButtonType
 
@@ -79,7 +76,7 @@ internal val featuredContests = VFC {
                 stayTuned()
             }
         } else {
-            carousel(featuredContests, "contestCarousel", jso { height = 15.rem }) { contestToShow ->
+            carousel(featuredContests, "contestCarousel", jso { height = 15.rem }, "card") { contestToShow ->
                 div {
                     className = ClassName("col-3 ml-auto")
                     img {

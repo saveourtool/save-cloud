@@ -9,8 +9,11 @@ import react.react
  * @property hexColor color in hex format with leading `#` (example: #aabbcc)
  */
 enum class Color(val hexColor: String) {
+    DANGER("#dc3545"),
     GREEN("#00d500"),
     RED("#ac0000"),
+    SUCCESS("#28a745"),
+    WARNING("#ffc107"),
     YELLOW("#f0dd0e"),
     ;
 }
@@ -27,7 +30,7 @@ fun ChildrenBuilder.progressBar(
     progress: Int,
     size: Int = 100,
     lineWidth: Int = 50,
-    color: String = Color.GREEN.hexColor,
+    color: String = Color.SUCCESS.hexColor,
     handler: ChildrenBuilder.(ReactCircleProps) -> Unit = {},
 ) {
     ReactCircle::class.react {
