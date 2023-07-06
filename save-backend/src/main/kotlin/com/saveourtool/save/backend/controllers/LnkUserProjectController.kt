@@ -56,6 +56,7 @@ class LnkUserProjectController(
         summary = "Get projects of current authenticated user",
         description = "Get list of projects related to current user",
     )
+    @PreAuthorize("permitAll()")
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
     fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> {
         val userIdFromAuth = (authentication.details as AuthenticationDetails).id
