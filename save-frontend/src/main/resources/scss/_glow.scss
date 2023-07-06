@@ -1,8 +1,5 @@
 @import url("https://fonts.googleapis.com/css?family=Raleway");
 
-.logo-parent {
-}
-
 :root {
   --glow-color: hsl(186 100% 69%);
 }
@@ -33,7 +30,6 @@
     0px 0px 0.5em 0px var(--glow-color);
   box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
     0px 0px 0.5em 0px var(--glow-color);
-  animation: border-flicker 2s linear infinite;
 }
 
 .glowing-txt {
@@ -44,12 +40,12 @@
   -moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
     0 0 0.45em var(--glow-color);
   text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-  animation: text-flicker 3s linear infinite;
+  animation: text-flicker 6s linear infinite;
 }
 
 .faulty-letter {
   opacity: 0.5;
-  animation: faulty-flicker 2s linear infinite;
+  animation: faulty-flicker 5s linear infinite;
 }
 
 .glowing-btn::before {
@@ -80,28 +76,28 @@
   transition: opacity 100ms linear;
 }
 
-.glowing-btn:hover {
+.logo-main:hover .glowing-btn {
   color: rgba(0, 0, 0, 0.8);
   text-shadow: none;
   animation: none;
 }
 
-.glowing-btn:hover .glowing-txt {
+.logo-main:hover .glowing-txt {
   animation: none;
 }
 
-.glowing-btn:hover .faulty-letter {
+.logo-main:hover .faulty-letter {
   animation: none;
   text-shadow: none;
   opacity: 1;
 }
 
-.glowing-btn:hover:before {
+.logo-main:hover .glowing-btn:before{
   filter: blur(1.5em);
   opacity: 1;
 }
 
-.glowing-btn:hover:after {
+.logo-main:hover .glowing-btn:after {
   opacity: 1;
 }
 
@@ -224,4 +220,14 @@ a:hover {
 .logo-main:hover img {
 	-webkit-filter: grayscale(0);
 	filter: grayscale(0);
+}
+
+.logo-main h3 {
+    opacity: 0.2;
+    transition: 0.7s
+}
+
+.logo-main:hover h3 {
+    opacity: 1;
+    transition: 0.7s
 }

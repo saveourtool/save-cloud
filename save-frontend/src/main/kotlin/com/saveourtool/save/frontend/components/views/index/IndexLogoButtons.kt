@@ -11,6 +11,7 @@ import react.VFC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import web.cssom.Border
@@ -30,7 +31,11 @@ val logoButtons = VFC {
                 "#/${FrontendRoutes.SAVE}",
                 "img/save-logo-bg.jpg",
             )
-            neonLightingText("SAVE", "#/${FrontendRoutes.SAVE}")
+            neonLightingText(
+                "SAVE",
+                "#/${FrontendRoutes.SAVE}",
+                "Cloud Platform for CI and Benchmarking of Code Analyzers"
+            )
         }
 
         div {
@@ -40,7 +45,11 @@ val logoButtons = VFC {
                 "img/vuln-logo-bg.jpg",
             )
 
-            neonLightingText("VULN", "#/${FrontendRoutes.VULNERABILITIES}")
+            neonLightingText(
+                "VULN",
+                "#/${FrontendRoutes.VULNERABILITIES}",
+                "Archive of 1-Day Vulnerabilities Aggregated from Various Sources"
+            )
         }
 
         div {
@@ -66,7 +75,7 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
     }
 }
 
-private fun ChildrenBuilder.neonLightingText(input: String, url: String) {
+private fun ChildrenBuilder.neonLightingText(input: String, url: String, labelText: String) {
     a {
         href = url
         div {
@@ -86,6 +95,11 @@ private fun ChildrenBuilder.neonLightingText(input: String, url: String) {
                     }
                 }
             }
+        }
+
+        h3 {
+            className = ClassName("mt-5 mx-3 text-white")
+            +labelText
         }
     }
 }

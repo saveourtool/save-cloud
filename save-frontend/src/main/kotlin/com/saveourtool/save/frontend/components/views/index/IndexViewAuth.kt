@@ -55,7 +55,7 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
             @Suppress("MAGIC_NUMBER")
             oauthProviders.map {
                 oauthLogin(
-                    5.rem, it, "animate__backInUp",
+                    4.rem, it, "animate__backInUp",
                     when (it.registrationId) {
                         "github" -> faGithub
                         "codehub" -> faCopyright
@@ -81,7 +81,7 @@ val separator = VFC {
             className = ClassName("col-6")
 
             div {
-                className = ClassName("separator mt-5 text-white")
+                className = ClassName("separator text-white")
                 +"Sign in"
             }
         }
