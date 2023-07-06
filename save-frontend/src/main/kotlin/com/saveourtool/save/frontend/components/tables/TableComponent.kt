@@ -222,7 +222,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             }
         }
         div {
-            className = ClassName("card-body ${props.cardBodyClassName}")
+            className = ClassName("${props.cardBodyClassName} card-body")
             div {
                 className = ClassName("table-responsive")
                 table {

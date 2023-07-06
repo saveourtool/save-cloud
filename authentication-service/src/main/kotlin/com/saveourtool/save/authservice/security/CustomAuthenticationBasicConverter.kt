@@ -1,7 +1,7 @@
 package com.saveourtool.save.authservice.security
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-
+import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
@@ -23,7 +23,7 @@ ServerAuthenticationConverter {
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     override fun convert(exchange: ServerWebExchange): Mono<Authentication> = super.convert(exchange).map { authentication ->
         val name = (authentication as UsernamePasswordAuthenticationToken).principal as String
-        val source = exchange.request.headers["X-Authorization-Source"]?.firstOrNull()
+        val source = exchange.request.headers[AUTHORIZATION_SOURCE]?.firstOrNull()
         UsernamePasswordAuthenticationToken(
             "$source:$name",
             authentication.credentials as String

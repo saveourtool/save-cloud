@@ -9002,10 +9002,10 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-id-name-and-active": {
+    "/api/v1/vulnerabilities/by-id-name-and-status": {
       "get": {
         "description": "Get vulnerability by vulnerabilityIdentifier.",
-        "operationId": "getVulnerabilityByVulnerabilityIdentifierAndActive",
+        "operationId": "getVulnerabilityByVulnerabilityIdentifierAndStatus",
         "parameters": [
           {
             "in": "query",
@@ -9017,10 +9017,16 @@
           },
           {
             "in": "query",
-            "name": "isActive",
+            "name": "status",
             "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "CREATED",
+                "REJECTED",
+                "REOPENED"
+              ]
             }
           }
         ],
@@ -9057,7 +9063,7 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-name-and-active": {
+    "/api/v1/vulnerabilities/by-name-and-status": {
       "get": {
         "description": "Get vulnerability by name.",
         "operationId": "getVulnerabilityByNameAndActive",
@@ -9072,10 +9078,16 @@
           },
           {
             "in": "query",
-            "name": "isActive",
+            "name": "status",
             "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "CREATED",
+                "REJECTED",
+                "REOPENED"
+              ]
             }
           }
         ],
@@ -9159,7 +9171,7 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-user-and-active": {
+    "/api/v1/vulnerabilities/by-user-and-status": {
       "get": {
         "description": "Get list of vulnerabilities by user id.",
         "operationId": "getVulnerabilityByUser",
@@ -9174,10 +9186,16 @@
           },
           {
             "in": "query",
-            "name": "isActive",
+            "name": "status",
             "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "CREATED",
+                "REJECTED",
+                "REOPENED"
+              ]
             }
           }
         ],
@@ -9268,6 +9286,63 @@
           }
         ],
         "summary": "Deleted vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/delete-date": {
+      "post": {
+        "description": "Delete date.",
+        "operationId": "deleteDate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDateDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted date in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Requested date is not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete date.",
         "tags": [
           "vulnerabilities"
         ]
@@ -9512,6 +9587,26 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not either find user or find vulnerability"
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not save date as it is already present in vulnerability"
           }
         },
         "security": [
@@ -11563,12 +11658,13 @@
         "required": [
           "dates",
           "datesWithLabels",
-          "isActive",
           "language",
           "name",
+          "participants",
           "progress",
           "projects",
           "shortDescription",
+          "status",
           "userId"
         ],
         "type": "object",
@@ -11588,18 +11684,22 @@
           "description": {
             "type": "string"
           },
-          "isActive": {
-            "type": "boolean"
-          },
           "language": {
             "type": "string",
             "enum": [
               "C",
-              "Cpp",
+              "C++",
+              "C#",
+              "Go",
               "Java",
-              "JS",
+              "JavaScript",
               "Kotlin",
-              "Other"
+              "Other",
+              "PHP",
+              "Python",
+              "Rust",
+              "Sql",
+              "TypeScript"
             ]
           },
           "name": {
@@ -11607,6 +11707,12 @@
           },
           "organization": {
             "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfo"
+            }
           },
           "progress": {
             "type": "integer",
@@ -11624,6 +11730,15 @@
           "shortDescription": {
             "type": "string"
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "CREATED",
+              "REJECTED",
+              "REOPENED"
+            ]
+          },
           "userId": {
             "type": "integer",
             "format": "int64"
@@ -11635,20 +11750,26 @@
       },
       "VulnerabilityFilter": {
         "required": [
-          "active",
           "isOwner",
-          "prefixName"
+          "prefixName",
+          "status"
         ],
         "type": "object",
         "properties": {
-          "active": {
-            "type": "boolean"
-          },
           "isOwner": {
             "type": "boolean"
           },
           "prefixName": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "CREATED",
+              "REJECTED",
+              "REOPENED"
+            ]
           }
         }
       },

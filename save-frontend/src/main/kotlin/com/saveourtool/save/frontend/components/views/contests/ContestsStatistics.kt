@@ -25,7 +25,7 @@ internal val statistics = VFC {
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setActiveContests(contests.toSet())
     }
 

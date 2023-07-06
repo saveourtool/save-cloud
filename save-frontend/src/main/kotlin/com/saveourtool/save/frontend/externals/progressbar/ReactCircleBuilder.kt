@@ -2,18 +2,9 @@
 
 package com.saveourtool.save.frontend.externals.progressbar
 
+import com.saveourtool.save.frontend.themes.Colors
 import react.ChildrenBuilder
 import react.react
-
-/**
- * @property hexColor color in hex format with leading `#` (example: #aabbcc)
- */
-enum class Color(val hexColor: String) {
-    GREEN("#00d500"),
-    RED("#ac0000"),
-    YELLOW("#f0dd0e"),
-    ;
-}
 
 /**
  * @param progress progress and percentage
@@ -27,7 +18,7 @@ fun ChildrenBuilder.progressBar(
     progress: Int,
     size: Int = 100,
     lineWidth: Int = 50,
-    color: String = Color.GREEN.hexColor,
+    color: String = Colors.SUCCESS.value,
     handler: ChildrenBuilder.(ReactCircleProps) -> Unit = {},
 ) {
     ReactCircle::class.react {

@@ -44,7 +44,7 @@ internal val globalRating = VFC {
             body = Json.encodeToString(OrganizationFilter.created),
             loadingHandler = ::loadingHandler,
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setOrganizationsWithRating(organizationsFromBackend.toSet())
     }
 

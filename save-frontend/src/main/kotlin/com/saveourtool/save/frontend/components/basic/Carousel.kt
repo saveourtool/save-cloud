@@ -36,7 +36,7 @@ fun <T : Any> ChildrenBuilder.carousel(
     displayItem: ChildrenBuilder.(T) -> Unit,
 ) {
     div {
-        className = ClassName("carousel slide card flex-md-row box-shadow $outerClasses")
+        className = ClassName("carousel slide flex-md-row box-shadow $outerClasses")
         if (isIndicated && items.size > 1) {
             ol {
                 className = ClassName("carousel-indicators mt-2 mb-2")

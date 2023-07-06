@@ -25,20 +25,20 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
         div {
             className = ClassName("p-0 timeline-container")
             div {
-                style = jso {
-                    position = "absolute".unsafeCast<Position>()
-                    right = "1%".unsafeCast<Right>()
-                    top = "14%".unsafeCast<Top>()
-                    zIndex = "4".unsafeCast<ZIndex>()
-                }
-                props.onAddClick?.let { onClickCallback ->
-                    buttonBuilder(faPlus, style = "secondary", isOutline = true, classes = "rounded-circle btn-sm mt-1 mr-1") {
-                        onClickCallback()
+                className = ClassName("steps-container")
+                div {
+                    style = jso {
+                        position = "absolute".unsafeCast<Position>()
+                        right = "1%".unsafeCast<Right>()
+                        top = "0%".unsafeCast<Top>()
+                        zIndex = "4".unsafeCast<ZIndex>()
+                    }
+                    props.onAddClick?.let { onClickCallback ->
+                        buttonBuilder(faPlus, style = "secondary", isOutline = true, classes = "rounded-circle btn-sm mt-1 mr-1") {
+                            onClickCallback()
+                        }
                     }
                 }
-            }
-            div {
-                className = ClassName("steps-container")
                 div {
                     className = ClassName("line completed")
                 }

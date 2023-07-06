@@ -62,7 +62,7 @@ internal val contestSampleList = VFC {
                             headers = jsonHeaders,
                             ::loadingHandler,
                         )
-                            .decodeFromJsonString<Array<ContestSampleDto>>()
+                            .unsafeMap { it.decodeFromJsonString<Array<ContestSampleDto>>() }
                     }
                 }
             }
