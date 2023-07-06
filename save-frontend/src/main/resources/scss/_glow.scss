@@ -40,12 +40,12 @@
   -moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
     0 0 0.45em var(--glow-color);
   text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-  animation: text-flicker 4s linear infinite;
+  animation: text-flicker 6s linear infinite;
 }
 
 .faulty-letter {
   opacity: 0.5;
-  animation: faulty-flicker 3s linear infinite;
+  animation: faulty-flicker 5s linear infinite;
 }
 
 .glowing-btn::before {
