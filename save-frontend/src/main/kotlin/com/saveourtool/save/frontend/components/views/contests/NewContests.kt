@@ -30,7 +30,7 @@ internal val newContests = VFC {
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler
         )
-            .decodeFromJsonString()
+            .unsafeMap { it.decodeFromJsonString() }
         setNewContests(contests.sortedByDescending { it.creationTime })
     }
 
