@@ -2,7 +2,7 @@ $color-timeline-default: #D2D3D8;
 $color-step-completed: #5C6174;
 $color-in-progress: #13CB8F;
 $color-label-default: $color-timeline-default;
-$color-label-completed: $color-step-completed;
+$color-label-completed: #17a2b8;
 $color-label-loading: $color-in-progress;
 
 .timeline-container {
@@ -55,7 +55,7 @@ $color-label-loading: $color-in-progress;
       }
       .date-label {
         position: absolute;
-        top: 15px;
+        top: 1.75rem;
         filter: none;
         z-index: 3;
         width: 6.5rem;
@@ -74,7 +74,7 @@ $color-label-loading: $color-in-progress;
       .text-label {
         position: absolute;
         filter: none;
-        bottom: 15px;
+        bottom: 1.75rem;
         z-index: 3;
         color: $color-label-default;
         transition: all 200ms ease;
