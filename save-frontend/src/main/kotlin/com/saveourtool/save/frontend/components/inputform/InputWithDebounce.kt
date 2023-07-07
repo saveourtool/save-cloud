@@ -11,43 +11,48 @@ import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ReactHTML.datalist
+import react.dom.html.AutoComplete
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h4
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
-import web.cssom.ClassName
-import web.cssom.None
+import web.cssom.*
 import web.html.InputType
+import web.timers.setTimeout
+import kotlin.time.Duration.Companion.milliseconds
+
+private const val DROPDOWN_ID = "option-dropdown"
+private const val ON_BLUR_TIMEOUT_MILLIS = 100
 
 /**
- * Component that encapsulates debounced prefix autocompletion over [UserInfo]'s name field
+ * Component that encapsulates debounced prefix autocompletion over [UserInfo.name]
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val inputWithDebounceForUserInfo = inputWithDebounce<UserInfo>()
+val inputWithDebounceForUserInfo = inputWithDebounce(
+    asOption = { UserInfo(this) },
+    asString = { name },
+    decodeListFromJsonString = { decodeFromJsonString() },
+)
 
 /**
- * Component that encapsulates debounced prefix autocompletion over String
+ * Component that encapsulates debounced prefix autocompletion over [String]
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val inputWithDebounceForString = inputWithDebounce<String>()
+val inputWithDebounceForString = inputWithDebounce(
+    asOption = { this },
+    asString = { this },
+    decodeListFromJsonString = { decodeFromJsonString() },
+)
 
 /**
  * [Props] for [inputWithDebounce] component
  */
-external interface InputWithDebounceProps<T> : Props {
+external interface InputWithDebounceProps<T> : PropsWithChildren {
     /**
      * Callback to get url for options fetch
      */
-    var getUrlForOptions: (prefix: String) -> String
-
-    /**
-     * Callback to get string from option
-     */
-    var getString: (option: T) -> String
-
-    /**
-     * Callback to get option from string
-     */
-    var getOptionFromString: (optionAsString: String) -> T
+    var getUrlForOptionsFetch: (prefix: String) -> String
 
     /**
      * Currently selected option
@@ -63,7 +68,7 @@ external interface InputWithDebounceProps<T> : Props {
      * Callback to create [option] tag from [T]
      */
     @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "TYPE_ALIAS")
-    var getHTMLDataListElementFromOption: (ChildrenBuilder, option: T) -> Unit
+    var renderOption: (ChildrenBuilder, option: T) -> Unit
 
     /**
      * Debounce period, equals to [DEFAULT_DEBOUNCE_PERIOD] by default
@@ -71,57 +76,107 @@ external interface InputWithDebounceProps<T> : Props {
     var debouncePeriod: Int?
 
     /**
-     * Callback to decode [Response] into list of options
-     */
-    var decodeListFromJsonString: suspend (Response) -> List<T>
-
-    /**
      * Placeholder for form
      */
     var placeholder: String
+
+    /**
+     * Callback invoked on option click
+     */
+    var onOptionClick: (option: T) -> Unit
 }
 
-private fun <T> inputWithDebounce() = FC<InputWithDebounceProps<T>> { props ->
+/**
+ * @param childrenBuilder [ChildrenBuilder] instance
+ * @param userInfo user's [UserInfo]
+ */
+internal fun renderUserWithAvatar(childrenBuilder: ChildrenBuilder, userInfo: UserInfo) {
+    with(childrenBuilder) {
+        div {
+            className = ClassName("row col d-flex align-items-center")
+            div {
+                className = ClassName("col-1")
+                img {
+                    className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
+                    src = userInfo.avatar?.let { "/api/${com.saveourtool.save.v1}/avatar$it" }
+                        ?: "img/undraw_profile.svg"
+                    style = jso {
+                        width = "2rem".unsafeCast<Width>()
+                        height = "2rem".unsafeCast<Height>()
+                    }
+                }
+            }
+            h4 {
+                className = ClassName("col-auto mb-0")
+                +userInfo.name
+            }
+        }
+    }
+}
+
+@Suppress("TOO_LONG_FUNCTION")
+private fun <T> inputWithDebounce(
+    asOption: String.() -> T,
+    asString: T.() -> String,
+    decodeListFromJsonString: suspend Response.() -> List<T>,
+) = FC<InputWithDebounceProps<T>> { props ->
     val (options, setOptions) = useState<List<T>>(emptyList())
     val getOptions = useDebouncedDeferredRequest(props.debouncePeriod ?: DEFAULT_DEBOUNCE_PERIOD) {
-        if (props.getString(props.selectedOption).isNotBlank()) {
+        if (props.selectedOption.asString().isNotBlank()) {
             val optionsFromBackend: List<T> = get(
-                url = props.getUrlForOptions(props.getString(props.selectedOption)),
+                url = props.getUrlForOptionsFetch(props.selectedOption.asString()),
                 headers = jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
-                .unsafeMap {
-                    props.decodeListFromJsonString(it)
-                }
+                .unsafeMap { it.decodeListFromJsonString() }
             setOptions(optionsFromBackend)
         } else {
             setOptions(emptyList())
         }
     }
 
-    useEffect(props.selectedOption) {
-        getOptions()
-    }
+    useEffect(props.selectedOption) { getOptions() }
 
-    input {
-        type = InputType.text
-        className = ClassName("form-control")
-        id = "input-with-autocompletion"
-        list = "completions-for-input"
-        placeholder = props.placeholder
-        value = props.getString(props.selectedOption)
-        onChange = {
-            props.setSelectedOption(props.getOptionFromString(it.target.value))
-        }
-    }
-    datalist {
-        id = "completions-for-input"
+    div {
+        className = ClassName("")
+        id = "input-with-$DROPDOWN_ID"
         style = jso {
-            appearance = None.none
+            width = "100%".unsafeCast<Width>()
+            position = "relative".unsafeCast<Position>()
+            zIndex = "2".unsafeCast<ZIndex>()
         }
-        for (option in options) {
-            props.getHTMLDataListElementFromOption(this, option)
+        onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(emptyList()) } }
+        div {
+            className = ClassName("input-group")
+            input {
+                className = ClassName("form-control")
+                id = "input-with-autocompletion"
+                type = InputType.text
+                placeholder = props.placeholder
+                autoComplete = "off".unsafeCast<AutoComplete>()
+                value = props.selectedOption.asString()
+                onChange = { props.setSelectedOption(it.target.value.asOption()) }
+            }
+            props.children?.let { +it }
+        }
+        div {
+            className = ClassName("list-group")
+            id = DROPDOWN_ID
+            style = jso {
+                position = "absolute".unsafeCast<Position>()
+                top = "100%".unsafeCast<Top>()
+                width = "100%".unsafeCast<Width>()
+                zIndex = "2".unsafeCast<ZIndex>()
+            }
+            options.forEachIndexed { idx, option ->
+                div {
+                    className = ClassName("list-group-item list-group-item-action")
+                    id = "$DROPDOWN_ID-$idx"
+                    onClick = { props.onOptionClick(option) }
+                    props.renderOption(this, option)
+                }
+            }
         }
     }
 }
