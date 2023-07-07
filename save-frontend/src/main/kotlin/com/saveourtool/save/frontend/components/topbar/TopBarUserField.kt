@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
+import js.core.jso
 
 import react.*
 import react.dom.aria.*
@@ -27,6 +28,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import web.cssom.Width
+import web.cssom.rem
 
 val topBarUserField = topBarUserField()
 
@@ -91,20 +94,27 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             +(props.userInfo?.name.orEmpty())
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                        if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
-                            small {
-                                className = ClassName("text-gray-400 text-justify")
-                                +globalRole.formattedName
+                        small {
+                            className = ClassName("text-gray-400 text-justify")
+                            props.userInfo?.let {
+                                if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                                    +"Super user"
+                                } else {
+                                    +"User settings"
+                                }
                             }
                         }
                     }
-                    props.userInfo?.avatar?.let {
+                    props.userInfo?.let {
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = avatar
-                            height = 45.0
-                            width = 45.0
+                            src = it.avatar?.let { avatar } ?: AVATAR_PROFILE
+
+                            style = jso {
+                                height = 2.5.rem
+                                width = 2.5.rem
+                            }
                             onError = {
                                 setAvatar { AVATAR_PLACEHOLDER }
                             }

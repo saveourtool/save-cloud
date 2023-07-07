@@ -38,6 +38,11 @@ import kotlinx.serialization.json.Json
 internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
 
 /**
+ * Avatar profile for those who don't want to upload it
+ */
+internal const val AVATAR_PROFILE = "img/undraw_profile.svg"
+
+/**
  * The body of a [useDeferredRequest] invocation.
  *
  * @param T the return type of this action.

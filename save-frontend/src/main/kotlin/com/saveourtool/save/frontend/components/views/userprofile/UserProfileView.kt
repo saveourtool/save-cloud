@@ -148,7 +148,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                     "/api/$v1/avatar$path"
                 }
                     ?: run {
-                        "img/undraw_profile.svg"
+                        AVATAR_PROFILE
                     }
                 alt = ""
             }
@@ -272,7 +272,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                                         "/api/$v1/avatar$path"
                                     }
                                         ?: run {
-                                            "img/undraw_profile.svg"
+                                            AVATAR_PROFILE
                                         }
                                     alt = ""
                                 }

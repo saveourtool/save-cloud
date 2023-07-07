@@ -93,7 +93,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 style = jso {
                     height = "100vh".unsafeCast<Height>()
                     background =
-                            "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
                     position = Position.relative
                 }
                 span {
@@ -130,7 +130,7 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 className = ClassName("min-vh-100")
                 style = jso {
                     background =
-                            "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
+                        "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
                 }
 
                 renderGeneralInfoPage()
@@ -171,18 +171,17 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 }
                 div {
                     className = ClassName("row")
-                    div {
-                        className = ClassName("col text-center ")
-                        state.oauthProviders?.map {
-                            oauthLogin(
-                                3.4.rem, it, "",
-                                when (it.registrationId) {
-                                    "github" -> faGithub
-                                    "codehub" -> faCopyright
-                                    else -> faSignInAlt
-                                }
-                            )
-                        }
+                    state.oauthProviders?.map {
+                        oauthLogin(
+                            3.4.rem, it, "",
+                            "",
+                            when (it.registrationId) {
+                                "github" -> faGithub
+                                "codehub" -> faCopyright
+                                "gitee" -> faSignInAlt
+                                else -> faSignInAlt
+                            }
+                        )
                     }
                 }
             }
@@ -264,26 +263,26 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
     }
 
     private fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) =
-            a {
-                className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                href = link
-                h4 {
-                    style = jso {
-                        color = "#3075c0".unsafeCast<Color>()
-                        marginBottom = "0.0em".unsafeCast<Margin>()
-                    }
-                    fontAwesomeIcon(icon = icon, "ml-2 mr-2")
-                    +text
-                }
-            }
-
-    private fun ChildrenBuilder.hrNoMargin() =
-            hr {
+        a {
+            className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+            href = link
+            h4 {
                 style = jso {
-                    marginTop = "0.0em".unsafeCast<Margin>()
+                    color = "#3075c0".unsafeCast<Color>()
                     marginBottom = "0.0em".unsafeCast<Margin>()
                 }
+                fontAwesomeIcon(icon = icon, "ml-2 mr-2")
+                +text
             }
+        }
+
+    private fun ChildrenBuilder.hrNoMargin() =
+        hr {
+            style = jso {
+                marginTop = "0.0em".unsafeCast<Margin>()
+                marginBottom = "0.0em".unsafeCast<Margin>()
+            }
+        }
 
     companion object :
         RStatics<WelcomeProps, IndexViewState, WelcomeView, Context<RequestStatusContext?>>(WelcomeView::class) {

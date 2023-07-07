@@ -4,10 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.externals.fontawesome.faCopyright
-import com.saveourtool.save.frontend.externals.fontawesome.faGithub
-import com.saveourtool.save.frontend.externals.fontawesome.faSignInAlt
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
@@ -54,11 +51,14 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
             className = ClassName("col-6 text-center")
             @Suppress("MAGIC_NUMBER")
             oauthProviders.map {
+                val oauthProvider = it.registrationId
                 oauthLogin(
                     4.rem, it, "animate__backInUp",
-                    when (it.registrationId) {
+                    oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() },
+                    when (oauthProvider) {
                         "github" -> faGithub
                         "codehub" -> faCopyright
+                        "gitee" -> faSignInAlt
                         else -> faSignInAlt
                     }
                 )
@@ -101,14 +101,25 @@ fun ChildrenBuilder.oauthLogin(
     size: FontSize,
     provider: OauthProviderInfo,
     animate: String,
+    label: String = "",
     icon: dynamic
 ) {
-    a {
-        href = provider.authorizationLink
-        className = ClassName("btn btn-link px-5 text-white text-lg text-center animate__animated $animate")
-        style = jso {
-            fontSize = size
-        }
-        fontAwesomeIcon(icon = icon)
+    div {
+        className = ClassName("col")
+/*        a {
+            href = provider.authorizationLink
+            className = ClassName("text-center animate__animated $animate")*/
+            div {
+                className = ClassName("row text-white")
+                style = jso {
+                    fontSize = size
+                }
+                fontAwesomeIcon(icon = icon)
+            }
+            div {
+                className = ClassName("row text-center text-white")
+                +label
+            }
+/*        }*/
     }
 }

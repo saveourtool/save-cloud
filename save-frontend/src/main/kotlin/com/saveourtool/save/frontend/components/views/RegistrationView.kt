@@ -40,6 +40,8 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.router.Navigate
+import web.cssom.ZIndex
 
 /**
  * `Props` retrieved from router
@@ -122,7 +124,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 responseHandler = ::classComponentResponseHandlerWithValidation,
             )
             if (response.ok) {
-                window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
+                window.location.href = "#"
                 window.location.reload()
             } else if (response.isConflict()) {
                 val responseText = response.unpackMessage()
@@ -137,6 +139,13 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
     )
     override fun ChildrenBuilder.render() {
+        if (props.userInfo?.isActive != false) {
+            Navigate {
+                to = "/"
+                replace = false
+            }
+        }
+
         main {
             className = ClassName("main-content mt-0 ps")
             div {
@@ -150,6 +159,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                         className = ClassName("col-sm-4")
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            style = jso {
+                                zIndex = "900".unsafeCast<ZIndex>()
+                            }
                             div {
                                 className = ClassName("p-5 text-center")
                                 renderTitle()
@@ -194,7 +206,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 src = props.userInfo?.avatar?.let {
                     "/api/$v1/avatar$it"
                 }
-                    ?: "img/undraw_profile.svg"
+                    ?: AVATAR_PROFILE
                 style = jso {
                     height = 16.rem
                     width = 16.rem

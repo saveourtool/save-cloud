@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.utils.AVATAR_PROFILE
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
@@ -60,7 +61,7 @@ private fun userBoard() = FC<UserBoardProps> { props ->
                                     "/api/$v1/avatar$path"
                                 }
                                     ?: run {
-                                        "img/undraw_profile.svg"
+                                        AVATAR_PROFILE
                                     }
                                 alt = ""
                             }
