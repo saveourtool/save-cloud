@@ -8796,7 +8796,7 @@
     },
     "/api/v1/users/save": {
       "post": {
-        "operationId": "saveUser",
+        "operationId": "saveUser_1",
         "requestBody": {
           "content": {
             "application/json": {
@@ -9314,7 +9314,7 @@
                 }
               }
             },
-            "description": "Successfully deleted date in vulnerability"
+            "description": "Successfully deleted date from vulnerability"
           },
           "401": {
             "content": {
@@ -9379,7 +9379,7 @@
                 }
               }
             },
-            "description": "Successfully deleted project in vulnerability"
+            "description": "Successfully deleted project from vulnerability"
           },
           "401": {
             "content": {
@@ -9398,6 +9398,71 @@
           }
         ],
         "summary": "Delete project.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/delete-user": {
+      "delete": {
+        "description": "Delete user.",
+        "operationId": "deleteUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "type": "string"
+                  },
+                  "vulnerabilityName": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted user from vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Requested user is not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete user.",
         "tags": [
           "vulnerabilities"
         ]
@@ -9665,6 +9730,81 @@
           }
         ],
         "summary": "Save new projects.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/save-user": {
+      "post": {
+        "description": "Save new date.",
+        "operationId": "saveUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "type": "string"
+                  },
+                  "vulnerabilityName": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully saved new user in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not either find user or find vulnerability"
+          },
+          "409": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not save user as it is already present in vulnerability"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save new date.",
         "tags": [
           "vulnerabilities"
         ]
