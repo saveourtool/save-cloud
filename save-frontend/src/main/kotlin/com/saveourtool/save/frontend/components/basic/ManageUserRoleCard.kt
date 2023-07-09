@@ -9,18 +9,24 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
+import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.v1
 
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import web.cssom.ClassName
+import web.cssom.Height
+import web.cssom.Width
 import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString
@@ -125,9 +131,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
-            .unsafeMap {
-                it.decodeFromJsonString<String>()
-            }
+            .unsafeMap { it.decodeFromJsonString<String>() }
             .toRole()
         if (role.isLowerThan(OWNER) && props.selfUserInfo.isSuperAdmin()) {
             showGlobalRoleConfirmation()
@@ -135,107 +139,87 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         setSelfRole(getHighestRole(role, props.selfUserInfo.globalRole))
     }
 
-    useOnce {
-        getUsersFromGroup()
-    }
+    useOnce { getUsersFromGroup() }
 
     div {
         className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
         div {
             className = ClassName("row mt-0 ml-0 mr-0 shadow-sm rounded")
-            div {
-                className = ClassName("input-group")
-                inputWithDebounceForUserInfo {
-                    getOptionFromString = { UserInfo(it) }
-                    selectedOption = userToAdd
-                    setSelectedOption = { setUserToAdd(it) }
-                    getUrlForOptions = { prefix -> "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=$prefix" }
-                    getString = { it.name }
-                    placeholder = "username"
-                    decodeListFromJsonString = { it.decodeFromJsonString() }
-                    getHTMLDataListElementFromOption = { childrenBuilder, userInfo ->
-                        with(childrenBuilder) {
-                            option {
-                                value = userInfo.name
-                                label = userInfo.source
-                            }
-                        }
-                    }
+            inputWithDebounceForUserInfo {
+                selectedOption = userToAdd
+                setSelectedOption = { setUserToAdd(it) }
+                onOptionClick = {
+                    setUserToAdd(it)
+                    addUserToGroup()
                 }
-                div {
-                    className = ClassName("input-group-append")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-outline-success")
-                        onClick = {
-                            addUserToGroup()
-                        }
-                        disabled = userToAdd.name.isBlank()
-                        +"Add user"
-                    }
-                }
+                getUrlForOptionsFetch = { prefix -> "$apiUrl/${props.groupType}s/${props.groupPath}/users/not-from?prefix=$prefix" }
+                placeholder = "Input name..."
+                renderOption = ::renderUserWithAvatar
             }
         }
-        for (user in usersFromGroup) {
-            val userName = user.name
-            val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
-            val userIndex = usersFromGroup.indexOf(user)
-            div {
-                className = ClassName("row mt-2 mr-0 justify-content-between align-items-center")
+        div {
+            for (user in usersFromGroup) {
+                val userName = user.name
+                val userRole = props.getUserGroups(user)[props.groupPath] ?: Role.VIEWER
+                val userIndex = usersFromGroup.indexOf(user)
                 div {
-                    className = ClassName("col-7 d-flex justify-content-start align-items-center")
+                    className = ClassName("row mt-2 mr-0 justify-content-between align-items-center")
                     div {
-                        className = ClassName("col-2 align-items-center")
-                        fontAwesomeIcon(
-                            when (user.source) {
-                                "github" -> faGithub
-                                "codehub" -> faCopyright
-                                else -> faHome
-                            },
-                            classes = "h-75 w-75"
-                        )
-                    }
-                    div {
-                        className = ClassName("col-7 text-left align-self-center pl-0")
-                        +userName
-                    }
-                }
-                div {
-                    className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn col-2 align-items-center mr-2")
-                        fontAwesomeIcon(icon = faTimesCircle)
-                        val canDelete = selfRole.isSuperAdmin() ||
-                                selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
-                                userRole.isLowerThan(selfRole)
-                        id = "remove-user-$userIndex"
-                        hidden = !canDelete
-                        onClick = {
-                            setUserToDelete(usersFromGroup[userIndex])
-                            deleteUser()
-                        }
-                    }
-                    select {
-                        className = ClassName("custom-select col-9")
-                        onChange = { event ->
-                            setRoleChange { SetRoleRequest(userName, event.target.value.toRole()) }
-                            updatePermissions()
-                        }
-                        value = userRole.formattedName
-                        id = "role-$userIndex"
-                        rolesAssignableBy(selfRole)
-                            .sortedByDescending {
-                                it.priority
-                            }
-                            .map {
-                                option {
-                                    value = it.formattedName
-                                    +it.formattedName
+                        className = ClassName("col-7 d-flex justify-content-start align-items-center")
+                        div {
+                            className = ClassName("col-2 align-items-center")
+                            img {
+                                className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
+                                src = user.avatar?.let { "/api/$v1/avatar$it" }
+                                    ?: "img/undraw_profile.svg"
+                                style = jso {
+                                    width = "2rem".unsafeCast<Width>()
+                                    height = "2rem".unsafeCast<Height>()
                                 }
                             }
-                        disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
-                                !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
+                        }
+                        div {
+                            className = ClassName("col-7 text-left align-self-center pl-0")
+                            +userName
+                        }
+                    }
+                    div {
+                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn col-2 align-items-center mr-2")
+                            fontAwesomeIcon(icon = faTimesCircle)
+                            val canDelete = selfRole.isSuperAdmin() ||
+                                    selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                                    userRole.isLowerThan(selfRole)
+                            id = "remove-user-$userIndex"
+                            hidden = !canDelete
+                            onClick = {
+                                setUserToDelete(usersFromGroup[userIndex])
+                                deleteUser()
+                            }
+                        }
+                        select {
+                            className = ClassName("custom-select col-9")
+                            onChange = { event ->
+                                setRoleChange { SetRoleRequest(userName, event.target.value.toRole()) }
+                                updatePermissions()
+                            }
+                            value = userRole.formattedName
+                            id = "role-$userIndex"
+                            rolesAssignableBy(selfRole)
+                                .sortedByDescending {
+                                    it.priority
+                                }
+                                .map {
+                                    option {
+                                        value = it.formattedName
+                                        +it.formattedName
+                                    }
+                                }
+                            disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
+                                    !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
+                        }
                     }
                 }
             }
