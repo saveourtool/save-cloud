@@ -10,8 +10,8 @@ import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ReactHTML.a
@@ -23,15 +23,21 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useNavigate
 import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
-import web.cssom.Width
-import web.cssom.rem
 
 val topBarUserField = topBarUserField()
+
+@Suppress("MAGIC_NUMBER")
+val logoSize: CSSProperties =
+        jso {
+            height = 2.5.rem
+            width = 2.5.rem
+        }
 
 /**
  * [Props] of the top bar user field component
@@ -105,16 +111,12 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             }
                         }
                     }
-                    props.userInfo?.let {
+                    props.userInfo?.let { userInfo ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = it.avatar?.let { avatar } ?: AVATAR_PROFILE
-
-                            style = jso {
-                                height = 2.5.rem
-                                width = 2.5.rem
-                            }
+                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE
+                            style = logoSize
                             onError = {
                                 setAvatar { AVATAR_PLACEHOLDER }
                             }

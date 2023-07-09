@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.components.views.welcome.mappingFromTypeToFontLogo
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -45,27 +46,27 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("row mt-2")
         div {
-            className = ClassName("col-3 text-center")
+            className = ClassName("col-4 text-center")
         }
         div {
-            className = ClassName("col-6 text-center")
+            className = ClassName("col-4 text-center")
             @Suppress("MAGIC_NUMBER")
-            oauthProviders.map {
-                val oauthProvider = it.registrationId
-                oauthLogin(
-                    4.rem, it, "animate__backInUp",
-                    oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() },
-                    when (oauthProvider) {
-                        "github" -> faGithub
-                        "codehub" -> faCopyright
-                        "gitee" -> faSignInAlt
-                        else -> faSignInAlt
-                    }
-                )
+            div {
+                className = ClassName("row")
+                oauthProviders.map { userInfo ->
+                    val oauthProvider = userInfo.registrationId
+                    oauthLogin(
+                        4.rem,
+                        userInfo,
+                        "animate__backInUp",
+                        oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() },
+                        mappingFromTypeToFontLogo(oauthProvider)
+                    )
+                }
             }
         }
         div {
-            className = ClassName("col-3 text-center")
+            className = ClassName("col-4 text-center")
         }
     }
 }
@@ -96,6 +97,7 @@ val separator = VFC {
  * @param provider oauth provider (Huawei, Gitee, Github, etc.)
  * @param icon icon logo
  * @param animate
+ * @param label
  */
 fun ChildrenBuilder.oauthLogin(
     size: FontSize,
@@ -105,21 +107,21 @@ fun ChildrenBuilder.oauthLogin(
     icon: dynamic
 ) {
     div {
-        className = ClassName("col")
-/*        a {
+        className = ClassName("animated-provider col animate__animated $animate")
+        a {
             href = provider.authorizationLink
-            className = ClassName("text-center animate__animated $animate")*/
+            className = ClassName("text-center")
             div {
-                className = ClassName("row text-white")
+                className = ClassName("col text-center text-white")
                 style = jso {
                     fontSize = size
                 }
                 fontAwesomeIcon(icon = icon)
             }
             div {
-                className = ClassName("row text-center text-white")
+                className = ClassName("col text-center text-white")
                 +label
             }
-/*        }*/
+        }
     }
 }

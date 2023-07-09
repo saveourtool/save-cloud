@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
@@ -30,7 +29,9 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import react.router.Navigate
 import web.cssom.ClassName
+import web.cssom.ZIndex
 import web.cssom.rem
 import web.html.ButtonType
 import web.html.HTMLInputElement
@@ -40,8 +41,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.router.Navigate
-import web.cssom.ZIndex
 
 /**
  * `Props` retrieved from router
