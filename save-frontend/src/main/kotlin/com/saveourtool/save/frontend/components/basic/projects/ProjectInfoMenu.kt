@@ -131,6 +131,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
             }
             userBoard {
                 users = usersInProject
+                avatarOuterClasses = "col-4 px-0"
+                avatarInnerClasses = "mx-sm-3"
             }
         }
 
