@@ -99,7 +99,7 @@ private fun ChildrenBuilder.inputTextFormOptional(
 
         name?.let { name ->
             label {
-                className = ClassName("form-label")
+                className = ClassName("form-label mb-0")
                 htmlFor = form.name
                 +name
             }
