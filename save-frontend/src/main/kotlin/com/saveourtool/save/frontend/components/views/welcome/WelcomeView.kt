@@ -166,23 +166,19 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
                 }
                 h4 {
-                    className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
+                    className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
                     +"Sign in"
                 }
                 div {
                     className = ClassName("row")
-                    div {
-                        className = ClassName("col text-center ")
-                        state.oauthProviders?.map {
-                            oauthLogin(
-                                3.4.rem, it, "",
-                                when (it.registrationId) {
-                                    "github" -> faGithub
-                                    "codehub" -> faCopyright
-                                    else -> faSignInAlt
-                                }
-                            )
-                        }
+                    state.oauthProviders?.map {
+                        oauthLogin(
+                            3.4.rem,
+                            it,
+                            "",
+                            "",
+                            mappingFromTypeToFontLogo(it.registrationId)
+                        )
                     }
                 }
             }
@@ -292,3 +288,14 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 }
+
+/**
+ * @param registrationId oauth provider name from api-gateway
+ */
+fun mappingFromTypeToFontLogo(registrationId: String) =
+        when (registrationId) {
+            "github" -> faGithub
+            "codehub" -> faCopyright
+            "gitee" -> faSignInAlt
+            else -> faSignInAlt
+        }

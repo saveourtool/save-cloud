@@ -205,7 +205,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
@@ -341,6 +341,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 className = ClassName("col-3")
                 userBoard {
                     users = state.usersInOrganization.orEmpty()
+                    avatarOuterClasses = "col-4 px-0"
+                    avatarInnerClasses = "mx-sm-3"
                 }
             }
         }
@@ -538,7 +540,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         width = 100.0
                         onError = {
                             setState {
-                                avatar = AVATAR_PLACEHOLDER
+                                avatar = ORGANIZATION_AVATAR_PLACEHOLDER
                             }
                         }
                     }

@@ -67,7 +67,7 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
             (img {
                 src = img
                 style = jso {
-                    width = 20.rem
+                    width = 17.rem
                     border = "0.2rem solid hsl(186 100% 69%)".unsafeCast<Border>()
                 }
             })
