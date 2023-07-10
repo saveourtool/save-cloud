@@ -112,17 +112,10 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             requestModalHandler {
                 userInfo = state.userInfo
 
-                withRouter<Props> { location, _ ->
-                    if (state.userInfo?.isActive == false && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
-                        Navigate {
-                            to = "/${FrontendRoutes.REGISTRATION.path}"
-                            replace = false
-                        }
-                    } else if (state.userInfo?.isActive == true && location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
-                        Navigate {
-                            to = "/${FrontendRoutes.PROJECTS.path}"
-                            replace = false
-                        }
+                if (state.userInfo?.isActive == false) {
+                    Navigate {
+                        to = "/${FrontendRoutes.REGISTRATION.path}"
+                        replace = false
                     }
                 }
 

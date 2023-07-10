@@ -208,7 +208,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }

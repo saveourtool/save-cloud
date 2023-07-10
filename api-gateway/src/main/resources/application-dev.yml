@@ -16,6 +16,10 @@ spring:
       client:
         provider:
           # example: https://github.com/wearearima/spring-boot-dex/blob/master/src/main/resources/application.properties
+          gitee:
+            authorization-uri: https://gitee.com/oauth/authorize
+            token-uri: https://gitee.com/oauth/token
+            user-info-uri: https://gitee.com/api/v5/user
           dex:
             authorization-uri: http://localhost:5556/dex/auth
             token-uri: http://localhost:5556/dex/token
@@ -31,6 +35,15 @@ spring:
             # for more details.
             user-name-attribute: login
         registration:
+          gitee:
+            client-id: 6b7fc07ecdf7a12d9aa8e2aaf034743baa6f77e036dc22fe6455e02fcf51a851
+            client-secret: 8908a8a4239c688af45a4db89ec27d4a7e7f5076dc3125b07b506de6414926a3
+            client-name: Gitee
+            provider: gitee
+            redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+            scope:
+              - user_info
           dex:
             client-id: save-gateway-dev
             client-secret: 123test123

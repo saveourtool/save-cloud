@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.CSSProperties
@@ -17,11 +18,6 @@ import web.cssom.ClassName
  * Placeholder for organization avatar
  */
 const val ORGANIZATION_AVATAR_PLACEHOLDER = "img/company.svg"
-
-/**
- * Placeholder for user avatar
- */
-const val USER_AVATAR_PLACEHOLDER = "img/undraw_profile.svg"
 
 /**
  * Render organization avatar or placeholder
@@ -51,7 +47,7 @@ fun ChildrenBuilder.renderAvatar(
     classes: String = "",
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
-) = renderAvatar(userInfo.avatar ?: USER_AVATAR_PLACEHOLDER, classes, link, styleBuilder)
+) = renderAvatar(userInfo.avatar ?: AVATAR_PROFILE_PLACEHOLDER, classes, link, styleBuilder)
 
 private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,

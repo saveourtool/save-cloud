@@ -6,7 +6,12 @@ import com.saveourtool.save.frontend.externals.modal.Styles
 import react.CSSProperties
 import kotlin.js.json
 
-private val defaultOverlayProperties: CSSProperties = json("zIndex" to "1000").unsafeCast<CSSProperties>()
+/**
+ * Maximum zIndex in the project, should be only used in modal windows
+ */
+internal const val MAX_Z_INDEX = 1000
+
+private val defaultOverlayProperties: CSSProperties = json("zIndex" to MAX_Z_INDEX.toString()).unsafeCast<CSSProperties>()
 
 val defaultModalStyle = Styles(
     // make modal window occupy center of the screen

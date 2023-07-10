@@ -8,13 +8,13 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
@@ -30,7 +30,9 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import react.router.Navigate
 import web.cssom.ClassName
+import web.cssom.ZIndex
 import web.cssom.rem
 import web.html.ButtonType
 import web.html.HTMLInputElement
@@ -122,7 +124,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 responseHandler = ::classComponentResponseHandlerWithValidation,
             )
             if (response.ok) {
-                window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
+                window.location.href = "#"
                 window.location.reload()
             } else if (response.isConflict()) {
                 val responseText = response.unpackMessage()
@@ -137,6 +139,15 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
     )
     override fun ChildrenBuilder.render() {
+        particles()
+
+        if (props.userInfo?.isActive != false) {
+            Navigate {
+                to = "/"
+                replace = false
+            }
+        }
+
         main {
             className = ClassName("main-content mt-0 ps")
             div {
@@ -150,6 +161,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                         className = ClassName("col-sm-4")
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            style = jso {
+                                zIndex = (MAX_Z_INDEX - 1).unsafeCast<ZIndex>()
+                            }
                             div {
                                 className = ClassName("p-5 text-center")
                                 renderTitle()
@@ -194,7 +208,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 src = props.userInfo?.avatar?.let {
                     "/api/$v1/avatar$it"
                 }
-                    ?: "img/undraw_profile.svg"
+                    ?: AVATAR_PROFILE_PLACEHOLDER
                 style = jso {
                     height = 16.rem
                     width = 16.rem

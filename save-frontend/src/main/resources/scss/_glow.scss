@@ -177,28 +177,6 @@
   }
 }
 
-@keyframes border-flicker {
-  0% {
-    opacity: 0.1;
-  }
-  2% {
-    opacity: 1;
-  }
-  4% {
-    opacity: 0.1;
-  }
-
-  8% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 @media only screen and (max-width: 600px) {
   .glowing-btn{
     font-size: 1em;
@@ -230,4 +208,14 @@ a:hover {
 .logo-main:hover h3 {
     opacity: 1;
     transition: 0.7s
+}
+
+// ======= oauth providers ======
+.animated-provider .col {
+    transition: 0.4s
+}
+
+.animated-provider:hover .col {
+    transition: 0.4s;
+    transform: scale(1.2);
 }
