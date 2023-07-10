@@ -5,12 +5,19 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
+import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.Parameters
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.data.domain.Pageable
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller that handles operation with users
@@ -46,6 +54,38 @@ class UsersDetailsController(
                 .map { it.user }
                 .map { it.toUserInfo() }
         }
+
+    @GetMapping("/by-prefix")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get users by prefix.",
+        description = "Get list of users by prefix with ids not in.",
+    )
+    @Parameters(
+        Parameter(name = "prefix", `in` = ParameterIn.QUERY, description = "username prefix", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of users that should be returned, default: 5", required = false),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched users.")
+    @RequiresAuthorizationSourceHeader
+    fun findByPrefix(
+        @RequestParam prefix: String,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+        @RequestParam(required = false, defaultValue = "") ids: String,
+    ): Flux<UserInfo> = ids.toMono()
+        .map { stringIds -> stringIds.split(DATABASE_DELIMITER) }
+        .map { stringIdList -> stringIdList.filter { it.isNotBlank() }.map { it.toLong() }.toSet() }
+        .flatMapMany { idList ->
+            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `idList` results with empty list for some reason
+            blockingToFlux {
+                if (idList.isNotEmpty()) {
+                    userRepository.findByNameStartingWithAndIdNotIn(prefix, idList, Pageable.ofSize(pageSize))
+                } else {
+                    userRepository.findByNameStartingWith(prefix, Pageable.ofSize(pageSize))
+                }
+            }
+        }
+        .map { it.toUserInfo() }
 
     /**
      * @return list of [UserInfo] info about user's
@@ -127,8 +167,7 @@ class UsersDetailsController(
      * @param name
      * @return user
      */
-    fun getByName(name: String): User? =
-            userRepository.findByName(name) ?: run {
-                originalLoginRepository.findByName(name)?.user
-            }
+    fun getByName(name: String): User? = userRepository.findByName(name) ?: run {
+        originalLoginRepository.findByName(name)?.user
+    }
 }
