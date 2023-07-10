@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
@@ -138,6 +139,8 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "EMPTY_BLOCK_STRUCTURE_ERROR",
     )
     override fun ChildrenBuilder.render() {
+        particles()
+
         if (props.userInfo?.isActive != false) {
             Navigate {
                 to = "/"
@@ -159,7 +162,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                         div {
                             className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             style = jso {
-                                zIndex = "900".unsafeCast<ZIndex>()
+                                zIndex = (MAX_Z_INDEX - 1).unsafeCast<ZIndex>()
                             }
                             div {
                                 className = ClassName("p-5 text-center")
