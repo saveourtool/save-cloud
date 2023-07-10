@@ -205,7 +205,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 src = props.userInfo?.avatar?.let {
                     "/api/$v1/avatar$it"
                 }
-                    ?: AVATAR_PROFILE
+                    ?: AVATAR_PROFILE_PLACEHOLDER
                 style = jso {
                     height = 16.rem
                     width = 16.rem

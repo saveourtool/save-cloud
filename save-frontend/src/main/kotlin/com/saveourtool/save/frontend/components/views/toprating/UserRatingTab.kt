@@ -70,7 +70,7 @@ val userRatingTable: FC<Props> = FC { _ ->
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = cellContext.row.original.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    } ?: AVATAR_PROFILE
+                                    } ?: AVATAR_PROFILE_PLACEHOLDER
                                     style = jso {
                                         height = 2.rem
                                         width = 2.rem

@@ -11,13 +11,14 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.TabMenuBar
+import com.saveourtool.save.frontend.components.basic.renderAvatar
+import com.saveourtool.save.frontend.components.basic.userBoard
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -26,7 +27,6 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.hr
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
@@ -200,23 +200,27 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                         vulnerability.organization?.run {
                             hr { }
                             h6 {
-                                className = ClassName("font-weight-bold text-primary mb-4")
+                                className = ClassName("font-weight-bold text-primary mb-3")
                                 +"Organization"
                             }
                             Link {
-                                img {
-                                    className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
-                                    style = jso {
-                                        height = 2.rem
-                                        width = 2.rem
-                                    }
+                                renderAvatar(this@run) {
+                                    height = 2.rem
+                                    width = 2.rem
                                 }
                                 to = "/${vulnerability.organization?.name}"
                                 +" ${vulnerability.organization?.name}"
+                            }
+                        }
+                        if (vulnerability.participants.isNotEmpty()) {
+                            hr { }
+                            h6 {
+                                className = ClassName("font-weight-bold text-primary mb-4")
+                                +"Users"
+                            }
+                            userBoard {
+                                users = vulnerability.participants
+                                avatarOuterClasses = "col-2"
                             }
                         }
                     }

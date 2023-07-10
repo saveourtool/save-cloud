@@ -6,70 +6,51 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.frontend.utils.AVATAR_PROFILE
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
-import js.core.jso
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
-import react.dom.html.ReactHTML.img
-import react.router.dom.Link
-import web.cssom.BorderRadius
 import web.cssom.ClassName
 
 /**
- * React element type that represents user board and can be rendered
- */
-val userBoard = userBoard()
-
-/**
- * [Props] for user board component
- */
-external interface UserBoardProps : Props {
-    /**
-     * list of users that should be displayed
-     */
-    var users: List<UserInfo>
-}
-
-/**
  * A functional component to display users' avatars.
- *
- * @return a functional component representing a board of users
  */
-@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-private fun userBoard() = FC<UserBoardProps> { props ->
+val userBoard: FC<UserBoardProps> = FC { props ->
     div {
         className = ClassName("latest-photos")
         div {
             className = ClassName("row")
             props.users.forEach { user ->
                 div {
-                    className = ClassName("col-4 px-0")
+                    className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
-                        Link {
-                            img {
-                                className = ClassName("img-fluid px-sm-3")
-                                style = jso {
-                                    borderRadius = "50%".unsafeCast<BorderRadius>()
-                                }
-                                src = user.avatar?.let { path ->
-                                    "/api/$v1/avatar$path"
-                                }
-                                    ?: run {
-                                        AVATAR_PROFILE
-                                    }
-                                alt = ""
-                            }
-                            to = "/${FrontendRoutes.PROFILE.path}/${user.name}"
-                        }
+                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE.path}/${user.name}")
                     }
                 }
             }
         }
     }
+}
+
+/**
+ * [Props] for [userBoard] component
+ */
+external interface UserBoardProps : Props {
+    /**
+     * list of users that should be displayed
+     */
+    var users: List<UserInfo>
+
+    /**
+     * Classes that are applied to [div] that contains img tag
+     */
+    var avatarOuterClasses: String?
+
+    /**
+     * Classes that are applied to img tag
+     */
+    var avatarInnerClasses: String?
 }

@@ -120,7 +120,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 userInfo = user
                 userInfo?.let { updateFieldsMap(it) }
                 selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
-                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
             }
         }
     }

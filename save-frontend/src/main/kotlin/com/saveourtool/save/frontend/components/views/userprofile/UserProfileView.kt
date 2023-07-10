@@ -148,7 +148,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                     "/api/$v1/avatar$path"
                 }
                     ?: run {
-                        AVATAR_PROFILE
+                        AVATAR_PROFILE_PLACEHOLDER
                     }
                 alt = ""
             }
@@ -272,7 +272,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                                         "/api/$v1/avatar$path"
                                     }
                                         ?: run {
-                                            AVATAR_PROFILE
+                                            AVATAR_PROFILE_PLACEHOLDER
                                         }
                                     alt = ""
                                 }

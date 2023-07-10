@@ -115,7 +115,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE
+                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
                             style = logoSize
                             onError = {
                                 setAvatar { AVATAR_PLACEHOLDER }

@@ -185,7 +185,7 @@ private fun ChildrenBuilder.renderLeftColumn(
     rating: Long,
     color: String = "#f1f1f1",
 ) {
-    val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE)
+    val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER)
 
     div {
         className = ClassName("input-group-prepend col-2")
