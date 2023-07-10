@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.utils.toUnixCalendarFormat
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -27,12 +28,14 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
 
+import kotlinx.datetime.TimeZone
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -164,6 +167,29 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                             value = vulnerability.shortDescription
                             rows = 2
                             disabled = true
+                        }
+                        hr { }
+                        div {
+                            className = ClassName("d-flex justify-content-between align-items-center")
+                            label {
+                                className = ClassName("m-0")
+                                +"Creation time:"
+                            }
+                            label {
+                                className = ClassName("m-0")
+                                +vulnerability.creationDateTime?.toUnixCalendarFormat(TimeZone.currentSystemDefault())
+                            }
+                        }
+                        div {
+                            className = ClassName("d-flex justify-content-between align-items-center")
+                            label {
+                                className = ClassName("m-0")
+                                +"Last updated time:"
+                            }
+                            label {
+                                className = ClassName("m-0")
+                                +(vulnerability.lastUpdatedDateTime?.toUnixCalendarFormat(TimeZone.currentSystemDefault()))
+                            }
                         }
                         hr { }
                         h6 {
