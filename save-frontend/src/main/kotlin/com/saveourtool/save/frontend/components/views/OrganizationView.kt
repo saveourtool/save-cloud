@@ -9,10 +9,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationToolsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.*
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -234,6 +231,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             OrganizationMenuBar.TESTS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
+            OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
         }
     }
 
@@ -405,6 +403,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
                 }
             }
+        }
+    }
+
+    private fun ChildrenBuilder.renderVulnerabilities() {
+        organizationVulnerabilitiesMenu {
+            organizationName = props.organizationName
         }
     }
 
