@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
+import com.saveourtool.save.v1
 
 import js.core.jso
 import org.w3c.fetch.Response
@@ -84,6 +85,11 @@ external interface InputWithDebounceProps<T> : PropsWithChildren {
      * Callback invoked on option click
      */
     var onOptionClick: (option: T) -> Unit
+
+    /**
+     * Maximum amount of options to display
+     */
+    var maxOptions: Int?
 }
 
 /**
@@ -98,8 +104,7 @@ internal fun renderUserWithAvatar(childrenBuilder: ChildrenBuilder, userInfo: Us
                 className = ClassName("col-1")
                 img {
                     className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
-                    src = userInfo.avatar?.let { "/api/${com.saveourtool.save.v1}/avatar$it" }
-                        ?: "img/undraw_profile.svg"
+                    src = userInfo.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
                     style = jso {
                         width = "2rem".unsafeCast<Width>()
                         height = "2rem".unsafeCast<Height>()
@@ -114,7 +119,7 @@ internal fun renderUserWithAvatar(childrenBuilder: ChildrenBuilder, userInfo: Us
     }
 }
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun <T> inputWithDebounce(
     asOption: String.() -> T,
     asString: T.() -> String,
@@ -167,9 +172,14 @@ private fun <T> inputWithDebounce(
                 position = "absolute".unsafeCast<Position>()
                 top = "100%".unsafeCast<Top>()
                 width = "100%".unsafeCast<Width>()
-                zIndex = "2".unsafeCast<ZIndex>()
+                zIndex = "3".unsafeCast<ZIndex>()
+                overflow = "scroll".unsafeCast<Overflow>()
             }
-            options.forEachIndexed { idx, option ->
+            options.let { optionList ->
+                props.maxOptions?.let {
+                    optionList.take(it)
+                } ?: options
+            }.forEachIndexed { idx, option ->
                 div {
                     className = ClassName("list-group-item list-group-item-action")
                     id = "$DROPDOWN_ID-$idx"
