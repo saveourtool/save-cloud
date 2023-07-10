@@ -19,7 +19,6 @@ import web.cssom.ClassName
  */
 const val ORGANIZATION_AVATAR_PLACEHOLDER = "img/company.svg"
 
-
 /**
  * Render organization avatar or placeholder
  *
