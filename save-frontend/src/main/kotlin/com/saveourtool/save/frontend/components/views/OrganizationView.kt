@@ -228,7 +228,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
-            OrganizationMenuBar.TESTS -> renderTests()
+            OrganizationMenuBar.BENCHMARKS -> renderTests()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
             OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
