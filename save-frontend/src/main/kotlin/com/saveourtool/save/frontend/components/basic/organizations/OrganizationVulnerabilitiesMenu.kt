@@ -64,16 +64,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
     useServerPaging = false,
 )
 
-/**
- * OrganizationVulnerabilitiesMenu component props
- */
-external interface OrganizationVulnerabilitiesMenuProps : Props {
-    /**
-     * Current organization name
-     */
-    var organizationName: String
-}
-
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val organizationVulnerabilitiesMenu = FC<OrganizationVulnerabilitiesMenuProps> { props ->
 
     vulnerabilityTable {
@@ -92,5 +83,14 @@ val organizationVulnerabilitiesMenu = FC<OrganizationVulnerabilitiesMenuProps> {
             }
         }
     }
+}
 
+/**
+ * OrganizationVulnerabilitiesMenu component props
+ */
+external interface OrganizationVulnerabilitiesMenuProps : Props {
+    /**
+     * Current organization name
+     */
+    var organizationName: String
 }
