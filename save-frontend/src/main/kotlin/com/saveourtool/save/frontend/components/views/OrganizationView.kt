@@ -228,7 +228,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
-            OrganizationMenuBar.BENCHMARKS -> renderTests()
+            OrganizationMenuBar.BENCHMARKS -> renderBenchmarks()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
             OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
@@ -387,7 +387,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun ChildrenBuilder.renderTests() {
+    private fun ChildrenBuilder.renderBenchmarks() {
         organizationTestsMenu {
             organizationName = props.organizationName
             selfRole = state.selfRole
