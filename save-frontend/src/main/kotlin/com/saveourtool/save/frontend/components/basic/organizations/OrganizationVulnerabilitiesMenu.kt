@@ -20,10 +20,8 @@ import react.FC
 import react.Fragment
 import react.Props
 import react.create
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.td
 import react.router.dom.Link
-
-val organizationVulnerabilitiesMenu = organizationVulnerabilitiesMenu()
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
@@ -31,7 +29,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
         columns {
             column(id = "name", header = "Name", { this.name }) { cellContext ->
                 Fragment.create {
-                    ReactHTML.td {
+                    td {
                         Link {
                             to = "/${FrontendRoutes.VULNERABILITIES}/${cellContext.row.original.name}"
                             +cellContext.value
@@ -41,15 +39,22 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
             }
             column(id = "short_description", header = "Description", { progress }) { cellContext ->
                 Fragment.create {
-                    ReactHTML.td {
+                    td {
                         +cellContext.row.original.shortDescription
                     }
                 }
             }
             column(id = "progress", header = "Criticality", { progress }) { cellContext ->
                 Fragment.create {
-                    ReactHTML.td {
+                    td {
                         +"${ cellContext.row.original.progress }"
+                    }
+                }
+            }
+            column(id = "language", header = "Language", { language }) { cellContext ->
+                Fragment.create {
+                    td {
+                        +"${ cellContext.row.original.language }"
                     }
                 }
             }
@@ -57,7 +62,6 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
     },
     initialPageSize = 10,
     useServerPaging = false,
-    isTransparentGrid = true,
 )
 
 /**
@@ -70,14 +74,14 @@ external interface OrganizationVulnerabilitiesMenuProps : Props {
     var organizationName: String
 }
 
-private fun organizationVulnerabilitiesMenu() = FC<OrganizationVulnerabilitiesMenuProps> { props ->
+val organizationVulnerabilitiesMenu = FC<OrganizationVulnerabilitiesMenuProps> { props ->
 
     vulnerabilityTable {
         getData = { _, _ ->
             get(
                 url = "$apiUrl/vulnerabilities/by-organization-and-status",
                 params = jso<dynamic> {
-                    userName = props.organizationName
+                    organizationName = props.organizationName
                     status = VulnerabilityStatus.APPROVED
                 },
                 headers = jsonHeaders,
@@ -88,4 +92,5 @@ private fun organizationVulnerabilitiesMenu() = FC<OrganizationVulnerabilitiesMe
             }
         }
     }
+
 }
