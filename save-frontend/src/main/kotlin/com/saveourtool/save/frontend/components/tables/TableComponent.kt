@@ -226,7 +226,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             div {
                 className = ClassName("table-responsive")
                 table {
-                    className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
+                    className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"} mb-0")
                     width = 100.0
                     cellSpacing = "0"
                     thead {
@@ -288,7 +288,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
                 if (tableInstance.getPageCount() > 1) {
                     div {
-                        className = ClassName("wrapper container m-0 p-0")
+                        className = ClassName("wrapper container m-0 p-0 mt-2")
                         pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
 
                         div {
