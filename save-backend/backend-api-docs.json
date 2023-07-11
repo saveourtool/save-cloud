@@ -8767,6 +8767,68 @@
         ]
       }
     },
+    "/api/v1/users/by-prefix": {
+      "get": {
+        "description": "Get list of users by prefix with ids not in.",
+        "operationId": "findByPrefix",
+        "parameters": [
+          {
+            "description": "username prefix",
+            "in": "query",
+            "name": "prefix",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "amount of users that should be returned, default: 5",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
+            "in": "query",
+            "name": "ids",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched users."
+          }
+        },
+        "summary": "Get users by prefix.",
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/global-role": {
       "get": {
         "operationId": "getSelfGlobalRole",
@@ -11809,6 +11871,9 @@
         ],
         "type": "object",
         "properties": {
+          "creationDateTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
           "dates": {
             "type": "array",
             "items": {
@@ -11841,6 +11906,9 @@
               "Sql",
               "TypeScript"
             ]
+          },
+          "lastUpdatedDateTime": {
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "name": {
             "type": "string"
