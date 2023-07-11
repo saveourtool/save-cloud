@@ -11,6 +11,7 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.fossGraphIntroductionComponent
 import com.saveourtool.save.frontend.components.basic.nameFiltersRow
+import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.utils.*
@@ -27,6 +28,7 @@ import react.dom.html.ReactHTML.tr
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -42,16 +44,13 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityListTab.PUBLIC)
     val (publicTable, setPublicTable) = useState(true)
 
-    @Suppress(
-        "TYPE_ALIAS",
-        "MAGIC_NUMBER",
-    )
     val fossGraphTable: FC<FiltersProps> = tableComponent(
         columns = {
             columns {
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             Link {
                                 to = "/${FrontendRoutes.VULNERABILITIES}/${cellContext.row.original.name}"
                                 +cellContext.value
@@ -62,6 +61,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                 column(id = "short_description", header = "Description", { progress }) { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             +cellContext.row.original.shortDescription
                         }
                     }
@@ -69,6 +69,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                 column(id = "progress", header = "Criticality", { progress }) { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             +"${ cellContext.row.original.progress }"
                         }
                     }
@@ -76,7 +77,42 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                 column(id = "language", header = "Language", { language }) { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             +"${ cellContext.row.original.language }"
+                        }
+                    }
+                }
+                column(id = "user", header = "Author", { userInfo.name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            className = ClassName("align-middle")
+                            cellContext.row.original.userInfo.let { user ->
+                                Link {
+                                    renderAvatar(user) {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                    to = "/${FrontendRoutes.PROFILE.path}/${user.name}"
+                                    +" ${user.name}"
+                                }
+                            }
+                        }
+                    }
+                }
+                column(id = "organization", header = "Organization", { organization?.name }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            className = ClassName("align-middle")
+                            cellContext.row.original.organization?.let { organization ->
+                                Link {
+                                    renderAvatar(organization) {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                    to = "/${organization.name}"
+                                    +" ${organization.name}"
+                                }
+                            }
                         }
                     }
                 }
@@ -84,6 +120,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                     column(id = "status", header = "Status", { status }) { cellContext ->
                         Fragment.create {
                             td {
+                                className = ClassName("align-middle")
                                 +"${cellContext.row.original.status}"
                             }
                         }
@@ -91,7 +128,7 @@ val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
                 }
             }
         },
-        initialPageSize = 10,
+        initialPageSize = @Suppress("MAGIC_NUMBER") 10,
         useServerPaging = false,
         isTransparentGrid = true,
         commonHeader = { tableInstance, _ ->
