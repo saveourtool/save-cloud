@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.TabMenuBar
 enum class OrganizationMenuBar(private val title: String? = null) {
     INFO,
     TOOLS,
-    TESTS,
+    BENCHMARKS,
     CONTESTS,
     VULNERABILITIES,
     SETTINGS,
