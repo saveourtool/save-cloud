@@ -9233,6 +9233,73 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/by-organization-and-status": {
+      "get": {
+        "description": "Get list of vulnerabilities by organization name.",
+        "operationId": "getVulnerabilityByOrganization",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "CREATED",
+                "REJECTED",
+                "REOPENED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched list of vulnerabilities by organization name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VulnerabilityDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get list of vulnerabilities by organization name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/by-user-and-status": {
       "get": {
         "description": "Get list of vulnerabilities by user id.",
@@ -9532,7 +9599,7 @@
     },
     "/api/v1/vulnerabilities/get-all-public": {
       "post": {
-        "description": "Get all public vulnerabilities.",
+        "description": "Get all public vulnerabilities with author UserInfo.",
         "operationId": "getAllPublicVulnerabilities",
         "requestBody": {
           "content": {
@@ -9556,7 +9623,7 @@
                 }
               }
             },
-            "description": "Successfully fetched all public vulnerabilities."
+            "description": "Successfully fetched all public vulnerabilities with author UserInfo."
           },
           "401": {
             "content": {
@@ -9577,7 +9644,7 @@
             "basic": []
           }
         ],
-        "summary": "Get all public vulnerabilities.",
+        "summary": "Get all public vulnerabilities with author info.",
         "tags": [
           "vulnerabilities"
         ]
@@ -11858,6 +11925,7 @@
       },
       "VulnerabilityDto": {
         "required": [
+          "allParticipants",
           "dates",
           "datesWithLabels",
           "language",
@@ -11867,10 +11935,16 @@
           "projects",
           "shortDescription",
           "status",
-          "userId"
+          "userInfo"
         ],
         "type": "object",
         "properties": {
+          "allParticipants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfo"
+            }
+          },
           "creationDateTime": {
             "$ref": "#/components/schemas/LocalDateTime"
           },
@@ -11947,9 +12021,8 @@
               "REOPENED"
             ]
           },
-          "userId": {
-            "type": "integer",
-            "format": "int64"
+          "userInfo": {
+            "$ref": "#/components/schemas/UserInfo"
           },
           "vulnerabilityIdentifier": {
             "type": "string"

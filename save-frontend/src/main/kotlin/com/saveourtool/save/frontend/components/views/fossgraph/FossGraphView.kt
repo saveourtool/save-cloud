@@ -117,7 +117,7 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         className = ClassName("")
 
         val isSuperAdmin = props.currentUserInfo?.globalRole?.isHigherOrEqualThan(Role.SUPER_ADMIN) == true
-        val isOwner = props.currentUserInfo?.id == vulnerability.userId
+        val isOwner = vulnerability.userInfo.id?.let { props.currentUserInfo?.id == it } ?: false
 
         div {
             className = ClassName("d-flex align-items-center justify-content-center mb-4")
@@ -223,6 +223,22 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                                 +"${vulnerability.relatedLink}"
                             }
                         }
+                        vulnerability.userInfo.run {
+                            hr { }
+                            h6 {
+                                className = ClassName("font-weight-bold text-primary mb-3")
+                                +"Author"
+                            }
+                            Link {
+                                renderAvatar(this@run) {
+                                    height = 2.rem
+                                    width = 2.rem
+                                }
+                                to = "/${FrontendRoutes.PROFILE.path}/$name"
+                                +" $name"
+                            }
+                        }
+
                         vulnerability.organization?.run {
                             hr { }
                             h6 {
