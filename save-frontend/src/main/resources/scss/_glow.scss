@@ -211,7 +211,12 @@ a:hover {
 }
 
 // ======= oauth providers ======
-.animated-provider .col {
+.animated-provider svg {
+    transition: 0.4s;
+    color: white;
+}
+
+.animated-provider img {
     transition: 0.4s;
     color: white;
 }
@@ -221,7 +226,12 @@ a:hover {
     color: white;
 }
 
-.animated-provider:hover .col {
+.animated-provider:hover svg {
+    transition: 0.4s;
+    transform: scale(1.2);
+}
+
+.animated-provider:hover img {
     transition: 0.4s;
     transform: scale(1.2);
 }
