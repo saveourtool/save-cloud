@@ -34,7 +34,7 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
                         }
                     }
                 }
-                column(id = "short_description", header = "Description", { progress }) { cellContext ->
+                column(id = "short_description", header = "Description", { shortDescription }) { cellContext ->
                     Fragment.create {
                         td {
                             +cellContext.row.original.shortDescription
@@ -48,6 +48,20 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
                         }
                     }
                 }
+                column(id = "language", header = "Language", { language }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +"${ cellContext.row.original.language }"
+                        }
+                    }
+                }
+                column(id = "status", header = "Status", { status }) { cellContext ->
+                    Fragment.create {
+                        td {
+                            +"${ cellContext.row.original.status }"
+                        }
+                    }
+                }
             }
         },
         initialPageSize = 10,
@@ -58,10 +72,9 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
     vulnerabilityTable {
         getData = { _, _ ->
             get(
-                url = "$apiUrl/vulnerabilities/by-user-and-status",
+                url = "$apiUrl/vulnerabilities/by-user",
                 params = jso<dynamic> {
                     userName = props.userName
-                    status = VulnerabilityStatus.APPROVED
                 },
                 headers = jsonHeaders,
                 loadingHandler = ::noopLoadingHandler,
