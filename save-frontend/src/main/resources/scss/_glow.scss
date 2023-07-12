@@ -212,10 +212,27 @@ a:hover {
 
 // ======= oauth providers ======
 .animated-provider .col {
-    transition: 0.4s
+    transition: 0.4s;
+    color: white;
+}
+
+.animated-provider .text {
+    transition: 0.4s;
+    color: white;
 }
 
 .animated-provider:hover .col {
     transition: 0.4s;
     transform: scale(1.2);
+}
+
+.animated-provider:hover .text {
+    transition: 0.4s;
+    transform: scale(1.5);
+    color: var(--glow-color);
+    -webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+     0 0 0.45em var(--glow-color);
+    -moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+     0 0 0.45em var(--glow-color);
+    text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }

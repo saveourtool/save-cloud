@@ -15,11 +15,16 @@ spring:
     oauth2:
       client:
         provider:
-          # example: https://github.com/wearearima/spring-boot-dex/blob/master/src/main/resources/application.properties
+          huawei:
+            authorization-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/authorize
+            token-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/token
+            user-info-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/userinfo
+            user-name-attribute: name
           gitee:
             authorization-uri: https://gitee.com/oauth/authorize
             token-uri: https://gitee.com/oauth/token
             user-info-uri: https://gitee.com/api/v5/user
+          # example: https://github.com/wearearima/spring-boot-dex/blob/master/src/main/resources/application.properties
           dex:
             authorization-uri: http://localhost:5556/dex/auth
             token-uri: http://localhost:5556/dex/token
@@ -35,6 +40,16 @@ spring:
             # for more details.
             user-name-attribute: login
         registration:
+          google:
+            client-id: 943335421056-7ova0sgv6o4goapkripv8dk3ov4og6kc.apps.googleusercontent.com
+            client-secret: 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
+          huawei:
+            client-id: 108713087
+            client-secret: 86d1ffd3035595ca33b49eeb1cbfb0b1f467ec7ed3e1245c0fb3c885c2fabb46
+            redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+            scope: openid
+            client-authentication-method: basic
           gitee:
             client-id: 6b7fc07ecdf7a12d9aa8e2aaf034743baa6f77e036dc22fe6455e02fcf51a851
             client-secret: 8908a8a4239c688af45a4db89ec27d4a7e7f5076dc3125b07b506de6414926a3
@@ -52,6 +67,10 @@ spring:
             scope:
               - openid
           github:
+            # IMPORTANT! When you create a github application on the GITHUB you need to provide a callback API.
+            # If you will only provide a domain name: 'saveourtool.com' in CALLBACK URL field, everything will go well.
+            # Github will automatically
+            #
             # We don't set any redirect-uri here, because it's managed by GitHub
             # (the field is called "Authorization callback URL" and, for a local
             # deployment, it should be exactly "http://localhost:8080/login/oauth2/code/github").
