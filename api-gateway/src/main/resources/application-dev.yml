@@ -24,7 +24,7 @@ spring:
             authorization-uri: https://gitee.com/oauth/authorize
             token-uri: https://gitee.com/oauth/token
             user-info-uri: https://gitee.com/api/v5/user
-          # example: https://github.com/wearearima/spring-boot-dex/blob/master/src/main/resources/application.properties
+          # example: https://github.com/wearearima/spring-boot-dex/blob/ad7dd7f501f8fc3946fc87184b4b8b705713ead9/src/main/resources/application.properties
           dex:
             authorization-uri: http://localhost:5556/dex/auth
             token-uri: http://localhost:5556/dex/token
