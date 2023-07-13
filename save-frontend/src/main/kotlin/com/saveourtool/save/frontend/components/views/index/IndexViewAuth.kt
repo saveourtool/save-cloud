@@ -4,22 +4,17 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.components.views.welcome.mappingFromTypeToFontLogo
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
 
-import js.core.jso
 import org.w3c.fetch.Headers
-import react.ChildrenBuilder
 import react.FC
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.useState
 import web.cssom.ClassName
-import web.cssom.FontSize
 import web.cssom.rem
 
 import kotlinx.browser.window
@@ -55,12 +50,13 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
                 className = ClassName("row")
                 oauthProviders.map { userInfo ->
                     val oauthProvider = userInfo.registrationId
-                    oauthLogin(
-                        4.rem,
-                        userInfo,
-                        "animate__backInUp",
-                        oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() },
-                        mappingFromTypeToFontLogo(oauthProvider)
+                    processRegistrationId(
+                        OauthProvidersFeConfig(
+                            3.5.rem,
+                            userInfo,
+                            "animate__backInUp",
+                            oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
+                        )
                     )
                 }
             }
@@ -79,7 +75,7 @@ val separator = VFC {
         }
 
         div {
-            className = ClassName("col-6")
+            className = ClassName("col-6 mt-2")
 
             div {
                 className = ClassName("separator text-white")
@@ -88,40 +84,6 @@ val separator = VFC {
         }
         div {
             className = ClassName("col-3")
-        }
-    }
-}
-
-/**
- * @param size font size of oauth logos
- * @param provider oauth provider (Huawei, Gitee, Github, etc.)
- * @param icon icon logo
- * @param animate
- * @param label
- */
-fun ChildrenBuilder.oauthLogin(
-    size: FontSize,
-    provider: OauthProviderInfo,
-    animate: String,
-    label: String = "",
-    icon: dynamic
-) {
-    div {
-        className = ClassName("animated-provider col animate__animated $animate")
-        a {
-            href = provider.authorizationLink
-            className = ClassName("text-center")
-            div {
-                className = ClassName("col text-center text-white")
-                style = jso {
-                    fontSize = size
-                }
-                fontAwesomeIcon(icon = icon)
-            }
-            div {
-                className = ClassName("col text-center text-white")
-                +label
-            }
         }
     }
 }

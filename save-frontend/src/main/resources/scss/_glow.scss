@@ -211,11 +211,38 @@ a:hover {
 }
 
 // ======= oauth providers ======
-.animated-provider .col {
-    transition: 0.4s
+.animated-provider svg {
+    transition: 0.4s;
+    color: white;
 }
 
-.animated-provider:hover .col {
+.animated-provider img {
+    transition: 0.4s;
+    color: white;
+}
+
+.animated-provider .text {
+    transition: 0.4s;
+    color: white;
+}
+
+.animated-provider:hover svg {
     transition: 0.4s;
     transform: scale(1.2);
+}
+
+.animated-provider:hover img {
+    transition: 0.4s;
+    transform: scale(1.2);
+}
+
+.animated-provider:hover .text {
+    transition: 0.4s;
+    transform: scale(1.4);
+    color: var(--glow-color);
+    -webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+     0 0 0.45em var(--glow-color);
+    -moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+     0 0 0.45em var(--glow-color);
+    text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }

@@ -81,7 +81,11 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
 * `spring.security.oauth2.client.provider.<provider name>.issuer-uri`
 * `spring.security.oauth2.client.registration.<provider name>.client-id`
 * `spring.security.oauth2.client.registration.<provider name>.client-secret`
-  
+
+## Huawei ID and authorization 
+Everything is easy with Github OAUTH and Gitee OAUTH, but for Huawei OAUTH you need to spend a lot of time to find this link:
+https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/web-preparations-0000001050050891
+ 
 ## Local deployment
 Usually, not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
 * Ensure that docker daemon is running and `docker compose` is installed.
