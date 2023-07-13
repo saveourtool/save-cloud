@@ -16,7 +16,7 @@ external interface CountDownProps : Props {
     var contests: Array<ContestDto>
 }
 
-internal val countDownTimer: FC<CountDownProps> = FC {props ->
+internal val countDownTimer: FC<CountDownProps> = FC {_ ->
     console.log(Date().toLocaleString())
     TODO("This will be finished in phaze 2: this countdown timer should be in a featured contest")
 }

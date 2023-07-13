@@ -59,7 +59,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     protected val devCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
     /**
-     * card with an infor about SAVE with padding
+     * card with an info about SAVE with padding
      */
     protected val infoCard = cardComponent(hasBg = true, isPaddingBottomNull = true, isNoPadding = false)
 

@@ -686,7 +686,7 @@ private fun ComponentWithScope<*, *>.responseHandlerWithValidation(
  * @return the byte flow produced from the body of this HTTP response.
  * @see Response.readLines
  */
-@OptIn(FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 private suspend fun Response.inputStream(): Flow<Byte> {
     val reader = body.unsafeCast<ReadableStream<Uint8Array>>().getReader()
 

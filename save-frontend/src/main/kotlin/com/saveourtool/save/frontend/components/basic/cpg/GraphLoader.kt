@@ -23,7 +23,7 @@ import react.useEffect
 /**
  * Component that is used to load the graph into sigma
  */
-@Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION")
+@Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION", "REDUNDANT_ELSE_IN_WHEN")
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
     val loadGraph = useLoadGraph()
     val circularAssign = useLayoutCircular().getPositions()

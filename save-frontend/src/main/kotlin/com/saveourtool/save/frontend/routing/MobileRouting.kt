@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.frontend.components.mobile.AboutUsMobileView
-import com.saveourtool.save.frontend.components.mobile.WelcomeMobileView
+import com.saveourtool.save.frontend.components.mobile.saveWelcomeMobileView
 import com.saveourtool.save.validation.FrontendRoutes
 import react.VFC
 import react.create
@@ -20,7 +20,7 @@ val mobileRoutes = VFC {
     Routes {
         listOf(
             AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US.path,
-            WelcomeMobileView::class.react.create() to "*",
+            saveWelcomeMobileView.create() to "*",
         ).forEach {
             PathRoute {
                 this.element = it.first

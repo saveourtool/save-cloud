@@ -47,7 +47,7 @@ val indexView: FC<IndexViewProps> = FC { props ->
  */
 external interface IndexViewProps : Props {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }

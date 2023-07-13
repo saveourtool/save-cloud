@@ -7,7 +7,7 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.post
 
 import kotlinext.js.assign
-import react.FC
+import react.VFC
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class UserSettingsTokenMenuView : UserSettingsView() {
     private val tokenCard = cardComponent(isBordered = false, hasBg = true)
     @Suppress("TOO_LONG_FUNCTION")
-    override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+    override fun renderMenu(): VFC = VFC {
         tokenCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")

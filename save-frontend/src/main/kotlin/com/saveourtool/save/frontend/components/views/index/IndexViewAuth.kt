@@ -19,10 +19,10 @@ import web.cssom.rem
 
 import kotlinx.browser.window
 
-val indexAuth: FC<IndexViewProps> = FC { props ->
+val indexAuth: FC<IndexViewProps> = FC { _ ->
     val (oauthProviders, setOauthProviders) = useState(emptyList<OauthProviderInfo>())
     val getOauthProviders = useDeferredRequest {
-        val usersFromDb: List<OauthProviderInfo> = get(
+        val availableProviders: List<OauthProviderInfo> = get(
             "${window.location.origin}/sec/oauth-providers",
             Headers(),
             loadingHandler = ::noopLoadingHandler,
@@ -31,7 +31,7 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
             if (ok) decodeFromJsonString() else emptyList()
         }
 
-        setOauthProviders(usersFromDb)
+        setOauthProviders(availableProviders)
     }
 
     useOnce {

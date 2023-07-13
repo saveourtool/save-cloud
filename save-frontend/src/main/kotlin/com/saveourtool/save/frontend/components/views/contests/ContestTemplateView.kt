@@ -27,7 +27,6 @@ val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
 
     val (contestTemplate, setContestTemplate) = useState(ContestSampleDto.empty)
     val (contestTemplateField, setContestTemplateField) = useState<List<ContestSampleFieldDto>>(emptyList())
-    val (user, setUser) = useState(props.currentUserInfo)
 
     useRequest {
         val contestTemplateNew: ContestSampleDto = get(
@@ -51,15 +50,6 @@ val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
             }
 
         setContestTemplateField(contestTemplateFieldNew)
-
-        val userInfo: UserInfo = get(
-            url = "$apiUrl/users/${props.currentUserInfo?.name}",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        )
-            .decodeFromJsonString()
-
-        setUser(userInfo)
     }
 
     div {

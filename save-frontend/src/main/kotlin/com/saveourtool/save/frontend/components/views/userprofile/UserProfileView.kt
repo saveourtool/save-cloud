@@ -35,7 +35,7 @@ import web.cssom.*
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
     useBackground(Style.WHITE)
 
-    val (userName, setUserName) = useStateFromProps(props.userName)
+    val (userName, _) = useStateFromProps(props.userName)
     val (user, setUser) = useState<UserInfo?>(null)
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
