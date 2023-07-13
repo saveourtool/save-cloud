@@ -26,7 +26,7 @@ import web.cssom.*
 data class OauthProvidersFeConfig(
     val size: FontSize,
     val provider: OauthProviderInfo,
-    val animate: String,
+    val animate: String = "",
     val label: String = ""
 )
 

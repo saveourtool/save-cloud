@@ -51,10 +51,12 @@ val indexAuth: FC<IndexViewProps> = FC { props ->
                 oauthProviders.map { userInfo ->
                     val oauthProvider = userInfo.registrationId
                     processRegistrationId(
-                        3.5.rem,
-                        userInfo,
-                        "animate__backInUp",
-                        oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() },
+                        OauthProvidersFeConfig(
+                            3.5.rem,
+                            userInfo,
+                            "animate__backInUp",
+                            oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
+                        )
                     )
                 }
             }

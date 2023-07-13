@@ -172,10 +172,10 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                     className = ClassName("row")
                     state.oauthProviders?.map {
                         processRegistrationId(
-                            3.rem,
-                            it,
-                            "",
-                            "",
+                            OauthProvidersFeConfig(
+                                size = 3.rem,
+                                it,
+                            )
                         )
                     }
                 }
