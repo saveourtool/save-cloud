@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.views.welcome
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.components.views.index.oauthLogin
 import com.saveourtool.save.frontend.components.views.welcome.pagers.*
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -172,12 +171,11 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
                 div {
                     className = ClassName("row")
                     state.oauthProviders?.map {
-                        oauthLogin(
-                            3.4.rem,
-                            it,
-                            "",
-                            "",
-                            mappingFromTypeToFontLogo(it.registrationId)
+                        processRegistrationId(
+                            OauthProvidersFeConfig(
+                                size = 3.rem,
+                                it,
+                            )
                         )
                     }
                 }
@@ -288,14 +286,3 @@ class WelcomeView : AbstractView<WelcomeProps, IndexViewState>(true) {
         }
     }
 }
-
-/**
- * @param registrationId oauth provider name from api-gateway
- */
-fun mappingFromTypeToFontLogo(registrationId: String) =
-        when (registrationId) {
-            "github" -> faGithub
-            "codehub" -> faCopyright
-            "gitee" -> faSignInAlt
-            else -> faSignInAlt
-        }
