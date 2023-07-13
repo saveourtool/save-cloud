@@ -88,15 +88,16 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
  * @param registrationId oauth provider name (same as in spring security config) from api-gateway
  */
 fun mapKnownFontAwesomeIcons(registrationId: String) =
-    when(registrationId) {
-        "codehub" -> faCopyright
-        else -> faSignInAlt
-    }
+        when (registrationId) {
+            "codehub" -> faCopyright
+            else -> faSignInAlt
+        }
 
 /**
  * Mapping ONLY for those icons that are uploaded to SAVE.
  * Please note that companies like google strictly prohibits incorrect usage of sign-in buttons:
  * https://developers.google.com/identity/branding-guidelines
+ *
  * @param registrationId
  */
 fun mapKnownUploadedIcons(registrationId: String) =
