@@ -75,7 +75,7 @@ val separator = VFC {
         }
 
         div {
-            className = ClassName("col-6")
+            className = ClassName("col-6 mt-2")
 
             div {
                 className = ClassName("separator text-white")
