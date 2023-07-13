@@ -38,8 +38,8 @@ fun ChildrenBuilder.processRegistrationId(
     oauthProvidersFeConfig: OauthProvidersFeConfig
 ) = oauthLoginForKnownAwesomeIcons(
     oauthProvidersFeConfig,
-    mapUnknownIcons(oauthProvidersFeConfig.provider.registrationId),
-    mapKnownIcons(oauthProvidersFeConfig.provider.registrationId)
+    mapKnownUploadedIcons(oauthProvidersFeConfig.provider.registrationId),
+    mapKnownFontAwesomeIcons(oauthProvidersFeConfig.provider.registrationId)
 )
 
 /**
@@ -87,20 +87,23 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
 /**
  * @param registrationId oauth provider name (same as in spring security config) from api-gateway
  */
-fun mapKnownIcons(registrationId: String) =
-        when (registrationId) {
-            "github" -> faGithub
-            "google" -> faGoogle
-            "codehub" -> faCopyright
-            else -> faSignInAlt
-        }
+fun mapKnownFontAwesomeIcons(registrationId: String) =
+    when(registrationId) {
+        "codehub" -> faCopyright
+        else -> faSignInAlt
+    }
 
 /**
+ * Mapping ONLY for those icons that are uploaded to SAVE.
+ * Please note that companies like google strictly prohibits incorrect usage of sign-in buttons:
+ * https://developers.google.com/identity/branding-guidelines
  * @param registrationId
  */
-fun mapUnknownIcons(registrationId: String) =
+fun mapKnownUploadedIcons(registrationId: String) =
         when (registrationId) {
             "huawei" -> "img/huawei.svg"
             "gitee" -> "img/gitee.svg"
+            "github" -> "img/github.svg"
+            "google" -> "img/google.svg"
             else -> ""
         }
