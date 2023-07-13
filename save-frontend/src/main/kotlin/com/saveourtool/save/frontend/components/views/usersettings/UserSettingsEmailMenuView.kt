@@ -3,7 +3,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 
-import react.FC
+import react.VFC
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
@@ -16,7 +16,7 @@ import web.html.InputType
 class UserSettingsEmailMenuView : UserSettingsView() {
     private val emailCard = cardComponent(isBordered = false, hasBg = true)
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR", "TOO_LONG_FUNCTION")
-    override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+    override fun renderMenu(): VFC = VFC {
         emailCard {
             div {
                 className = ClassName("row mt-2 ml-2 mr-2")

@@ -28,7 +28,7 @@ import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsE
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
+import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
@@ -175,7 +175,7 @@ val basicRouting: FC<AppProps> = FC { props ->
     Routes {
         listOf(
             indexView.create { userInfo = props.userInfo } to "/",
-            WelcomeView::class.react.create { userInfo = props.userInfo } to "/$SAVE",
+            saveWelcomeView.create { userInfo = props.userInfo } to "/$SAVE",
             sandboxView.create() to "/$SANDBOX",
             AboutUsView::class.react.create() to "/$ABOUT_US",
             CreationView::class.react.create() to "/$CREATE_PROJECT",
