@@ -53,7 +53,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
             organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
 
     @Suppress("CyclomaticComplexMethod")
-    override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+    override fun renderMenu(): VFC = VFC {
         organizationListCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")

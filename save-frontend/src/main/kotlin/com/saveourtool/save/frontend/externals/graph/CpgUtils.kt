@@ -23,7 +23,7 @@ private val cpgJsonSerializer = Json { encodeDefaults = true }
  * @return serialized graph that can be used with useLoadGraph hook
  */
 fun CpgGraph.toGraphologyJson() = let { graph ->
-    @Suppress("UnusedPrivateProperty")
+    @Suppress("UnusedPrivateProperty", "UNUSED_VARIABLE")
     val str = cpgJsonSerializer.encodeToString(graph)
     js("JSON.parse(str);")
 }
