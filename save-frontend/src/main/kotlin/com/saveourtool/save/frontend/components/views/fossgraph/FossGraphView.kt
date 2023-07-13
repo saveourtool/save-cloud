@@ -7,12 +7,14 @@
 package com.saveourtool.save.frontend.components.views.fossgraph
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.basic.userBoard
+import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
@@ -24,6 +26,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.aria.ariaDescribedBy
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h6
@@ -35,6 +38,7 @@ import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
 
+import kotlinx.browser.window
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -52,9 +56,10 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
     useTooltip()
 
     val deleteVulnerabilityWindowOpenness = useWindowOpenness()
-
+    val rejectVulnerabilityWindowOpenness = useWindowOpenness()
     val navigate = useNavigate()
 
+    val (rejectComment, setRejectComment) = useState(CommentDto.empty)
     val (vulnerability, setVulnerability) = useState(VulnerabilityDto.empty)
     val (selectedMenu, setSelectedMenu) = useState(VulnerabilityTab.INFO)
 
@@ -62,6 +67,30 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
         val vulnerabilityUpdate = vulnerability.copy(status = VulnerabilityStatus.APPROVED)
         val response = post(
             url = "$apiUrl/vulnerabilities/approve",
+            headers = jsonHeaders,
+            body = Json.encodeToString(vulnerabilityUpdate),
+            loadingHandler = ::loadingHandler,
+        )
+        if (response.ok) {
+            navigate(to = "/${FrontendRoutes.VULNERABILITIES}")
+        }
+    }
+
+    val enrollRejectRequest = useDeferredRequest {
+        if (rejectComment.message.isNotEmpty()) {
+            val commentNew = rejectComment.copy(section = window.location.hash)
+            post(
+                url = "$apiUrl/comments/save",
+                headers = jsonHeaders,
+                body = Json.encodeToString(commentNew),
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+        }
+
+        val vulnerabilityUpdate = vulnerability.copy(status = VulnerabilityStatus.REJECTED)
+        val response = post(
+            url = "$apiUrl/vulnerabilities/reject",
             headers = jsonHeaders,
             body = Json.encodeToString(vulnerabilityUpdate),
             loadingHandler = ::loadingHandler,
@@ -93,6 +122,39 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
             }
 
         setVulnerability(vulnerabilityNew)
+    }
+
+    displayModal(
+        rejectVulnerabilityWindowOpenness.isOpen(),
+        "Reject of vulnerability",
+        bodyBuilder = {
+            div {
+                h6 {
+                    className = ClassName("modal-title")
+                    +"Are you sure you want to reject this vulnerability?"
+                }
+                textarea {
+                    className = ClassName("border-secondary form-control p-3 border-1")
+                    onChange = { event -> setRejectComment { it.copy(message = event.target.value) } }
+                    value = rejectComment.message
+                    ariaDescribedBy = "${InputTypes.COMMENT.name}Span"
+                    rows = 5
+                    id = InputTypes.COMMENT.name
+                    required = true
+                    placeholder = "Write a comment"
+                }
+            }
+        },
+        modalStyle = mediumTransparentModalStyle,
+        onCloseButtonPressed = rejectVulnerabilityWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok") {
+            enrollRejectRequest()
+            rejectVulnerabilityWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            rejectVulnerabilityWindowOpenness.closeWindow()
+        }
     }
 
     displayModal(
@@ -135,6 +197,11 @@ val fossGraph: FC<FossGraphViewProps> = FC { props ->
                 if (isSuperAdmin && vulnerability.status != VulnerabilityStatus.APPROVED) {
                     buttonBuilder(label = "Approve", classes = "mr-2", style = "success") {
                         enrollUpdateRequest()
+                    }
+                }
+                if (isSuperAdmin && vulnerability.status != VulnerabilityStatus.APPROVED) {
+                    buttonBuilder(label = "Reject", classes = "mr-2", style = "warning") {
+                        rejectVulnerabilityWindowOpenness.openWindow()
                     }
                 }
                 if (isSuperAdmin || isOwner) {
