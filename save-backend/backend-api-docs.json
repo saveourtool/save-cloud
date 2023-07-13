@@ -9300,7 +9300,7 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-user-and-status": {
+    "/api/v1/vulnerabilities/by-user": {
       "get": {
         "description": "Get list of vulnerabilities by user id.",
         "operationId": "getVulnerabilityByUser",
@@ -9311,20 +9311,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APPROVED",
-                "CREATED",
-                "REJECTED",
-                "REOPENED"
-              ]
             }
           }
         ],
