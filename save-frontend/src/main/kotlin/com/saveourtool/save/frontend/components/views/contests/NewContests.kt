@@ -73,7 +73,8 @@ internal val newContests = VFC {
                 className = ClassName("card-img-right flex-auto d-none d-md-block")
                 src = "img/undraw_exciting_news_re_y1iw.svg"
                 style = jso {
-                    @Suppress("MAGIC_NUMBER") width = 12.rem
+                    @Suppress("MAGIC_NUMBER")
+                    width = 12.rem
                 }
             }
         }
