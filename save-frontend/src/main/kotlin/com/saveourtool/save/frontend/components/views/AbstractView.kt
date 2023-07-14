@@ -1,7 +1,7 @@
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.utils.SAVE_BLUE_GRADIENT
 import com.saveourtool.save.frontend.utils.ComponentWithScope
+import com.saveourtool.save.frontend.utils.SAVE_BLUE_GRADIENT
 
 import react.*
 
