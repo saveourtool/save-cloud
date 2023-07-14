@@ -1,5 +1,6 @@
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.utils.SAVE_BLUE_GRADIENT
 import com.saveourtool.save.frontend.utils.ComponentWithScope
 
 import react.*
@@ -15,7 +16,7 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
     override fun componentDidMount() {
         val style = if (hasBg) {
             Style(
-                "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
+                SAVE_BLUE_GRADIENT,
                 "",
                 "transparent",
                 "px-0",

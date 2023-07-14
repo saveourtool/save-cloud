@@ -14,6 +14,10 @@ import kotlinx.browser.window
 
 private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
 
+const val SAVE_BLUE_GRADIENT = "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))"
+
+const val SAVE_LIGHT_GRADIENT = "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))"
+
 /**
  * @property globalBackground
  * @property topBarBgColor
@@ -29,7 +33,7 @@ enum class Style(
     val marginBottomForTopBar: String,
 ) {
     BLUE(
-        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
+        SAVE_BLUE_GRADIENT,
         "",
         "transparent",
         "px-0",

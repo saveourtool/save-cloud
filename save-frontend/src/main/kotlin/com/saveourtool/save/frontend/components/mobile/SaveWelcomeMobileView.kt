@@ -3,12 +3,13 @@
 package com.saveourtool.save.frontend.components.mobile
 
 import com.saveourtool.save.frontend.components.views.welcome.chevron
-import com.saveourtool.save.frontend.components.views.welcome.pagers.allWelcomePagers
+import com.saveourtool.save.frontend.components.views.welcome.pagers.allSaveWelcomePagers
 import com.saveourtool.save.frontend.components.views.welcome.pagers.renderReadMorePage
-import com.saveourtool.save.frontend.components.views.welcome.welcomeMarketingTitle
+import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeMarketingTitle
 import com.saveourtool.save.frontend.externals.animations.animator
 import com.saveourtool.save.frontend.externals.animations.scrollContainer
 import com.saveourtool.save.frontend.externals.animations.scrollPage
+import com.saveourtool.save.frontend.utils.SAVE_LIGHT_GRADIENT
 import com.saveourtool.save.frontend.utils.particles
 
 import js.core.jso
@@ -26,8 +27,7 @@ import web.cssom.*
 val saveWelcomeMobileView: VFC = VFC {
     div {
         style = jso {
-            background =
-                    "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
+            background = SAVE_LIGHT_GRADIENT.unsafeCast<Background>()
         }
         particles()
         sorryYourScreenIsTooSmall()
@@ -42,7 +42,7 @@ private fun ChildrenBuilder.sorryYourScreenIsTooSmall() {
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     scrollContainer {
         scrollPage {}
-        allWelcomePagers.forEach { pager ->
+        allSaveWelcomePagers.forEach { pager ->
             scrollPage { }
             pager.forEach {
                 scrollPage {
@@ -88,6 +88,6 @@ private fun ChildrenBuilder.title() {
     div {
         className = ClassName("row justify-content-center mx-auto")
         // Marketing information
-        welcomeMarketingTitle("text-primary", true)
+        saveWelcomeMarketingTitle("text-primary", true)
     }
 }
