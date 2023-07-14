@@ -29,7 +29,6 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 internal val topBarComponent = topBar()
