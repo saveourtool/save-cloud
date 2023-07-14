@@ -3,7 +3,7 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers
 import com.saveourtool.save.frontend.externals.animations.Animation
 import react.ChildrenBuilder
 
-val allWelcomePagers = listOf(
+val allSaveWelcomePagers = listOf(
     // listOf(HighLevelSave),
     listOf(SloganAboutCi),
     listOf(GeneralInfoFirstPicture, GeneralInfoSecondPicture, GeneralInfoThirdPicture, GeneralInfoFourthPicture),
