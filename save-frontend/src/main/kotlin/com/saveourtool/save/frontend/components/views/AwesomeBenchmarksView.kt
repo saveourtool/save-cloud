@@ -127,7 +127,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         particles()
 
         main {
-            className = ClassName("main-content mt-0 ps")
+            className = ClassName("main-content mt-0 ps text-gray-800")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
                 div {
@@ -236,7 +236,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     div {
                                         className = ClassName("input-group-append")
                                         button {
-                                            className = ClassName("btn btn-primary")
+                                            className = ClassName("btn btn-outline-primary")
                                             type = ButtonType.button
                                             fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                                         }
@@ -325,7 +325,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                         div {
                                                             className = ClassName("navbar-landing mt-3")
                                                             a {
-                                                                className = ClassName("btn-sm btn-primary mr-2")
+                                                                className = ClassName("btn-sm btn-outline-primary mr-2")
                                                                 href = benchmark.documentation
                                                                 +"""Docs"""
                                                             }

@@ -96,7 +96,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
             button {
-                className = ClassName("btn btn-primary")
+                className = ClassName("btn btn-outline-primary")
                 type = ButtonType.button
                 onClick = {
                     if (response?.status == 401.toShort()) {

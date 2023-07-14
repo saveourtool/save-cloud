@@ -222,7 +222,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
     )
     private fun ChildrenBuilder.renderInputForm() {
         // google does not provide us login, only e-mail, so need to trim everything after "@gmail"
-        val rawInput = state.fieldsMap[InputTypes.USER_NAME] ?: ""
+        val rawInput = state.fieldsMap[InputTypes.USER_NAME].orEmpty()
         val atIndex = rawInput.indexOf('@')
         val inputUpdated = if (atIndex >= 0) rawInput.substring(0, atIndex) else rawInput
         form {

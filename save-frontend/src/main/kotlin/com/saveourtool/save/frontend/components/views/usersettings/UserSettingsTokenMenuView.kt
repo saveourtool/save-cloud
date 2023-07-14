@@ -35,7 +35,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 className = ClassName("row justify-content-center")
                 button {
                     type = ButtonType.button
-                    className = ClassName("btn btn-primary mb-2 mr-2")
+                    className = ClassName("btn btn-outline-primary mb-2 mr-2")
                     +"Generate new token"
                     onClick = {
                         generateToken()

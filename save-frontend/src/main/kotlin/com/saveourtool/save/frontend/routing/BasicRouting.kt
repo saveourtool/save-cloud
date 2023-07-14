@@ -15,11 +15,11 @@ import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
-import com.saveourtool.save.frontend.components.views.demo.demoMainView
+import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
-import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
+import com.saveourtool.save.frontend.components.views.fossgraph.vulnerability
+import com.saveourtool.save.frontend.components.views.fossgraph.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
@@ -145,13 +145,13 @@ val basicRouting: FC<AppProps> = FC { props ->
     }
 
     val fossGraphCollectionView: VFC = VFC {
-        fossGraphCollectionView {
+        vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
         }
     }
 
-    val fossGraphView: VFC = withRouter { _, params ->
-        fossGraph {
+    val vulnerabilityView: VFC = withRouter { _, params ->
+        vulnerability {
             name = requireNotNull(params["vulnerabilityName"])
             currentUserInfo = props.userInfo
         }
@@ -203,8 +203,8 @@ val basicRouting: FC<AppProps> = FC { props ->
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             fossGraphCollectionView.create() to "/$VULNERABILITIES",
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
-            fossGraphView.create() to "/$VULNERABILITIES/:vulnerabilityName",
-            demoMainView.create() to "/$DEMO",
+            vulnerabilityView.create() to "/$VULNERABILITIES/:vulnerabilityName",
+            demoCollectionView.create() to "/$DEMO",
             userProfileView.create() to "/$PROFILE/:name",
             topRatingView.create() to "/$TOP_RATING",
 

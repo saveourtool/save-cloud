@@ -14,11 +14,11 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
-val demoMainView: VFC = VFC {
+val demoCollectionView: VFC = VFC {
     useBackground(Style.BLUE)
 
     main {
-        className = ClassName("main-content mt-0 ps")
+        className = ClassName("main-content mt-0 ps text-gray-800x")
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {

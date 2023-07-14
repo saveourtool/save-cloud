@@ -45,7 +45,7 @@ val myProjectsRating: FC<ContestListViewProps> = FC { props ->
                 height = "100%".unsafeCast<Height>()
             }
             div {
-                className = ClassName("col")
+                className = ClassName("col text-center")
                 style = jso {
                     @Suppress("MAGIC_NUMBER")
                     minHeight = 7.rem

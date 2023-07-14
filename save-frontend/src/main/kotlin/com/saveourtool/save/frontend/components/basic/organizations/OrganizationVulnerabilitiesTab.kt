@@ -65,8 +65,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
 )
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-val organizationVulnerabilitiesMenu: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
-
+val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
     vulnerabilityTable {
         getData = { _, _ ->
             get(

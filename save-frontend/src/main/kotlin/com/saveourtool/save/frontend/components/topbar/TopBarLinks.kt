@@ -57,7 +57,7 @@ private fun topBarLinks() = FC<TopBarLinksProps> { props ->
             TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 8.rem, text = "Vulnerabilities"),
             TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
             TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.rem, text = "CPG"),
-            TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
+            TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
             TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 10.rem, text = "Try SAVE format"),
             TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 9.rem, text = "Projects board"),
             TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),

@@ -88,7 +88,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
 
                             when (organization.status) {
                                 OrganizationStatus.CREATED -> actionButton {
-                                    title = "WARNING: About to delete this organization..."
+                                    title = "WARNING: You are about to delete this organization"
                                     errorTitle = "You cannot delete the organization $organizationName"
                                     message = "Are you sure you want to delete the organization $organizationName?"
                                     clickMessage = "Also ban this organization"
@@ -123,7 +123,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                 }
                                 OrganizationStatus.DELETED -> actionButton {
-                                    title = "WARNING: About to recover this organization..."
+                                    title = "WARNING: You are about to recover this organization"
                                     errorTitle = "You cannot recover the organization $organizationName"
                                     message = "Are you sure you want to recover the organization $organizationName?"
                                     buttonStyleBuilder = { childrenBuilder ->
@@ -152,7 +152,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                 }
                                 OrganizationStatus.BANNED -> actionButton {
-                                    title = "WARNING: About to unban this organization..."
+                                    title = "WARNING: You are about to unban this organization..."
                                     errorTitle = "You cannot unban the organization $organizationName"
                                     message = "Are you sure you want to unban the organization $organizationName?"
                                     buttonStyleBuilder = { childrenBuilder ->
