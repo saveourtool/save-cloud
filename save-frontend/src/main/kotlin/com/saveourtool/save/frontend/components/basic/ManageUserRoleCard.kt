@@ -19,7 +19,6 @@ import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.option
@@ -27,7 +26,6 @@ import react.dom.html.ReactHTML.select
 import web.cssom.ClassName
 import web.cssom.Height
 import web.cssom.Width
-import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
