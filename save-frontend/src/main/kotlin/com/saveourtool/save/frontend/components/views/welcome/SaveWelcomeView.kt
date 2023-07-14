@@ -22,13 +22,8 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.form
-import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.main
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import web.cssom.*
 
@@ -54,8 +49,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
             className = ClassName("page-header align-items-start")
             style = jso {
                 height = "100vh".unsafeCast<Height>()
-                background =
-                        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))".unsafeCast<Background>()
+                background = SAVE_BLUE_GRADIENT.unsafeCast<Background>()
                 position = Position.relative
             }
             span {
@@ -67,7 +61,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
 
                 className = ClassName("row justify-content-center")
                 // Marketing information
-                welcomeMarketingTitle("text-white")
+                saveWelcomeMarketingTitle("text-white")
 
                 // Sign-in header
                 div {
@@ -76,7 +70,24 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
                         className = ClassName("card z-index-0 fadeIn3 fadeInBottom")
                         // if user is not logged in - he needs to input credentials
                         props.userInfo?.let {
-                            welcomeUserView(props.userInfo)
+                            welcomeUserMenu(props.userInfo) {
+                                div {
+                                    className = ClassName("text-sm")
+                                    menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faCode)
+                                    hrNoMargin()
+                                    menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
+                                    hrNoMargin()
+                                    menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
+                                    hrNoMargin()
+                                    menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                                    if (props.userInfo.isSuperAdmin()) {
+                                        hrNoMargin()
+                                        menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                                    }
+                                    hrNoMargin()
+                                    menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
+                                }
+                            }
                         }
                             ?: run {
                                 inputCredentialsView(oauthProviders)
@@ -91,8 +102,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
         div {
             className = ClassName("min-vh-100")
             style = jso {
-                background =
-                        "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))".unsafeCast<Background>()
+                background = SAVE_LIGHT_GRADIENT.unsafeCast<Background>()
             }
 
             renderGeneralInfoPage()
@@ -100,7 +110,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
             @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             scrollContainer {
                 scrollPage { }
-                allWelcomePagers.forEach { pager ->
+                allSaveWelcomePagers.forEach { pager ->
                     scrollPage { }
                     scrollPage {
                         pager.forEach {
@@ -126,130 +136,4 @@ external interface WelcomeProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
-}
-
-@Suppress("TOO_LONG_FUNCTION")
-private fun ChildrenBuilder.welcomeUserView(userInfo: UserInfo?) {
-    div {
-        className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
-        div {
-            className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
-            style = jso {
-                backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
-            }
-            h4 {
-                className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
-                div {
-                    className = ClassName("row")
-                    div {
-                        className = ClassName("col text-center px-1 mb-3")
-                        fontAwesomeIcon(icon = faHome)
-                    }
-                }
-                +"Welcome, ${userInfo?.name}!"
-            }
-        }
-    }
-
-    div {
-        className = ClassName("card-body")
-        div {
-            className = ClassName("text-sm")
-            menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faCode)
-            hrNoMargin()
-            menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
-            hrNoMargin()
-            menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
-            hrNoMargin()
-            menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
-            if (userInfo.isSuperAdmin()) {
-                hrNoMargin()
-                menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
-            }
-            hrNoMargin()
-            menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
-        }
-    }
-}
-
-@Suppress("TOO_LONG_FUNCTION")
-private fun ChildrenBuilder.inputCredentialsView(oauthProviders: List<OauthProviderInfo>) {
-    div {
-        className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
-        div {
-            className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
-            style = jso {
-                backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
-            }
-            h4 {
-                className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
-                +"Sign in"
-            }
-            div {
-                className = ClassName("row")
-                oauthProviders.map {
-                    processRegistrationId(
-                        OauthProvidersFeConfig(
-                            size = 3.rem,
-                            it,
-                        )
-                    )
-                }
-            }
-        }
-    }
-
-    div {
-        className = ClassName("card-body")
-        form {
-            className = ClassName("needs-validation")
-            div {
-                className = ClassName("mt-4 text-sm text-center")
-                p {
-                    className = ClassName("mb-0")
-                    +"Don't have an account?"
-                }
-
-                div {
-                    className = ClassName("text-sm text-center")
-                    h4 {
-                        style = jso {
-                            color = "#3075c0".unsafeCast<Color>()
-                        }
-                        a {
-                            href = "#/${FrontendRoutes.PROJECTS.path}"
-                            className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                            +"Continue "
-                            fontAwesomeIcon(icon = faSignInAlt)
-                        }
-                    }
-                    +"with limited functionality"
-                }
-            }
-        }
-    }
-}
-
-private fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) {
-    a {
-        className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-        href = link
-        h4 {
-            style = jso {
-                color = "#3075c0".unsafeCast<Color>()
-                marginBottom = "0.0em".unsafeCast<Margin>()
-            }
-            fontAwesomeIcon(icon = icon, "ml-2 mr-2")
-            +text
-        }
-    }
-}
-
-private fun ChildrenBuilder.hrNoMargin() {
-    hr {
-        style = jso {
-            marginTop = "0.0em".unsafeCast<Margin>()
-            marginBottom = "0.0em".unsafeCast<Margin>()
-        }
-    }
 }
