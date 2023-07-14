@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.not
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
@@ -63,7 +64,7 @@ fun ChildrenBuilder.dropdownEntry(
  */
 fun topBar() = FC<TopBarProps> { props ->
     val location = useLocation()
-    if (!location.pathname.startsWith("/${FrontendRoutes.SAVE.path}") && !location.pathname.startsWith("/${FrontendRoutes.REGISTRATION.path}")) {
+    if (location.not("/${FrontendRoutes.SAVE.path}") && location.not("/${FrontendRoutes.REGISTRATION.path}")) {
         nav {
             className =
                     ClassName("navbar navbar-expand navbar-dark bg-dark topbar mb-3 static-top shadow mr-1 ml-1 rounded")
