@@ -108,9 +108,9 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         }
     }
 
-    private fun saveUser() {
+    private fun saveUser(inputUpdated: String) {
         val newUserInfo = props.userInfo?.copy(
-            name = state.fieldsMap[InputTypes.USER_NAME]?.trim() ?: props.userInfo!!.name,
+            name = inputUpdated,
             oldName = props.userInfo!!.name,
             isActive = true,
         )
@@ -221,13 +221,16 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     private fun ChildrenBuilder.renderInputForm() {
+        // google does not provide us login, only e-mail, so need to trim everything after "@gmail"
+        val rawInput = state.fieldsMap[InputTypes.USER_NAME] ?: ""
+        val atIndex = rawInput.indexOf('@')
+        val inputUpdated = if (atIndex >= 0) rawInput.substring(0, atIndex) else rawInput
         form {
-            val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
             div {
                 inputTextFormRequired {
                     form = InputTypes.USER_NAME
-                    textValue = input
-                    validInput = input.isEmpty() || input.isValidName()
+                    textValue = inputUpdated
+                    validInput = inputUpdated.isEmpty() || inputUpdated.isValidName()
                     classes = ""
                     name = "User name"
                     conflictMessage = state.conflictErrorMessage
@@ -244,7 +247,7 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
                 className = ClassName("btn btn-info mt-4 mr-3")
                 +"Registration"
                 onClick = {
-                    saveUser()
+                    saveUser(inputUpdated)
                 }
             }
             state.conflictErrorMessage?.let {
