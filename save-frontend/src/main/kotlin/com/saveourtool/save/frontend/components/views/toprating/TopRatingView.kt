@@ -20,7 +20,7 @@ import react.useState
 import web.cssom.ClassName
 
 val topRatingView = VFC {
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
 
     val (selectedMenu, setSelectedMenu) = useState(TopRatingTab.USERS)
 

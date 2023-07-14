@@ -43,7 +43,7 @@ private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = 
     "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
 val cpgView: VFC = VFC {
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
     val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)
     val (errorMessage, setErrorMessage) = useState("")

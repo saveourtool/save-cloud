@@ -107,7 +107,7 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
-class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
+class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_LIGHT) {
     init {
         state.project = ProjectDto.empty
         state.isErrorOpen = false

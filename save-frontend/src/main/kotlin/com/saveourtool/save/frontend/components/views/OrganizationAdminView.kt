@@ -32,7 +32,7 @@ import kotlinx.serialization.json.Json
 /**
  * The list of all organizations, visible to super-users.
  */
-internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
+internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(Style.SAVE_LIGHT) {
     private val comparator: Comparator<OrganizationDto> =
             compareBy<OrganizationDto> { it.status.ordinal }
                 .thenBy { it.name }

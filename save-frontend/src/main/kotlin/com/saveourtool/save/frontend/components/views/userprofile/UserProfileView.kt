@@ -33,7 +33,7 @@ import react.router.dom.Link
 import web.cssom.*
 
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
 
     val (userName, _) = useStateFromProps(props.userName)
     val (user, setUser) = useState<UserInfo?>(null)

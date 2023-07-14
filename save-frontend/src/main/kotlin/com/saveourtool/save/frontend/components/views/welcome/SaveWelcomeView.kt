@@ -30,7 +30,7 @@ import web.cssom.*
 import kotlinx.browser.window
 
 val saveWelcomeView: FC<WelcomeProps> = FC { props ->
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
     val (oauthProviders, setOauthProviders) = useState<List<OauthProviderInfo>>(emptyList())
 
     useRequest {

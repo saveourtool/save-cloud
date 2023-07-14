@@ -31,7 +31,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
 
     val navigate = useNavigate()
 

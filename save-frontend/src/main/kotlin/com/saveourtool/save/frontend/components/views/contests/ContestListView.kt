@@ -19,7 +19,7 @@ import web.cssom.ClassName
  * A view with collection of contests
  */
 val contestListView: FC<ContestListViewProps> = FC { props ->
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
     main {
         className = ClassName("main-content mt-0 ps")
         div {

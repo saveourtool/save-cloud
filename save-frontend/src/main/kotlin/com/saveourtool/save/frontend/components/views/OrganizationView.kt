@@ -154,7 +154,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
 /**
  * A Component for owner view
  */
-class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
+class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(Style.SAVE_LIGHT) {
     init {
         state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab

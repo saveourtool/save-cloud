@@ -280,7 +280,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     div {
                         className = ClassName("align-items-center justify-content-center mb-4")
                         h6 {
-                            className = ClassName("m-0 font-weight-bold text-primary text-center")
+                            className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
                             +"No results found"
                         }
                     }

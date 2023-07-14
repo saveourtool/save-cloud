@@ -66,7 +66,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
                 props.currentUserInfo.avatar,
                 props.currentUserInfo.name,
                 props.currentUserInfo.rating,
-                "#e1e9ed"
+                "#f7f5fb"
             )
             div {
                 className = ClassName("col")
@@ -88,7 +88,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
         }
         div {
             className = ClassName("d-flex justify-content-end p-2")
-            style = jso { background = "#e1e9ed".unsafeCast<Background>() }
+            style = jso { background = "#f7f5fb".unsafeCast<Background>() }
             buttonBuilder(
                 faPaperPlane,
                 isDisabled = comment.message.isBlank(),

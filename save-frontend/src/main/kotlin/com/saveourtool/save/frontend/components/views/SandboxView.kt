@@ -39,7 +39,7 @@ val sandboxApiUrl = "${window.location.origin}/sandbox/api"
  * A view for testing config files
  */
 val sandboxView = VFC {
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
     val (debugInfo, setDebugInfo) = useState<TestResultDebugInfo?>(null)
     val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)
     val (isModalOpen, setIsModalOpen) = useState(false)

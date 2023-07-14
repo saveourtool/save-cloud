@@ -1,7 +1,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.ComponentWithScope
-import com.saveourtool.save.frontend.utils.SAVE_BLUE_GRADIENT
+import com.saveourtool.save.frontend.utils.Style
 
 import react.*
 
@@ -10,26 +10,16 @@ import kotlinx.browser.document
 /**
  * Abstract view class that should be used in all functional views
  */
-abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = true) : ComponentWithScope<P, S>() {
+abstract class AbstractView<P : Props, S : State>(private val style: Style = Style.SAVE_DARK) : ComponentWithScope<P, S>() {
     // A small hack to avoid duplication of main content-wrapper from App.kt
     // We will have custom background only for sign-up and sign-in views
     override fun componentDidMount() {
-        val style = if (hasBg) {
-            Style(
-                SAVE_BLUE_GRADIENT,
-                "",
-                "transparent",
-                "px-0",
-                ""
-            )
-        } else {
-            Style(
-                "bg-light",
-                "bg-dark",
-                "bg-dark",
-                "",
-                "mb-3"
-            )
+        document.getElementById("main-body")?.apply {
+            className = when (style) {
+                Style.SAVE_DARK, Style.SAVE_LIGHT -> className.replace("vuln", "save")
+                Style.VULN_DARK, Style.VULN_LIGHT -> className.replace("save", "vuln")
+                Style.INDEX -> className.replace("vuln", "save")
+            }
         }
 
         document.getElementById("content-wrapper")?.setAttribute(
@@ -59,19 +49,4 @@ abstract class AbstractView<P : Props, S : State>(private val hasBg: Boolean = t
             "container-fluid ${style.borderForContainer}"
         )
     }
-
-    /**
-     * @property globalBackground
-     * @property topBarBgColor
-     * @property topBarTransparency
-     * @property borderForContainer
-     * @property marginBottomForTopBar
-     */
-    private data class Style(
-        val globalBackground: String,
-        val topBarBgColor: String,
-        val topBarTransparency: String,
-        val borderForContainer: String,
-        val marginBottomForTopBar: String,
-    )
 }
