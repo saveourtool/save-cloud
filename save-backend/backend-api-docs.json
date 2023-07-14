@@ -9636,6 +9636,61 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/reject": {
+      "post": {
+        "description": "Reject vulnerability.",
+        "operationId": "reject",
+        "parameters": [
+          {
+            "example": "basic",
+            "in": "header",
+            "name": "X-Authorization-Source",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully rejected vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Reject vulnerability.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/save": {
       "post": {
         "description": "Save vulnerability.",
