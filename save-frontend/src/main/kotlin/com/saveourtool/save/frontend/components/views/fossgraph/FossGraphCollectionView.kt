@@ -37,7 +37,8 @@ import kotlinx.serialization.json.Json
  * [FC] for fossGraphCollection view
  */
 val fossGraphCollectionView: FC<FossGraphCollectionViewProps> = FC { props ->
-    useBackground(Style.BLUE)
+    useBackground(Style.VULN_DARK)
+    particles()
     val navigate = useNavigate()
 
     val (vulnerabilityFilters, setVulnerabilityFilters) = useState(VulnerabilityFilter.approved)

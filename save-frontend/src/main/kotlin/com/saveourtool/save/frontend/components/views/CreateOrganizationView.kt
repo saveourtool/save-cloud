@@ -65,7 +65,7 @@ external interface OrganizationSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(true) {
+class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() {
     init {
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""

@@ -23,7 +23,7 @@ import web.cssom.*
 import web.html.InputType
 
 val contestTemplateView: FC<ContestTemplateViewProps> = FC { props ->
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
 
     val (contestTemplate, setContestTemplate) = useState(ContestSampleDto.empty)
     val (contestTemplateField, setContestTemplateField) = useState<List<ContestSampleFieldDto>>(emptyList())

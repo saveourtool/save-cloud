@@ -28,19 +28,40 @@ enum class Style(
     val borderForContainer: String,
     val marginBottomForTopBar: String,
 ) {
-    BLUE(
+    INDEX(
+        "-webkit-linear-gradient(0deg, rgb(0,20,73), #662cbd)",
+        "",
+        "transparent",
+        "px-0",
+        "",
+    ),
+    SAVE_DARK(
         "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
         "",
         "transparent",
         "px-0",
-        ""
+        "",
     ),
-    WHITE (
+    SAVE_LIGHT(
         "bg-light",
         "bg-dark",
         "bg-dark",
         "",
-        "mb-3"
+        "mb-3",
+    ),
+    VULN_DARK(
+        "-webkit-linear-gradient(270deg, #3e295e, #662cbd)",
+        "",
+        "transparent",
+        "px-0",
+        "",
+    ),
+    VULN_LIGHT(
+        "bg-light",
+        "#563d7c",
+        "#563d7c",
+        "",
+        "mb-3",
     ),
     ;
 }

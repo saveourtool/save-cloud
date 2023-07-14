@@ -95,7 +95,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>(true) {
+class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>() {
     init {
         state.selectedMenu = BenchmarkCategoryEnum.defaultTab
         state.lang = ALL_LANGS

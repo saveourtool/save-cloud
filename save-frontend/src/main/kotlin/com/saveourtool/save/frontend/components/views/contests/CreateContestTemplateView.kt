@@ -30,7 +30,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val createContestTemplateView: VFC = VFC {
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
 
     val (contestTemplate, setContestTemplate) = useState(ContestSampleDto.empty)
     val (mapField) = useState<MutableMap<Int, ContestSampleFieldDto>>(mutableMapOf())

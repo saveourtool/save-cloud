@@ -17,7 +17,7 @@ import web.cssom.*
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<IndexViewProps> = FC { props ->
-    useBackground(Style.BLUE)
+    useBackground(Style.INDEX)
     particles()
     main {
         className = ClassName("main-content")

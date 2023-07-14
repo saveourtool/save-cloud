@@ -15,7 +15,7 @@ import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
 val demoMainView: VFC = VFC {
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
 
     main {
         className = ClassName("main-content mt-0 ps")

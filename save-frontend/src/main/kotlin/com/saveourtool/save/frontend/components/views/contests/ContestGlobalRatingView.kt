@@ -96,7 +96,7 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(false) {
+class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(Style.SAVE_LIGHT) {
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
         "TYPE_ALIAS",

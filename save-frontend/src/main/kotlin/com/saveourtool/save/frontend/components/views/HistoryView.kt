@@ -120,7 +120,7 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     "GENERIC_VARIABLE_WRONG_DECLARATION",
     "TOO_MANY_LINES_IN_LAMBDA",
 )
-class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
+class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGHT) {
     private val selectedExecutionIds = mutableListOf<Long>()
     private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {

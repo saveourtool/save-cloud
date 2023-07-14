@@ -115,7 +115,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LIGHT) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable: FC<StatusProps<TestExecutionExtDto>> = tableComponent(

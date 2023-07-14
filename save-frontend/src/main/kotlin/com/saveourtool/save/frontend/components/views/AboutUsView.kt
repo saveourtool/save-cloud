@@ -40,7 +40,7 @@ external interface AboutUsViewState : State
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
+open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>() {
     private val developers = listOf(
         Developer("Vlad", "Frolov", "Cheshiriks", "Fullstack"),
         Developer("Peter", "Trifanov", "petertrr", "Arch"),

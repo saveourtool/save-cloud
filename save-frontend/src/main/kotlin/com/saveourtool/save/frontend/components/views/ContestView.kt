@@ -88,7 +88,7 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
+class ContestView : AbstractView<ContestViewProps, ContestViewState>(Style.SAVE_LIGHT) {
     init {
         state.selectedMenu = ContestMenuBar.defaultTab
         state.isFeatured = false

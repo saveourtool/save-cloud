@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.utils.Style
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -40,7 +41,7 @@ external interface FallbackViewProps : Props {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class FallbackView : AbstractView<FallbackViewProps, State>(false) {
+class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
     @Suppress("ForbiddenComment")
     override fun ChildrenBuilder.render() {
         div {
