@@ -20,10 +20,10 @@ import org.w3c.fetch.Response
 import react.FC
 import react.Props
 import react.StateSetter
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
+import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
@@ -131,8 +131,8 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                     }
                     div {
                         className = ClassName("col-7 text-left align-self-center pl-0")
-                        a {
-                            href = url
+                        Link {
+                            to = url
                             +url
                         }
                     }

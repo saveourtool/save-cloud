@@ -17,9 +17,6 @@ import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
-import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.fossgraph.vulnerability
-import com.saveourtool.save.frontend.components.views.fossgraph.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
@@ -28,6 +25,9 @@ import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsE
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
@@ -144,14 +144,14 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val fossGraphCollectionView: VFC = VFC {
+    val vulnerabilityCollectionView: VFC = VFC {
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
         }
     }
 
     val vulnerabilityView: VFC = withRouter { _, params ->
-        vulnerability {
+        vulnerabilityView {
             name = requireNotNull(params["vulnerabilityName"])
             currentUserInfo = props.userInfo
         }
@@ -201,7 +201,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             demoView.create() to "/$DEMO/:organizationName/:projectName",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            fossGraphCollectionView.create() to "/$VULNERABILITIES",
+            vulnerabilityCollectionView.create() to "/$VULNERABILITIES",
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
             vulnerabilityView.create() to "/$VULNERABILITIES/:vulnerabilityName",
             demoCollectionView.create() to "/$DEMO",
