@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.components.topbar.topBar
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
-import com.saveourtool.save.frontend.routing.mobileRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
@@ -105,8 +104,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
         "ComplexMethod",
     )
     override fun ChildrenBuilder.render() {
-        val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
-
         HashRouter {
             requestModalHandler {
                 userInfo = state.userInfo
