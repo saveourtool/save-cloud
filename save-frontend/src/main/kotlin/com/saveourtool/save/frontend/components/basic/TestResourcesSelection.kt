@@ -183,7 +183,7 @@ private fun ChildrenBuilder.renderForContestMode(
             className = ClassName("card-body d-flex justify-content-center")
             button {
                 type = ButtonType.button
-                className = ClassName("d-flex justify-content-center btn btn-primary")
+                className = ClassName("d-flex justify-content-center btn btn-outline-primary")
                 +"Enroll for a contest"
                 onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
             }

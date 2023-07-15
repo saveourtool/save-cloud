@@ -149,7 +149,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
 
                                 when (project.status) {
                                     ProjectStatus.CREATED -> actionButton {
-                                        title = "WARNING: About to delete this project..."
+                                        title = "WARNING: You are about to delete this project"
                                         errorTitle = "You cannot delete the project $projectName"
                                         message = """Are you sure you want to delete the project "$projectName"?"""
                                         clickMessage = "Also ban this project"
@@ -185,7 +185,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                     }
                                     ProjectStatus.DELETED -> actionButton {
-                                        title = "WARNING: About to recover this project..."
+                                        title = "WARNING: You are about to recover this project"
                                         errorTitle = "You cannot recover the project $projectName"
                                         message = """Are you sure you want to recover the project "$projectName"?"""
                                         buttonStyleBuilder = { childrenBuilder ->
@@ -220,7 +220,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                     }
                                     ProjectStatus.BANNED -> if (props.currentUserInfo.isSuperAdmin()) {
                                         actionButton {
-                                            title = "WARNING: About to unban this BANNED project..."
+                                            title = "WARNING: You are about to unban this BANNED project"
                                             errorTitle = "You cannot unban the project $projectName"
                                             message = """Are you sure you want to unban the project "$projectName"?"""
                                             buttonStyleBuilder = { childrenBuilder ->

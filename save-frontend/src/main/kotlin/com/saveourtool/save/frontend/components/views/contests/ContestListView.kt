@@ -21,7 +21,7 @@ import web.cssom.ClassName
 val contestListView: FC<ContestListViewProps> = FC { props ->
     useBackground(Style.SAVE_DARK)
     main {
-        className = ClassName("main-content mt-0 ps")
+        className = ClassName("main-content mt-0 ps text-gray-800")
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {

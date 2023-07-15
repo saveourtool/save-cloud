@@ -47,7 +47,7 @@ class UserSettingsEmailMenuView : UserSettingsView() {
                     className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                     button {
                         type = ButtonType.button
-                        className = ClassName("btn btn-sm btn-primary")
+                        className = ClassName("btn btn-sm btn-outline-primary")
                         onClick = {
                             updateUser()
                         }

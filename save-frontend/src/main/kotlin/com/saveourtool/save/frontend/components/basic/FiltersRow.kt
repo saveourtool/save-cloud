@@ -177,7 +177,7 @@ private fun testExecutionFiltersRow(
             }
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary")
+                className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                 onClick = {
                     props.onChangeFilters(filters)
@@ -185,7 +185,7 @@ private fun testExecutionFiltersRow(
             }
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary")
+                className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
                     setFilters(TestExecutionFilter.empty)

@@ -237,7 +237,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 className = ClassName("mt-3 d-flex justify-content-center")
                 button {
                     type = ButtonType.button
-                    className = ClassName("btn btn-primary")
+                    className = ClassName("btn btn-outline-primary")
                     disabled = isButtonDisabled(contestDto) || conflictErrorMessage != null
                     onClick = { onSaveButtonPressed() }
                     +"Create contest"

@@ -172,7 +172,7 @@ private fun createGitWindow() = FC<GitWindowProps> { props ->
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary mr-3")
+                className = ClassName("btn btn-outline-primary mr-3")
                 onClick = {
                     upsertGitCredentialRequest()
                 }

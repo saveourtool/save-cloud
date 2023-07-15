@@ -102,12 +102,12 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                 }
                             }
                             div {
-                                className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                                className = ClassName("col-5 text-right")
                                 val role = state.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                                 if (role.isHigherOrEqualThan(Role.OWNER)) {
                                     when (organizationDto.status) {
                                         OrganizationStatus.CREATED -> actionButton {
-                                            title = "WARNING: About to delete this organization..."
+                                            title = "WARNING: You are about to delete this organization"
                                             errorTitle = "You cannot delete the organization ${organizationDto.name}"
                                             message = "Are you sure you want to delete the organization ${organizationDto.name}?"
                                             buttonStyleBuilder = { childrenBuilder ->
@@ -139,7 +139,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                             }
                                         }
                                         OrganizationStatus.DELETED -> actionButton {
-                                            title = "WARNING: About to recover this organization..."
+                                            title = "WARNING: You are about to recover this organization"
                                             errorTitle = "You cannot recover the organization ${organizationDto.name}"
                                             message = "Are you sure you want to recover the organization ${organizationDto.name}?"
                                             buttonStyleBuilder = { childrenBuilder ->

@@ -147,7 +147,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         particles()
 
         div {
-            className = ClassName("row justify-content-center")
+            className = ClassName("row text-gray-800 justify-content-center")
             div {
                 className = ClassName("col-10 mt-4 min-vh-100")
                 div {

@@ -48,7 +48,7 @@ fun ChildrenBuilder.buttonBuilder(
     label: String,
     style: String = "primary",
     isDisabled: Boolean = false,
-    isOutline: Boolean = false,
+    isOutline: Boolean = true,
     isActive: Boolean = false,
     classes: String = "",
     title: String? = null,

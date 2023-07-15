@@ -233,7 +233,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             className = ClassName("d-flex justify-content-center")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary mt-2 mb-2")
+                className = ClassName("btn btn-outline-primary mt-2 mb-2")
                 disabled = !testSuiteSource.validate() || saveStatus != null
                 onClick = requestToUpsertEntity.withUnusedArg()
                 +"Submit"

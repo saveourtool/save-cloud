@@ -17,8 +17,14 @@ class AppTest {
             App::class.react.create()
         )
 
+        screen.findByTextAndCast<HTMLHeadingElement>(
+            "Cloud Platform for CI and Benchmarking of Code Analyzers"
+        ).then { htmlHeadingElement ->
+            assertNotNull(htmlHeadingElement)
+        }
+
         return screen.findByTextAndCast<HTMLHeadingElement>(
-            "Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
+            "Archive of 1-Day Vulnerabilities Aggregated from Various Sources"
         ).then { htmlHeadingElement ->
             assertNotNull(htmlHeadingElement)
         }
