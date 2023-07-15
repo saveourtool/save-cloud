@@ -15,10 +15,10 @@ import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
 val demoCollectionView: VFC = VFC {
-    useBackground(Style.BLUE)
+    useBackground(Style.SAVE_DARK)
 
     main {
-        className = ClassName("main-content mt-0 ps text-gray-800x")
+        className = ClassName("main-content mt-0 ps")
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {

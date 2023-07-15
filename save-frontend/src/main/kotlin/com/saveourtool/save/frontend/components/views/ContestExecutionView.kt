@@ -63,7 +63,7 @@ external interface ContestExecutionViewProps : PropsWithChildren {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(false) {
+class ContestExecutionView : AbstractView<ContestExecutionViewProps, State>(Style.SAVE_LIGHT) {
     @Suppress(
         "MAGIC_NUMBER",
         "TYPE_ALIAS",

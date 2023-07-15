@@ -86,3 +86,39 @@
     box-shadow: none;
   }
 }
+
+#main-body.vuln {
+  .btn-primary,
+  .btn-outline-primary {
+    color: #fff;
+    background-color: $vuln-primary;
+    border-color: $vuln-primary;
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: darken($vuln-primary, 10%);
+      border-color: darken($vuln-primary, 15%);
+    }
+  }
+
+  .btn-outline-primary {
+    background-color: transparent;
+    color: $vuln-primary;
+    border-color: $vuln-primary;
+    &:hover,
+    &:focus,
+    &:active {
+      color: #fff;
+    }
+    &.disabled, &:disabled {
+      color: $vuln-primary;
+      background-color: transparent;
+      &:hover,
+      &:focus,
+      &:active {
+        color: $vuln-primary;
+        background-color: transparent;
+      }
+    }
+  }
+}

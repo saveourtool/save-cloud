@@ -84,7 +84,7 @@ external interface UserSettingsViewState : State {
 }
 
 @Suppress("MISSING_KDOC_TOP_LEVEL")
-abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(false) {
+abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsViewState>(Style.SAVE_LIGHT) {
     private val fieldsMap: MutableMap<InputTypes, String> = mutableMapOf()
     private val renderMenu = renderMenu()
 

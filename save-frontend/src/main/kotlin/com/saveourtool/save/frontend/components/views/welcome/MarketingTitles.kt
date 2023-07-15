@@ -18,7 +18,7 @@ import web.cssom.*
  * @param textColor
  * @param isDark
  */
-fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
+fun ChildrenBuilder.saveWelcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
     div {
         className = ClassName("col-4 text-left mt-5 $textColor")
         marketingTitle("Software", isDark)

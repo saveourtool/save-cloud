@@ -167,11 +167,22 @@ fun useRequestStatusContext(): WithRequestStatusContext {
  * @param colorStyle page style
  */
 fun useBackground(colorStyle: Style) {
+    useOnce {
+        document.getElementById("main-body")?.apply {
+            className = when (colorStyle) {
+                Style.SAVE_DARK, Style.SAVE_LIGHT -> className.replace("vuln", "save")
+                Style.VULN_DARK, Style.VULN_LIGHT -> className.replace("save", "vuln")
+                Style.INDEX -> className.replace("vuln", "save")
+            }
+        }
+    }
     useEffect {
-        document.getElementById("content-wrapper")?.setAttribute(
-            "style",
-            "background: ${colorStyle.globalBackground}"
-        )
+        document.getElementById("content-wrapper")?.apply {
+            setAttribute(
+                "style",
+                "background: ${colorStyle.globalBackground}",
+            )
+        }
         configureTopBar(colorStyle)
     }
 }

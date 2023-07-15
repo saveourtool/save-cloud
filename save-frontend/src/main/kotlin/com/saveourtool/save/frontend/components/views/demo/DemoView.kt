@@ -23,7 +23,7 @@ private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = t
  * Demo View
  */
 val demoView: FC<DemoViewProps> = FC { props ->
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
 
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
     div {

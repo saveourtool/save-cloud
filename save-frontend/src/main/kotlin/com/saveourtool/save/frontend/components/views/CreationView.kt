@@ -88,7 +88,7 @@ external interface ProjectSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>(true) {
+class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     private val organizationSelectForm = selectFormRequired<String>()
     init {
