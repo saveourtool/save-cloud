@@ -122,21 +122,17 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                     className = ClassName("d-flex flex-column")
                     id = "content-wrapper"
                     ErrorBoundary::class.react {
-                        if (isMobile) {
-                            mobileRoutes()
-                        } else {
-                            topBarComponent {
+                        topBarComponent {
+                            userInfo = state.userInfo
+                        }
+                        div {
+                            className = ClassName("container-fluid")
+                            id = "common-save-container"
+                            basicRouting {
                                 userInfo = state.userInfo
                             }
-                            div {
-                                className = ClassName("container-fluid")
-                                id = "common-save-container"
-                                basicRouting {
-                                    userInfo = state.userInfo
-                                }
-                            }
-                            Footer::class.react()
                         }
+                        Footer::class.react()
                     }
                 }
             }
