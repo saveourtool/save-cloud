@@ -1,17 +1,14 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
-
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
@@ -23,16 +20,7 @@ import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 
-val testExecutionFiltersRow = testExecutionFiltersRow()
-
-val nameFiltersRow = nameFiltersRow()
-
-@Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
-class SelectOption {
-    companion object {
-        const val ANY = "ANY"
-    }
-}
+const val ANY = "ANY"
 
 /**
  * [Props] for filters value
@@ -50,28 +38,12 @@ external interface FiltersRowProps : Props {
 }
 
 /**
- * [Props] for filters name
- */
-external interface NameFilterRowProps : Props {
-    /**
-     * All filters in one class property [name]
-     */
-    var name: String?
-
-    /**
-     * lambda to change [name]
-     */
-    var onChangeFilters: (String?) -> Unit
-}
-
-/**
- * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
+ * A row of filter selectors for table with `TestExecutionDto`s. Currently, filters are "status" and "test suite".
  *
  * @return a function component
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
-private fun testExecutionFiltersRow(
-) = FC<FiltersRowProps> { props ->
+val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
     // Store local copy of filters in order to perform searching only by the search button, and not by any change in the filter fields
     val (filters, setFilters) = useState(props.filters)
     useEffect(props.filters) {
@@ -79,29 +51,29 @@ private fun testExecutionFiltersRow(
             setFilters(props.filters)
         }
     }
-    div {
+   div {
         className = ClassName("container-fluid")
-        div {
+       div {
             className = ClassName("row d-flex justify-content-between")
-            div {
+           div {
                 className = ClassName("col-0 pr-1 align-self-center")
                 fontAwesomeIcon(icon = faFilter)
             }
-            div {
+           div {
                 className = ClassName("row")
-                div {
+               div {
                     className = ClassName("col-auto align-self-center")
                     +"Status: "
                 }
-                div {
+               div {
                     className = ClassName("col-auto")
-                    select {
+                   select {
                         className = ClassName("form-control")
                         val elements = TestResultStatus.values().map { it.name }.toMutableList()
                         elements.add(0, ANY)
                         value = filters.status?.name ?: ANY
                         elements.forEach { element ->
-                            option {
+                           option {
                                 if (element == props.filters.status?.name) {
                                     selected = true
                                 }
@@ -109,7 +81,7 @@ private fun testExecutionFiltersRow(
                             }
                         }
                         onChange = {
-                            if (it.target.value == "ANY") {
+                            if (it.target.value == ANY) {
                                 setFilters(filters.copy(status = null))
                             } else {
                                 setFilters(filters.copy(status = TestResultStatus.valueOf(it.target.value)))
@@ -118,15 +90,15 @@ private fun testExecutionFiltersRow(
                     }
                 }
             }
-            div {
+           div {
                 className = ClassName("row")
-                div {
+               div {
                     className = ClassName("col-auto align-self-center")
                     +"File name: "
                 }
-                div {
+               div {
                     className = ClassName("col-auto")
-                    input {
+                   input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.fileName ?: ""
@@ -137,15 +109,15 @@ private fun testExecutionFiltersRow(
                     }
                 }
             }
-            div {
+           div {
                 className = ClassName("row")
-                div {
+               div {
                     className = ClassName("col-auto align-self-center")
                     +"Test suite: "
                 }
-                div {
+               div {
                     className = ClassName("col-auto")
-                    input {
+                   input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.testSuite ?: ""
@@ -156,15 +128,15 @@ private fun testExecutionFiltersRow(
                     }
                 }
             }
-            div {
+           div {
                 className = ClassName("row")
-                div {
+               div {
                     className = ClassName("col-auto align-self-center")
                     +"Tags: "
                 }
-                div {
+               div {
                     className = ClassName("col-auto")
-                    input {
+                   input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.tag ?: ""
@@ -175,7 +147,7 @@ private fun testExecutionFiltersRow(
                     }
                 }
             }
-            button {
+           button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
@@ -183,70 +155,13 @@ private fun testExecutionFiltersRow(
                     props.onChangeFilters(filters)
                 }
             }
-            button {
+           button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
                 onClick = {
                     setFilters(TestExecutionFilter.empty)
                     props.onChangeFilters(TestExecutionFilter.empty)
-                }
-            }
-        }
-    }
-}
-private fun nameFiltersRow(
-) = FC<NameFilterRowProps> { props ->
-
-    val (filtersName, setFiltersName) = useState(props.name)
-    useEffect(props.name) {
-        if (filtersName != props.name) {
-            setFiltersName(props.name)
-        }
-    }
-
-    div {
-        className = ClassName("container-fluid")
-        div {
-            className = ClassName("row d-flex")
-            div {
-                className = ClassName("col-0 mr-3 align-self-center")
-                fontAwesomeIcon(icon = faFilter)
-            }
-            div {
-                className = ClassName("row")
-                div {
-                    className = ClassName("col-auto align-self-center")
-                    +"Name: "
-                }
-                div {
-                    className = ClassName("col-auto mr-3")
-                    input {
-                        type = InputType.text
-                        className = ClassName("form-control")
-                        value = filtersName ?: ""
-                        required = false
-                        onChange = {
-                            setFiltersName(it.target.value)
-                        }
-                    }
-                }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mr-3")
-                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
-                onClick = {
-                    props.onChangeFilters(filtersName)
-                }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary")
-                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                onClick = {
-                    setFiltersName(null)
-                    props.onChangeFilters(null)
                 }
             }
         }
