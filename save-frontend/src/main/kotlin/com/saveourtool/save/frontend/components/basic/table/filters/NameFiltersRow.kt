@@ -1,12 +1,10 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.withNavigate
-import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
@@ -16,23 +14,7 @@ import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 
-/**
- * [Props] for filters name
- */
-external interface NameFilterRowProps : Props {
-    /**
-     * All filters in one class property [name]
-     */
-    var name: String?
-
-    /**
-     * lambda to change [name]
-     */
-    var onChangeFilters: (String?) -> Unit
-}
-
-
-val nameFiltersRow = FC<NameFilterRowProps> { props ->
+val nameFiltersRow: FC<NameFilterRowProps> = FC { props ->
     val (filtersName, setFiltersName) = useState(props.name)
     useEffect(props.name) {
         if (filtersName != props.name) {
@@ -87,4 +69,19 @@ val nameFiltersRow = FC<NameFilterRowProps> { props ->
             }
         }
     }
+}
+
+/**
+ * [Props] for filters name
+ */
+external interface NameFilterRowProps : Props {
+    /**
+     * All filters in one class property [name]
+     */
+    var name: String?
+
+    /**
+     * lambda to change [name]
+     */
+    var onChangeFilters: (String?) -> Unit
 }

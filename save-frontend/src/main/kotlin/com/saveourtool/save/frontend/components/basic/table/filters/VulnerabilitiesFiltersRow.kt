@@ -8,32 +8,14 @@ import com.saveourtool.save.frontend.utils.withNavigate
 import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.useEffect
 import react.useState
 import web.cssom.ClassName
-import web.html.ButtonType
 import web.html.InputType
 
-/**
- * [Props] for filters name
- */
-external interface VulnerabilitiesFiltersProps : Props {
-    /**
-     * All filters in one class property [name]
-     */
-    var name: String?
-
-    /**
-     * lambda to change [name]
-     */
-    var onChangeFilters: (String?) -> Unit
-}
-
-
-val vulnerabilitiesFiltersRow = FC<NameFilterRowProps> { props ->
+val vulnerabilitiesFiltersRow: FC<NameFilterRowProps> = FC { props ->
 
     val (filtersName, setFiltersName) = useState(props.name)
     useEffect(props.name) {
@@ -97,4 +79,19 @@ val vulnerabilitiesFiltersRow = FC<NameFilterRowProps> { props ->
             }
         }
     }
+}
+
+/**
+ * [Props] for filters name
+ */
+external interface VulnerabilitiesFiltersProps : Props {
+    /**
+     * All filters in one class property [name]
+     */
+    var name: String?
+
+    /**
+     * lambda to change [name]
+     */
+    var onChangeFilters: (String?) -> Unit
 }

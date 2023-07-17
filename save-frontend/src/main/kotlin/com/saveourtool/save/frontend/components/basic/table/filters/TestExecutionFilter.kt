@@ -1,3 +1,5 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.domain.TestResultStatus
@@ -8,7 +10,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
@@ -23,27 +24,12 @@ import web.html.InputType
 const val ANY = "ANY"
 
 /**
- * [Props] for filters value
- */
-external interface FiltersRowProps : Props {
-    /**
-     * All filters in one class property [filters]
-     */
-    var filters: TestExecutionFilter
-
-    /**
-     * lambda to change [filters]
-     */
-    var onChangeFilters: (TestExecutionFilter) -> Unit
-}
-
-/**
  * A row of filter selectors for table with `TestExecutionDto`s. Currently, filters are "status" and "test suite".
  *
  * @return a function component
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
-val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
+val testExecutionFiltersRow: FC<FiltersRowProps> = FC { props ->
     // Store local copy of filters in order to perform searching only by the search button, and not by any change in the filter fields
     val (filters, setFilters) = useState(props.filters)
     useEffect(props.filters) {
@@ -51,29 +37,29 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
             setFilters(props.filters)
         }
     }
-   div {
+    div {
         className = ClassName("container-fluid")
-       div {
+        div {
             className = ClassName("row d-flex justify-content-between")
-           div {
+            div {
                 className = ClassName("col-0 pr-1 align-self-center")
                 fontAwesomeIcon(icon = faFilter)
             }
-           div {
+            div {
                 className = ClassName("row")
-               div {
+                div {
                     className = ClassName("col-auto align-self-center")
                     +"Status: "
                 }
-               div {
+                div {
                     className = ClassName("col-auto")
-                   select {
+                    select {
                         className = ClassName("form-control")
                         val elements = TestResultStatus.values().map { it.name }.toMutableList()
                         elements.add(0, ANY)
                         value = filters.status?.name ?: ANY
                         elements.forEach { element ->
-                           option {
+                            option {
                                 if (element == props.filters.status?.name) {
                                     selected = true
                                 }
@@ -90,15 +76,15 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
                     }
                 }
             }
-           div {
+            div {
                 className = ClassName("row")
-               div {
+                div {
                     className = ClassName("col-auto align-self-center")
                     +"File name: "
                 }
-               div {
+                div {
                     className = ClassName("col-auto")
-                   input {
+                    input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.fileName ?: ""
@@ -109,15 +95,15 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
                     }
                 }
             }
-           div {
+            div {
                 className = ClassName("row")
-               div {
+                div {
                     className = ClassName("col-auto align-self-center")
                     +"Test suite: "
                 }
-               div {
+                div {
                     className = ClassName("col-auto")
-                   input {
+                    input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.testSuite ?: ""
@@ -128,15 +114,15 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
                     }
                 }
             }
-           div {
+            div {
                 className = ClassName("row")
-               div {
+                div {
                     className = ClassName("col-auto align-self-center")
                     +"Tags: "
                 }
-               div {
+                div {
                     className = ClassName("col-auto")
-                   input {
+                    input {
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filters.tag ?: ""
@@ -147,7 +133,7 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
                     }
                 }
             }
-           button {
+            button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
@@ -155,7 +141,7 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
                     props.onChangeFilters(filters)
                 }
             }
-           button {
+            button {
                 type = ButtonType.button
                 className = ClassName("btn btn-outline-primary")
                 fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
@@ -166,4 +152,19 @@ val testExecutionFiltersRow = FC<FiltersRowProps> { props ->
             }
         }
     }
+}
+
+/**
+ * [Props] for filters value
+ */
+external interface FiltersRowProps : Props {
+    /**
+     * All filters in one class property [filters]
+     */
+    var filters: TestExecutionFilter
+
+    /**
+     * lambda to change [filters]
+     */
+    var onChangeFilters: (TestExecutionFilter) -> Unit
 }
