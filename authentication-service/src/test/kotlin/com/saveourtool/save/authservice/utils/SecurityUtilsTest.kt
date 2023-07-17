@@ -12,10 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 class SecurityUtilsTest {
 
     private val user = IdAwareUserDetails(
-        "basic:name",
+        "name",
         "password",
         "VIEWER",
-        "basic",
         42
     )
 

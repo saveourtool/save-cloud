@@ -8,9 +8,7 @@ import com.saveourtool.save.api.authorization.Authorization
 import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.info.UserNameAndSource
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
@@ -38,7 +36,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.InternalAPI
-import kotlinx.serialization.encodeToString
 import okio.Path.Companion.toPath
 
 import java.io.File
@@ -62,7 +59,6 @@ private object Backend {
  */
 private object UserInformation {
     lateinit var username: String
-    lateinit var source: String
 }
 
 /**
@@ -82,7 +78,6 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileDto = this.post {
     url("${Backend.url}/api/$v1/files/upload")
-    header(AUTHORIZATION_SOURCE, UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -103,7 +98,6 @@ suspend fun HttpClient.uploadAdditionalFile(
 @Suppress("TOO_LONG_FUNCTION")
 suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
     url("${Backend.url}/api/$v1/run/trigger")
-    header(AUTHORIZATION_SOURCE, UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(createExecutionRequest)
 }
@@ -132,7 +126,6 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header(AUTHORIZATION_SOURCE, UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 
@@ -147,7 +140,6 @@ fun initializeHttpClient(
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
     UserInformation.username = authorization.userName
-    UserInformation.source = authorization.source
 
     return HttpClient {
         install(Logging) {
@@ -164,7 +156,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = Json.encodeToString(UserNameAndSource(authorization.userName, authorization.source)), password = authorization.token.orEmpty())
+                    BasicAuthCredentials(username = authorization.userName, password = authorization.token.orEmpty())
                 }
             }
         }

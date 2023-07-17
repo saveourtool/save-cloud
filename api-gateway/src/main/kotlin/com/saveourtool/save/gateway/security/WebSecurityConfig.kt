@@ -140,10 +140,9 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
-                    val userNameAndSource = UserNameAndSource.parse(username)
                     // Looking for user in DB by received source and name
                     webClient.get()
-                        .uri("/internal/users/${userNameAndSource.source}/${userNameAndSource.userName}")
+                        .uri("/internal/users/basic/$username")
                         .retrieve()
                         .onStatus({ it.is4xxClientError }) {
                             Mono.error(ResponseStatusException(it.statusCode()))

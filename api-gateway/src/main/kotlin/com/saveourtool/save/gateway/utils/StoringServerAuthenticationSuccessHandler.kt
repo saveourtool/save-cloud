@@ -5,7 +5,10 @@ import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
 import org.springframework.web.reactive.function.client.WebClient
@@ -27,8 +30,11 @@ class StoringServerAuthenticationSuccessHandler(
     ): Mono<Void> {
         logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
 
-        val source = authentication.toIdentitySource()
-        val nameInSource = authentication.userName()
+        val (source, nameInSource) = if (authentication is OAuth2AuthenticationToken) {
+            authentication.authorizedClientRegistrationId to authentication.principal.name
+        } else {
+            throw BadCredentialsException("Not supported authentication type ${authentication::class}")
+        }
         // https://github.com/saveourtool/save-cloud/issues/583
         // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
         // from authentication provider. In the future we may want to use this information and have a mapping of existing

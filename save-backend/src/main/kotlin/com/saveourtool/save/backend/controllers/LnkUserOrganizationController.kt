@@ -10,6 +10,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.toUser
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -107,7 +108,7 @@ class LnkUserOrganizationController(
         authentication: Authentication?,
     ): Mono<Role> = authentication?.let {
         getUserAndOrganizationWithPermissions(
-            authentication.toUser().name!!,
+            authentication.username(),
             organizationName,
             Permission.READ,
             authentication,

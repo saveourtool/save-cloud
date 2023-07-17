@@ -4,7 +4,6 @@ import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.info.UserNameAndSource
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
