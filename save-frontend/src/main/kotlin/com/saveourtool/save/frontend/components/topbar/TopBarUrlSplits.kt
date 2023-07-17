@@ -47,7 +47,7 @@ private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
-                    +"SAVE"
+                    +"SaveOurTool!"
                 }
             }
             props.location.pathname

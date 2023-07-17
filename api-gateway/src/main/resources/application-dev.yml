@@ -19,11 +19,12 @@ spring:
             authorization-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/authorize
             token-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/token
             user-info-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/userinfo
-            user-name-attribute: name
+            user-name-attribute: login
           gitee:
             authorization-uri: https://gitee.com/oauth/authorize
             token-uri: https://gitee.com/oauth/token
             user-info-uri: https://gitee.com/api/v5/user
+            user-name-attribute: login
           # example: https://github.com/wearearima/spring-boot-dex/blob/ad7dd7f501f8fc3946fc87184b4b8b705713ead9/src/main/resources/application.properties
           dex:
             authorization-uri: http://localhost:5556/dex/auth
@@ -48,8 +49,9 @@ spring:
             client-secret: 86d1ffd3035595ca33b49eeb1cbfb0b1f467ec7ed3e1245c0fb3c885c2fabb46
             redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
             authorization-grant-type: authorization_code
-            scope: openid
             client-authentication-method: basic
+            # also can be profile, email
+            scope: openid
           gitee:
             client-id: 6b7fc07ecdf7a12d9aa8e2aaf034743baa6f77e036dc22fe6455e02fcf51a851
             client-secret: 8908a8a4239c688af45a4db89ec27d4a7e7f5076dc3125b07b506de6414926a3
