@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers.internal
 import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -19,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+
+typealias UserDetailsResponse = ResponseEntity<UserDetails>
 
 /**
  * Controller that handles operation with users
@@ -71,7 +72,7 @@ class UsersController(
     fun findBySourceAndUsername(
         @PathVariable source: String,
         @PathVariable userName: String,
-    ): Mono<ResponseEntity<UserDetails>> = userService.findByUsernameAndSource(userName, source)
+    ): Mono<UserDetailsResponse> = userService.findByUsernameAndSource(userName, source)
         .map {
             ResponseEntity.ok(it)
         }
