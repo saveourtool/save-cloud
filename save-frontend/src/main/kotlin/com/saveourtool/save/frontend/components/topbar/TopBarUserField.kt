@@ -30,23 +30,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 
-val topBarUserField = topBarUserField()
-
 @Suppress("MAGIC_NUMBER")
-val logoSize: CSSProperties =
-        jso {
-            height = 2.5.rem
-            width = 2.5.rem
-        }
-
-/**
- * [Props] of the top bar user field component
- */
-external interface TopBarUserFieldProps : Props {
-    /**
-     * Currently logged in user or `null`.
-     */
-    var userInfo: UserInfo?
+val logoSize: CSSProperties = jso {
+    height = 2.5.rem
+    width = 2.5.rem
 }
 
 /**
@@ -58,7 +45,7 @@ external interface TopBarUserFieldProps : Props {
     "TOO_LONG_FUNCTION",
     "LOCAL_VARIABLE_EARLY_DECLARATION"
 )
-private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
+val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     val scope = CoroutineScope(Dispatchers.Default)
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
@@ -79,9 +66,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
         // Nav Item - User Information
         li {
             className = ClassName("nav-item dropdown no-arrow")
-            onClickCapture = {
-                isAriaExpanded = !isAriaExpanded
-            }
+            onClickCapture = { isAriaExpanded = !isAriaExpanded }
             a {
                 href = "#"
                 className = ClassName("nav-link dropdown-toggle")
@@ -170,4 +155,14 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     }() {
         isOpen = isLogoutModalOpen
     }
+}
+
+/**
+ * [Props] of the top bar user field component
+ */
+external interface TopBarUserFieldProps : Props {
+    /**
+     * Currently logged-in user or `null`.
+     */
+    var userInfo: UserInfo?
 }

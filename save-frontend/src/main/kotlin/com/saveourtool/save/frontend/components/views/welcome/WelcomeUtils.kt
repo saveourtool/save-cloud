@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.OauthProvidersFeConfig
 import com.saveourtool.save.frontend.utils.processRegistrationId
 import com.saveourtool.save.info.OauthProviderInfo
@@ -85,10 +86,12 @@ internal fun ChildrenBuilder.inputCredentialsView(oauthProviders: List<OauthProv
  * Render nice menu with options built from [renderMenu]
  *
  * @param userInfo current [UserInfo]
+ * @param primaryColor color of `Welcome, {username}` shield
  * @param renderMenu callback to render menu options
  */
 internal fun ChildrenBuilder.welcomeUserMenu(
     userInfo: UserInfo?,
+    primaryColor: Colors,
     renderMenu: ChildrenBuilder.() -> Unit
 ) {
     div {
@@ -96,7 +99,7 @@ internal fun ChildrenBuilder.welcomeUserMenu(
         div {
             className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
             style = jso {
-                backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                backgroundColor = primaryColor.value.unsafeCast<BackgroundColor>()
             }
             h4 {
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-0")
@@ -104,7 +107,13 @@ internal fun ChildrenBuilder.welcomeUserMenu(
                     className = ClassName("row")
                     div {
                         className = ClassName("col text-center px-1 mb-3")
-                        fontAwesomeIcon(icon = faHome)
+                        Link {
+                            className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+                            to = "/${FrontendRoutes.INDEX}"
+                            fontAwesomeIcon(icon = faHome) {
+                                it.color = "#FFFFFF"
+                            }
+                        }
                     }
                 }
                 +"Welcome, ${userInfo?.name}!"
@@ -114,21 +123,26 @@ internal fun ChildrenBuilder.welcomeUserMenu(
 
     div {
         className = ClassName("card-body")
-        renderMenu()
+        div {
+            className = ClassName("text-sm")
+            renderMenu()
+            hrNoMargin()
+            menuTextAndLink("Go to main page", FrontendRoutes.INDEX, faHome)
+        }
     }
 }
 
 /**
- * Render styled [text] with [link] and leading [icon]
+ * Render styled [text] with link by [route]'s [FrontendRoutes.path] and leading [icon]
  *
  * @param text [String] to display
- * @param link that menu options points to
+ * @param route that menu options points to
  * @param icon [FontAwesomeIcon] to display
  */
-internal fun ChildrenBuilder.menuTextAndLink(text: String, link: String, icon: FontAwesomeIconModule) {
+internal fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendRoutes, icon: FontAwesomeIconModule) {
     Link {
         className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-        to = link
+        to = "/${route.path}"
         h4 {
             style = jso {
                 color = "#3075c0".unsafeCast<Color>()

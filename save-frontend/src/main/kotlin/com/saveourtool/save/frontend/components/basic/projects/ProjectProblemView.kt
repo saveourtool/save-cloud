@@ -204,7 +204,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                                             a {
                                                 projectProblem.vulnerabilityName?.let {
                                                     Link {
-                                                        to = "/${FrontendRoutes.VULNERABILITIES}/${projectProblem.vulnerabilityName}"
+                                                        to = "/${FrontendRoutes.VULN}/${projectProblem.vulnerabilityName}"
                                                         +it
                                                     }
                                                 } ?: +"No known CVE"

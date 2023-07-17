@@ -14,9 +14,13 @@ import kotlinx.browser.window
 
 private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
 
-const val SAVE_BLUE_GRADIENT = "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))"
+const val SAVE_DARK_GRADIENT = "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))"
+
+const val VULN_DARK_GRADIENT = "-webkit-linear-gradient(270deg, #3e295e, #662cbd)"
 
 const val SAVE_LIGHT_GRADIENT = "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))"
+
+const val VULN_DARK_REVERSED_GRADIENT = "-webkit-linear-gradient(90deg, #3e295e, #662cbd)"
 
 /**
  * @property globalBackground
@@ -40,7 +44,7 @@ enum class Style(
         "",
     ),
     SAVE_DARK(
-        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
+        SAVE_DARK_GRADIENT,
         "",
         "transparent",
         "px-0",
@@ -54,7 +58,7 @@ enum class Style(
         "mb-3",
     ),
     VULN_DARK(
-        "-webkit-linear-gradient(270deg, #3e295e, #662cbd)",
+        VULN_DARK_GRADIENT,
         "",
         "transparent",
         "px-0",

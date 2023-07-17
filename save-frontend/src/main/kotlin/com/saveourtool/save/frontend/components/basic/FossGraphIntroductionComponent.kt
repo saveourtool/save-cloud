@@ -15,8 +15,8 @@ private const val SAVE_FOSS_GRAPH_INTRO_MD = """
 
 private const val SAVE_FOSS_GRAPH_ADD_NEW_MD = """
     |### New vulnerability
-    |You can suggest your own [new vulnerability](#/vuln/create-vulnerability), if you didn't find the required one in our list.
-    |After our approval, it will appear in the database.
+    |You can propose your own [new vulnerability](#/vuln/create-vulnerability), if you didn't find it one in our list.
+    |After the review and approval, it will appear in the database under a special identifier.
 """
 
 private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
@@ -30,7 +30,7 @@ private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
 
 private const val SAVE_FOSS_GRAPH_TOP_RATING_MD = """
     |### Top rating
-    |You can see the [top rating](#/top-rating) of users and organizations.
+    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](#/top-rating) of users and organizations.
 """
 
 @Suppress(

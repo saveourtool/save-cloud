@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.views.toprating
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.filters.OrganizationFilter
-import com.saveourtool.save.frontend.components.basic.nameFiltersRow
+import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon

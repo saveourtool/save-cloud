@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.frontend.components.basic.nameFiltersRow
+import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.pageIndex

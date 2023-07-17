@@ -2,7 +2,7 @@
  * [Last page] Main information about SAVE-cloud
  */
 
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
 import js.core.jso
 import react.ChildrenBuilder
@@ -21,16 +21,19 @@ import web.cssom.em
 
 /**
  * rendering of "Read more" section
+ *
+ * @param platformName
  */
 @Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.renderReadMorePage() {
+fun ChildrenBuilder.renderReadMorePage(platformName: String = "SAVE") {
     div {
         className = ClassName("col")
         style = jso {
-            bottom = 30.em
+            this.bottom = 30.em
+            color?.let { this.color = it }
         }
 
-        wantToKnowMore()
+        wantToKnowMore(platformName)
 
         div {
             className = ClassName("col justify-content-center")
@@ -50,7 +53,7 @@ fun ChildrenBuilder.renderReadMorePage() {
     }
 }
 
-private fun ChildrenBuilder.wantToKnowMore() {
+private fun ChildrenBuilder.wantToKnowMore(platformName: String) {
     div {
         className = ClassName("col justify-content-center")
         h1 {
@@ -58,7 +61,7 @@ private fun ChildrenBuilder.wantToKnowMore() {
                 textAlign = TextAlign.center
                 color = "rgb(6, 7, 89)".unsafeCast<Color>()
             }
-            +"Want to know more about SAVE?"
+            +"Want to know more about $platformName?"
         }
     }
 }
