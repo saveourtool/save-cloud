@@ -1,5 +1,6 @@
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
+import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
 import com.saveourtool.save.frontend.externals.animations.*
 
 import js.core.jso
@@ -8,12 +9,8 @@ import react.dom.html.ReactHTML.img
 import web.cssom.Height
 import web.cssom.rem
 
-/**
- * Funny picture
- */
-@Suppress("CUSTOM_GETTERS_SETTERS")
-object Contests : WelcomePager {
-    @Suppress("MAGIC_NUMBER")
+@Suppress("CUSTOM_GETTERS_SETTERS", "MAGIC_NUMBER")
+object TestsSelector : WelcomePager {
     override val animation: Animation
         get() = batch(fade(), sticky())
 
@@ -23,12 +20,11 @@ object Contests : WelcomePager {
 
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
-            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = 80.rem
+                width = 40.rem
                 height = "auto".unsafeCast<Height>()
             }
-            src = "img/contests.png"
+            src = "img/tests_selector.png"
         }
     }
 }

@@ -18,22 +18,10 @@ import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
 
-val topBarUrlSplits = topBarUrlSplits()
-
-/**
- * [Props] of the top bar url splits component
- */
-external interface TopBarUrlSplitsProps : Props {
-    /**
-     * User location for url analysis.
-     */
-    var location: Location
-}
-
 /**
  * Displays the URL split with "/".
  */
-private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
+val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
     nav {
         className = ClassName("navbar-nav mr-auto w-100")
         ariaLabel = "breadcrumb"
@@ -47,7 +35,7 @@ private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
-                    +"SAVE"
+                    +"SaveOurTool!"
                 }
             }
             props.location.pathname
@@ -82,4 +70,14 @@ private fun topBarUrlSplits() = FC<TopBarUrlSplitsProps> { props ->
                 }
         }
     }
+}
+
+/**
+ * [Props] of the top bar url splits component
+ */
+external interface TopBarUrlSplitsProps : Props {
+    /**
+     * User location for url analysis.
+     */
+    var location: Location
 }

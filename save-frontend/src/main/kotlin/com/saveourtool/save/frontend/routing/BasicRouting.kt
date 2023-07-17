@@ -29,6 +29,7 @@ import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityVi
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
+import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
@@ -176,6 +177,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         listOf(
             indexView.create { userInfo = props.userInfo } to "/",
             saveWelcomeView.create { userInfo = props.userInfo } to "/$SAVE",
+            vulnWelcomeView.create { userInfo = props.userInfo } to "/$VULN",
             sandboxView.create() to "/$SANDBOX",
             AboutUsView::class.react.create() to "/$ABOUT_US",
             CreationView::class.react.create() to "/$CREATE_PROJECT",
@@ -201,9 +203,9 @@ val basicRouting: FC<AppProps> = FC { props ->
             demoView.create() to "/$DEMO/:organizationName/:projectName",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            vulnerabilityCollectionView.create() to "/$VULNERABILITIES",
+            vulnerabilityCollectionView.create() to "$VULN/list",
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
-            vulnerabilityView.create() to "/$VULNERABILITIES/:vulnerabilityName",
+            vulnerabilityView.create() to "/$VULN/:vulnerabilityName",
             demoCollectionView.create() to "/$DEMO",
             userProfileView.create() to "/$PROFILE/:name",
             topRatingView.create() to "/$TOP_RATING",

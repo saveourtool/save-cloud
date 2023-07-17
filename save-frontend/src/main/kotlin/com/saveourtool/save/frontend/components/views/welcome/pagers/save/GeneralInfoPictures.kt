@@ -2,8 +2,9 @@
  * 4 pictures with animation and screenshots from SAVE
  */
 
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
+import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
 import com.saveourtool.save.frontend.externals.animations.*
 
 import js.core.jso

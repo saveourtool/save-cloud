@@ -42,6 +42,8 @@ internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
  */
 internal const val AVATAR_PROFILE_PLACEHOLDER = "img/undraw_profile.svg"
 
+const val ON_BLUR_TIMEOUT_MILLIS = 100
+
 /**
  * The body of a [useDeferredRequest] invocation.
  *
