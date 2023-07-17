@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 
 class SecurityUtilsTest {
 
-    private val user = IdentitySourceAwareUserDetails(
+    private val user = IdAwareUserDetails(
         "basic:name",
         "password",
         "VIEWER",
@@ -36,7 +36,7 @@ class SecurityUtilsTest {
     private fun updateSecurityContext() = SecurityContextHolder.getContext().apply {
         authentication = UsernamePasswordAuthenticationToken(user, null)
         (authentication as UsernamePasswordAuthenticationToken).apply {
-            details = AuthenticationDetails(id = user.id, user.identitySource)
+            details = AuthenticationDetails(id = user.id)
         }
     }.authentication
 }

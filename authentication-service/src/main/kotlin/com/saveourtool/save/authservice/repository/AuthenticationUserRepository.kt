@@ -33,7 +33,6 @@ class AuthenticationUserRepository(
             name = record["name"] as String,
             password = record["password"] as String?,
             role = record["role"] as String?,
-            source = record["source"] as String,
             email = record["email"] as String?,
             avatar = record["avatar"] as String?,
             company = record["company"] as String?,

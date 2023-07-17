@@ -13,18 +13,16 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-private val logger = getLogger<IdentitySourceAwareUserDetails>()
+private val logger = getLogger<IdAwareUserDetails>()
 
 /**
  * @param authorities comma-separated authorities as a single string
- * @property identitySource where the user identity is coming from
  * @property id
  */
-class IdentitySourceAwareUserDetails(
+class IdAwareUserDetails(
     username: String,
     password: String?,
     authorities: String?,
-    val identitySource: String,
     val id: Long,
 ) : SpringUser(
     username,
@@ -40,9 +38,9 @@ class IdentitySourceAwareUserDetails(
  * @param source where the user identity is coming from
  * @return mono of IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
-fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: String? = null) = this
+fun Mono<User>.getIdAwareUserDetails(username: String, source: String? = null) = this
     .map<UserDetails> { user ->
-        user.toIdentitySourceAwareUserDetails()
+        user.toIdAwareUserDetails()
     }
     .switchIfEmpty {
         Mono.fromCallable {
@@ -59,10 +57,9 @@ fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: Strin
  * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
 @Suppress("UnsafeCallOnNullableType")
-private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
+private fun User.toIdAwareUserDetails(): IdAwareUserDetails = IdAwareUserDetails(
     username = this.name.orResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR),
     password = this.password.orEmpty(),
     authorities = this.role,
-    identitySource = this.source,
     id = this.requiredId(),
 )

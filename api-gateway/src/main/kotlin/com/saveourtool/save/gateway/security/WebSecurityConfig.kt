@@ -4,11 +4,10 @@
 
 package com.saveourtool.save.gateway.security
 
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
-import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.info.UserNameAndSource
@@ -58,7 +57,7 @@ class WebSecurityConfig(
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
-        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
+        .addMixIn(IdAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
     private val webClient = WebClient.create(configurationProperties.backend.url)
         .mutate()
         .codecs {

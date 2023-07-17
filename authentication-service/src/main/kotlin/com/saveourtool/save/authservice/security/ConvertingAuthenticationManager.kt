@@ -2,8 +2,7 @@ package com.saveourtool.save.authservice.security
 
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
-import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
+import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.info.UserNameAndSource
 
@@ -36,7 +35,7 @@ class ConvertingAuthenticationManager(
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val name= authentication.username()
         authenticationUserDetailsService.findByUsername(name)
-            .cast<IdentitySourceAwareUserDetails>()
+            .cast<IdAwareUserDetails>()
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
             }
@@ -50,9 +49,9 @@ class ConvertingAuthenticationManager(
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
+    private fun IdAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
             UsernamePasswordAuthenticationToken(
-                UserNameAndSource(username, identitySource),
+                username,
                 authentication.credentials,
                 authorities
             ).apply {

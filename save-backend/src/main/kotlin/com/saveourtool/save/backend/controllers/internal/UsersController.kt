@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
@@ -33,27 +33,7 @@ class UsersController(
     private val objectMapper = ObjectMapper()
         .findAndRegisterModules()
         .registerModule(CoreJackson2Module())
-        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-
-    /**
-     * Stores [user] in the DB
-     *
-     * @param user user to store
-     */
-    @PostMapping("/new")
-    @Transactional
-    fun saveNewUser(@RequestBody user: User) {
-        val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
-
-        val userFind = originalLoginRepository.findByNameAndSource(userName, user.source)
-
-        userFind?.user?.let {
-            logger.debug("User $userName is already present in the DB")
-        } ?: run {
-            logger.info("Saving user $userName to the DB")
-            userService.saveNewUser(user)
-        }
-    }
+        .addMixIn(IdAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
 
     /**
      * Stores user in the DB with provided [name] with [authorities] as role.

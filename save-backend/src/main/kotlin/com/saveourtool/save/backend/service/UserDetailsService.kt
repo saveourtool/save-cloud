@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.getIdAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -30,7 +30,7 @@ class UserDetailsService(
 ) : ReactiveUserDetailsService {
     override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
         userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
-    }.getIdentitySourceAwareUserDetails(username)
+    }.getIdAwareUserDetails(username)
 
     /**
      * @param username
@@ -40,7 +40,7 @@ class UserDetailsService(
     fun findByUsernameAndSource(username: String, source: String): Mono<UserDetails> =
             blockingToMono { originalLoginRepository.findByNameAndSource(username, source) }
                 .map { it.user }
-                .getIdentitySourceAwareUserDetails(username, source)
+                .getIdAwareUserDetails(username, source)
 
     /**
      * @param name
@@ -87,15 +87,6 @@ class UserDetailsService(
     }
 
     /**
-     * @param user
-     */
-    @Transactional
-    fun saveNewUser(user: User) {
-        val newUser = userRepository.save(user)
-        originalLoginRepository.save(OriginalLogin(newUser, user.name, user.source))
-    }
-
-    /**
      * @param userNameCandidate
      * @param userRole
      */
@@ -118,7 +109,6 @@ class UserDetailsService(
             name = name,
             password = null,
             role = userRole,
-            source = "N/A",
             isActive = false,
         ))
     }

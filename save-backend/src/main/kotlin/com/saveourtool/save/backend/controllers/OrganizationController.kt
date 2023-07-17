@@ -137,7 +137,7 @@ internal class OrganizationController(
         authentication: Authentication?,
     ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
-            (auth.details as AuthenticationDetails).id
+            auth.userId()
         }
         .flatMapMany {
             lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)

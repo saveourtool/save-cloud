@@ -11,7 +11,6 @@ import kotlinx.serialization.Serializable
  * Represents all data related to the User
  *
  * @property name name/login of the user
- * @property source where the user identity is coming from, e.g. "github"
  * @property projects [String] of project name to [Role] of the user
  * @property email
  * @property avatar avatar of user
@@ -35,7 +34,6 @@ data class UserInfo(
     val id: Long? = null,
     val oldName: String? = null,
     val originalLogins: List<String?> = emptyList(),
-    val source: String? = null,
     val projects: Map<String, Role> = emptyMap(),
     val organizations: Map<String, Role> = emptyMap(),
     val email: String? = null,
