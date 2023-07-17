@@ -13,10 +13,7 @@ import java.security.Principal
  * @return username extracted from this [Principal]
  */
 fun Principal.userName(): String = when (this) {
-    is OAuth2AuthenticationToken -> (this as? OAuth2AuthenticationToken)
-        ?.principal
-        ?.name
-        ?: this.name
+    is OAuth2AuthenticationToken -> this.principal.name
     else -> this.name
 }
 

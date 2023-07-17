@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.repository.contest.ContestSampleFieldRepository
 import com.saveourtool.save.backend.repository.contest.ContestSampleRepository
@@ -34,7 +35,7 @@ class ContestSampleService(
         contestSampleDto: ContestSampleDto,
         authentication: Authentication,
     ) {
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         val user = userRepository.getByIdOrNotFound(userId)
         val contestSample = ContestSample(
             name = contestSampleDto.name,

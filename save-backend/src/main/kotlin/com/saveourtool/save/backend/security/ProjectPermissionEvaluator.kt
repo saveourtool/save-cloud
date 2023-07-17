@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.LnkUserProjectService
@@ -59,7 +60,7 @@ class ProjectPermissionEvaluator(
             return true
         }
 
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 

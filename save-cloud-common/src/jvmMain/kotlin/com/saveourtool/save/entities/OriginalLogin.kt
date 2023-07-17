@@ -9,16 +9,16 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property name
  * @property user
+ * @property name
  * @property source
  */
 @Entity
 class OriginalLogin(
-    var name: String?,
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
     var user: User,
-    var source: String?,
+    var name: String,
+    var source: String,
 ) : BaseEntity()

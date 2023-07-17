@@ -9,7 +9,6 @@ import com.saveourtool.save.entities.User
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
-import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
@@ -30,30 +29,10 @@ fun Authentication.userId() = (this.details as AuthenticationDetails).id
  */
 fun Authentication.username(): String = when (principal) {
     // this should be the most common branch, as requests are authenticated by `ConvertingAuthenticationManager`
-    is String -> (principal as String).split(':').last()
+    is String -> principal as String
     is UserDetails -> (principal as UserDetails).username
     else -> error("Authentication instance $this has unsupported type of principal: $principal of type ${principal::class}")
 }
-
-/**
- * Extract identitySource from this [Authentication].
- *
- * @return identitySource
- * @throws BadCredentialsException
- */
-fun Authentication.identitySource(): String {
-    val identitySource = (this.details as AuthenticationDetails).identitySource
-    if (identitySource == null || !this.name.startsWith("$identitySource:")) {
-        throw BadCredentialsException(this.name)
-    }
-    return identitySource
-}
-
-/**
- * @return pair of username and identitySource from this [Authentication].
- * @throws BadCredentialsException
- */
-fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = this.username() to this.identitySource()
 
 /**
  * Convert [Authentication] to [User] based on convention in backend.

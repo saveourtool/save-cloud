@@ -4,6 +4,8 @@ import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
+import com.saveourtool.save.authservice.utils.username
+import com.saveourtool.save.info.UserNameAndSource
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
@@ -28,16 +30,13 @@ class ConvertingAuthenticationManager(
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
      * by [CustomAuthenticationBasicConverter] with record in DB
      *
-     * @return augmented mono of UsernamePasswordAuthenticationToken with additional details
+     * @return argument mono of UsernamePasswordAuthenticationToken with additional details
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
+        val name= authentication.username()
         authenticationUserDetailsService.findByUsername(name)
             .cast<IdentitySourceAwareUserDetails>()
-            .filter {
-                it.identitySource == identitySource
-            }
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
             }
@@ -53,13 +52,12 @@ class ConvertingAuthenticationManager(
 
     private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
             UsernamePasswordAuthenticationToken(
-                "$identitySource:$username",
+                UserNameAndSource(username, identitySource),
                 authentication.credentials,
                 authorities
             ).apply {
                 details = AuthenticationDetails(
                     id = id,
-                    identitySource = identitySource,
                 )
             }
 }

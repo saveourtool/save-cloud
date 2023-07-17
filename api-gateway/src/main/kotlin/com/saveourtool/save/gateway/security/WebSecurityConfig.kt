@@ -11,6 +11,8 @@ import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.info.UserNameAndSource
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
@@ -139,21 +141,19 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
+                    val userNameAndSource = UserNameAndSource.parse(username)
                     // Looking for user in DB by received source and name
-                    require(username.contains("@")) {
-                        "Provided user information should keep the following form: oauth2Source@username"
-                    }
-                    val user: Mono<StringResponse> = webClient.get()
-                        .uri("/internal/users/$username")
+                    webClient.get()
+                        .uri("/internal/users/${userNameAndSource.source}/${userNameAndSource.userName}")
                         .retrieve()
                         .onStatus({ it.is4xxClientError }) {
                             Mono.error(ResponseStatusException(it.statusCode()))
                         }
-                        .toEntity()
-
-                    user.map {
-                        objectMapper.readValue(it.body, UserDetails::class.java)
-                    }
+                        .toEntity<UserDetails>()
+                        .mapNotNull { it.body }
+                        .switchIfEmptyToNotFound {
+                            "Not resolve userDetails for $username"
+                        }
                 }
             )
         }

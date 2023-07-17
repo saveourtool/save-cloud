@@ -67,4 +67,8 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="user-name-not-nullable" author="nulls">
+        <addNotNullConstraint tableName="user" columnName="name" columnDataType="varchar(64)"/>
+    </changeSet>
+
 </databaseChangeLog>

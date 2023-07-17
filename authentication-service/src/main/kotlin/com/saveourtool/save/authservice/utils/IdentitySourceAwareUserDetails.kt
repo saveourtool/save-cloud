@@ -2,6 +2,8 @@ package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.orResponseStatusException
+import org.springframework.http.HttpStatus
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User as SpringUser
@@ -58,9 +60,9 @@ fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: Strin
  */
 @Suppress("UnsafeCallOnNullableType")
 private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
-    username = this.name!!,
+    username = this.name.orResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR),
     password = this.password.orEmpty(),
     authorities = this.role,
     identitySource = this.source,
-    id = this.id!!,
+    id = this.requiredId(),
 )

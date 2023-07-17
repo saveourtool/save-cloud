@@ -1,7 +1,6 @@
 package com.saveourtool.save.gateway.utils
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
 import org.slf4j.LoggerFactory
@@ -28,18 +27,19 @@ class StoringServerAuthenticationSuccessHandler(
     ): Mono<Void> {
         logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
 
-        val user = authentication.toUser().apply {
-            // https://github.com/saveourtool/save-cloud/issues/583
-            // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
-            // from authentication provider. In the future we may want to use this information and have a mapping of existing
-            // roles to save-cloud roles.
-            role = Role.VIEWER.asSpringSecurityRole()
-        }
+        val source = authentication.toIdentitySource()
+        val nameInSource = authentication.userName()
+        // https://github.com/saveourtool/save-cloud/issues/583
+        // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
+        // from authentication provider. In the future we may want to use this information and have a mapping of existing
+        // roles to save-cloud roles.
+        // val role = authentication.authorities.map { it.authority }
+        val role = listOf(Role.VIEWER.asSpringSecurityRole())
 
         return webClient.post()
-            .uri("/internal/users/new")
+            .uri("/internal/users/${source}/${nameInSource}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(user)
+            .bodyValue(role)
             .retrieve()
             .onStatus({ it.is4xxClientError }) {
                 Mono.error(ResponseStatusException(it.statusCode()))
@@ -48,16 +48,3 @@ class StoringServerAuthenticationSuccessHandler(
             .then()
     }
 }
-
-/**
- * @return [User] with data from this [Authentication]
- */
-fun Authentication.toUser(): User = User(
-    userName(),
-    null,
-    authorities.joinToString(",") { it.authority },
-    toIdentitySource(),
-    null,
-    isActive = false,
-    originalLogins = emptyList(),
-)

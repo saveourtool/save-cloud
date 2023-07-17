@@ -5,12 +5,11 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
-import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -57,17 +56,43 @@ class UsersController(
     }
 
     /**
-     * Find user by name and source
+     * Stores user in the DB with provided [name] with [authorities] as role.
+     * And add a link to [source] for created user
      *
-     * @param userInformation user source and name, separated by `@`
+     * @param source user source
+     * @param name user name
+     * @param authorities
      */
-    @GetMapping("/{userInformation}")
-    fun findByUsernameAndSource(
-        @PathVariable userInformation: String,
-    ): Mono<StringResponse> {
-        val (name, source) = extractUserNameAndSource(userInformation)
-        return userService.findByUsernameAndSource(name, source).map {
-            ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
+    @PostMapping("/{source}/{name}")
+    @Transactional
+    fun saveNewUserIfRequired(
+        @PathVariable source: String,
+        @PathVariable name: String,
+        @RequestBody authorities: List<String>,
+    ) {
+        val userFind = originalLoginRepository.findBySourceAndName(source, name)
+
+        userFind?.user?.let {
+            logger.debug("User $name ($source) is already present in the DB")
+        } ?: run {
+            logger.info("Saving user $name ($source) with authorities $authorities to the DB")
+            val savedUser = userService.saveNewUser(name, authorities.joinToString(","))
+            userService.addSource(savedUser, name, source)
         }
     }
+
+    /**
+     * Find user by name and source
+     *
+     * @param source user source
+     * @param userName user name
+     */
+    @GetMapping("/{source}/{userName}")
+    fun findBySourceAndUsername(
+        @PathVariable source: String,
+        @PathVariable userName: String,
+    ): Mono<ResponseEntity<UserDetails>> = userService.findByUsernameAndSource(userName, source)
+        .map {
+            ResponseEntity.ok(it)
+        }
 }

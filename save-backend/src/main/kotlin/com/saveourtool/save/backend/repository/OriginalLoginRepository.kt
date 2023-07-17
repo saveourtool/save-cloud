@@ -22,4 +22,11 @@ interface OriginalLoginRepository : BaseEntityRepository<OriginalLogin> {
      * @return user or null if no results have been found
      */
     fun findByNameAndSource(name: String, source: String): OriginalLogin?
+
+    /**
+     * @param source
+     * @param name
+     * @return user or null if no results have been found
+     */
+    fun findBySourceAndName(source: String, name: String): OriginalLogin?
 }

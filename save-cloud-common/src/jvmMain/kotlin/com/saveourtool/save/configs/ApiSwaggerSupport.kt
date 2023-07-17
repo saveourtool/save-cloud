@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.configs
 
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
+import com.saveourtool.save.utils.AUTHORIZATION_SOURCE_HEADER_NAME
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -31,7 +31,7 @@ annotation class ApiSwaggerSupport
  */
 @Parameter(
     `in` = ParameterIn.HEADER,
-    name = AUTHORIZATION_SOURCE,
+    name = AUTHORIZATION_SOURCE_HEADER_NAME,
     required = true,
     example = "basic"
 )

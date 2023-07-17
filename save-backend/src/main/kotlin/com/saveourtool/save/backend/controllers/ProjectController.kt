@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -169,7 +170,7 @@ class ProjectController(
             ))
         }
         .map { (projectId, status) ->
-            lnkUserProjectService.setRoleByIds((authentication.details as AuthenticationDetails).id, projectId, Role.OWNER)
+            lnkUserProjectService.setRoleByIds(authentication.userId(), projectId, Role.OWNER)
             ResponseEntity.ok(status.message)
         }
 

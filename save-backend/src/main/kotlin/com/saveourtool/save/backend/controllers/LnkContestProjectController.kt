@@ -8,6 +8,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -111,7 +112,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId()).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
@@ -295,7 +296,7 @@ class LnkContestProjectController(
             "Contest with name $contestName was not found."
         }
         .map { contest ->
-            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
+            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId()).map { it.requiredId() }
         }
         .flatMapMany { (contest, projectIds) ->
             blockingToFlux {

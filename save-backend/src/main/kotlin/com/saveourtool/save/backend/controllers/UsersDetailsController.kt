@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -27,6 +28,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
 /**
@@ -46,14 +48,14 @@ class UsersDetailsController(
      */
     @GetMapping("/{userName}")
     @PreAuthorize("permitAll()")
-    fun findByName(@PathVariable userName: String): Mono<UserInfo> = userRepository.findByName(userName)
-        ?.toMonoOrNotFound()?.map { it.toUserInfo() }
-        ?: run {
+    fun findByName(@PathVariable userName: String): Mono<UserInfo> = blockingToMono { userRepository.findByName(userName) }
+        .map { it.toUserInfo() }
+        .switchIfEmpty {
             blockingToMono { originalLoginRepository.findByName(userName) }
-                .orNotFound()
                 .map { it.user }
                 .map { it.toUserInfo() }
         }
+        .orNotFound()
 
     @GetMapping("/by-prefix")
     @PreAuthorize("permitAll()")
@@ -105,7 +107,7 @@ class UsersDetailsController(
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
         .map {
             val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val userId = (authentication.details as AuthenticationDetails).id
+            val userId = authentication.userId()
             val response = if (user.id == userId) {
                 userDetailsService.saveUser(user.apply {
                     name = newUserInfo.name
@@ -140,19 +142,20 @@ class UsersDetailsController(
      */
     @PostMapping("{userName}/save/token")
     @PreAuthorize("isAuthenticated()")
-    fun saveUserToken(@PathVariable userName: String, @RequestBody token: String, authentication: Authentication): Mono<StringResponse> {
-        val user = userRepository.findByName(userName).orNotFound()
-        val userId = (authentication.details as AuthenticationDetails).id
-        val response = if (user.id == userId) {
+    fun saveUserToken(
+        @PathVariable userName: String,
+        @RequestBody token: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono { userRepository.findByName(userName) }
+        .requireOrSwitchToForbidden({ id == authentication.userId() })
+        .blockingMap { user ->
             userRepository.save(user.apply {
                 password = "{bcrypt}${BCryptPasswordEncoder().encode(token)}"
             })
-            ResponseEntity.ok("User token saved successfully")
-        } else {
-            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
-        return Mono.just(response)
-    }
+        .map {
+            ResponseEntity.ok("User token saved successfully")
+        }
 
     /**
      * @param authentication

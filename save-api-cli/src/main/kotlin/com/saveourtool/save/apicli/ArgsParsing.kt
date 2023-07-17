@@ -80,9 +80,10 @@ fun parseArguments(args: Array<String>): CliArguments? {
 
     parser.parse(args)
 
+    // FIXME
     val authorization = oauth2Source?.let {
-        Authorization("$oauth2Source@${username!!}", token)
-    } ?: Authorization(username!!, token)
+        Authorization(username!!, it, token)
+    } ?: Authorization(username!!, "basic", token)
 
     return CliArguments(
         authorization,

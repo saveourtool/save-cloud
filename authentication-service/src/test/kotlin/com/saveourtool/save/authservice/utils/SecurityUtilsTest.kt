@@ -33,13 +33,6 @@ class SecurityUtilsTest {
         Assertions.assertEquals(mockedAuthentication.userId(), user.id)
     }
 
-    @Test
-    fun `should extract user identity source`() {
-        updateSecurityContext()
-        val mockedAuthentication = SecurityContextHolder.getContext().authentication
-        Assertions.assertEquals(mockedAuthentication.identitySource(), user.identitySource)
-    }
-
     private fun updateSecurityContext() = SecurityContextHolder.getContext().apply {
         authentication = UsernamePasswordAuthenticationToken(user, null)
         (authentication as UsernamePasswordAuthenticationToken).apply {

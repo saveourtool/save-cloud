@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -129,7 +130,7 @@ class LnkUserProjectService(
      * @return the highest of two roles: the one in [project] and global one.
      */
     fun getGlobalRoleOrProjectRole(authentication: Authentication, project: Project): Role {
-        val selfId = (authentication.details as AuthenticationDetails).id
+        val selfId = authentication.userId()
         val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
         val selfOrganizationRole = findRoleByUserIdAndProject(selfId, project)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)

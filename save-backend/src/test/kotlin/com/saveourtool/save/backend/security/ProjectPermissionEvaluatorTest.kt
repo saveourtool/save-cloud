@@ -161,8 +161,8 @@ class ProjectPermissionEvaluatorTest {
         "",
         roles.map { SimpleGrantedAuthority(it) }
     ).apply {
-        details = AuthenticationDetails(id = id, identitySource = "")
+        details = AuthenticationDetails(id = id)
     }
 
-    private fun mockUser(id: Long) = User(null, null, null, "").apply { this.id = id }
+    private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }
