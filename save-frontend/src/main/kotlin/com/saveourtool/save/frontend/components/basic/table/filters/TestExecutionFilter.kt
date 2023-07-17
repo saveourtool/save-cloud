@@ -1,15 +1,13 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.basic
+package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
-import com.saveourtool.save.frontend.components.basic.SelectOption.Companion.ANY
 import com.saveourtool.save.frontend.externals.fontawesome.faFilter
 import com.saveourtool.save.frontend.externals.fontawesome.faSearch
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.button
@@ -23,55 +21,15 @@ import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.InputType
 
-val testExecutionFiltersRow = testExecutionFiltersRow()
-
-val nameFiltersRow = nameFiltersRow()
-
-@Suppress("MISSING_KDOC_TOP_LEVEL", "UtilityClassWithPublicConstructor")
-class SelectOption {
-    companion object {
-        const val ANY = "ANY"
-    }
-}
+const val ANY = "ANY"
 
 /**
- * [Props] for filters value
- */
-external interface FiltersRowProps : Props {
-    /**
-     * All filters in one class property [filters]
-     */
-    var filters: TestExecutionFilter
-
-    /**
-     * lambda to change [filters]
-     */
-    var onChangeFilters: (TestExecutionFilter) -> Unit
-}
-
-/**
- * [Props] for filters name
- */
-external interface NameFilterRowProps : Props {
-    /**
-     * All filters in one class property [name]
-     */
-    var name: String?
-
-    /**
-     * lambda to change [name]
-     */
-    var onChangeFilters: (String?) -> Unit
-}
-
-/**
- * A row of filter selectors for table with `TestExecutionDto`s. Currently filters are "status" and "test suite".
+ * A row of filter selectors for table with `TestExecutionDto`s. Currently, filters are "status" and "test suite".
  *
  * @return a function component
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
-private fun testExecutionFiltersRow(
-) = FC<FiltersRowProps> { props ->
+val testExecutionFiltersRow: FC<FiltersRowProps> = FC { props ->
     // Store local copy of filters in order to perform searching only by the search button, and not by any change in the filter fields
     val (filters, setFilters) = useState(props.filters)
     useEffect(props.filters) {
@@ -109,7 +67,7 @@ private fun testExecutionFiltersRow(
                             }
                         }
                         onChange = {
-                            if (it.target.value == "ANY") {
+                            if (it.target.value == ANY) {
                                 setFilters(filters.copy(status = null))
                             } else {
                                 setFilters(filters.copy(status = TestResultStatus.valueOf(it.target.value)))
@@ -195,60 +153,18 @@ private fun testExecutionFiltersRow(
         }
     }
 }
-private fun nameFiltersRow(
-) = FC<NameFilterRowProps> { props ->
 
-    val (filtersName, setFiltersName) = useState(props.name)
-    useEffect(props.name) {
-        if (filtersName != props.name) {
-            setFiltersName(props.name)
-        }
-    }
+/**
+ * [Props] for filters value
+ */
+external interface FiltersRowProps : Props {
+    /**
+     * All filters in one class property [filters]
+     */
+    var filters: TestExecutionFilter
 
-    div {
-        className = ClassName("container-fluid")
-        div {
-            className = ClassName("row d-flex")
-            div {
-                className = ClassName("col-0 mr-3 align-self-center")
-                fontAwesomeIcon(icon = faFilter)
-            }
-            div {
-                className = ClassName("row")
-                div {
-                    className = ClassName("col-auto align-self-center")
-                    +"Name: "
-                }
-                div {
-                    className = ClassName("col-auto mr-3")
-                    input {
-                        type = InputType.text
-                        className = ClassName("form-control")
-                        value = filtersName ?: ""
-                        required = false
-                        onChange = {
-                            setFiltersName(it.target.value)
-                        }
-                    }
-                }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mr-3")
-                fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
-                onClick = {
-                    props.onChangeFilters(filtersName)
-                }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary")
-                fontAwesomeIcon(icon = faTrashAlt, classes = "trash-alt")
-                onClick = {
-                    setFiltersName(null)
-                    props.onChangeFilters(null)
-                }
-            }
-        }
-    }
+    /**
+     * lambda to change [filters]
+     */
+    var onChangeFilters: (TestExecutionFilter) -> Unit
 }

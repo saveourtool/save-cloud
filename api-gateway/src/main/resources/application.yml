@@ -97,9 +97,9 @@ spring:
     oauth2:
       client:
         provider:
+            # we also have "google" provider, but its default implementation is good enough by for now
+            # until we have fixed https://github.com/saveourtool/save-cloud/issues/2336
           github:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
-          google:
-            user-name-attribute: email

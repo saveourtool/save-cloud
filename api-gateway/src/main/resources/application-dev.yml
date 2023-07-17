@@ -39,8 +39,6 @@ spring:
             # See https://docs.github.com/en/rest/users/users#get-the-authenticated-user
             # for more details.
             user-name-attribute: login
-          google:
-            user-name-attribute: email
         registration:
           google:
             client-id: 943335421056-7ova0sgv6o4goapkripv8dk3ov4og6kc.apps.googleusercontent.com
