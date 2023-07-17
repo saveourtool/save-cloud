@@ -1,6 +1,6 @@
 package com.saveourtool.save.gateway.utils
 
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE_HEADER_NAME
+import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -44,7 +44,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFact
                         headers.set(HttpHeaders.AUTHORIZATION, "Basic ${
                             Base64.getEncoder().encodeToString("$name:".toByteArray())
                         }")
-                        headers.set(AUTHORIZATION_SOURCE_HEADER_NAME, source)
+                        headers.set(AUTHORIZATION_SOURCE, source)
                     }
                 }
                     .build()

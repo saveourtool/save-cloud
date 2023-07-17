@@ -10,7 +10,7 @@ import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.info.UserNameAndSource
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE_HEADER_NAME
+import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
@@ -82,7 +82,7 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileDto = this.post {
     url("${Backend.url}/api/$v1/files/upload")
-    header(AUTHORIZATION_SOURCE_HEADER_NAME, UserInformation.source)
+    header(AUTHORIZATION_SOURCE, UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -103,7 +103,7 @@ suspend fun HttpClient.uploadAdditionalFile(
 @Suppress("TOO_LONG_FUNCTION")
 suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
     url("${Backend.url}/api/$v1/run/trigger")
-    header(AUTHORIZATION_SOURCE_HEADER_NAME, UserInformation.source)
+    header(AUTHORIZATION_SOURCE, UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(createExecutionRequest)
 }
@@ -132,7 +132,7 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header(AUTHORIZATION_SOURCE_HEADER_NAME, UserInformation.source)
+    header(AUTHORIZATION_SOURCE, UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 

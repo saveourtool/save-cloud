@@ -19,11 +19,6 @@ import kotlin.time.Duration.Companion.minutes
 const val SA_HEADER_NAME = "X-Service-Account-Token"
 
 /**
- * Authorization source header name
- */
-const val AUTHORIZATION_SOURCE_HEADER_NAME = "X-Authorization-Source"
-
-/**
  * Kubernetes service account based authentication plugin for ktor client.
  *
  * Basically it:
