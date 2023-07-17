@@ -50,11 +50,6 @@ class UsersDetailsController(
     @PreAuthorize("permitAll()")
     fun findByName(@PathVariable userName: String): Mono<UserInfo> = blockingToMono { userRepository.findByName(userName) }
         .map { it.toUserInfo() }
-        .switchIfEmpty {
-            blockingToMono { originalLoginRepository.findByName(userName) }
-                .map { it.user }
-                .map { it.toUserInfo() }
-        }
         .orNotFound()
 
     @GetMapping("/by-prefix")
@@ -165,12 +160,4 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
             Mono.just(userDetailsService.getGlobalRole(authentication))
-
-    /**
-     * @param name
-     * @return user
-     */
-    fun getByName(name: String): User? = userRepository.findByName(name) ?: run {
-        originalLoginRepository.findByName(name)?.user
-    }
 }

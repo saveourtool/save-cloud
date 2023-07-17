@@ -33,7 +33,7 @@ class ConvertingAuthenticationManager(
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
-        val name= authentication.username()
+        val name = authentication.username()
         authenticationUserDetailsService.findByUsername(name)
             .cast<IdAwareUserDetails>()
             .switchIfEmpty {

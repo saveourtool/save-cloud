@@ -29,7 +29,7 @@ class UserDetailsService(
     private val originalLoginRepository: OriginalLoginRepository,
 ) : ReactiveUserDetailsService {
     override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
-        userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
+        userRepository.findByName(username)
     }.getIdAwareUserDetails(username)
 
     /**

@@ -50,7 +50,7 @@ class UsersController(
         @PathVariable name: String,
         @RequestBody authorities: List<String>,
     ) {
-        val userFind = originalLoginRepository.findBySourceAndName(source, name)
+        val userFind = originalLoginRepository.findByNameAndSource(name, source)
 
         userFind?.user?.let {
             logger.debug("User $name ($source) is already present in the DB")

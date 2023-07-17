@@ -32,14 +32,13 @@ class StoringServerAuthenticationSuccessHandler(
         // https://github.com/saveourtool/save-cloud/issues/583
         // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
         // from authentication provider. In the future we may want to use this information and have a mapping of existing
-        // roles to save-cloud roles.
-        // val role = authentication.authorities.map { it.authority }
-        val role = listOf(Role.VIEWER.asSpringSecurityRole())
+        // roles to save-cloud roles (authentication.authorities.map { it.authority }).
+        val roles = listOf(Role.VIEWER.asSpringSecurityRole())
 
         return webClient.post()
             .uri("/internal/users/${source}/${nameInSource}")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(role)
+            .bodyValue(roles)
             .retrieve()
             .onStatus({ it.is4xxClientError }) {
                 Mono.error(ResponseStatusException(it.statusCode()))
