@@ -99,7 +99,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
 
     val navigate = useNavigate()
     div {
-        className = ClassName("row justify-content-center mb-2")
+        className = ClassName("row justify-content-center mb-2 text-gray-900")
         // ===================== LEFT COLUMN =======================================================================
         div {
             className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
@@ -162,7 +162,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {
-                        title = "WARNING: About to delete this organization..."
+                        title = "WARNING: You are about to delete this organization"
                         errorTitle = "You cannot delete the organization ${props.organizationName}"
                         message = "Are you sure you want to delete the organization ${props.organizationName}?"
                         clickMessage = "Also ban this organization"
@@ -171,7 +171,7 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 +"Delete ${props.organizationName}"
                             }
                         }
-                        classes = "btn btn-sm btn-danger"
+                        classes = "btn btn-sm btn-outline-danger"
                         modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
                             val actionName = if (isClickMode) "ban" else "delete"
                             with(childrenBuilder) {

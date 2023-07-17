@@ -124,7 +124,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         }
 
         div {
-            className = ClassName("col-4")
+            className = ClassName("col-3 mr-3")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Members"

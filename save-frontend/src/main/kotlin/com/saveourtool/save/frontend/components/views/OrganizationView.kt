@@ -272,7 +272,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             className = ClassName("row justify-content-center")
 
             div {
-                className = ClassName("col-3 mb-4")
+                className = ClassName("col-4 mb-4")
                 div {
                     className = ClassName("card shadow mb-4")
                     div {
@@ -338,7 +338,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3")
+                className = ClassName("col-2")
                 userBoard {
                     users = state.usersInOrganization.orEmpty()
                     avatarOuterClasses = "col-4 px-0"
@@ -409,7 +409,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun ChildrenBuilder.renderVulnerabilities() {
-        organizationVulnerabilitiesMenu {
+        organizationVulnerabilitiesTab {
             organizationName = props.organizationName
         }
     }
@@ -536,8 +536,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                         src = state.avatar
-                        height = 100.0
-                        width = 100.0
+                        style = jso {
+                            height = "10rem".unsafeCast<Height>()
+                            width = "10rem".unsafeCast<Width>()
+                        }
                         onError = {
                             setState {
                                 avatar = ORGANIZATION_AVATAR_PLACEHOLDER

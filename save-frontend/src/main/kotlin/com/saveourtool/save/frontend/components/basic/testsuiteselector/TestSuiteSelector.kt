@@ -219,7 +219,7 @@ private fun ChildrenBuilder.showTestSuitesSelectorModal(
                         className = ClassName("d-flex justify-content-center")
                         button {
                             type = ButtonType.button
-                            className = ClassName("btn btn-primary mt-4")
+                            className = ClassName("btn btn-outline-primary mt-4")
                             +"Apply"
                             disabled = currentlySelectedTestSuites.isEmpty()
                             onClick = {

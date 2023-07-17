@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
+import js.core.jso
 
 import org.w3c.fetch.Response
 import react.FC
@@ -22,8 +23,10 @@ import react.StateSetter
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
+import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 typealias RequestWithDependency<R> = Triple<R, StateSetter<R>, () -> Unit>
@@ -115,18 +118,23 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
                     className = ClassName("col-7 d-flex justify-content-start align-items-center")
                     div {
                         className = ClassName("col-2 align-items-center")
+                        style = jso {
+                            fontSize = 1.5.rem
+                        }
                         fontAwesomeIcon(
                             when {
                                 url.contains("github") -> faGithub
                                 url.contains("codehub") -> faCopyright
                                 else -> faHome
-                            },
-                            classes = "h-75 w-75"
+                            }
                         )
                     }
                     div {
                         className = ClassName("col-7 text-left align-self-center pl-0")
-                        +url
+                        Link {
+                            to = url
+                            +url
+                        }
                     }
                 }
                 div {
@@ -161,10 +169,10 @@ fun manageGitCredentialsCardComponent() = FC<ManageGitCredentialsCardProps> { pr
         div {
             className = ClassName("row d-flex justify-content-center")
             div {
-                className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                className = ClassName("col-11 text-right")
                 button {
                     type = ButtonType.button
-                    className = ClassName("btn btn-sm btn-primary")
+                    className = ClassName("btn btn-sm btn-outline-primary")
                     onClick = {
                         setGitCredentialToUpsert(GitDto.empty)
                         setUpdateFlag(false)

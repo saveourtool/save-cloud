@@ -121,10 +121,10 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
 
     div {
-        className = ClassName("row justify-content-center mb-2")
+        className = ClassName("row justify-content-center mb-2 text-gray-900")
         // ===================== LEFT COLUMN =======================================================================
         div {
-            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            className = ClassName("col-4 mb-2 mr-2 ml-2")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
@@ -138,13 +138,13 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         }
         // ===================== RIGHT COLUMN ======================================================================
         div {
-            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            className = ClassName("col-4 mb-2 mr-2 ml-2")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Main settings"
             }
             div {
-                className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+                className = ClassName("card border card-body mt-0")
                 div {
                     className = ClassName("row mt-2 ml-2 mr-2")
                     div {
@@ -172,7 +172,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                         +"Project visibility:"
                     }
                     form {
-                        className = ClassName("col-7 form-group row d-flex justify-content-around")
+                        className = ClassName("col-7 form-group row")
                         div {
                             className = ClassName("form-check-inline")
                             input {
@@ -244,48 +244,55 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 div {
                     className = ClassName("row d-flex justify-content-center")
                     div {
-                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
-                            onClick = {
-                                updateProject()
+                        className = ClassName("col text-right")
+                        div {
+                            className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                            button {
+                                type = ButtonType.button
+                                className = ClassName("btn btn-sm btn-outline-primary")
+                                onClick = {
+                                    updateProject()
+                                }
+                                +"Save changes"
                             }
-                            +"Save changes"
                         }
-                    }
-                    div {
-                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                        actionButton {
-                            title = "WARNING: About to delete this project..."
-                            errorTitle = "You cannot delete the project ${props.project.name}"
-                            message = "Are you sure you want to delete the project $projectPath?"
-                            clickMessage = "Also ban this project"
-                            onActionSuccess = { _ ->
-                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
-                            }
-                            buttonStyleBuilder = { childrenBuilder ->
-                                with(childrenBuilder) {
-                                    +"Delete ${props.project.name}"
+                        div {
+                            className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                            actionButton {
+                                title = "WARNING: You are about to delete this project"
+                                errorTitle = "You cannot delete the project ${props.project.name}"
+                                message = "Are you sure you want to delete the project $projectPath?"
+                                clickMessage = "Also ban this project"
+                                onActionSuccess = { _ ->
+                                    navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
                                 }
-                            }
-                            classes = "btn btn-sm btn-danger"
-                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
-                                val actionName = if (isClickMode) "ban" else "delete"
-                                with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
-                                        action()
-                                        closeWindow()
-                                    }
-                                    buttonBuilder("Cancel") {
-                                        closeWindow()
+                                buttonStyleBuilder = { childrenBuilder ->
+                                    with(childrenBuilder) {
+                                        +"Delete project"
                                     }
                                 }
-                            }
-                            conditionClick = props.currentUserInfo.isSuperAdmin()
-                            sendRequest = { isBanned ->
-                                val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                responseChangeProjectStatus(projectPath, newStatus)
+                                classes = "btn btn-sm btn-outline-danger"
+                                modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                    val actionName = if (isClickMode) "ban" else "delete"
+                                    with(childrenBuilder) {
+                                        buttonBuilder(
+                                            label = "Yes, $actionName ${props.project.name}",
+                                            style = "danger",
+                                            classes = "mr-2"
+                                        ) {
+                                            action()
+                                            closeWindow()
+                                        }
+                                        buttonBuilder("Cancel") {
+                                            closeWindow()
+                                        }
+                                    }
+                                }
+                                conditionClick = props.currentUserInfo.isSuperAdmin()
+                                sendRequest = { isBanned ->
+                                    val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                    responseChangeProjectStatus(projectPath, newStatus)
+                                }
                             }
                         }
                     }

@@ -22,6 +22,8 @@ import web.cssom.rem
 
 /**
  * A component representing "About us" page
+ * If you need mobile version in future - use:
+ * val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)

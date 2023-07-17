@@ -19,7 +19,6 @@ import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.option
@@ -27,7 +26,6 @@ import react.dom.html.ReactHTML.select
 import web.cssom.ClassName
 import web.cssom.Height
 import web.cssom.Width
-import web.html.ButtonType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -142,9 +140,9 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
     useOnce { getUsersFromGroup() }
 
     div {
-        className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+        className = ClassName("card border card-body mt-0")
         div {
-            className = ClassName("row mt-0 ml-0 mr-0 shadow-sm rounded")
+            className = ClassName("row mb-2 mx-2 shadow-sm rounded")
             inputWithDebounceForUserInfo {
                 selectedOption = userToAdd
                 setSelectedOption = { setUserToAdd(it) }
@@ -185,20 +183,6 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                     }
                     div {
                         className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn col-2 align-items-center mr-2")
-                            fontAwesomeIcon(icon = faTimesCircle)
-                            val canDelete = selfRole.isSuperAdmin() ||
-                                    selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
-                                    userRole.isLowerThan(selfRole)
-                            id = "remove-user-$userIndex"
-                            hidden = !canDelete
-                            onClick = {
-                                setUserToDelete(usersFromGroup[userIndex])
-                                deleteUser()
-                            }
-                        }
                         select {
                             className = ClassName("custom-select col-9")
                             onChange = { event ->
@@ -219,6 +203,19 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                                 }
                             disabled = (selfRole == OWNER && isSelfRecord(props.selfUserInfo, user)) ||
                                     !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
+                        }
+                        div {
+                            className = ClassName("btn col-2 align-items-center mr-2")
+                            fontAwesomeIcon(icon = faTimesCircle)
+                            val canDelete = selfRole.isSuperAdmin() ||
+                                    selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
+                                    userRole.isLowerThan(selfRole)
+                            id = "remove-user-$userIndex"
+                            hidden = !canDelete
+                            onClick = {
+                                setUserToDelete(usersFromGroup[userIndex])
+                                deleteUser()
+                            }
                         }
                     }
                 }

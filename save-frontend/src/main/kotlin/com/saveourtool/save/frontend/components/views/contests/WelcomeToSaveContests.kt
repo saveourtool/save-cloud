@@ -42,10 +42,11 @@ internal val welcomeToSaveContests = VFC {
                 }
                 p {
                     className = ClassName("card-text mb-auto")
-                    +("On this page you can participate or even propose contests in the area of code analysis. If you would like to participate: ")
+                    +("On this page you can participate or even propose contests in the area of code analysis and especially " +
+                            "vulnerability analysis. If you would like to participate: ")
                     +("select the contest from ")
                     b {
-                        +("active contests > enroll")
+                        +("active contests -> enroll")
                     }
                     +(" to it with your project. ")
                 }
