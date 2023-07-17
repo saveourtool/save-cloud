@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.mobile
 
 import com.saveourtool.save.frontend.components.views.welcome.chevron
 import com.saveourtool.save.frontend.components.views.welcome.pagers.allSaveWelcomePagers
-import com.saveourtool.save.frontend.components.views.welcome.pagers.renderReadMorePage
+import com.saveourtool.save.frontend.components.views.welcome.pagers.save.renderReadMorePage
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeMarketingTitle
 import com.saveourtool.save.frontend.externals.animations.animator
 import com.saveourtool.save.frontend.externals.animations.scrollContainer

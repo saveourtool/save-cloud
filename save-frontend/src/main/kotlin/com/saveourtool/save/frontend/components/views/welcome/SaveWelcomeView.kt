@@ -11,9 +11,12 @@
 
 package com.saveourtool.save.frontend.components.views.welcome
 
-import com.saveourtool.save.frontend.components.views.welcome.pagers.*
+import com.saveourtool.save.frontend.components.views.welcome.pagers.allSaveWelcomePagers
+import com.saveourtool.save.frontend.components.views.welcome.pagers.save.renderGeneralInfoPage
+import com.saveourtool.save.frontend.components.views.welcome.pagers.save.renderReadMorePage
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
@@ -49,7 +52,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
             className = ClassName("page-header align-items-start")
             style = jso {
                 height = "100vh".unsafeCast<Height>()
-                background = SAVE_BLUE_GRADIENT.unsafeCast<Background>()
+                background = SAVE_DARK_GRADIENT.unsafeCast<Background>()
                 position = Position.relative
             }
             span {
@@ -65,27 +68,27 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
 
                 // Sign-in header
                 div {
-                    className = ClassName("col-3 mt-5 mb-5")
+                    className = ClassName("col-3 mt-5 mb-3")
                     div {
                         className = ClassName("card z-index-0 fadeIn3 fadeInBottom")
                         // if user is not logged in - he needs to input credentials
                         props.userInfo?.let {
-                            welcomeUserMenu(props.userInfo) {
+                            welcomeUserMenu(props.userInfo, Colors.SAVE_PRIMARY) {
                                 div {
                                     className = ClassName("text-sm")
-                                    menuTextAndLink("Contests", "/#/${FrontendRoutes.CONTESTS.path}", faCode)
+                                    menuTextAndLink("Contests", FrontendRoutes.CONTESTS, faCode)
                                     hrNoMargin()
-                                    menuTextAndLink("List of Projects", "#/${FrontendRoutes.PROJECTS.path}", faExternalLinkAlt)
+                                    menuTextAndLink("List of Projects", FrontendRoutes.PROJECTS, faExternalLinkAlt)
                                     hrNoMargin()
-                                    menuTextAndLink("Benchmarks Archive", "/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}", faFolderOpen)
+                                    menuTextAndLink("Benchmarks Archive", FrontendRoutes.AWESOME_BENCHMARKS, faFolderOpen)
                                     hrNoMargin()
-                                    menuTextAndLink("Create new organization", "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}", faUser)
+                                    menuTextAndLink("Create new organization", FrontendRoutes.CREATE_ORGANIZATION, faUser)
                                     if (props.userInfo.isSuperAdmin()) {
                                         hrNoMargin()
-                                        menuTextAndLink("Manage organizations", "/#/${FrontendRoutes.MANAGE_ORGANIZATIONS.path}", faUser)
+                                        menuTextAndLink("Manage organizations", FrontendRoutes.MANAGE_ORGANIZATIONS, faUser)
                                     }
                                     hrNoMargin()
-                                    menuTextAndLink("New project in organization", "/#/${FrontendRoutes.CREATE_PROJECT.path}", faPlus)
+                                    menuTextAndLink("New project in organization", FrontendRoutes.CREATE_PROJECT, faPlus)
                                 }
                             }
                         }

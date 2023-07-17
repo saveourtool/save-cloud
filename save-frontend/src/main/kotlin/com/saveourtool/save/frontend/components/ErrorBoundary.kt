@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
-import com.saveourtool.save.frontend.topBarComponent
 
 import js.core.jso
 import react.Component
