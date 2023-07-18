@@ -16,7 +16,7 @@ internal val createNewContestTemplate = VFC {
         className = ClassName("col-2 text-center")
         a {
             className = ClassName("col-12 flex-column card mb-1 box-shadow btn-hov")
-            href = "#/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE.path}/"
+            href = "#/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE}/"
             style = jso {
                 @Suppress("MAGIC_NUMBER")
                 height = 19.rem

@@ -153,7 +153,8 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                     withRouterLink = false
                 }
             }
-            Footer::class.react()
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+            footer { }
         }
     } else {
         props.children

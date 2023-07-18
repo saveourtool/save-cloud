@@ -46,7 +46,8 @@ class ErrorBoundary : Component<PropsWithChildren, ErrorBoundaryState>() {
                 bigText = "Error"
                 smallText = "Something went wrong"
             }
-            Footer::class.react()
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+            footer { }
         }
     } else {
         props.children

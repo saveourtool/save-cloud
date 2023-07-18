@@ -208,7 +208,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() 
                                             addNewItemChildrenBuilder = { childrenBuilder ->
                                                 with(childrenBuilder) {
                                                     a {
-                                                        href = "/#/${FrontendRoutes.CREATE_ORGANIZATION.path}"
+                                                        href = "/#/${FrontendRoutes.CREATE_ORGANIZATION}"
                                                         +"Add new organization"
                                                     }
                                                 }

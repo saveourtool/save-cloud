@@ -26,7 +26,7 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${FrontendRoutes.CONTESTS_TEMPLATE.path}/${cellContext.row.original.id}"
+                            to = "/${FrontendRoutes.CONTESTS_TEMPLATE}/${cellContext.row.original.id}"
                             +cellContext.value
                         }
                     }

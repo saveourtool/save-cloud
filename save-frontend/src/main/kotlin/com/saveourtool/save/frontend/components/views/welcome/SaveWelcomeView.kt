@@ -91,10 +91,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
                                     menuTextAndLink("New project in organization", FrontendRoutes.CREATE_PROJECT, faPlus)
                                 }
                             }
-                        }
-                            ?: run {
-                                inputCredentialsView(oauthProviders)
-                            }
+                        } ?: inputCredentialsView(oauthProviders, Colors.SAVE_PRIMARY)
                     }
                 }
             }

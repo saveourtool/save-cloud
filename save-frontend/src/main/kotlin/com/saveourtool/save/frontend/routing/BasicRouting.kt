@@ -13,6 +13,7 @@ import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
 import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
@@ -182,7 +183,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             AboutUsView::class.react.create() to "/$ABOUT_US",
             CreationView::class.react.create() to "/$CREATE_PROJECT",
             CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
-            RegistrationView::class.react.create { userInfo = props.userInfo } to "/$REGISTRATION",
+            registrationView.create { userInfo = props.userInfo } to "/$REGISTRATION",
             CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
             contestListView.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
 
@@ -209,6 +210,8 @@ val basicRouting: FC<AppProps> = FC { props ->
             demoCollectionView.create() to "/$DEMO",
             userProfileView.create() to "/$PROFILE/:name",
             topRatingView.create() to "/$TOP_RATING",
+
+            termsOfUsageView.create() to "/$TERMS_OF_USE",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
@@ -306,7 +309,6 @@ external interface AppProps : PropsWithChildren {
  * @param view
  * @return a view or a fallback of user info is null
  */
-fun AppProps.viewWithFallBack(view: ReactElement<*>) =
-        this.userInfo?.name?.let {
-            view
-        } ?: fallbackNode
+fun AppProps.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
+    view
+} ?: fallbackNode

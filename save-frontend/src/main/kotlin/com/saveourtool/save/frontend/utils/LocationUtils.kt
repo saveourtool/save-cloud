@@ -21,7 +21,7 @@ fun Location.notIn(urls: List<String>) = urls.all { not(it) }
  * @param routes list of [FrontendRoutes]
  * @return true of [Location] is not in [FrontendRoutes.path] of [routes]
  */
-fun Location.notIn(routes: List<FrontendRoutes>) = notIn(routes.map { "/${it.path}" })
+fun Location.notIn(routes: List<FrontendRoutes>) = notIn(routes.map { "/$it" })
 
 /**
  * @return true if [Location.pathname] starts with `/vuln`, false otherwise

@@ -118,12 +118,12 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faUser, "Profile") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.PROFILE.path}/$name")
+                            navigate(to = "/${FrontendRoutes.PROFILE}/$name")
                         }
                     }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL.path}")
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
                         }
                     }
                     dropdownEntry(
@@ -131,7 +131,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         "My organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}")
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") { attrs ->
