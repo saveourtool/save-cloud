@@ -53,8 +53,8 @@ enum class TopRatingTab {
 
     companion object : TabMenuBar<TopRatingTab> {
         override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: TopRatingTab = TopRatingTab.USERS
-        override val regexForUrlClassification = "/${FrontendRoutes.TOP_RATING.path}"
+        override val defaultTab: TopRatingTab = USERS
+        override val regexForUrlClassification = "/${FrontendRoutes.TOP_RATING}"
         override fun valueOf(elem: String): TopRatingTab = TopRatingTab.valueOf(elem)
         override fun values(): Array<TopRatingTab> = TopRatingTab.values()
     }

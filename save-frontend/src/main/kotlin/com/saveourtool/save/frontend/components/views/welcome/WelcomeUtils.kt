@@ -23,15 +23,19 @@ import web.cssom.*
 
 /**
  * @param oauthProviders
+ * @param primaryColor color of a shield
  */
 @Suppress("TOO_LONG_FUNCTION")
-internal fun ChildrenBuilder.inputCredentialsView(oauthProviders: List<OauthProviderInfo>) {
+internal fun ChildrenBuilder.inputCredentialsView(
+    oauthProviders: List<OauthProviderInfo>,
+    primaryColor: Colors,
+) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
         div {
             className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
             style = jso {
-                backgroundColor = "#3075c0".unsafeCast<BackgroundColor>()
+                backgroundColor = primaryColor.value.unsafeCast<BackgroundColor>()
             }
             h4 {
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
@@ -69,7 +73,7 @@ internal fun ChildrenBuilder.inputCredentialsView(oauthProviders: List<OauthProv
                             color = "#3075c0".unsafeCast<Color>()
                         }
                         Link {
-                            to = "/${FrontendRoutes.PROJECTS.path}"
+                            to = "#/${FrontendRoutes.PROJECTS}"
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
                             +"Continue "
                             fontAwesomeIcon(icon = faSignInAlt)
@@ -142,7 +146,7 @@ internal fun ChildrenBuilder.welcomeUserMenu(
 internal fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendRoutes, icon: FontAwesomeIconModule) {
     Link {
         className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-        to = "/${route.path}"
+        to = "/$route"
         h4 {
             style = jso {
                 color = "#3075c0".unsafeCast<Color>()

@@ -25,7 +25,7 @@ private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 @Suppress("MAGIC_NUMBER")
 private val saveTopbarLinks = sequenceOf(
     TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
-    TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.rem, text = "CPG"),
+    TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", width = 3.rem, text = "CPG"),
     TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
     TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 10.rem, text = "Try SAVE format"),
     TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 9.rem, text = "Projects board"),

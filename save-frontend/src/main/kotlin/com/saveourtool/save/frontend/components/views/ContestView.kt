@@ -47,7 +47,7 @@ enum class ContestMenuBar {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)"
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS}/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
     }
@@ -107,7 +107,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(Style.SAVE_
 
     override fun componentDidMount() {
         super.componentDidMount()
-        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
+        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
         fetchContest()

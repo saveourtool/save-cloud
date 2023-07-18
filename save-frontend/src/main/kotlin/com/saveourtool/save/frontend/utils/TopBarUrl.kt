@@ -27,8 +27,8 @@ class TopBarUrl(val href: String) {
      */
     fun changeUrlBeforeButton(pathPart: String) {
         currentPath = when (circumstance) {
-            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION -> "#/${FrontendRoutes.PROJECTS.path}"
-            SituationUrlClassification.ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS.path}"
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION -> "#/${FrontendRoutes.PROJECTS}"
+            SituationUrlClassification.ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS}"
             SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") currentPath else mergeUrls(pathPart)
             else -> mergeUrls(pathPart)
         }

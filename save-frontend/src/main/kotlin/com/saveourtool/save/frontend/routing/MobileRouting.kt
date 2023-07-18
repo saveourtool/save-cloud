@@ -19,7 +19,7 @@ import react.router.Routes
 val mobileRoutes = VFC {
     Routes {
         listOf(
-            AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US.path,
+            AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US,
             saveWelcomeMobileView.create() to "*",
         ).forEach {
             PathRoute {

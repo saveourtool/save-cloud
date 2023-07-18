@@ -231,7 +231,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -242,7 +242,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -253,7 +253,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -276,7 +276,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 a {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
+                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }

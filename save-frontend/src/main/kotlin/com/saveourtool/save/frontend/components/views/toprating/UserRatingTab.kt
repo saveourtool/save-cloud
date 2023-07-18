@@ -76,7 +76,7 @@ val userRatingTable: FC<Props> = FC { _ ->
                                         width = 2.rem
                                     }
                                 }
-                                to = "/${FrontendRoutes.PROFILE.path}/${cellContext.value}"
+                                to = "/${FrontendRoutes.PROFILE}/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }

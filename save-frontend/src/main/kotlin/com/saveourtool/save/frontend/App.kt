@@ -108,7 +108,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                 if (state.userInfo?.isActive == false) {
                     Navigate {
-                        to = "/${FrontendRoutes.REGISTRATION.path}"
+                        to = "/${FrontendRoutes.REGISTRATION}"
                         replace = false
                     }
                 }
@@ -127,7 +127,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 userInfo = state.userInfo
                             }
                         }
-                        Footer::class.react()
+                        footer { }
                     }
                 }
             }

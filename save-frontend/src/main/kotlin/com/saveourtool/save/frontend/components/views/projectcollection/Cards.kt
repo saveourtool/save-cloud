@@ -20,8 +20,8 @@ import web.cssom.*
  * Buttons for creation and deletion of new projects and organizations
  */
 internal fun ChildrenBuilder.topRightCard() {
-    creationCard("img/undraw_for_review_eqxk.svg", "organization", "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/")
-    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "#/${FrontendRoutes.CREATE_PROJECT.path}/")
+    creationCard("img/undraw_for_review_eqxk.svg", "organization", "#/${FrontendRoutes.CREATE_ORGANIZATION}/")
+    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "#/${FrontendRoutes.CREATE_PROJECT}/")
 }
 
 /**

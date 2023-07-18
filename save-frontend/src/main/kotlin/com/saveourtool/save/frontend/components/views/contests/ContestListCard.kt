@@ -171,7 +171,7 @@ private fun ChildrenBuilder.contestListTable(
                     }
                     a {
                         className = ClassName("btn btn-outline-info mr-2")
-                        href = "#/${FrontendRoutes.CONTESTS.path}/${contest.name}"
+                        href = "#/${FrontendRoutes.CONTESTS}/${contest.name}"
                         +"Rules and more "
                         fontAwesomeIcon(icon = faArrowRight)
                     }
