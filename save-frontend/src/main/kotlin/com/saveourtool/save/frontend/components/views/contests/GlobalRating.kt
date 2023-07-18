@@ -142,7 +142,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
                     strong {
                         className = ClassName("d-block text-gray-dark")
                         Link {
-                            to = "#/${project.url}"
+                            to = "/${project.url}"
                             +project.name
                         }
                     }

@@ -69,7 +69,7 @@ internal fun ChildrenBuilder.inputCredentialsView(oauthProviders: List<OauthProv
                             color = "#3075c0".unsafeCast<Color>()
                         }
                         Link {
-                            to = "#/${FrontendRoutes.PROJECTS.path}"
+                            to = "/${FrontendRoutes.PROJECTS.path}"
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
                             +"Continue "
                             fontAwesomeIcon(icon = faSignInAlt)

@@ -84,7 +84,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                                         width = 2.rem
                                     }
                                 }
-                                to = "#/${cellContext.value}"
+                                to = "/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }
