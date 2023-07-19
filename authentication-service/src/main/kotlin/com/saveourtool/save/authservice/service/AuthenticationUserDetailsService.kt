@@ -2,6 +2,7 @@ package com.saveourtool.save.authservice.service
 
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.AUTH_SEPARATOR
 import org.springframework.context.annotation.Primary
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -18,10 +19,13 @@ class AuthenticationUserDetailsService(
     private val authenticationUserRepository: AuthenticationUserRepository,
 ) : ReactiveUserDetailsService {
     /**
-     * @param username
+     * @param userNameAndSource
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    override fun findByUsername(username: String): Mono<UserDetails> = {
-        authenticationUserRepository.findByName(username)
-    }.toMono().getIdentitySourceAwareUserDetails(username)
+    override fun findByUsername(userNameAndSource: String): Mono<UserDetails> {
+        val (name, source) = userNameAndSource.split(AUTH_SEPARATOR)
+        return {
+            authenticationUserRepository.findByNameAndSource(name, source)
+        }.toMono().getIdentitySourceAwareUserDetails(name)
+    }
 }

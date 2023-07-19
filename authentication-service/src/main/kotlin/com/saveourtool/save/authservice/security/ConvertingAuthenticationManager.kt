@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
+import com.saveourtool.save.utils.AUTH_SEPARATOR
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
@@ -33,7 +34,8 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        authenticationUserDetailsService.findByUsername(name)
+        val nameAndSource = "$name$AUTH_SEPARATOR$identitySource"
+        authenticationUserDetailsService.findByUsername(nameAndSource)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource
