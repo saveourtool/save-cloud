@@ -1,8 +1,8 @@
 package com.saveourtool.save.authservice.service
 
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
-import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager.Factory.AUTH_SEPARATOR
 import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.utils.AUTH_SEPARATOR
 import org.springframework.context.annotation.Primary
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
