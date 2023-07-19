@@ -13,17 +13,22 @@ class AuthenticationUserRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
-     * @param name
+     * @param userNameAndSource
      * @return user or null if no results have been found
      */
-    fun findByName(name: String): User? {
+    fun findByName(userNameAndSource: String): User? {
+        val (name, source) = userNameAndSource.split("@SAVE@")
         val record = namedParameterJdbcTemplate.queryForList(
-            "SELECT * FROM save_cloud.user WHERE name = :name",
+            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
             mapOf("name" to name)
         ).singleOrNull()
-            .orNotFound {
-                "There is no user with name $name"
-            }
+            ?: namedParameterJdbcTemplate.queryForList(
+                "SELECT * FROM save_cloud.user WHERE id = (select user_id from save_cloud.original_login where name = :name AND source = :source)",
+                mapOf("name" to name)
+            ).singleOrNull()
+                .orNotFound {
+                    "There is no user with name $name"
+                }
         return record.toUserEntity()
     }
 

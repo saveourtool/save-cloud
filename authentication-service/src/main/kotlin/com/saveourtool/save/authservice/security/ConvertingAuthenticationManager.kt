@@ -33,7 +33,8 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        authenticationUserDetailsService.findByUsername(name)
+        val nameAndSource = "$name@SAVE@$identitySource"
+        authenticationUserDetailsService.findByUsername(nameAndSource)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource

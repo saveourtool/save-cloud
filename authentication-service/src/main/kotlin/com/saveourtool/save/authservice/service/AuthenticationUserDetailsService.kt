@@ -18,10 +18,10 @@ class AuthenticationUserDetailsService(
     private val authenticationUserRepository: AuthenticationUserRepository,
 ) : ReactiveUserDetailsService {
     /**
-     * @param username
+     * @param userNameAndSource
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    override fun findByUsername(username: String): Mono<UserDetails> = {
-        authenticationUserRepository.findByName(username)
-    }.toMono().getIdentitySourceAwareUserDetails(username)
+    override fun findByUsername(userNameAndSource: String): Mono<UserDetails> = {
+        authenticationUserRepository.findByName(userNameAndSource)
+    }.toMono().getIdentitySourceAwareUserDetails(userNameAndSource.split("@SAVE@").first())
 }
