@@ -286,7 +286,7 @@ fun <T> Mono<T>.switchIfErrorToConflict(
  * @see BlockingBridge
  */
 fun <T : Any, R : Any> Mono<T>.blockingMap(function: Function1<T, R>): Mono<R> = flatMap { value ->
-    BlockingBridge.default.blockingToMono { function(value) }
+    blockingToMono { function(value) }
 }
 
 /**
