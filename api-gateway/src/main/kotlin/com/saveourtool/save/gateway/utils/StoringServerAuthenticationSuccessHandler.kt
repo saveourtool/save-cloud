@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
@@ -28,7 +27,7 @@ class StoringServerAuthenticationSuccessHandler(
         webFilterExchange: WebFilterExchange,
         authentication: Authentication
     ): Mono<Void> {
-        logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
+        logger.info("Authenticated user ${authentication.name} with authentication type ${authentication::class}, will send data to backend")
 
         val (source, nameInSource) = if (authentication is OAuth2AuthenticationToken) {
             authentication.authorizedClientRegistrationId to authentication.principal.name
@@ -42,7 +41,7 @@ class StoringServerAuthenticationSuccessHandler(
         val roles = listOf(Role.VIEWER.asSpringSecurityRole())
 
         return webClient.post()
-            .uri("/internal/users/${source}/${nameInSource}")
+            .uri("/internal/users/new/$source/$nameInSource")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(roles)
             .retrieve()

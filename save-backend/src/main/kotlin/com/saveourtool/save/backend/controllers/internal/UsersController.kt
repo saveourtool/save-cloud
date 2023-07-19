@@ -44,7 +44,7 @@ class UsersController(
      * @param name user name
      * @param authorities
      */
-    @PostMapping("/{source}/{name}")
+    @PostMapping("/new/{source}/{name}")
     @Transactional
     fun saveNewUserIfRequired(
         @PathVariable source: String,
@@ -67,6 +67,7 @@ class UsersController(
      *
      * @param source user source
      * @param userName user name
+     * @return found [UserDetailsResponse]
      */
     @GetMapping("/{source}/{userName}")
     fun findBySourceAndUsername(

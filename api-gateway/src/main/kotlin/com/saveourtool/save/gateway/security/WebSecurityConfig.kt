@@ -8,10 +8,9 @@ import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.info.UserNameAndSource
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders

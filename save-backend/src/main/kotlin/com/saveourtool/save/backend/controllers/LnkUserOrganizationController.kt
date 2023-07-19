@@ -7,8 +7,6 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.authservice.utils.toUser
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator

@@ -278,6 +278,18 @@ fun <T> Mono<T>.switchIfErrorToConflict(
 ) = switchIfErrorToResponseException(HttpStatus.CONFLICT, messageCreator)
 
 /**
+ * @param function blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [R]
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
+ */
+fun <T : Any, R : Any> Mono<T>.blockingMap(function: Function1<T, R>): Mono<R> = flatMap { value ->
+    BlockingBridge.default.blockingToMono { function(value) }
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC
@@ -300,18 +312,6 @@ fun <T : Any> blockingToMono(supplier: () -> T?): Mono<T> = BlockingBridge.defau
  */
 @NonBlocking
 fun <T> blockingToFlux(supplier: () -> Iterable<T>): Flux<T> = BlockingBridge.default.blockingToFlux(supplier)
-
-/**
- * @param function blocking operation like JDBC
- * @return [Mono] from result of blocking operation [R]
- * @see blockingToMono
- * @see ResponseSpec.blockingBodyToMono
- * @see ResponseSpec.blockingToBodilessEntity
- * @see BlockingBridge
- */
-fun <T : Any, R : Any> Mono<T>.blockingMap(function: Function1<T, R>): Mono<R> = flatMap { t ->
-    BlockingBridge.default.blockingToMono { function(t) }
-}
 
 /**
  * @param interval how long to wait between checks

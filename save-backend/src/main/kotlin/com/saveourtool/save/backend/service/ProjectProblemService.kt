@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository

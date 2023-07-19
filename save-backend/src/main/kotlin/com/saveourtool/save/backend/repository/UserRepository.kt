@@ -38,7 +38,6 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
      */
     fun findByNameStartingWith(prefix: String): List<User>
 
-
     /**
      * @param prefix
      * @param page

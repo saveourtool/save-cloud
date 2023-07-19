@@ -89,6 +89,7 @@ class UserDetailsService(
     /**
      * @param userNameCandidate
      * @param userRole
+     * @return created [User]
      */
     @Transactional
     fun saveNewUser(userNameCandidate: String, userRole: String): User {
