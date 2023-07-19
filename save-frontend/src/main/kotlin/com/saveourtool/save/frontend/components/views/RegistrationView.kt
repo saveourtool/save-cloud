@@ -37,6 +37,7 @@ import web.file.File
 import web.html.InputType
 import web.window.WindowTarget
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -49,8 +50,13 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
-    val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(""))
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
+    val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo("")) { userInfo ->
+        // weed to process user names, as some authorization providers pass emails instead of names
+        val atIndex = userInfo.name.indexOf('@')
+        val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
+        userInfo.copy(name = processedName)
+    }
 
     val navigate = useNavigate()
 
@@ -67,7 +73,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             responseHandler = ::responseHandlerWithValidation,
         )
         if (response.ok) {
-            navigate("/")
+            window.location.reload()
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         }
