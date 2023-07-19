@@ -4,8 +4,6 @@ import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 
 import generated.SAVE_CLOUD_VERSION
-import react.createElement
-import react.react
 
 import kotlin.test.Test
 import kotlin.test.assertNotNull
