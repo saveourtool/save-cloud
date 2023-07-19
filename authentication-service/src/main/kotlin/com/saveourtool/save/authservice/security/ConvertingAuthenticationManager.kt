@@ -33,7 +33,7 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        val nameAndSource = "$name@SAVE@$identitySource"
+        val nameAndSource = "$name$AUTH_SEPARATOR$identitySource"
         authenticationUserDetailsService.findByUsername(nameAndSource)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
@@ -63,4 +63,8 @@ class ConvertingAuthenticationManager(
                     identitySource = identitySource,
                 )
             }
+
+    companion object Factory {
+        const val AUTH_SEPARATOR = "@SAVE@"
+    }
 }
