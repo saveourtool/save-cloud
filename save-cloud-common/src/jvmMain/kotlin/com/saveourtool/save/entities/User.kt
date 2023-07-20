@@ -32,6 +32,7 @@ class User(
     var name: String,
     var password: String?,
     var role: String?,
+    // TODO: need to remove this field
     var source: String,
     var email: String? = null,
     var avatar: String? = null,
