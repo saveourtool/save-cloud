@@ -33,7 +33,11 @@ class CustomAuthenticationBasicConverter(
             authenticationUserDetailsService.findByUsername(username)
                 .cast<IdentitySourceAwareUserDetails>()
                 .map { userDetails ->
-                    authentication.apply {
+                    UsernamePasswordAuthenticationToken(
+                        "$source:$username",
+                        authentication.credentials,
+                        userDetails.authorities
+                    ).apply {
                         details = AuthenticationDetails(
                             id = userDetails.id,
                             identitySource = source,

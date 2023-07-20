@@ -54,7 +54,7 @@ class BasicSecurityTest {
 
     @Test
     fun `should allow access for registered user`() {
-        val authentication = tryAuthenticate("user", "basic")
+        val authentication = tryAuthenticate("basic:user", "basic")
 
         Assertions.assertTrue(authentication.isAuthenticated)
     }
@@ -62,14 +62,14 @@ class BasicSecurityTest {
     @Test
     fun `should forbid requests if user has the same name but different source`() {
         Assertions.assertThrows(BadCredentialsException::class.java) {
-            tryAuthenticate("user", "github")
+            tryAuthenticate("github:user", "github")
         }
     }
 
     @Test
     fun `should forbid requests if user has the same name but no source`() {
         Assertions.assertThrows(BadCredentialsException::class.java) {
-            tryAuthenticate("user", "")
+            tryAuthenticate(":user", "")
         }
     }
 

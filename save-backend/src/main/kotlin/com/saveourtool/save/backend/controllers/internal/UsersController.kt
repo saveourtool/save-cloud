@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 @RestController
 @RequestMapping("/internal/users")
 class UsersController(
-    private val userDetailsService: UserDetailsService,
+    private val userService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -51,7 +51,7 @@ class UsersController(
             logger.debug("User $userName is already present in the DB")
         } ?: run {
             logger.info("Saving user $userName to the DB")
-            userDetailsService.saveNewUser(user)
+            userService.saveNewUser(user)
         }
     }
 
@@ -64,7 +64,7 @@ class UsersController(
     @GetMapping("/find-by-name/{userName}")
     fun findByName(
         @PathVariable userName: String,
-    ): Mono<StringResponse> = userDetailsService.findByName(userName).map {
+    ): Mono<StringResponse> = userService.findByName(userName).map {
         ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
     }
 
@@ -79,7 +79,7 @@ class UsersController(
     fun findByOriginalLogin(
         @PathVariable source: String,
         @PathVariable nameInSource: String,
-    ): Mono<StringResponse> = userDetailsService.findByOriginalLogin(nameInSource, source).map {
+    ): Mono<StringResponse> = userService.findByOriginalLogin(nameInSource, source).map {
         ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
     }
 }
