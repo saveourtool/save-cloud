@@ -1,6 +1,7 @@
 package com.saveourtool.save.authservice.repository
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
@@ -41,7 +42,7 @@ class AuthenticationUserRepository(
             linkedin = record["linkedin"] as String?,
             gitHub = record["git_hub"] as String?,
             twitter = record["twitter"] as String?,
-            isActive = record["is_active"] as Boolean,
+            status = UserStatus.valueOf(record["status"] as String),
             rating = record["rating"] as Long,
         ).apply {
             this.id = record["id"] as Long
