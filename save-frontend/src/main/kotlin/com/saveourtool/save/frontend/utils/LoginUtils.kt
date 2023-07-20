@@ -10,13 +10,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.info.OauthProviderInfo
 import js.core.jso
 import react.ChildrenBuilder
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
-import react.router.dom.Link
 import web.cssom.*
 
 /**
- * Configruation for setting up oauth provider buttons on the frontend
+ * Configuration for setting up oauth provider buttons on the frontend
  *
  * @property size font size of oauth logos
  * @property provider oauth provider (Huawei, Gitee, Github, etc.)
@@ -54,8 +54,8 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
 ) {
     div {
         className = ClassName("animated-provider col animate__animated ${oauthProvidersFeConfig.animate}")
-        Link {
-            to = oauthProvidersFeConfig.provider.authorizationLink
+        a {
+            href = oauthProvidersFeConfig.provider.authorizationLink
             className = ClassName("text-center")
             div {
                 className = ClassName("col text-center")
