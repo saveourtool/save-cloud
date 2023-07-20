@@ -164,5 +164,5 @@ class ProjectPermissionEvaluatorTest {
         details = AuthenticationDetails(id = id, identitySource = "")
     }
 
-    private fun mockUser(id: Long) = User(null, null, null, "").apply { this.id = id }
+    private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }

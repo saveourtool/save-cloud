@@ -58,7 +58,7 @@ fun Mono<User>.getIdentitySourceAwareUserDetails(username: String, source: Strin
  */
 @Suppress("UnsafeCallOnNullableType")
 private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
-    username = this.name!!,
+    username = this.name,
     password = this.password.orEmpty(),
     authorities = this.role,
     identitySource = this.source,
