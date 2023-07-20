@@ -41,19 +41,19 @@ fun Authentication.username(): String = when (principal) {
  * @return identitySource
  * @throws BadCredentialsException
  */
-fun Authentication.identitySource(): String {
-    val identitySource = (this.details as AuthenticationDetails).identitySource
-    if (identitySource == null || !this.name.startsWith("$identitySource:")) {
-        throw BadCredentialsException(this.name)
-    }
-    return identitySource
-}
+fun Authentication.identitySource(): String? = (this.details as AuthenticationDetails).identitySource
 
 /**
  * @return pair of username and identitySource from this [Authentication].
  * @throws BadCredentialsException
  */
-fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = this.username() to this.identitySource()
+fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = this.username() to run {
+    val identitySource = this.identitySource()
+    if (identitySource == null || !this.name.startsWith("$identitySource:")) {
+        throw BadCredentialsException(this.name)
+    }
+    identitySource
+}
 
 /**
  * Convert [Authentication] to [User] based on convention in backend.
