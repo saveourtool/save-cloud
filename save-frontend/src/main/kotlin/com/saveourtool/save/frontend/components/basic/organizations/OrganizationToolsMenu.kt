@@ -21,7 +21,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -102,8 +101,8 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                         td {
                             when (projectDto.status) {
                                 ProjectStatus.CREATED -> div {
-                                    a {
-                                        href = "#/${projectDto.organizationName}/${cellContext.value}"
+                                    Link {
+                                        to = "/${projectDto.organizationName}/${cellContext.value}"
                                         +cellContext.value
                                     }
                                     spanWithClassesAndText("text-muted", "active")

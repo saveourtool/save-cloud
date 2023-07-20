@@ -6,10 +6,10 @@ package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
+import react.router.dom.Link
 import web.cssom.AlignItems
 import web.cssom.AlignSelf
 import web.cssom.ClassName
@@ -47,7 +47,7 @@ fun ChildrenBuilder.renderReadMorePage(platformName: String = "SAVE") {
             }
             div {
                 className = ClassName("row justify-content-center")
-                link("#/about", "About us")
+                link("/about", "About us")
             }
         }
     }
@@ -75,8 +75,8 @@ private fun ChildrenBuilder.link(url: String, text: String) {
             alignItems = AlignItems.center
             alignSelf = AlignSelf.center
         }
-        a {
-            href = url
+        Link {
+            to = url
             h3 {
                 className = ClassName("text-center")
                 +text

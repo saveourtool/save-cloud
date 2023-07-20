@@ -35,56 +35,6 @@ import kotlinx.serialization.json.Json
 /**
  * SETTINGS tab in ProjectView
  */
-val projectSettingsMenu = projectSettingsMenu()
-
-/**
- * ProjectSettingsMenu component props
- */
-external interface ProjectSettingsMenuProps : Props {
-    /**
-     * Current project settings
-     */
-    var project: ProjectDto
-
-    /**
-     * Information about current user
-     */
-    var currentUserInfo: UserInfo
-
-    /**
-     * Role of a current user
-     */
-    var selfRole: Role
-
-    /**
-     * Callback to update project state in ProjectView after update request's response is received.
-     */
-    var onProjectUpdate: (ProjectDto) -> Unit
-
-    /**
-     * Callback to show error message
-     */
-    @Suppress("TYPE_ALIAS")
-    var updateErrorMessage: (Response, String) -> Unit
-}
-
-/**
- * Makes a call to change project status
- *
- * @param status - the status that will be assigned to the project [project]
- * @param projectPath - the path [organizationName/projectName] for response
- * @return lazy response
- */
-fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
-    post(
-        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
-        headers = jsonHeaders,
-        body = undefined,
-        loadingHandler = ::noopLoadingHandler,
-        responseHandler = ::noopResponseHandler,
-    )
-}
-
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
@@ -92,7 +42,7 @@ fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): sus
     "ComplexMethod",
     "EMPTY_BLOCK_STRUCTURE_ERROR"
 )
-private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
+val projectSettingsMenu: FC<ProjectSettingsMenuProps> = FC { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
@@ -244,55 +194,52 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                 div {
                     className = ClassName("row d-flex justify-content-center")
                     div {
-                        className = ClassName("col text-right")
-                        div {
-                            className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn btn-sm btn-outline-primary")
-                                onClick = {
-                                    updateProject()
-                                }
-                                +"Save changes"
+                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn btn-sm btn-outline-primary")
+                            onClick = {
+                                updateProject()
                             }
+                            +"Save changes"
                         }
-                        div {
-                            className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
-                            actionButton {
-                                title = "WARNING: You are about to delete this project"
-                                errorTitle = "You cannot delete the project ${props.project.name}"
-                                message = "Are you sure you want to delete the project $projectPath?"
-                                clickMessage = "Also ban this project"
-                                onActionSuccess = { _ ->
-                                    navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
+                    }
+                    div {
+                        className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                        actionButton {
+                            title = "WARNING: You are about to delete this project"
+                            errorTitle = "You cannot delete the project ${props.project.name}"
+                            message = "Are you sure you want to delete the project $projectPath?"
+                            clickMessage = "Also ban this project"
+                            onActionSuccess = { _ ->
+                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
+                            }
+                            buttonStyleBuilder = { childrenBuilder ->
+                                with(childrenBuilder) {
+                                    +"Delete project"
                                 }
-                                buttonStyleBuilder = { childrenBuilder ->
-                                    with(childrenBuilder) {
-                                        +"Delete project"
+                            }
+                            classes = "btn btn-sm btn-outline-danger"
+                            modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
+                                val actionName = if (isClickMode) "ban" else "delete"
+                                with(childrenBuilder) {
+                                    buttonBuilder(
+                                        label = "Yes, $actionName ${props.project.name}",
+                                        style = "danger",
+                                        classes = "mr-2"
+                                    ) {
+                                        action()
+                                        closeWindow()
+                                    }
+                                    buttonBuilder("Cancel") {
+                                        closeWindow()
                                     }
                                 }
-                                classes = "btn btn-sm btn-outline-danger"
-                                modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
-                                    val actionName = if (isClickMode) "ban" else "delete"
-                                    with(childrenBuilder) {
-                                        buttonBuilder(
-                                            label = "Yes, $actionName ${props.project.name}",
-                                            style = "danger",
-                                            classes = "mr-2"
-                                        ) {
-                                            action()
-                                            closeWindow()
-                                        }
-                                        buttonBuilder("Cancel") {
-                                            closeWindow()
-                                        }
-                                    }
-                                }
-                                conditionClick = props.currentUserInfo.isSuperAdmin()
-                                sendRequest = { isBanned ->
-                                    val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
-                                    responseChangeProjectStatus(projectPath, newStatus)
-                                }
+                            }
+                            conditionClick = props.currentUserInfo.isSuperAdmin()
+                            sendRequest = { isBanned ->
+                                val newStatus = if (isBanned) ProjectStatus.BANNED else ProjectStatus.DELETED
+                                responseChangeProjectStatus(projectPath, newStatus)
                             }
                         }
                     }
@@ -300,4 +247,52 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
             }
         }
     }
+}
+
+/**
+ * ProjectSettingsMenu component props
+ */
+external interface ProjectSettingsMenuProps : Props {
+    /**
+     * Current project settings
+     */
+    var project: ProjectDto
+
+    /**
+     * Information about current user
+     */
+    var currentUserInfo: UserInfo
+
+    /**
+     * Role of a current user
+     */
+    var selfRole: Role
+
+    /**
+     * Callback to update project state in ProjectView after update request's response is received.
+     */
+    var onProjectUpdate: (ProjectDto) -> Unit
+
+    /**
+     * Callback to show error message
+     */
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
+}
+
+/**
+ * Makes a call to change project status
+ *
+ * @param status - the status that will be assigned to the project [project]
+ * @param projectPath - the path [organizationName/projectName] for response
+ * @return lazy response
+ */
+fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }

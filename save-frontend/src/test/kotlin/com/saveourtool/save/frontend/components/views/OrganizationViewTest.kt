@@ -102,11 +102,9 @@ class OrganizationViewTest {
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = wrapper.create {
-        MemoryRouter {
-            OrganizationView::class.react {
-                organizationName = testOrganization.name
-                currentUserInfo = userInfo
-            }
+        OrganizationView::class.react {
+            organizationName = testOrganization.name
+            currentUserInfo = userInfo
         }
     }
         .let {
