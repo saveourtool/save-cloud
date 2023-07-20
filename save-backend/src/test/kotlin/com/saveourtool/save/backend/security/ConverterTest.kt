@@ -1,13 +1,11 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
-import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.identitySource
 import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.mock
 import org.springframework.http.HttpHeaders
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest
 import org.springframework.mock.web.server.MockServerWebExchange
@@ -15,8 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import java.util.Base64
 
 class ConverterTest {
-    private val authenticationUserDetailsService: AuthenticationUserDetailsService = mock()
-    private val customAuthenticationBasicConverter = CustomAuthenticationBasicConverter(authenticationUserDetailsService)
+    private val customAuthenticationBasicConverter = CustomAuthenticationBasicConverter()
 
     @Test
     fun `should convert`() {
