@@ -1,5 +1,6 @@
 package com.saveourtool.save.authservice.repository
 
+import com.saveourtool.save.authservice.utils.toUserEntity
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -14,7 +15,6 @@ class AuthenticationUserRepository(
 ) {
     /**
      * @param name name of user
-     * @param source source of user
      * @return user or null if no results have been found
      */
     fun findByNameAndSource(name: String): User? {
@@ -32,6 +32,4 @@ class AuthenticationUserRepository(
         .orNotFound {
             "There is no user with name $name"
         }
-
-
 }
