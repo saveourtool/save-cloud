@@ -42,6 +42,7 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
 import web.cssom.Cursor
@@ -316,8 +317,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
                                                             benchmark.tags.split(DATABASE_DELIMITER).map { " #$it " }.forEach {
-                                                                a {
-                                                                    className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS}")
+                                                                Link {
+                                                                    to = "/${FrontendRoutes.AWESOME_BENCHMARKS}"
                                                                     +it
                                                                 }
                                                             }
@@ -465,8 +466,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     li {
                                         fontAwesomeIcon(icon = faGithub)
                                         +""" Go to the"""
-                                        a {
-                                            className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
+                                        Link {
+                                            to = "https://github.com/saveourtool/awesome-benchmarks"
                                             +""" ${FrontendRoutes.AWESOME_BENCHMARKS} """
                                         }
                                         +"""repository"""

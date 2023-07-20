@@ -14,14 +14,13 @@ import com.saveourtool.save.frontend.utils.actionButton
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spanWithClassesAndText
 import com.saveourtool.save.v1
-
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import web.cssom.ClassName
 
 @Suppress("MISSING_KDOC_TOP_LEVEL", "TOO_LONG_FUNCTION", "LongMethod")
@@ -87,8 +86,8 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     width = 60.0
                                 }
                                 when (organizationDto.status) {
-                                    OrganizationStatus.CREATED -> a {
-                                        href = "#/${organizationDto.name}"
+                                    OrganizationStatus.CREATED -> Link {
+                                        to = "/${organizationDto.name}"
                                         +organizationDto.name
                                     }
                                     OrganizationStatus.DELETED -> {

@@ -494,7 +494,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 scoreCard {
                     name = it.name
                     contestScore = it.contestRating
-                    url = "#/${props.organizationName}/${it.name}"
+                    url = "/${props.organizationName}/${it.name}"
                 }
             }
         }

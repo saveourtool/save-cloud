@@ -25,13 +25,13 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
+import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
 import web.cssom.rem
@@ -115,7 +115,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "name", header = "Name", { organization.name }) { cellContext ->
                     Fragment.create {
                         td {
-                            a {
+                            Link {
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
@@ -127,7 +127,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                         width = 2.rem
                                     }
                                 }
-                                href = "#/${cellContext.value}"
+                                to = "/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }
@@ -191,8 +191,8 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
-                            a {
-                                href = "#/${cellContext.row.original.organizationName}/${cellContext.value}"
+                            Link {
+                                to = "/${cellContext.row.original.organizationName}/${cellContext.value}"
                                 +" ${cellContext.value}"
                             }
                         }

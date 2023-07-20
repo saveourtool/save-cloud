@@ -12,12 +12,12 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.v1
 
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
 import react.useEffect
 import react.useState
 import web.cssom.ClassName
@@ -71,9 +71,9 @@ internal val featuredDemos = VFC {
                 }
                 h3 {
                     className = ClassName("mb-0")
-                    a {
+                    Link {
                         className = ClassName("text-dark")
-                        href = "#/demo/${demoDto.projectCoordinates}"
+                        to = "/demo/${demoDto.projectCoordinates}"
                         +demoDto.projectCoordinates.toString()
                     }
                 }
