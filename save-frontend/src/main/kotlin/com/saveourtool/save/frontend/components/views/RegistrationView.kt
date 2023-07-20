@@ -51,7 +51,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     particles()
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
-    val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo("")) { userInfo ->
+    val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(name = "", source = "")) { userInfo ->
         // weed to process user names, as some authorization providers pass emails instead of names
         val atIndex = userInfo.name.indexOf('@')
         val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
