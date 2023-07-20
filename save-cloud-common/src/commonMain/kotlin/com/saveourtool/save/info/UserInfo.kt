@@ -23,7 +23,7 @@ import kotlinx.serialization.Serializable
  * @property organizations
  * @property globalRole
  * @property id
- * @property isActive
+ * @property status
  * @property oldName is always null except for the process of renaming the user.
  * @property originalLogins
  * @property rating
@@ -46,7 +46,7 @@ data class UserInfo(
     val gitHub: String? = null,
     val twitter: String? = null,
     val globalRole: Role? = null,
-    val isActive: Boolean = false,
+    val status: UserStatus = UserStatus.CREATED,
     val rating: Long = 0,
 ) : Validatable {
     /**

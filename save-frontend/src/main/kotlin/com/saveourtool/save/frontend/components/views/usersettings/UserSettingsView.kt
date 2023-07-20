@@ -320,7 +320,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
             twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
             avatar = state.userInfo!!.avatar,
-            isActive = state.userInfo!!.isActive,
+            status = state.userInfo!!.status,
         )
 
         val headers = Headers().also {

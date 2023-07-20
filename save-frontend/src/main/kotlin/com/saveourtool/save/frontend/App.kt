@@ -14,6 +14,7 @@ import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
@@ -106,7 +107,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             requestModalHandler {
                 userInfo = state.userInfo
 
-                if (state.userInfo?.isActive == false) {
+                if (state.userInfo?.status == UserStatus.CREATED) {
                     Navigate {
                         to = "/${FrontendRoutes.REGISTRATION}"
                         replace = false

@@ -3,6 +3,7 @@ package com.saveourtool.save.gateway.utils
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.info.UserStatus
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -58,6 +59,6 @@ fun Authentication.toUser(): User = User(
     authorities.joinToString(",") { it.authority },
     toIdentitySource(),
     null,
-    isActive = false,
+    status = UserStatus.CREATED,
     originalLogins = emptyList(),
 )

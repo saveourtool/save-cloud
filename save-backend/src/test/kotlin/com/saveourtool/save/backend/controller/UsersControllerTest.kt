@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -36,7 +37,7 @@ class UsersControllerTest {
             Role.VIEWER.asSpringSecurityRole(),
             "basic2",
             null,
-            isActive = false,
+            status = UserStatus.CREATED,
         ).apply { id = 99 }
 
         val originalLogin = OriginalLogin(

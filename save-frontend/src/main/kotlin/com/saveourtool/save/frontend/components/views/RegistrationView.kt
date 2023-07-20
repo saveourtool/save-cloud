@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.isValidName
@@ -63,7 +64,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     val saveUser = useDeferredRequest {
         val newUserInfo = userInfo.copy(
             oldName = props.userInfo?.name!!,
-            isActive = true,
+            status = UserStatus.ACTIVE,
         )
         val response = post(
             "$apiUrl/users/save",
@@ -91,7 +92,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
-    if (props.userInfo?.isActive != false) {
+    if (props.userInfo?.status == UserStatus.ACTIVE) {
         navigate("/", jso { replace = true })
     }
 
