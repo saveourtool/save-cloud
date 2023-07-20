@@ -78,7 +78,7 @@ class PermissionController(
         @PathVariable projectName: String,
         @RequestParam(required = false) userName: String?,
         authentication: Authentication,
-    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.toUser().name!!, projectName, organizationName, authentication)
+    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.toUser().name, projectName, organizationName, authentication)
         .map { (user, project) ->
             permissionService.getRole(user, project)
                 .also {

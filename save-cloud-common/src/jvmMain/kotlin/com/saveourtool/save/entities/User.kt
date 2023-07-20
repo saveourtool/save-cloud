@@ -29,7 +29,7 @@ import javax.persistence.OneToMany
 @Entity
 @Suppress("LongParameterList")
 class User(
-    var name: String?,
+    var name: String,
     var password: String?,
     var role: String?,
     var source: String,
@@ -57,7 +57,7 @@ class User(
      */
     fun toUserInfo(projects: Map<String, Role> = emptyMap(), organizations: Map<String, Role> = emptyMap()) = UserInfo(
         id = id,
-        name = name ?: "Undefined",
+        name = name,
         originalLogins = originalLogins.map { it.name },
         source = source,
         projects = projects,

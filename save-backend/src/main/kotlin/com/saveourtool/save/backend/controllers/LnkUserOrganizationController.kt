@@ -106,7 +106,7 @@ class LnkUserOrganizationController(
         authentication: Authentication?,
     ): Mono<Role> = authentication?.let {
         getUserAndOrganizationWithPermissions(
-            authentication.toUser().name!!,
+            authentication.toUser().name,
             organizationName,
             Permission.READ,
             authentication,
@@ -274,7 +274,7 @@ class LnkUserOrganizationController(
         .map {
             OrganizationWithUsers(
                 organization = it.organization.toDto(),
-                userRoles = mapOf(it.user.name!! to it.role),
+                userRoles = mapOf(it.user.name to it.role),
             )
         }
 

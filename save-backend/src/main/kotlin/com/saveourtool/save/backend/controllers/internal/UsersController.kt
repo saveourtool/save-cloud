@@ -44,7 +44,7 @@ class UsersController(
     @PostMapping("/new")
     @Transactional
     fun saveNewUser(@RequestBody user: User) {
-        val userName = requireNotNull(user.name) { "Provided user $user doesn't have a name" }
+        val userName = user.name
 
         val userFind = originalLoginRepository.findByNameAndSource(userName, user.source)
 

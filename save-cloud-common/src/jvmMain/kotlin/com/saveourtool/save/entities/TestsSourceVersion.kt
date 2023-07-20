@@ -53,9 +53,7 @@ class TestsSourceVersion(
         version = name,
         type = type,
         creationTime = creationTime.toKotlinLocalDateTime(),
-        createdByUserName = requireNotNull(createdByUser.name) {
-            "username is not set for ${createdByUser.requiredId()}"
-        }
+        createdByUserName = createdByUser.name,
     )
 
     companion object {

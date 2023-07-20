@@ -15,10 +15,10 @@ import javax.persistence.ManyToOne
  */
 @Entity
 class OriginalLogin(
-    var name: String?,
+    var name: String,
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
     var user: User,
-    var source: String?,
+    var source: String,
 ) : BaseEntity()

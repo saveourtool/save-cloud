@@ -80,7 +80,7 @@ class UserDetailsService(
         return if (oldName == null) {
             userRepository.save(user)
             UserSaveStatus.UPDATE
-        } else if (userName != null && userRepository.validateName(userName) != 0L) {
+        } else if (userRepository.validateName(userName) != 0L) {
             userRepository.deleteHighLevelName(oldName)
             userRepository.saveHighLevelName(userName)
             userRepository.save(user)
