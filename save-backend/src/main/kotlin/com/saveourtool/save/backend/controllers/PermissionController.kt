@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.toUser
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
@@ -78,7 +78,7 @@ class PermissionController(
         @PathVariable projectName: String,
         @RequestParam(required = false) userName: String?,
         authentication: Authentication,
-    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.toUser().name, projectName, organizationName, authentication)
+    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.username(), projectName, organizationName, authentication)
         .map { (user, project) ->
             permissionService.getRole(user, project)
                 .also {

@@ -57,25 +57,6 @@ fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = th
 }
 
 /**
- * Convert [Authentication] to [User] based on convention in backend.
- * We assume here that all authentications are created by [ConvertingAuthenticationManager],
- * so `principal` is a String, containing identity source.
- *
- * @return [User]
- */
-fun Authentication.toUser(): User {
-    val (identitySource, name) = (principal as String).split(':')
-    return User(
-        name = name,
-        password = null,
-        email = null,
-        role = (this as UsernamePasswordAuthenticationToken).authorities.joinToString(separator = ","),
-        source = identitySource,
-        status = UserStatus.CREATED,
-    )
-}
-
-/**
  * Set role hierarchy for spring security
  *
  * @return map of role hierarchy
