@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.security
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
@@ -27,7 +27,7 @@ class OrganizationPermissionEvaluator(
      */
     fun hasOrganizationRole(authentication: Authentication?, organization: Organization, role: Role): Boolean {
         authentication ?: return false
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
@@ -59,7 +59,7 @@ class OrganizationPermissionEvaluator(
      */
     fun hasPermission(authentication: Authentication?, organization: Organization, permission: Permission): Boolean {
         authentication ?: return permission == Permission.READ
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }

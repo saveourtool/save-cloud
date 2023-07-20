@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
@@ -105,8 +105,7 @@ class UsersDetailsController(
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
         .map {
             val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val userId = (authentication.details as AuthenticationDetails).id
-            val response = if (user.id == userId) {
+            val response = if (user.id == authentication.userId()) {
                 userDetailsService.saveUser(user.apply {
                     name = newUserInfo.name
                     email = newUserInfo.email
@@ -142,7 +141,7 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun saveUserToken(@PathVariable userName: String, @RequestBody token: String, authentication: Authentication): Mono<StringResponse> {
         val user = userRepository.findByName(userName).orNotFound()
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         val response = if (user.id == userId) {
             userRepository.save(user.apply {
                 password = "{bcrypt}${BCryptPasswordEncoder().encode(token)}"
