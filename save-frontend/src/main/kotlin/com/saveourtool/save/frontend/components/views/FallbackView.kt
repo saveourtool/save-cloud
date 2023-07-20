@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.Style
-import kotlinx.browser.window
+
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -13,6 +13,8 @@ import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 import web.cssom.ClassName
+
+import kotlinx.browser.window
 
 /**
  * Props of fallback component
