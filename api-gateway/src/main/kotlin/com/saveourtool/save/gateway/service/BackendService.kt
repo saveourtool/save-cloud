@@ -73,7 +73,7 @@ class BackendService(
      * @param user
      * @return empty [Mono]
      */
-    fun createNew(user: User): Mono<Void> = webClient.post()
+    fun createNewIfRequired(user: User): Mono<Void> = webClient.post()
         .uri("/internal/users/new")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(user)

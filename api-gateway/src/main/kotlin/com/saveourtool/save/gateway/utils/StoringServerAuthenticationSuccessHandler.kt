@@ -33,7 +33,7 @@ class StoringServerAuthenticationSuccessHandler(
             role = Role.VIEWER.asSpringSecurityRole()
         }
 
-        return backendService.createNew(user)
+        return backendService.createNewIfRequired(user)
     }
 }
 
