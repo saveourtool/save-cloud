@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
- * A service to backen
+ * A service to backend to lookup users in DB
  */
 @Service
 class BackendService(

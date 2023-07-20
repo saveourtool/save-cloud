@@ -1,6 +1,5 @@
 package com.saveourtool.save.authservice.service
 
-import com.saveourtool.save.authservice.repository.AuthenticationOriginalLoginRepository
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
 import com.saveourtool.save.utils.AUTH_SEPARATOR
@@ -18,7 +17,6 @@ import reactor.core.publisher.Mono
 @Primary
 class AuthenticationUserDetailsService(
     private val authenticationUserRepository: AuthenticationUserRepository,
-    private val authenticationOriginalLoginRepository: AuthenticationOriginalLoginRepository,
 ) : ReactiveUserDetailsService {
     /**
      * @param userNameAndSource
@@ -27,8 +25,7 @@ class AuthenticationUserDetailsService(
     override fun findByUsername(userNameAndSource: String): Mono<UserDetails> {
         val (name, source) = userNameAndSource.split(AUTH_SEPARATOR)
         return blockingToMono {
-            authenticationUserRepository.findByNameAndSource(name, source) ?:
-            authenticationOriginalLoginRepository.findByNameAndSource(name, source)
+            authenticationUserRepository.findByNameAndSource(name, source)
         }
             .getIdentitySourceAwareUserDetails(name)
     }

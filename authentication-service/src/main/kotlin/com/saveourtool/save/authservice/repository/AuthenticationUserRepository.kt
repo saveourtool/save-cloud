@@ -1,6 +1,5 @@
 package com.saveourtool.save.authservice.repository
 
-import com.saveourtool.save.authservice.utils.toUserEntity
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -18,18 +17,39 @@ class AuthenticationUserRepository(
      * @param source source of user
      * @return user or null if no results have been found
      */
-    fun findByNameAndSource(name: String, source: String): User? = namedParameterJdbcTemplate.queryForList(
-        "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
-        mapOf("name" to name, "source" to source)
-    ).singleOrNull()?.toUserEntity()
+    fun findByNameAndSource(name: String, source: String): User? {
+        val record = namedParameterJdbcTemplate.queryForList(
+            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
+            mapOf("name" to name, "source" to source)
+        ).singleOrNull()
+            ?: namedParameterJdbcTemplate.queryForList(
+                "SELECT * FROM save_cloud.user WHERE id = (select user_id from save_cloud.original_login where name = :name AND source = :source)",
+                mapOf("name" to name, "source" to source)
+            ).singleOrNull()
+                .orNotFound {
+                    "There is no user with name $name and source $source"
+                }
+        return record.toUserEntity()
+    }
 
-    /**
-     * @param name name of user
-     * @param source source of user
-     * @return user or null if no results have been found
-     */
-    fun getByNameAndSource(name: String, source: String): User = findByNameAndSource(name, source)
-        .orNotFound {
-            "There is no user with name $name and source $source"
+    private fun Map<String, Any>.toUserEntity(): User {
+        val record = this
+        return User(
+            name = record["name"] as String,
+            password = record["password"] as String?,
+            role = record["role"] as String?,
+            source = record["source"] as String,
+            email = record["email"] as String?,
+            avatar = record["avatar"] as String?,
+            company = record["company"] as String?,
+            location = record["location"] as String?,
+            linkedin = record["linkedin"] as String?,
+            gitHub = record["git_hub"] as String?,
+            twitter = record["twitter"] as String?,
+            isActive = record["is_active"] as Boolean,
+            rating = record["rating"] as Long,
+        ).apply {
+            this.id = record["id"] as Long
         }
+    }
 }
