@@ -27,13 +27,21 @@ class UserService(
 ) {
     /**
      * @param username
+     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     */
+    fun findByName(username: String) = blockingToMono {
+        userRepository.findByName(username)
+    }
+        .getIdentitySourceAwareUserDetails(username)
+
+    /**
+     * @param username
      * @param source source (where the user identity is coming from)
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    fun findByUsernameAndSource(username: String, source: String) = blockingToMono {
-        originalLoginRepository.findByNameAndSource(username, source)
+    fun findByOriginalLogin(username: String, source: String) = blockingToMono {
+        originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .map { it.user }
         .getIdentitySourceAwareUserDetails(username, source)
 
     /**

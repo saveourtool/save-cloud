@@ -11,6 +11,7 @@ import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.gateway.service.BackendService
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
@@ -52,20 +53,8 @@ import reactor.core.publisher.Mono
 )
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
+    private val backendService: BackendService,
 ) {
-    private val objectMapper = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-    private val webClient = WebClient.create(configurationProperties.backend.url)
-        .mutate()
-        .codecs {
-            it.defaultCodecs().jackson2JsonEncoder(
-                Jackson2JsonEncoder(objectMapper)
-            )
-        }
-        .build()
-
     @Bean
     @Order(1)
     @Suppress("LongMethod")
@@ -139,21 +128,7 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
-                    // Looking for user in DB by received source and name
-                    require(username.contains("@")) {
-                        "Provided user information should keep the following form: oauth2Source@username"
-                    }
-                    val user: Mono<StringResponse> = webClient.get()
-                        .uri("/internal/users/$username")
-                        .retrieve()
-                        .onStatus({ it.is4xxClientError }) {
-                            Mono.error(ResponseStatusException(it.statusCode()))
-                        }
-                        .toEntity()
-
-                    user.map {
-                        objectMapper.readValue(it.body, UserDetails::class.java)
-                    }
+                    backendService.findByName(username)
                 }
             )
         }
