@@ -2,8 +2,6 @@ package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.orResponseStatusException
-import org.springframework.http.HttpStatus
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.User as SpringUser

@@ -69,6 +69,10 @@
 
     <changeSet id="user-name-not-nullable" author="nulls">
         <addNotNullConstraint tableName="user" columnName="name" columnDataType="varchar(64)"/>
+        <addNotNullConstraint tableName="user" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
+    </changeSet>
+
+    <changeSet id="user-drop-source" author="nulls">
         <dropColumn tableName="user" columnName="source"/>
     </changeSet>
 

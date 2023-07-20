@@ -227,14 +227,14 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
     private fun ChildrenBuilder.renderSecurity() {
         projectSecurityMenu {
             project = state.project
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown", source = "Unknown")
         }
     }
 
     private fun ChildrenBuilder.renderFiles() {
         projectFilesMenu {
             project = state.project
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown", source = "Unknown")
             selfRole = state.selfRole
         }
     }
@@ -314,7 +314,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
     private fun ChildrenBuilder.renderSettings() {
         projectSettingsMenu {
             project = state.project
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown", source = "Unknown")
             selfRole = state.selfRole
             updateErrorMessage = { response, message ->
                 setState {

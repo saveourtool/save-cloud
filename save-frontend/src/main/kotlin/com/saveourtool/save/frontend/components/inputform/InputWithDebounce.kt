@@ -30,7 +30,7 @@ private const val DROPDOWN_ID = "option-dropdown"
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val inputWithDebounceForUserInfo = inputWithDebounce(
-    asOption = { UserInfo(this) },
+    asOption = { UserInfo(name = this, source = "Undefined") },
     asString = { name },
     decodeListFromJsonString = { decodeFromJsonString() },
 )

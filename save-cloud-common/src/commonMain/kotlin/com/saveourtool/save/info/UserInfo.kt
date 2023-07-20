@@ -33,7 +33,7 @@ data class UserInfo(
     val name: String,
     val id: Long? = null,
     val oldName: String? = null,
-    val originalLogins: List<String?> = emptyList(),
+    val originalLogins: List<String> = emptyList(),
     val projects: Map<String, Role> = emptyMap(),
     val organizations: Map<String, Role> = emptyMap(),
     val email: String? = null,

@@ -96,7 +96,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
         }
     }
 
-    val (userToAdd, setUserToAdd) = useState(UserInfo(""))
+    val (userToAdd, setUserToAdd) = useState(UserInfo(name = "", source = ""))
     val addUserToGroup = useDeferredRequest {
         val response = post(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles",
@@ -105,12 +105,12 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             loadingHandler = ::loadingHandler,
         )
         if (response.ok) {
-            setUserToAdd(UserInfo(""))
+            setUserToAdd(UserInfo(name = "", source = ""))
             getUsersFromGroup()
         }
     }
 
-    val (userToDelete, setUserToDelete) = useState(UserInfo(""))
+    val (userToDelete, setUserToDelete) = useState(UserInfo(name = "", source = ""))
     val deleteUser = useDeferredRequest {
         val response = delete(
             url = "$apiUrl/${props.groupType}s/${props.groupPath}/users/roles/${userToDelete.name}",

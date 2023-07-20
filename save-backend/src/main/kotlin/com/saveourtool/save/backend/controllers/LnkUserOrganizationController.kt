@@ -274,7 +274,7 @@ class LnkUserOrganizationController(
         .map {
             OrganizationWithUsers(
                 organization = it.organization.toDto(),
-                userRoles = mapOf(it.user.name!! to it.role),
+                userRoles = mapOf(it.user.name to it.role),
             )
         }
 
