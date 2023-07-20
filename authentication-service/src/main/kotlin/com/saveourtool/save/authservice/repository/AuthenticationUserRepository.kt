@@ -10,45 +10,28 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AuthenticationUserRepository(
-    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
+    protected val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
      * @param name name of user
      * @param source source of user
      * @return user or null if no results have been found
      */
-    fun findByNameAndSource(name: String, source: String): User? {
-        val record = namedParameterJdbcTemplate.queryForList(
-            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
-            mapOf("name" to name, "source" to source)
-        ).singleOrNull()
-            ?: namedParameterJdbcTemplate.queryForList(
-                "SELECT * FROM save_cloud.user WHERE id = (select user_id from save_cloud.original_login where name = :name AND source = :source)",
-                mapOf("name" to name, "source" to source)
-            ).singleOrNull()
-                .orNotFound {
-                    "There is no user with name $name and source $source"
-                }
-        return record.toUserEntity()
+    fun findByNameAndSource(name: String): User? {
+        return namedParameterJdbcTemplate.queryForList(
+            "SELECT * FROM save_cloud.user WHERE name = :name",
+            mapOf("name" to name)
+        ).singleOrNull()?.toUserEntity()
     }
 
-    private fun Map<String, Any>.toUserEntity(): User {
-        val record = this
-        return User(
-            name = record["name"] as String,
-            password = record["password"] as String?,
-            role = record["role"] as String?,
-            email = record["email"] as String?,
-            avatar = record["avatar"] as String?,
-            company = record["company"] as String?,
-            location = record["location"] as String?,
-            linkedin = record["linkedin"] as String?,
-            gitHub = record["git_hub"] as String?,
-            twitter = record["twitter"] as String?,
-            isActive = record["is_active"] as Boolean,
-            rating = record["rating"] as Long,
-        ).apply {
-            this.id = record["id"] as Long
+    /**
+     * @param name name of user
+     * @return user or error if no results have been found
+     */
+    fun getByNameAndSource(name: String): User = findByNameAndSource(name)
+        .orNotFound {
+            "There is no user with name $name"
         }
-    }
+
+
 }

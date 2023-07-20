@@ -58,7 +58,7 @@ fun Mono<User>.getIdAwareUserDetails(username: String, source: String? = null) =
  */
 @Suppress("UnsafeCallOnNullableType")
 private fun User.toIdAwareUserDetails(): IdAwareUserDetails = IdAwareUserDetails(
-    username = this.name.orResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR),
+    username = this.name,
     password = this.password.orEmpty(),
     authorities = this.role,
     id = this.requiredId(),

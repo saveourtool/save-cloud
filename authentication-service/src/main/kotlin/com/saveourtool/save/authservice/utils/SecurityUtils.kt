@@ -5,6 +5,7 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.User
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
@@ -48,3 +49,26 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
     .let {
         RoleHierarchyImpl().apply { setHierarchy(it) }
     }
+
+/**
+ * @return Entity [User] created from provided [Map]
+ */
+internal fun Map<String, Any>.toUserEntity(): User {
+    val record = this
+    return User(
+        name = record["name"] as String,
+        password = record["password"] as String?,
+        role = record["role"] as String?,
+        email = record["email"] as String?,
+        avatar = record["avatar"] as String?,
+        company = record["company"] as String?,
+        location = record["location"] as String?,
+        linkedin = record["linkedin"] as String?,
+        gitHub = record["git_hub"] as String?,
+        twitter = record["twitter"] as String?,
+        isActive = record["is_active"] as Boolean,
+        rating = record["rating"] as Long,
+    ).apply {
+        this.id = record["id"] as Long
+    }
+}
