@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.security
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.service.UserService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -33,7 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 class OrganizationPermissionEvaluatorTest {
     @Autowired private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
     @MockBean private lateinit var lnkUserOrganizationRepository: LnkUserOrganizationRepository
-    @MockBean private lateinit var userDetailsService: UserDetailsService
+    @MockBean private lateinit var userService: UserService
     private lateinit var mockOrganization: Organization
 
     private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()
@@ -99,7 +99,7 @@ class OrganizationPermissionEvaluatorTest {
         userId: Long = 1
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
-        given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
+        given(userService.getGlobalRole(any())).willReturn(Role.VIEWER)
         whenever(lnkUserOrganizationRepository.findByUserIdAndOrganization(any(), any())).thenAnswer { invocation ->
             LnkUserOrganization(
                 invocation.arguments[1] as Organization,

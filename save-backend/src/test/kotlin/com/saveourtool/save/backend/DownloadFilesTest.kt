@@ -65,7 +65,7 @@ import kotlin.io.path.*
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
     MockBean(OrganizationService::class),
-    MockBean(UserDetailsService::class),
+    MockBean(UserService::class),
     MockBean(ExecutionService::class),
     MockBean(AgentService::class),
     MockBean(ProjectPermissionEvaluator::class),

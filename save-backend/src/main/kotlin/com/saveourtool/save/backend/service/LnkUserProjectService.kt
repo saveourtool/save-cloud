@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service
 class LnkUserProjectService(
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val userRepository: UserRepository,
-    private val userDetailsService: UserDetailsService,
+    private val userService: UserService,
 ) {
     /**
      * @param project
@@ -130,7 +130,7 @@ class LnkUserProjectService(
      */
     fun getGlobalRoleOrProjectRole(authentication: Authentication, project: Project): Role {
         val selfId = authentication.userId()
-        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
+        val selfGlobalRole = userService.getGlobalRole(authentication)
         val selfOrganizationRole = findRoleByUserIdAndProject(selfId, project)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }

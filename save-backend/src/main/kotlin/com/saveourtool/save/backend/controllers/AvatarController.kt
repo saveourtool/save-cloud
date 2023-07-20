@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.ByteBufferFluxResponse
 import com.saveourtool.save.backend.service.OrganizationService
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.service.UserService
 import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
@@ -38,7 +38,7 @@ import kotlin.time.toJavaDuration
 internal class AvatarController(
     private val avatarStorage: AvatarStorage,
     private val organizationService: OrganizationService,
-    private val userDetailsService: UserDetailsService,
+    private val userService: UserService,
 ) {
     /**
      * @param partMono image to be uploaded
@@ -81,7 +81,7 @@ internal class AvatarController(
             blockingToMono {
                 when (type) {
                     AvatarType.ORGANIZATION -> organizationService.updateAvatarVersion(owner)
-                    AvatarType.USER -> userDetailsService.updateAvatarVersion(owner)
+                    AvatarType.USER -> userService.updateAvatarVersion(owner)
                 }
             }
         }

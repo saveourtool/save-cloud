@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.service.UserService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.StringResponse
@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono
 @RestController
 @RequestMapping("/internal/users")
 class UsersController(
-    private val userService: UserDetailsService,
+    private val userService: UserService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)

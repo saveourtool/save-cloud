@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit
     OrganizationService::class,
     OrganizationPermissionEvaluator::class,
     LnkUserOrganizationService::class,
-    UserDetailsService::class,
+    UserService::class,
     NoopWebSecurityConfig::class,
     GitService::class,
     TestSuitesSourceService::class,
@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit
     WebConfig::class,
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
-    UserDetailsService::class,
+    UserService::class,
     S11nTestConfig::class,
 )
 @MockBeans(

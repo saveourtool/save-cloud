@@ -8,40 +8,33 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 import java.util.*
 
 /**
- * A service that provides `UserDetails`
+ * A service that provides access to [UserRepository] and [OriginalLoginRepository]
  */
 @Service
-class UserDetailsService(
+class UserService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
-) : ReactiveUserDetailsService {
-    override fun findByUsername(username: String): Mono<UserDetails> = {
-        userRepository.findByName(username) ?: originalLoginRepository.findByName(username)?.user
-    }.toMono().getIdentitySourceAwareUserDetails(username)
-
+) {
     /**
      * @param username
      * @param source source (where the user identity is coming from)
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    fun findByUsernameAndSource(username: String, source: String) =
-            { originalLoginRepository.findByNameAndSource(username, source) }
-                .toMono()
-                .map { it.user }
-                .getIdentitySourceAwareUserDetails(username, source)
+    fun findByUsernameAndSource(username: String, source: String) = blockingToMono {
+        originalLoginRepository.findByNameAndSource(username, source)
+    }
+        .map { it.user }
+        .getIdentitySourceAwareUserDetails(username, source)
 
     /**
      * @param name

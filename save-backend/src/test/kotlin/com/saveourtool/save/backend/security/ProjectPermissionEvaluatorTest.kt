@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.security
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
-import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.backend.service.UserService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.domain.Role
@@ -37,7 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 class ProjectPermissionEvaluatorTest {
     @Autowired private lateinit var projectPermissionEvaluator: ProjectPermissionEvaluator
     @MockBean private lateinit var lnkUserProjectRepository: LnkUserProjectRepository
-    @MockBean private lateinit var userDetailsService: UserDetailsService
+    @MockBean private lateinit var userService: UserService
     private lateinit var mockProject: Project
 
     private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()
@@ -136,7 +136,7 @@ class ProjectPermissionEvaluatorTest {
         userId: Long = 1
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
-        given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
+        given(userService.getGlobalRole(any())).willReturn(Role.VIEWER)
         whenever(lnkUserProjectRepository.findByUserIdAndProject(any(), any())).thenAnswer { invocation ->
             LnkUserProject(
                 invocation.arguments[1] as Project,

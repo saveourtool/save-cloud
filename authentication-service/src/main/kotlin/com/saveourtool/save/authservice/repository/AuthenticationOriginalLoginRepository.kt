@@ -7,10 +7,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 
 /**
- * Repository for [com.saveourtool.save.entities.User]
+ * Repository for [com.saveourtool.save.entities.User] using _original_login_
  */
 @Component
-class AuthenticationUserRepository(
+class AuthenticationOriginalLoginRepository(
     private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
@@ -19,17 +19,17 @@ class AuthenticationUserRepository(
      * @return user or null if no results have been found
      */
     fun findByNameAndSource(name: String, source: String): User? = namedParameterJdbcTemplate.queryForList(
-        "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
+        "SELECT * FROM save_cloud.user WHERE id = (select user_id from save_cloud.original_login where name = :name AND source = :source)",
         mapOf("name" to name, "source" to source)
-    ).singleOrNull()?.toUserEntity()
+    )
+        .firstOrNull()
+        ?.toUserEntity()
 
     /**
      * @param name name of user
      * @param source source of user
-     * @return user or null if no results have been found
+     * @return user or exception if no results have been found
      */
     fun getByNameAndSource(name: String, source: String): User = findByNameAndSource(name, source)
-        .orNotFound {
-            "There is no user with name $name and source $source"
-        }
+        .orNotFound { "There is no user with name $name and source $source" }
 }
