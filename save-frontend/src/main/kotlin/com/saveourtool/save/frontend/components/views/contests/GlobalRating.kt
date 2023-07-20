@@ -17,7 +17,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
@@ -90,9 +89,9 @@ internal val globalRating = VFC {
                         alignItems = AlignItems.center
                         alignSelf = AlignSelf.start
                     }
-                    a {
+                    Link {
                         className = ClassName("mb-5")
-                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/${selectedTab.name.lowercase()}"
+                        to = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
                 }
@@ -182,8 +181,8 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(
                     with(organizationWithRating.organization) {
                         strong {
                             className = ClassName("d-block text-gray-dark")
-                            a {
-                                href = "#/$name"
+                            Link {
+                                to = "/$name"
                                 +name
                             }
                         }

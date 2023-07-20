@@ -22,13 +22,13 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import react.router.dom.Link
 import web.cssom.*
 import web.html.HTMLInputElement
 
@@ -229,9 +229,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             className = ClassName("menu")
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -240,9 +240,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -251,9 +251,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -274,9 +274,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             className = ClassName("menu")
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }

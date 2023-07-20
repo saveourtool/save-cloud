@@ -5,18 +5,18 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
+import react.router.dom.Link
 import web.cssom.*
 
 internal val createNewContestTemplate = VFC {
     div {
         className = ClassName("col-2 text-center")
-        a {
+        Link {
+            to = "/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE}/"
             className = ClassName("col-12 flex-column card mb-1 box-shadow btn-hov")
-            href = "#/${FrontendRoutes.CREATE_CONTESTS_TEMPLATE}/"
             style = jso {
                 @Suppress("MAGIC_NUMBER")
                 height = 19.rem

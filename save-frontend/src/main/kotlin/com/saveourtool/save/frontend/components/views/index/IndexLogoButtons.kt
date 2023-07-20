@@ -8,12 +8,12 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
+import react.router.dom.Link
 import web.cssom.Border
 import web.cssom.ClassName
 import web.cssom.rem
@@ -28,12 +28,12 @@ val logoButtons = VFC {
         div {
             className = ClassName("col-3 text-center logo-main")
             creationCard(
-                "#/${FrontendRoutes.SAVE}",
+                "/${FrontendRoutes.SAVE}",
                 "img/save-logo-bg.jpg",
             )
             neonLightingText(
                 "SAVE",
-                "#/${FrontendRoutes.SAVE}",
+                "/${FrontendRoutes.SAVE}",
                 "Cloud Platform for CI and Benchmarking of Code Analyzers"
             )
         }
@@ -41,13 +41,13 @@ val logoButtons = VFC {
         div {
             className = ClassName("col-3 text-center logo-main")
             creationCard(
-                "#/${FrontendRoutes.VULN}",
+                "/${FrontendRoutes.VULN}",
                 "img/vuln-logo-bg.jpg",
             )
 
             neonLightingText(
                 "VULN",
-                "#/${FrontendRoutes.VULN}",
+                "/${FrontendRoutes.VULN}",
                 "Archive of 1-Day Vulnerabilities Aggregated from Various Sources"
             )
         }
@@ -61,8 +61,8 @@ val logoButtons = VFC {
 private fun ChildrenBuilder.creationCard(url: String, img: String) {
     div {
         className = ClassName("col")
-        a {
-            href = url
+        Link {
+            to = url
             @Suppress("MAGIC_NUMBER")
             (img {
                 src = img
@@ -76,8 +76,8 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
 }
 
 private fun ChildrenBuilder.neonLightingText(input: String, url: String, labelText: String) {
-    a {
-        href = url
+    Link {
+        to = url
         div {
             className = ClassName("row")
             div {

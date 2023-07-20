@@ -20,10 +20,10 @@ import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.ClassName
 import web.html.InputType
@@ -43,8 +43,8 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "name", header = "Contest Name", { name }) { cellContext ->
                 Fragment.create {
                     td {
-                        a {
-                            href = "#/contests/${cellContext.row.original.name}"
+                        Link {
+                            to = "/contests/${cellContext.row.original.name}"
                             +cellContext.value
                         }
                     }

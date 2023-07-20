@@ -25,7 +25,6 @@ import com.saveourtool.save.validation.isValidName
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -35,6 +34,7 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 import web.cssom.ClassName
 import web.html.*
 import web.html.ButtonType
@@ -207,8 +207,8 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() 
                                             selectedValue = state.projectCreationRequest.organizationName
                                             addNewItemChildrenBuilder = { childrenBuilder ->
                                                 with(childrenBuilder) {
-                                                    a {
-                                                        href = "/#/${FrontendRoutes.CREATE_ORGANIZATION}"
+                                                    Link {
+                                                        to = "/${FrontendRoutes.CREATE_ORGANIZATION}"
                                                         +"Add new organization"
                                                     }
                                                 }
