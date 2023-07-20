@@ -16,14 +16,17 @@ import web.timers.setTimeout
 import kotlin.js.Promise
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.router.MemoryRouter
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
-    requestStatusContext.Provider {
-        value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
-        +it.children
+    MemoryRouter {
+        requestStatusContext.Provider {
+            value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
+            +it.children
+        }
     }
 }
 

@@ -5,7 +5,9 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.Style
+import kotlinx.browser.window
 import react.*
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
@@ -62,8 +64,8 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
                     }
                 }
             } else {
-                Link {
-                    to = "/"
+                a {
+                    href = "${window.location.origin}/"
                     h3 {
                         +"← Back to the main page"
                     }

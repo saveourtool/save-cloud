@@ -7,6 +7,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
@@ -54,10 +55,10 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                 li {
                     className = ClassName("nav-item")
                     if (elem.isExternalLink) {
-                        Link {
+                        a {
                             className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
                             style = jso { width = elem.width }
-                            to = elem.hrefAnchor
+                            href = elem.hrefAnchor
                             +elem.text
                         }
                     } else {
