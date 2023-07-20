@@ -33,4 +33,9 @@
           referencedTableName="user"
           onDelete="CASCADE"/>
     </changeSet>
+
+    <changeSet id="original-login-name-and-source-not-null" author="nulls">
+        <addNotNullConstraint tableName="original_login" columnName="name" columnDataType="varchar(64)"/>
+        <addNotNullConstraint tableName="original_login" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
+    </changeSet>
 </databaseChangeLog>

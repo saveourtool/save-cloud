@@ -32,6 +32,7 @@ class UsersDetailsControllerTest {
 
         val newUserInfo = UserInfo(
             name = "admin",
+            source = "basic",
             email = "example@save.com",
             company = "Example",
             status = UserStatus.ACTIVE,
@@ -54,6 +55,7 @@ class UsersDetailsControllerTest {
 
         val newUserInfo = UserInfo(
             name = "JohnDoe",
+            source = "basic",
             oldName = "admin",
             email = "example@save.com",
             company = "Example",

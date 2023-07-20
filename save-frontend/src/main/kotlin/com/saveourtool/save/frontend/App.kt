@@ -84,7 +84,8 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
             val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let {
                 UserInfo(
                     name = userName,
-                    globalRole = globalRole
+                    globalRole = globalRole,
+                    source = "Undefined",
                 )
             }
 

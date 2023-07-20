@@ -36,7 +36,7 @@ class AuthenticationUserRepository(
     private fun Map<String, Any>.toUserEntity(): User {
         val record = this
         return User(
-            name = record["name"] as String?,
+            name = record["name"] as String,
             password = record["password"] as String?,
             role = record["role"] as String?,
             source = record["source"] as String,
