@@ -1,10 +1,12 @@
 package com.saveourtool.save.gateway.service
 
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.http.MediaType
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.jackson2.CoreJackson2Module
@@ -64,4 +66,21 @@ class BackendService(
         .map {
             objectMapper.readValue(it.body, UserDetails::class.java)
         }
+
+    /**
+     * Saves a new [User] in DB
+     *
+     * @param user
+     * @return empty [Mono]
+     */
+    fun createNew(user: User): Mono<Void> = webClient.post()
+        .uri("/internal/users/new")
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(user)
+        .retrieve()
+        .onStatus({ it.is4xxClientError }) {
+            Mono.error(ResponseStatusException(it.statusCode()))
+        }
+        .toBodilessEntity()
+        .then()
 }

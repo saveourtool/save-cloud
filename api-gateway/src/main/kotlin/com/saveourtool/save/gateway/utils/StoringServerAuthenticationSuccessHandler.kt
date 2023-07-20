@@ -2,26 +2,22 @@ package com.saveourtool.save.gateway.utils
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.info.UserStatus
 
 import org.slf4j.LoggerFactory
-import org.springframework.http.MediaType
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
  * [ServerAuthenticationSuccessHandler] that sends user data to backend on successful login
  */
 class StoringServerAuthenticationSuccessHandler(
-    configurationProperties: ConfigurationProperties,
+    private val backendService: BackendService,
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val webClient = WebClient.create(configurationProperties.backend.url)
 
     override fun onAuthenticationSuccess(
         webFilterExchange: WebFilterExchange,
@@ -37,16 +33,7 @@ class StoringServerAuthenticationSuccessHandler(
             role = Role.VIEWER.asSpringSecurityRole()
         }
 
-        return webClient.post()
-            .uri("/internal/users/new")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(user)
-            .retrieve()
-            .onStatus({ it.is4xxClientError }) {
-                Mono.error(ResponseStatusException(it.statusCode()))
-            }
-            .toBodilessEntity()
-            .then()
+        return backendService.createNew(user)
     }
 }
 
