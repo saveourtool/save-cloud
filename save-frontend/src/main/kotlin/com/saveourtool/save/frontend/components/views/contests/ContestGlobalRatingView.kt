@@ -310,7 +310,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         val projectFilter = ProjectFilter(props.projectName ?: "")
         val organizationFilter = OrganizationFilter(props.organizationName.orEmpty())
         setState {
-            paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}")
+            paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING}")
             this.projectFilter = projectFilter
             this.organizationFilter = organizationFilter
         }

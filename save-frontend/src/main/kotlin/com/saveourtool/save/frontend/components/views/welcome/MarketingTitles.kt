@@ -38,6 +38,30 @@ fun ChildrenBuilder.saveWelcomeMarketingTitle(textColor: String, isDark: Boolean
 }
 
 /**
+ * @param textColor
+ * @param isDark
+ */
+fun ChildrenBuilder.vulnWelcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
+    div {
+        className = ClassName("col-4 text-left mt-5 mx-5 $textColor")
+        marketingTitle("Vulnerability", isDark)
+        marketingTitle("Database", isDark)
+        marketingTitle(" and", isDark)
+        marketingTitle("Benchmark", isDark)
+        marketingTitle("Archive", isDark)
+        h3 {
+            if (isDark) {
+                style = jso {
+                    color = "rgb(6, 7, 89)".unsafeCast<Color>()
+                }
+            }
+            className = ClassName("mt-4")
+            +"A huge storage of known vulnerabilities."
+        }
+    }
+}
+
+/**
  * @param str
  * @param isDark
  */

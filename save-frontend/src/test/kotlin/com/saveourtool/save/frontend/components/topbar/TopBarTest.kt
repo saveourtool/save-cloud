@@ -26,7 +26,7 @@ class TopBarTest {
                 initialEntries = arrayOf(
                     "/"
                 )
-                topBar().invoke {
+                topBarComponent {
                     userInfo = UserInfo("Test User")
                 }
             }
@@ -50,7 +50,7 @@ class TopBarTest {
                 initialEntries = arrayOf(
                     "/"
                 )
-                topBar().invoke {
+                topBarComponent {
                     userInfo = null
                 }
             }

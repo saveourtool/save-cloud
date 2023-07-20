@@ -41,13 +41,13 @@ val logoButtons = VFC {
         div {
             className = ClassName("col-3 text-center logo-main")
             creationCard(
-                "#/${FrontendRoutes.VULNERABILITIES}",
+                "#/${FrontendRoutes.VULN}",
                 "img/vuln-logo-bg.jpg",
             )
 
             neonLightingText(
                 "VULN",
-                "#/${FrontendRoutes.VULNERABILITIES}",
+                "#/${FrontendRoutes.VULN}",
                 "Archive of 1-Day Vulnerabilities Aggregated from Various Sources"
             )
         }

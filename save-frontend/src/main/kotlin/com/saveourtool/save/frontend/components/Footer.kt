@@ -1,6 +1,6 @@
-package com.saveourtool.save.frontend.components
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-import com.saveourtool.save.frontend.utils.CComponent
+package com.saveourtool.save.frontend.components
 
 import generated.SAVE_CLOUD_VERSION
 import react.*
@@ -16,19 +16,17 @@ import web.cssom.ClassName
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-class Footer : CComponent<Props, State>() {
-    override fun ChildrenBuilder.render() {
-        footer {
-            className = ClassName("sticky-footer bg-white")
+val footer: VFC = VFC {
+    footer {
+        className = ClassName("sticky-footer bg-white")
+        div {
+            className = ClassName("container my-auto")
             div {
-                className = ClassName("container my-auto")
-                div {
-                    className = ClassName("copyright text-center my-auto")
-                    span {
-                        +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
-                        br {}
-                        +"Version $SAVE_CLOUD_VERSION"
-                    }
+                className = ClassName("copyright text-center my-auto")
+                span {
+                    +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
+                    br {}
+                    +"Version $SAVE_CLOUD_VERSION"
                 }
             }
         }

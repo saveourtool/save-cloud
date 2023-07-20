@@ -8,7 +8,7 @@ import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
-import com.saveourtool.save.frontend.components.topbar.topBar
+import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
@@ -30,14 +30,12 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
-internal val topBarComponent = topBar()
-
 /**
  * Top-level state of the whole App
  */
 external interface AppState : State {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 }
@@ -110,7 +108,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
 
                 if (state.userInfo?.isActive == false) {
                     Navigate {
-                        to = "/${FrontendRoutes.REGISTRATION.path}"
+                        to = "/${FrontendRoutes.REGISTRATION}"
                         replace = false
                     }
                 }
@@ -129,7 +127,7 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                                 userInfo = state.userInfo
                             }
                         }
-                        Footer::class.react()
+                        footer { }
                     }
                 }
             }

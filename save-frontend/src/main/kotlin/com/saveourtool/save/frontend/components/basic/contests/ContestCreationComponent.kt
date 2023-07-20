@@ -126,14 +126,14 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val onSaveButtonPressed = useDeferredRequest {
         val response = post(
-            "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
+            "$apiUrl/${FrontendRoutes.CONTESTS}/create",
             jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {

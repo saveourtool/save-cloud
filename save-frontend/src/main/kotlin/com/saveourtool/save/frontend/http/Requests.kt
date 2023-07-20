@@ -111,6 +111,33 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
 }
 
 /**
+ * @param file image file
+ * @param name avatar owner name
+ * @param type avatar type
+ * @param loadingHandler
+ */
+suspend fun WithRequestStatusContext.postImageUpload(
+    file: File,
+    name: String,
+    type: AvatarType,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+) {
+    val response = post(
+        url = "$apiUrl/avatar/upload",
+        params = jso<dynamic> {
+            owner = name
+            this.type = type
+        },
+        Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
+        FormData().apply { set(FILE_PART_NAME, file) },
+        loadingHandler,
+    )
+    if (response.ok) {
+        window.location.reload()
+    }
+}
+
+/**
  * @param url url to upload a file
  * @param file a file which needs to be uploaded
  * @param loadingHandler

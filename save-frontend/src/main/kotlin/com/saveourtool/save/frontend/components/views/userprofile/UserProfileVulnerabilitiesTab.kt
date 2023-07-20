@@ -27,7 +27,7 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
                     Fragment.create {
                         td {
                             Link {
-                                to = "/${FrontendRoutes.VULNERABILITIES}/${cellContext.row.original.name}"
+                                to = "/${FrontendRoutes.VULN}/${cellContext.row.original.name}"
                                 +cellContext.value
                             }
                         }

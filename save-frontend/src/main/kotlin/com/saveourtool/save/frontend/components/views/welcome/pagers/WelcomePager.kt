@@ -1,5 +1,6 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers
 
+import com.saveourtool.save.frontend.components.views.welcome.pagers.save.*
 import com.saveourtool.save.frontend.externals.animations.Animation
 import react.ChildrenBuilder
 
@@ -14,6 +15,8 @@ val allSaveWelcomePagers = listOf(
     listOf(SloganAboutContests),
     listOf(Contests)
 )
+
+val allVulnerabilityWelcomePagers: List<List<WelcomePager>> = emptyList()
 
 /**
  * common interface for all pagers on welcome view

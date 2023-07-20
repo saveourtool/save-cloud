@@ -2,7 +2,7 @@
  * [1 page] Main information about SAVE-cloud
  */
 
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
 import js.core.jso
 import react.ChildrenBuilder

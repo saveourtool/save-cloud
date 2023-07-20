@@ -27,7 +27,7 @@ val userBoard: FC<UserBoardProps> = FC { props ->
                 div {
                     className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
-                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE.path}/${user.name}")
+                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}")
                     }
                 }
             }

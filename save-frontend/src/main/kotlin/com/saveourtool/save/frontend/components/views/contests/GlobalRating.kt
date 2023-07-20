@@ -92,7 +92,7 @@ internal val globalRating = VFC {
                     }
                     a {
                         className = ClassName("mb-5")
-                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
+                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
                 }
@@ -114,7 +114,7 @@ enum class UserRatingTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserRatingTab = UserRatingTab.ORGS
-        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)"
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/($postfixInRegex)"
         override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
         override fun values(): Array<UserRatingTab> = UserRatingTab.values()
     }
@@ -142,7 +142,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
                     strong {
                         className = ClassName("d-block text-gray-dark")
                         Link {
-                            to = "#/${project.url}"
+                            to = "/${project.url}"
                             +project.name
                         }
                     }

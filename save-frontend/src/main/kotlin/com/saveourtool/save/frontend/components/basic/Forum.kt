@@ -207,7 +207,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                                 width = 80.0
                                 onError = { setAvatar(AVATAR_PLACEHOLDER) }
                             }
-                            to = "/${FrontendRoutes.PROFILE.path}/$name"
+                            to = "/${FrontendRoutes.PROFILE}/$name"
                         }
                     }
                     div {
@@ -227,7 +227,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                         h1 {
                             className = ClassName("col-12 text-center font-weight-bold h5")
                             Link {
-                                to = "/${FrontendRoutes.PROFILE.path}/$name"
+                                to = "/${FrontendRoutes.PROFILE}/$name"
                                 +name
                             }
                         }
