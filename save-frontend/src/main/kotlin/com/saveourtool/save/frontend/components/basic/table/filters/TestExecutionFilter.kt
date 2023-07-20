@@ -54,7 +54,7 @@ val testExecutionFiltersRow: FC<FiltersRowProps> = FC { props ->
                 div {
                     className = ClassName("col-auto")
                     select {
-                        className = ClassName("form-control")
+                        className = ClassName("form-control custom-select")
                         val elements = TestResultStatus.values().map { it.name }.toMutableList()
                         elements.add(0, ANY)
                         value = filters.status?.name ?: ANY

@@ -16,7 +16,7 @@ import react.dom.html.ReactHTML.img
 import web.cssom.*
 
 /**
- * Configruation for setting up oauth provider buttons on the frontend
+ * Configuration for setting up oauth provider buttons on the frontend
  *
  * @property size font size of oauth logos
  * @property provider oauth provider (Huawei, Gitee, Github, etc.)

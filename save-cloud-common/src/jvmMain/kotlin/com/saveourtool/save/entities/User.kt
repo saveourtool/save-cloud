@@ -2,13 +2,12 @@ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.spring.entity.BaseEntity
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 
-import javax.persistence.Entity
-import javax.persistence.FetchType
-import javax.persistence.OneToMany
+import javax.persistence.*
 
 /**
  * @property name
@@ -21,7 +20,7 @@ import javax.persistence.OneToMany
  * @property linkedin
  * @property gitHub
  * @property twitter
- * @property isActive
+ * @property status
  * @property originalLogins
  * @property rating rating of user
  */
@@ -38,7 +37,8 @@ class User(
     var linkedin: String? = null,
     var gitHub: String? = null,
     var twitter: String? = null,
-    var isActive: Boolean = false,
+    @Enumerated(EnumType.STRING)
+    var status: UserStatus = UserStatus.CREATED,
     @OneToMany(
         fetch = FetchType.EAGER,
         mappedBy = "user",
@@ -66,7 +66,7 @@ class User(
         gitHub = gitHub,
         twitter = twitter,
         location = location,
-        isActive = isActive,
+        status = status,
         rating = rating,
     )
 }

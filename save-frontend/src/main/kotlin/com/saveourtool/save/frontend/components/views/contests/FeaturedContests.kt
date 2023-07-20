@@ -16,13 +16,13 @@ import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
 import web.cssom.*
 import web.html.ButtonType
 
@@ -141,9 +141,9 @@ private fun ChildrenBuilder.contestDescription(
         }
         h3 {
             className = ClassName("mb-0")
-            a {
+            Link {
                 className = ClassName("text-dark")
-                href = "#/contests/${contestToShow.name}"
+                to = "/contests/${contestToShow.name}"
                 +contestToShow.name
             }
         }
@@ -167,9 +167,9 @@ private fun ChildrenBuilder.contestDescription(
                 +"Enroll"
             }
 
-            a {
+            Link {
                 className = ClassName("btn btn-sm btn-outline-success")
-                href = "#/contests/${contestToShow.name}"
+                to = "/contests/${contestToShow.name}"
                 +"Description "
                 fontAwesomeIcon(icon = faArrowRight)
             }

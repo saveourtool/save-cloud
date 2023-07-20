@@ -24,11 +24,13 @@ import web.cssom.*
 /**
  * @param oauthProviders
  * @param primaryColor color of a shield
+ * @param continueLink link for `continue` button
  */
 @Suppress("TOO_LONG_FUNCTION")
 internal fun ChildrenBuilder.inputCredentialsView(
     oauthProviders: List<OauthProviderInfo>,
     primaryColor: Colors,
+    continueLink: String,
 ) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
@@ -73,7 +75,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
                             color = "#3075c0".unsafeCast<Color>()
                         }
                         Link {
-                            to = "#/${FrontendRoutes.PROJECTS}"
+                            to = continueLink
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
                             +"Continue "
                             fontAwesomeIcon(icon = faSignInAlt)

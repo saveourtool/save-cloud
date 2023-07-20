@@ -6,6 +6,7 @@ package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
@@ -66,7 +67,7 @@ internal fun Map<String, Any>.toUserEntity(): User {
         linkedin = record["linkedin"] as String?,
         gitHub = record["git_hub"] as String?,
         twitter = record["twitter"] as String?,
-        isActive = record["is_active"] as Boolean,
+        status = record["status"] as UserStatus,
         rating = record["rating"] as Long,
     ).apply {
         this.id = record["id"] as Long

@@ -109,7 +109,7 @@ class UsersDetailsController(
                     gitHub = newUserInfo.gitHub
                     linkedin = newUserInfo.linkedin
                     twitter = newUserInfo.twitter
-                    isActive = newUserInfo.isActive
+                    status = newUserInfo.status
                 }, newUserInfo.oldName)
             } else {
                 UserSaveStatus.CONFLICT

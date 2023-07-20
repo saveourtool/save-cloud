@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.nav
@@ -150,16 +149,13 @@ private fun projectSecurityMenu() = FC<ProjectSecurityMenuProps> { props ->
                                     div {
                                         className = ClassName("menu")
                                         div {
-                                            className = ClassName("mt-2")
-                                            a {
-                                                className = ClassName("item")
-                                                fontAwesomeIcon(icon = faShieldVirus) {
-                                                    it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
-                                                }
-                                                Link {
-                                                    to = "/project/${props.project.organizationName}/${props.project.name}/security"
-                                                    +"Problems"
-                                                }
+                                            className = ClassName("mt-2 item")
+                                            fontAwesomeIcon(icon = faShieldVirus) {
+                                                it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
+                                            }
+                                            Link {
+                                                to = "/project/${props.project.organizationName}/${props.project.name}/security"
+                                                +"Problems"
                                             }
                                         }
                                     }
