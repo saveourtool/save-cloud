@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.identitySource
 import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class ConverterTest {
         Assertions.assertInstanceOf(UsernamePasswordAuthenticationToken::class.java, authentication)
         Assertions.assertInstanceOf(AuthenticationDetails::class.java, authentication.details)
         Assertions.assertEquals("basic:user", authentication.principal)
-        Assertions.assertEquals("basic", (authentication.details as AuthenticationDetails).identitySource)
+        Assertions.assertEquals("basic", authentication.identitySource())
     }
 }
 

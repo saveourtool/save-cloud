@@ -7,7 +7,7 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.ProjectService
@@ -58,16 +58,13 @@ class LnkUserProjectController(
     )
     @PreAuthorize("permitAll()")
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
-    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> {
-        val userIdFromAuth = (authentication.details as AuthenticationDetails).id
-        return Flux.fromIterable(
-            lnkUserProjectService.getProjectsByUserIdAndStatuses(userIdFromAuth)
-        )
-            .filter {
-                it.public
-            }
-            .map { it.toDto() }
-    }
+    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> = Flux.fromIterable(
+        lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId())
+    )
+        .filter {
+            it.public
+        }
+        .map { it.toDto() }
 
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
     @RequiresAuthorizationSourceHeader

@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -51,7 +51,7 @@ class ProjectProblemService(
     fun saveProjectProblem(problem: ProjectProblemDto, authentication: Authentication) {
         val vulnerability = problem.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
         val project = projectRepository.findByNameAndOrganizationName(problem.projectName, problem.organizationName).orNotFound()
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         val user = userRepository.getByIdOrNotFound(userId)
 
         val projectProblem = ProjectProblem(

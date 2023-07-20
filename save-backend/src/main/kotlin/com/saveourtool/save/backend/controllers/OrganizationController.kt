@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -136,7 +136,7 @@ internal class OrganizationController(
         authentication: Authentication?,
     ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
-            (auth.details as AuthenticationDetails).id
+            auth.userId()
         }
         .flatMapMany {
             lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)
@@ -239,7 +239,7 @@ internal class OrganizationController(
         }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
-                (authentication.details as AuthenticationDetails).id,
+                authentication.userId(),
                 organizationId,
                 Role.OWNER,
             )
