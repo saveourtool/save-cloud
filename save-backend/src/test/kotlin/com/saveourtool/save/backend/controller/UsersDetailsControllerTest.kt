@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -34,7 +35,7 @@ class UsersDetailsControllerTest {
             source = "basic",
             email = "example@save.com",
             company = "Example",
-            isActive = true,
+            status = UserStatus.ACTIVE,
         )
 
         webClient.post()
@@ -58,7 +59,7 @@ class UsersDetailsControllerTest {
             oldName = "admin",
             email = "example@save.com",
             company = "Example",
-            isActive = true,
+            status = UserStatus.ACTIVE,
         )
 
         webClient.post()
