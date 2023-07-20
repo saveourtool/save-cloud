@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -32,7 +32,7 @@ class UserDetailsService(
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .getIdentitySourceAwareUserDetails(username)
+        .mapToIdentitySourceAwareUserDetailsOrNotFound { username }
 
     /**
      * @param username
@@ -42,7 +42,7 @@ class UserDetailsService(
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .getIdentitySourceAwareUserDetails(username, source)
+        .mapToIdentitySourceAwareUserDetailsOrNotFound { "$username from $source" }
 
     /**
      * @param name

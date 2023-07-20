@@ -1,7 +1,7 @@
 package com.saveourtool.save.authservice.service
 
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
-import com.saveourtool.save.authservice.utils.getIdentitySourceAwareUserDetails
+import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
 import com.saveourtool.save.utils.blockingToMono
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.UserDetails
@@ -22,5 +22,5 @@ class AuthenticationUserDetailsService(
     override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
         authenticationUserRepository.findByName(username)
     }
-        .getIdentitySourceAwareUserDetails(username)
+        .mapToIdentitySourceAwareUserDetailsOrNotFound { username }
 }
