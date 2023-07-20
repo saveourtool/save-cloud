@@ -95,7 +95,7 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
  * @return entity [User] created from [Map]
  */
 internal fun Map<String, Any>.toUserEntity(): User = User(
-    name = this["name"] as String?,
+    name = this["name"] as String,
     password = this["password"] as String?,
     role = this["role"] as String?,
     source = this["source"] as String,
