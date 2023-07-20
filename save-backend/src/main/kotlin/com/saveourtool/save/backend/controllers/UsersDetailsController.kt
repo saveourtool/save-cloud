@@ -3,7 +3,7 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.service.UserService
+import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
@@ -37,7 +37,7 @@ import reactor.kotlin.core.publisher.toMono
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
     private val userRepository: UserRepository,
-    private val userService: UserService,
+    private val userDetailsService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
     /**
@@ -106,7 +106,7 @@ class UsersDetailsController(
         .map {
             val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
             val response = if (user.id == authentication.userId()) {
-                userService.saveUser(user.apply {
+                userDetailsService.saveUser(user.apply {
                     name = newUserInfo.name
                     email = newUserInfo.email
                     company = newUserInfo.company
@@ -160,7 +160,7 @@ class UsersDetailsController(
     @GetMapping("/global-role")
     @PreAuthorize("isAuthenticated()")
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
-            Mono.just(userService.getGlobalRole(authentication))
+            Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
      * @param name

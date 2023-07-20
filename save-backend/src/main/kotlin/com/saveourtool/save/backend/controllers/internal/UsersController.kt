@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.backend.service.UserService
+import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.StringResponse
@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 @RestController
 @RequestMapping("/internal/users")
 class UsersController(
-    private val userService: UserService,
+    private val userDetailsService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -51,7 +51,7 @@ class UsersController(
             logger.debug("User $userName is already present in the DB")
         } ?: run {
             logger.info("Saving user $userName to the DB")
-            userService.saveNewUser(user)
+            userDetailsService.saveNewUser(user)
         }
     }
 
@@ -62,9 +62,9 @@ class UsersController(
      * @return found [IdentitySourceAwareUserDetails] as a String
      */
     @GetMapping("/find-by-name/{userName}")
-    fun findByUsernameAndSource(
+    fun findByName(
         @PathVariable userName: String,
-    ): Mono<StringResponse> = userService.findByName(userName).map {
+    ): Mono<StringResponse> = userDetailsService.findByName(userName).map {
         ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
     }
 
@@ -76,10 +76,10 @@ class UsersController(
      * @return found [IdentitySourceAwareUserDetails] as a String
      */
     @GetMapping("/find-by-original-login/{source}/{nameInSource}")
-    fun findByUsernameAndSource(
+    fun findByOriginalLogin(
         @PathVariable source: String,
         @PathVariable nameInSource: String,
-    ): Mono<StringResponse> = userService.findByOriginalLogin(nameInSource, source).map {
+    ): Mono<StringResponse> = userDetailsService.findByOriginalLogin(nameInSource, source).map {
         ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
     }
 }

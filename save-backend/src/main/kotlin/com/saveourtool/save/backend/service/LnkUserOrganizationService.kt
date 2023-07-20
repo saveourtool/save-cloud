@@ -22,7 +22,7 @@ import kotlin.NoSuchElementException
 class LnkUserOrganizationService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val userRepository: UserRepository,
-    private val userService: UserService,
+    private val userDetailsService: UserDetailsService,
 ) {
     /**
      * @param organization
@@ -172,7 +172,7 @@ class LnkUserOrganizationService(
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organization: Organization): Role {
         val selfId = authentication.userId()
-        val selfGlobalRole = userService.getGlobalRole(authentication)
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
         val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
@@ -184,7 +184,7 @@ class LnkUserOrganizationService(
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
         val selfId = authentication.userId()
-        val selfGlobalRole = userService.getGlobalRole(authentication)
+        val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
         val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }

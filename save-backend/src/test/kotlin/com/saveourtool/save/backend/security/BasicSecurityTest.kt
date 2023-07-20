@@ -6,7 +6,7 @@ import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConver
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.service.UserService
+import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.entities.User
 import org.junit.jupiter.api.Assertions
@@ -26,7 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class)
 @Import(
-    UserService::class,
+    UserDetailsService::class,
     ConvertingAuthenticationManager::class,
     CustomAuthenticationBasicConverter::class,
     AuthenticationUserDetailsService::class,

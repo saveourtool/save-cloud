@@ -21,7 +21,7 @@ import java.util.*
  * A service that provides access to [UserRepository] and [OriginalLoginRepository]
  */
 @Service
-class UserService(
+class UserDetailsService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
