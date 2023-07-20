@@ -9,7 +9,6 @@ import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 

@@ -14,7 +14,7 @@ import javax.persistence.OneToMany
  * @property name
  * @property password *in plain text*
  * @property role role of this user
- * @property source where the user identity is coming from, e.g. "github"
+ * @property source where the user identity is coming from, e.g. "github" // TODO: need to remove this field
  * @property email email of user
  * @property avatar avatar of user
  * @property company
@@ -32,7 +32,6 @@ class User(
     var name: String,
     var password: String?,
     var role: String?,
-    // TODO: need to remove this field
     var source: String,
     var email: String? = null,
     var avatar: String? = null,

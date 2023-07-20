@@ -59,6 +59,7 @@ class UsersController(
      * Find user by name
      *
      * @param userName user name
+     * @return found [IdentitySourceAwareUserDetails] as a String
      */
     @GetMapping("/find-by-name/{userName}")
     fun findByUsernameAndSource(
@@ -72,6 +73,7 @@ class UsersController(
      *
      * @param source user source
      * @param nameInSource user name
+     * @return found [IdentitySourceAwareUserDetails] as a String
      */
     @GetMapping("/find-by-original-login/{source}/{nameInSource}")
     fun findByUsernameAndSource(

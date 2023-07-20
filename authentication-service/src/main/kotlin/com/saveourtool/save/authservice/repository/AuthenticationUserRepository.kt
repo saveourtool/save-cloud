@@ -21,9 +21,9 @@ class AuthenticationUserRepository(
             "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
             mapOf("name" to name)
         ).singleOrNull()
-                .orNotFound {
-                    "There is no user with name $name"
-                }
+            .orNotFound {
+                "There is no user with name $name"
+            }
         return record.toUserEntity()
     }
 

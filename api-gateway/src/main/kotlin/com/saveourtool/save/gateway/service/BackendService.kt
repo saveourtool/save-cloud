@@ -1,9 +1,10 @@
 package com.saveourtool.save.gateway.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.jackson2.CoreJackson2Module

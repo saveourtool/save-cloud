@@ -19,10 +19,8 @@ class AuthenticationUserDetailsService(
      * @param username
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    override fun findByUsername(username: String): Mono<UserDetails> {
-        return blockingToMono {
-            authenticationUserRepository.findByName(username)
-        }
-            .getIdentitySourceAwareUserDetails(username)
+    override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
+        authenticationUserRepository.findByName(username)
     }
+        .getIdentitySourceAwareUserDetails(username)
 }

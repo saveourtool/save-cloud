@@ -32,6 +32,7 @@ import javax.annotation.PostConstruct
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
+    private val customAuthenticationBasicConverter: CustomAuthenticationBasicConverter,
     @Autowired private var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
 ) {
     @Bean
@@ -58,7 +59,7 @@ class WebSecurityConfig(
         }
         .addFilterBefore(
             AuthenticationWebFilter(authenticationManager).apply {
-                setServerAuthenticationConverter(CustomAuthenticationBasicConverter())
+                setServerAuthenticationConverter(customAuthenticationBasicConverter)
             },
             SecurityWebFiltersOrder.HTTP_BASIC,
         )
