@@ -5,13 +5,10 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.UserStatus
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 
@@ -54,25 +51,6 @@ fun Authentication.extractUserNameAndIdentitySource(): Pair<String, String> = th
         throw BadCredentialsException(this.name)
     }
     identitySource
-}
-
-/**
- * Convert [Authentication] to [User] based on convention in backend.
- * We assume here that all authentications are created by [ConvertingAuthenticationManager],
- * so `principal` is a String, containing identity source.
- *
- * @return [User]
- */
-fun Authentication.toUser(): User {
-    val (identitySource, name) = (principal as String).split(':')
-    return User(
-        name = name,
-        password = null,
-        email = null,
-        role = (this as UsernamePasswordAuthenticationToken).authorities.joinToString(separator = ","),
-        source = identitySource,
-        status = UserStatus.CREATED,
-    )
 }
 
 /**
