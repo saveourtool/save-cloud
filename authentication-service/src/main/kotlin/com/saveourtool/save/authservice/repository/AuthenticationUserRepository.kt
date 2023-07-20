@@ -19,7 +19,7 @@ class AuthenticationUserRepository(
      */
     fun findByName(name: String): User? {
         val record = namedParameterJdbcTemplate.queryForList(
-            "SELECT * FROM save_cloud.user WHERE name = :name AND source = :source",
+            "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)
         ).singleOrNull()
             .orNotFound {
