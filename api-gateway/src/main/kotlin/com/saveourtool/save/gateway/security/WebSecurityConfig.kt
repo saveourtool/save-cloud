@@ -105,7 +105,7 @@ class WebSecurityConfig(
         .oauth2Login {
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
-                    StoringServerAuthenticationSuccessHandler(configurationProperties),
+                    StoringServerAuthenticationSuccessHandler(backendService),
                     RedirectServerAuthenticationSuccessHandler("/#"),
                 )
             )
