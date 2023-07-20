@@ -40,7 +40,7 @@ class StoringServerAuthenticationSuccessHandler(
 /**
  * @return [User] with data from this [Authentication]
  */
-fun Authentication.toUser(): User = User(
+private fun Authentication.toUser(): User = User(
     userName(),
     null,
     authorities.joinToString(",") { it.authority },
