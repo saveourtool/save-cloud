@@ -30,7 +30,6 @@ import reactor.kotlin.core.publisher.toMono
 /**
  * Controller that handles operation with users
  */
-// TODO: https://github.com/saveourtool/save-cloud/issues/656
 @RestController
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
@@ -45,7 +44,6 @@ class UsersDetailsController(
     @PreAuthorize("permitAll()")
     fun findByName(
         @PathVariable userName: String,
-        @RequestHeader(AUTHORIZATION_SOURCE) source: String,
     ): Mono<UserInfo> = blockingToMono { userRepository.findByName(userName) }
         .map { it.toUserInfo() }
         .orNotFound()
