@@ -99,8 +99,7 @@ class UsersDetailsController(
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
         .map {
             val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val userId = authentication.userId()
-            val response = if (user.id == userId) {
+            val response = if (user.id == authentication.userId()) {
                 userDetailsService.saveUser(user.apply {
                     name = newUserInfo.name
                     email = newUserInfo.email

@@ -2,7 +2,7 @@ package com.saveourtool.save.authservice.security
 
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.authservice.utils.IdAwareUserDetails
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.authservice.utils.username
 
 import org.springframework.security.authentication.BadCredentialsException
@@ -33,7 +33,7 @@ class ConvertingAuthenticationManager(
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val name = authentication.username()
         authenticationUserDetailsService.findByUsername(name)
-            .cast<IdAwareUserDetails>()
+            .cast<IdentitySourceAwareUserDetails>()
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
             }
@@ -47,7 +47,7 @@ class ConvertingAuthenticationManager(
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    private fun IdAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
+    private fun IdentitySourceAwareUserDetails.toAuthenticationWithDetails(authentication: Authentication) =
             UsernamePasswordAuthenticationToken(
                 username,
                 authentication.credentials,

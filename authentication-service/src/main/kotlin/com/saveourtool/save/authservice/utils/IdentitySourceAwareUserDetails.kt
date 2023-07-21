@@ -12,13 +12,13 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-private val logger = getLogger<IdAwareUserDetails>()
+private val logger = getLogger<IdentitySourceAwareUserDetails>()
 
 /**
  * @param authorities comma-separated authorities as a single string
  * @property id
  */
-class IdAwareUserDetails(
+class IdentitySourceAwareUserDetails(
     username: String,
     password: String?,
     authorities: String?,
@@ -52,7 +52,7 @@ fun Mono<User>.mapToIdentitySourceAwareUserDetailsOrNotFound(usernameSupplier: (
  * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
 @Suppress("UnsafeCallOnNullableType")
-private fun User.toIdAwareUserDetails(): IdAwareUserDetails = IdAwareUserDetails(
+private fun User.toIdAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
     username = this.name,
     password = this.password.orEmpty(),
     authorities = this.role,

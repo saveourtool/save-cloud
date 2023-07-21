@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 
 class SecurityUtilsTest {
 
-    private val user = IdAwareUserDetails(
+    private val user = IdentitySourceAwareUserDetails(
         "name",
         "password",
         "VIEWER",

@@ -1,11 +1,12 @@
 package com.saveourtool.save.gateway.service
 
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.domain.Role
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.userdetails.UserDetails
@@ -70,17 +71,26 @@ class BackendService(
     /**
      * Saves a new [User] in DB
      *
-     * @param user
+     * @param source
+     * @param nameInSource
+     * @param roles
      * @return empty [Mono]
      */
-    fun createNewIfRequired(user: User): Mono<Void> = webClient.post()
-        .uri("/internal/users/new")
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(user)
-        .retrieve()
-        .onStatus({ it.is4xxClientError }) {
-            Mono.error(ResponseStatusException(it.statusCode()))
-        }
-        .toBodilessEntity()
-        .then()
+    fun createNewIfRequired(source: String, nameInSource: String, roles: List<String>): Mono<Void> {
+        // https://github.com/saveourtool/save-cloud/issues/583
+        // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
+        // from authentication provider. In the future we may want to use this information and have a mapping of existing
+        // roles to save-cloud roles (authentication.authorities.map { it.authority }).
+        val overriddenRoles = listOf(Role.VIEWER.asSpringSecurityRole())
+        return webClient.post()
+            .uri("/internal/users/new-if-required/$source/$nameInSource")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(overriddenRoles)
+            .retrieve()
+            .onStatus({ it.is4xxClientError }) {
+                Mono.error(ResponseStatusException(it.statusCode()))
+            }
+            .toBodilessEntity()
+            .then()
+    }
 }

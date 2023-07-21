@@ -7,6 +7,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
@@ -112,7 +113,7 @@ class UserDetailsService(
             name = name,
             password = null,
             role = userRole,
-            isActive = false,
+            status = UserStatus.CREATED,
         ))
     }
 
@@ -123,6 +124,6 @@ class UserDetailsService(
      */
     @Transactional
     fun addSource(user: User, nameInSource: String, source: String) {
-        originalLoginRepository.save(OriginalLogin(user, nameInSource, source))
+        originalLoginRepository.save(OriginalLogin(nameInSource, user, source))
     }
 }

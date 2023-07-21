@@ -1,6 +1,5 @@
 package com.saveourtool.save.gateway.utils
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.gateway.service.BackendService
 
 import org.slf4j.LoggerFactory
@@ -30,12 +29,6 @@ class StoringServerAuthenticationSuccessHandler(
         } else {
             throw BadCredentialsException("Not supported authentication type ${authentication::class}")
         }
-        // https://github.com/saveourtool/save-cloud/issues/583
-        // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
-        // from authentication provider. In the future we may want to use this information and have a mapping of existing
-        // roles to save-cloud roles (authentication.authorities.map { it.authority }).
-        val roles = listOf(Role.VIEWER.asSpringSecurityRole())
-
-        return backendService.createNewIfRequired(user)
+        return backendService.createNewIfRequired(source, nameInSource, authentication.authorities.map { it.authority })
     }
 }

@@ -58,16 +58,13 @@ class LnkUserProjectController(
     )
     @PreAuthorize("permitAll()")
     @ApiResponse(responseCode = "200", description = "Successfully fetched users from project.")
-    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> {
-        val userIdFromAuth = authentication.userId()
-        return Flux.fromIterable(
-            lnkUserProjectService.getProjectsByUserIdAndStatuses(userIdFromAuth)
-        )
-            .filter {
-                it.public
-            }
-            .map { it.toDto() }
-    }
+    fun getProjectsOfCurrentUser(authentication: Authentication): Flux<ProjectDto> = Flux.fromIterable(
+        lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId())
+    )
+        .filter {
+            it.public
+        }
+        .map { it.toDto() }
 
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
     @RequiresAuthorizationSourceHeader

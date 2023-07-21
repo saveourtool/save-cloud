@@ -1,8 +1,7 @@
 package com.saveourtool.save.authservice.repository
 
-import com.saveourtool.save.authservice.utils.toUserEntity
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.info.UserStatus
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 
@@ -17,7 +16,7 @@ class AuthenticationUserRepository(
      * @param name name of user
      * @return user or null if no results have been found
      */
-    fun findByNameAndSource(name: String): User? {
+    fun findByName(name: String): User? {
         return namedParameterJdbcTemplate.queryForList(
             "SELECT * FROM save_cloud.user WHERE name = :name",
             mapOf("name" to name)
@@ -25,11 +24,25 @@ class AuthenticationUserRepository(
     }
 
     /**
-     * @param name name of user
-     * @return user or error if no results have been found
+     * @return Entity [User] created from provided [Map]
      */
-    fun getByNameAndSource(name: String): User = findByNameAndSource(name)
-        .orNotFound {
-            "There is no user with name $name"
+    private fun Map<String, Any>.toUserEntity(): User {
+        val record = this
+        return User(
+            name = record["name"] as String,
+            password = record["password"] as String?,
+            role = record["role"] as String?,
+            email = record["email"] as String?,
+            avatar = record["avatar"] as String?,
+            company = record["company"] as String?,
+            location = record["location"] as String?,
+            linkedin = record["linkedin"] as String?,
+            gitHub = record["git_hub"] as String?,
+            twitter = record["twitter"] as String?,
+            status = record["status"] as UserStatus,
+            rating = record["rating"] as Long,
+        ).apply {
+            this.id = record["id"] as Long
         }
+    }
 }

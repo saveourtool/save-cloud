@@ -50,26 +50,3 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
     .let {
         RoleHierarchyImpl().apply { setHierarchy(it) }
     }
-
-/**
- * @return Entity [User] created from provided [Map]
- */
-internal fun Map<String, Any>.toUserEntity(): User {
-    val record = this
-    return User(
-        name = record["name"] as String,
-        password = record["password"] as String?,
-        role = record["role"] as String?,
-        email = record["email"] as String?,
-        avatar = record["avatar"] as String?,
-        company = record["company"] as String?,
-        location = record["location"] as String?,
-        linkedin = record["linkedin"] as String?,
-        gitHub = record["git_hub"] as String?,
-        twitter = record["twitter"] as String?,
-        status = record["status"] as UserStatus,
-        rating = record["rating"] as Long,
-    ).apply {
-        this.id = record["id"] as Long
-    }
-}
