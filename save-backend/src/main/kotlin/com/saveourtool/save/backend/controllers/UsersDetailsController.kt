@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -37,7 +36,6 @@ import reactor.kotlin.core.publisher.toMono
 class UsersDetailsController(
     private val userRepository: UserRepository,
     private val userDetailsService: UserDetailsService,
-    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     /**
      * @param userName username
@@ -48,9 +46,7 @@ class UsersDetailsController(
     fun findByName(
         @PathVariable userName: String,
         @RequestHeader(AUTHORIZATION_SOURCE) source: String,
-    ): Mono<UserInfo> = blockingToMono { userRepository.findByName(userName)
-//        ?: originalLoginRepository.findByNameAndSource(userName, source)?.user
-    }
+    ): Mono<UserInfo> = blockingToMono { userRepository.findByName(userName) }
         .map { it.toUserInfo() }
         .orNotFound()
 

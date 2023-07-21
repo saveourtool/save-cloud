@@ -44,7 +44,7 @@ class BasicSecurityTest {
     @BeforeEach
     fun setUp() {
         whenever(authenticationUserRepository.findByName("user")).thenReturn(
-            User("user", null, "ROLE_USER", "basic").apply {
+            User("user", null, "ROLE_USER").apply {
                 id = 99
             }
         )
