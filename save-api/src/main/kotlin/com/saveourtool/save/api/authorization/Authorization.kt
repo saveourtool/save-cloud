@@ -8,5 +8,5 @@ package com.saveourtool.save.api.authorization
  */
 data class Authorization(
     val userInformation: String,
-    val token: String?,
+    val token: String,
 )

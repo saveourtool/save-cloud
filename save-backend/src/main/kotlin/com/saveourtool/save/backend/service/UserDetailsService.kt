@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
+import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -28,22 +28,22 @@ class UserDetailsService(
 ) {
     /**
      * @param username
-     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     * @return spring's UserDetails retrieved from save's user found by provided values
      */
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .mapToIdentitySourceAwareUserDetailsOrNotFound { username }
+        .map { it.toSpringUserDetails() }
 
     /**
      * @param username
      * @param source source (where the user identity is coming from)
-     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     * @return spring's UserDetails retrieved from save's user found by provided values
      */
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .mapToIdentitySourceAwareUserDetailsOrNotFound { "$username from $source" }
+        .map { it.toSpringUserDetails() }
 
     /**
      * @param name

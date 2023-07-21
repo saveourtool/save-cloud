@@ -5,10 +5,13 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.User
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.core.userdetails.User as SpringUser
 import org.springframework.security.core.userdetails.UserDetails
 
 /**
@@ -21,7 +24,7 @@ fun Authentication.userId() = (this.details as AuthenticationDetails).id
 /**
  * Extract username from this [Authentication].
  * We assume here that most of the authentications are created by [ConvertingAuthenticationManager],
- * so `principal` is a String, containing identity source.
+ * so `principal` is a String
  *
  * @return username
  */
@@ -48,3 +51,11 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
     .let {
         RoleHierarchyImpl().apply { setHierarchy(it) }
     }
+
+/**
+ * @return Spring's [UserDetails] created from save's [User]
+ */
+fun User.toSpringUserDetails(): UserDetails = SpringUser.withUsername(name)
+    .password(password.orEmpty())
+    .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList(role))
+    .build()

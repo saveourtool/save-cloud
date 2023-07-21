@@ -52,7 +52,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
         ArgType.String,
         fullName = "token",
         shortName = "t",
-        description = "OAuth token for SAVE-cloud system"
+        description = "Basic token for SAVE-cloud system"
     )
         .required()
 
