@@ -29,6 +29,6 @@ class StoringServerAuthenticationSuccessHandler(
         } else {
             throw BadCredentialsException("Not supported authentication type ${authentication::class}")
         }
-        return backendService.createNewIfRequired(source, nameInSource, authentication.authorities.map { it.authority })
+        return backendService.createNewIfRequired(source, nameInSource)
     }
 }

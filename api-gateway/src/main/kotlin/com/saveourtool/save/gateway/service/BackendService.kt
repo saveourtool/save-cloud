@@ -66,20 +66,12 @@ class BackendService(
      *
      * @param source
      * @param nameInSource
-     * @param roles
      * @return empty [Mono]
      */
-    @Suppress("UnusedParameter")
-    fun createNewIfRequired(source: String, nameInSource: String, roles: List<String>): Mono<Void> {
-        // https://github.com/saveourtool/save-cloud/issues/583
-        // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
-        // from authentication provider. In the future we may want to use this information and have a mapping of existing
-        // roles to save-cloud roles.
-        val overriddenRoles = listOf(Role.VIEWER.asSpringSecurityRole())
+    fun createNewIfRequired(source: String, nameInSource: String): Mono<Void> {
         return webClient.post()
-            .uri("/internal/users/new-if-required/$source/$nameInSource")
+            .uri("/internal/users/new/$source/$nameInSource")
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(overriddenRoles)
             .retrieve()
             .onStatus({ it.is4xxClientError }) {
                 Mono.error(ResponseStatusException(it.statusCode()))

@@ -2,6 +2,8 @@ package com.saveourtool.save.authservice.repository
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.warn
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Component
 
@@ -19,7 +21,12 @@ class AuthenticationUserRepository(
     fun findByName(name: String): User? = namedParameterJdbcTemplate.queryForList(
         "SELECT * FROM save_cloud.user WHERE name = :name",
         mapOf("name" to name)
-    ).singleOrNull()?.toUserEntity()
+    ).singleOrNull()?.toUserEntity() ?: run {
+        logger.warn {
+            "There is no user with name $name"
+        }
+        null
+    }
 
     /**
      * @return Entity [User] created from provided [Map]
@@ -42,5 +49,9 @@ class AuthenticationUserRepository(
         ).apply {
             this.id = record["id"] as Long
         }
+    }
+
+    companion object {
+        private val logger = getLogger<AuthenticationUserRepository>()
     }
 }

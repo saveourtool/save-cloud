@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.domain.Role
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.User as SpringUser
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
@@ -36,27 +36,25 @@ class UsersController(
         .writerFor(SpringUser::class.java)
 
     /**
-     * Stores user in the DB with provided [name] with [authorities] as role.
+     * Stores user in the DB with provided [name] with [roleForNewUser] as role.
      * And add a link to [source] for created user
      *
      * @param source user source
      * @param name user name
-     * @param authorities
      */
-    @PostMapping("/new-if-required/{source}/{name}")
+    @PostMapping("/new/{source}/{name}")
     @Transactional
     fun saveNewUserIfRequired(
         @PathVariable source: String,
         @PathVariable name: String,
-        @RequestBody authorities: List<String>,
     ) {
         val userFind = originalLoginRepository.findByNameAndSource(name, source)
 
         userFind?.user?.let {
             logger.debug("User $name ($source) is already present in the DB")
         } ?: run {
-            logger.info("Saving user $name ($source) with authorities $authorities to the DB")
-            val savedUser = userService.saveNewUser(name, authorities.joinToString(","))
+            logger.info("Saving user $name ($source) with authorities $roleForNewUser to the DB")
+            val savedUser = userService.saveNewUser(name, roleForNewUser)
             userService.addSource(savedUser, name, source)
         }
     }
@@ -87,5 +85,9 @@ class UsersController(
         @PathVariable nameInSource: String,
     ): Mono<StringResponse> = userService.findByOriginalLogin(nameInSource, source).map {
         ResponseEntity.ok().body(springUserDetailsWriter.writeValueAsString(it))
+    }
+
+    companion object {
+        private val roleForNewUser = listOf(Role.VIEWER).joinToString(",")
     }
 }
