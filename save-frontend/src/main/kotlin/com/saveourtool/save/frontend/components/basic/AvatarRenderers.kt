@@ -50,11 +50,7 @@ fun ChildrenBuilder.renderAvatar(
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
-    val newLink = if (userInfo.status != UserStatus.DELETED) {
-        link
-    } else {
-        null
-    }
+    val newLink = link?.takeIf { userInfo.status != UserStatus.DELETED }
     return renderAvatar(userInfo.avatar ?: AVATAR_PROFILE_PLACEHOLDER, classes, newLink, styleBuilder)
 }
 
