@@ -42,17 +42,17 @@ class ConvertingAuthenticationManager(
                 BadCredentialsException(name)
             }
             .map {
-                it.toAuthenticationWithDetails(authentication)
+                it.toAuthenticationWithDetails()
             }
     } else {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    private fun User.toAuthenticationWithDetails(authentication: Authentication) =
-        UsernamePasswordAuthenticationToken.authenticated(
-            authentication.principal,
-            authentication.credentials,
-            AuthorityUtils.commaSeparatedStringToAuthorityList(role),
+    private fun User.toAuthenticationWithDetails() =
+        UsernamePasswordAuthenticationToken(
+            name,
+            password,
+            AuthorityUtils.commaSeparatedStringToAuthorityList(role)
         ).apply {
             details = AuthenticationDetails(
                 id = requiredId(),
