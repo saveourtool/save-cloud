@@ -157,4 +157,26 @@ class UsersDetailsController(
     @PreAuthorize("isAuthenticated()")
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
             Mono.just(userDetailsService.getGlobalRole(authentication))
+
+    /**
+     * @param userName
+     * @param authentication
+     */
+    @GetMapping("/delete/{userName}")
+    @PreAuthorize("isAuthenticated()")
+    fun deleteUser(
+        @PathVariable userName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.deleteUser(userName, authentication)
+    }
+        .filter { status ->
+            status == UserSaveStatus.DELETED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
 }

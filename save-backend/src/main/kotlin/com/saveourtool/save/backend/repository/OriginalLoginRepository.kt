@@ -15,4 +15,9 @@ interface OriginalLoginRepository : BaseEntityRepository<OriginalLogin> {
      * @return user or null if no results have been found
      */
     fun findByNameAndSource(name: String, source: String): OriginalLogin?
+
+    /**
+     * @param id id of user
+     */
+    fun deleteByUserId(id: Long)
 }

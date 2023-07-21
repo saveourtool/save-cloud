@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -125,5 +126,34 @@ class UserDetailsService(
     @Transactional
     fun addSource(user: User, nameInSource: String, source: String) {
         originalLoginRepository.save(OriginalLogin(nameInSource, user, source))
+    }
+
+    /**
+     * @param name name of user
+     * @param authentication
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun deleteUser(
+        name: String,
+        authentication: Authentication,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+        val newName = "Deleted-${user.id}"
+        if (user.id == authentication.userId()) {
+            userRepository.deleteHighLevelName(user.name)
+            userRepository.saveHighLevelName(newName)
+            userRepository.save(user.apply {
+                this.name = newName
+                this.status = UserStatus.DELETED
+                this.avatar = null
+            })
+        } else {
+            return UserSaveStatus.CONFLICT
+        }
+
+        originalLoginRepository.deleteByUserId(user.requiredId())
+
+        return UserSaveStatus.DELETED
     }
 }
