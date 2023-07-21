@@ -158,14 +158,20 @@ class UserSettingsProfileMenuView : UserSettingsView() {
             div {
                 className = ClassName("row d-flex justify-content-center")
                 div {
-                    className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
+                    className = ClassName("col-8 d-sm-flex align-items-center justify-content-center")
 
-                    buttonBuilder("Save changes", style = "primary", classes = "mr-3") {
-                        updateUser()
+                    div {
+                        className = ClassName("col-4")
+                        buttonBuilder("Save changes", style = "primary", classes = "mr-3") {
+                            updateUser()
+                        }
                     }
 
-                    buttonBuilder("Delete your profile", style = "danger") {
-                        deleteUserWindowOpenness.openWindow()
+                    div {
+                        className = ClassName("col-4")
+                        buttonBuilder("Delete your profile", style = "danger") {
+                            deleteUserWindowOpenness.openWindow()
+                        }
                     }
                 }
             }
