@@ -37,7 +37,6 @@ import reactor.kotlin.core.publisher.toMono
 class UsersDetailsController(
     private val userRepository: UserRepository,
     private val userDetailsService: UserDetailsService,
-    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     /**
      * @param userName username

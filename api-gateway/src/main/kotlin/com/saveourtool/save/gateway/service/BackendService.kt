@@ -1,12 +1,12 @@
 package com.saveourtool.save.gateway.service
 
+import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
-import com.saveourtool.save.domain.Role
 import org.springframework.http.MediaType
 import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.userdetails.UserDetails
@@ -76,6 +76,7 @@ class BackendService(
      * @param roles
      * @return empty [Mono]
      */
+    @Suppress("UnusedParameter")
     fun createNewIfRequired(source: String, nameInSource: String, roles: List<String>): Mono<Void> {
         // https://github.com/saveourtool/save-cloud/issues/583
         // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role

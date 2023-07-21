@@ -7,21 +7,20 @@ import org.springframework.stereotype.Component
 
 /**
  * Repository for [com.saveourtool.save.entities.User]
+ * @property namedParameterJdbcTemplate
  */
 @Component
 class AuthenticationUserRepository(
-    protected val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
+    private val namedParameterJdbcTemplate: NamedParameterJdbcTemplate,
 ) {
     /**
      * @param name name of user
      * @return user or null if no results have been found
      */
-    fun findByName(name: String): User? {
-        return namedParameterJdbcTemplate.queryForList(
-            "SELECT * FROM save_cloud.user WHERE name = :name",
-            mapOf("name" to name)
-        ).singleOrNull()?.toUserEntity()
-    }
+    fun findByName(name: String): User? = namedParameterJdbcTemplate.queryForList(
+        "SELECT * FROM save_cloud.user WHERE name = :name",
+        mapOf("name" to name)
+    ).singleOrNull()?.toUserEntity()
 
     /**
      * @return Entity [User] created from provided [Map]
