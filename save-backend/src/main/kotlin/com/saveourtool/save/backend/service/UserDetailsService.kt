@@ -1,12 +1,14 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
@@ -99,5 +101,34 @@ class UserDetailsService(
     fun saveNewUser(user: User) {
         val newUser = userRepository.save(user)
         originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
+    }
+
+    /**
+     * @param name name of user
+     * @param authentication
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun deleteUser(
+        name: String,
+        authentication: Authentication,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+        val newName = "Deleted-${user.id}"
+        if (user.id == authentication.userId()) {
+            userRepository.deleteHighLevelName(user.name)
+            userRepository.saveHighLevelName(newName)
+            userRepository.save(user.apply {
+                this.name = newName
+                this.status = UserStatus.DELETED
+                this.avatar = null
+            })
+        } else {
+            return UserSaveStatus.CONFLICT
+        }
+
+        originalLoginRepository.deleteByUserId(user.requiredId())
+
+        return UserSaveStatus.DELETED
     }
 }

@@ -32,6 +32,7 @@ import react.router.dom.Link
 import web.cssom.*
 import web.html.HTMLInputElement
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -342,6 +343,30 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             } else {
                 setState {
                     conflictErrorMessage = null
+                }
+            }
+        }
+    }
+
+    @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+    fun deleteUser() {
+        scope.launch {
+            val response = get(
+                url = "$apiUrl/users/delete/${state.userInfo!!.name}",
+                headers = jsonHeaders,
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                val replyToLogout = post(
+                    "${window.location.origin}/logout",
+                    Headers(),
+                    "ping",
+                    loadingHandler = ::classLoadingHandler,
+                )
+                if (replyToLogout.ok) {
+                    window.location.href = "${window.location.origin}/#"
+                    window.location.reload()
                 }
             }
         }

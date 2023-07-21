@@ -169,4 +169,26 @@ class UsersDetailsController(
     fun getByName(name: String): User? = userRepository.findByName(name) ?: run {
         originalLoginRepository.findByName(name)?.user
     }
+
+    /**
+     * @param userName
+     * @param authentication
+     */
+    @GetMapping("/delete/{userName}")
+    @PreAuthorize("isAuthenticated()")
+    fun deleteUser(
+        @PathVariable userName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.deleteUser(userName, authentication)
+    }
+        .filter { status ->
+            status == UserSaveStatus.DELETED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
 }
