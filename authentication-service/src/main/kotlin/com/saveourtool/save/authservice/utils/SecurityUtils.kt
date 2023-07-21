@@ -36,6 +36,14 @@ fun Authentication.username(): String = when (principal) {
 }
 
 /**
+ * @return Spring's [UserDetails] created from save's [User]
+ */
+fun User.toSpringUserDetails(): UserDetails = SpringUser.withUsername(name)
+    .password(password.orEmpty())
+    .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList(role))
+    .build()
+
+/**
  * Set role hierarchy for spring security
  *
  * @return map of role hierarchy
@@ -51,11 +59,3 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
     .let {
         RoleHierarchyImpl().apply { setHierarchy(it) }
     }
-
-/**
- * @return Spring's [UserDetails] created from save's [User]
- */
-fun User.toSpringUserDetails(): UserDetails = SpringUser.withUsername(name)
-    .password(password.orEmpty())
-    .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList(role))
-    .build()

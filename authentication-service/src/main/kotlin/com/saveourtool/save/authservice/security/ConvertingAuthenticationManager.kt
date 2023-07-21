@@ -49,13 +49,13 @@ class ConvertingAuthenticationManager(
     }
 
     private fun User.toAuthenticationWithDetails() =
-        UsernamePasswordAuthenticationToken(
-            name,
-            password,
-            AuthorityUtils.commaSeparatedStringToAuthorityList(role)
-        ).apply {
-            details = AuthenticationDetails(
-                id = requiredId(),
-            )
-        }
+            UsernamePasswordAuthenticationToken(
+                name,
+                password,
+                AuthorityUtils.commaSeparatedStringToAuthorityList(role)
+            ).apply {
+                details = AuthenticationDetails(
+                    id = requiredId(),
+                )
+            }
 }
