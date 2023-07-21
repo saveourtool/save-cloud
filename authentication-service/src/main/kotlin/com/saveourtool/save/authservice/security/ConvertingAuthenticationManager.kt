@@ -10,6 +10,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -51,7 +52,7 @@ class ConvertingAuthenticationManager(
         UsernamePasswordAuthenticationToken.authenticated(
             authentication.principal,
             authentication.credentials,
-            authentication.authorities,
+            AuthorityUtils.commaSeparatedStringToAuthorityList(role),
         ).apply {
             details = AuthenticationDetails(
                 id = requiredId(),

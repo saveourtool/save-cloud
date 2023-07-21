@@ -8,6 +8,7 @@ import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
+import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 
 import org.springframework.context.annotation.Import
@@ -22,6 +23,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 @Import(
     WebSecurityConfig::class,
     ConvertingAuthenticationManager::class,
+    CustomAuthenticationBasicConverter::class,
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
 )
