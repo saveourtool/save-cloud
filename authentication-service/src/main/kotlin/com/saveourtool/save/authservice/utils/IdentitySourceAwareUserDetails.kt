@@ -38,7 +38,7 @@ class IdentitySourceAwareUserDetails(
  */
 fun Mono<User>.mapToIdentitySourceAwareUserDetailsOrNotFound(usernameSupplier: () -> String) = this
     .map<UserDetails> { user ->
-        user.toIdAwareUserDetails()
+        user.toIdentitySourceAwareUserDetails()
     }
     .switchIfEmpty {
         usernameSupplier.toMono()
@@ -52,7 +52,7 @@ fun Mono<User>.mapToIdentitySourceAwareUserDetailsOrNotFound(usernameSupplier: (
  * @return IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
 @Suppress("UnsafeCallOnNullableType")
-private fun User.toIdAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
+private fun User.toIdentitySourceAwareUserDetails(): IdentitySourceAwareUserDetails = IdentitySourceAwareUserDetails(
     username = this.name,
     password = this.password.orEmpty(),
     authorities = this.role,

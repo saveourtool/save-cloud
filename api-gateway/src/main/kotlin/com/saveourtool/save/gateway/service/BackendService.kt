@@ -81,7 +81,7 @@ class BackendService(
         // https://github.com/saveourtool/save-cloud/issues/583
         // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
         // from authentication provider. In the future we may want to use this information and have a mapping of existing
-        // roles to save-cloud roles (authentication.authorities.map { it.authority }).
+        // roles to save-cloud roles.
         val overriddenRoles = listOf(Role.VIEWER.asSpringSecurityRole())
         return webClient.post()
             .uri("/internal/users/new-if-required/$source/$nameInSource")

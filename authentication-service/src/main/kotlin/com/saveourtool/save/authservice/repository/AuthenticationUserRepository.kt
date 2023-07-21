@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component
 
 /**
  * Repository for [com.saveourtool.save.entities.User]
- * @property namedParameterJdbcTemplate
  */
 @Component
 class AuthenticationUserRepository(
@@ -38,7 +37,7 @@ class AuthenticationUserRepository(
             linkedin = record["linkedin"] as String?,
             gitHub = record["git_hub"] as String?,
             twitter = record["twitter"] as String?,
-            status = record["status"] as UserStatus,
+            status = UserStatus.valueOf(record["status"] as String),
             rating = record["rating"] as Long,
         ).apply {
             this.id = record["id"] as Long
