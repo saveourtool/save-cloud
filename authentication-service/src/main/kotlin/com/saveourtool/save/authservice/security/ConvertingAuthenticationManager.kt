@@ -33,7 +33,7 @@ class ConvertingAuthenticationManager(
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val name = authentication.username()
         blockingToMono {
-            authenticationUserRepository.findByName(name)
+            authenticationUserRepository.findByName(name)?.toAuthenticationWithDetails()
         }
             .switchIfEmpty {
                 Mono.error { BadCredentialsException(name) }
@@ -41,14 +41,11 @@ class ConvertingAuthenticationManager(
             .onErrorMap {
                 BadCredentialsException(name)
             }
-            .map {
-                it.toAuthenticationWithDetails()
-            }
     } else {
         Mono.error { BadCredentialsException("Unsupported authentication type ${authentication::class}") }
     }
 
-    private fun User.toAuthenticationWithDetails() =
+    private fun User.toAuthenticationWithDetails(): Authentication =
             UsernamePasswordAuthenticationToken(
                 name,
                 password,

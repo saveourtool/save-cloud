@@ -29,13 +29,13 @@ class ConvertAuthorizationHeaderGatewayFilterFactory(
         exchange.getPrincipal<Principal>()
             .flatMap { principal ->
                 when (principal) {
-                    is OAuth2AuthenticationToken -> backendService.findByOriginalLogin(principal.authorizedClientRegistrationId, principal.userName())
+                    is OAuth2AuthenticationToken -> backendService.findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
                         .map { it.username to principal.authorizedClientRegistrationId }
                     is UsernamePasswordAuthenticationToken -> {
                         // Note: current authentication type we support only for save-api, which already set
                         // user source into X-Authorization-Source header, however, in general case
                         // we need to provide it here too, somehow
-                        Mono.just(principal.userName() to null)
+                        Mono.just(principal.name to null)
                     }
                     else -> Mono.error(BadCredentialsException("Unsupported authentication type: ${principal::class}"))
                 }
