@@ -6,25 +6,22 @@ package com.saveourtool.save.gateway.security
 
 import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.DelegatingServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
@@ -37,10 +34,6 @@ import org.springframework.security.web.server.util.matcher.NegatedServerWebExch
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.toEntity
-import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Mono
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -52,20 +45,8 @@ import reactor.core.publisher.Mono
 )
 class WebSecurityConfig(
     private val configurationProperties: ConfigurationProperties,
+    private val backendService: BackendService,
 ) {
-    private val objectMapper = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .addMixIn(IdAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-    private val webClient = WebClient.create(configurationProperties.backend.url)
-        .mutate()
-        .codecs {
-            it.defaultCodecs().jackson2JsonEncoder(
-                Jackson2JsonEncoder(objectMapper)
-            )
-        }
-        .build()
-
     @Bean
     @Order(1)
     @Suppress("LongMethod")
@@ -127,7 +108,7 @@ class WebSecurityConfig(
         .oauth2Login {
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
-                    StoringServerAuthenticationSuccessHandler(configurationProperties),
+                    StoringServerAuthenticationSuccessHandler(backendService),
                     RedirectServerAuthenticationSuccessHandler("/#"),
                 )
             )
@@ -139,18 +120,7 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
-                    // Looking for user in DB by received source and name
-                    webClient.get()
-                        .uri("/internal/users/basic/$username")
-                        .retrieve()
-                        .onStatus({ it.is4xxClientError }) {
-                            Mono.error(ResponseStatusException(it.statusCode()))
-                        }
-                        .toEntity<UserDetails>()
-                        .mapNotNull { it.body }
-                        .switchIfEmptyToNotFound {
-                            "Not resolve userDetails for $username"
-                        }
+                    backendService.findByName(username)
                 }
             )
         }

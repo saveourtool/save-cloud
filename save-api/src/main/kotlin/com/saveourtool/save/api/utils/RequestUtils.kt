@@ -55,7 +55,6 @@ private object Backend {
 
 /**
  * @property username
- * @property source source (where the user identity is coming from)
  */
 private object UserInformation {
     lateinit var username: String
@@ -139,7 +138,7 @@ fun initializeHttpClient(
     webClientProperties: WebClientProperties,
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
-    UserInformation.username = authorization.userName
+    UserInformation.username = authorization.userInformation
 
     return HttpClient {
         install(Logging) {

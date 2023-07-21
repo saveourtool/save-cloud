@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 private val logger = getLogger<IdAwareUserDetails>()
@@ -32,23 +33,19 @@ class IdAwareUserDetails(
 )
 
 /**
- * @param username
- * @param source where the user identity is coming from
+ * @param usernameSupplier
  * @return mono of IdentitySourceAwareUserDetails, retrieved from save-cloud User entity
  */
-fun Mono<User>.getIdAwareUserDetails(username: String, source: String? = null) = this
+fun Mono<User>.mapToIdentitySourceAwareUserDetailsOrNotFound(usernameSupplier: () -> String) = this
     .map<UserDetails> { user ->
         user.toIdAwareUserDetails()
     }
     .switchIfEmpty {
-        Mono.fromCallable {
-            val sourceMsg = source?.let {
-                " and source=$source"
-            }.orEmpty()
-            logger.warn("Couldn't find user with name=$username$sourceMsg in DB!")
-        }.flatMap {
-            Mono.error(UsernameNotFoundException(username))
-        }
+        usernameSupplier.toMono()
+            .flatMap { username ->
+                logger.warn("Couldn't find user with name=$username in DB!")
+                Mono.error(UsernameNotFoundException(username))
+            }
     }
 
 /**

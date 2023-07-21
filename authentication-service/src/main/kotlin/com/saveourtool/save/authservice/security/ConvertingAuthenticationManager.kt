@@ -5,7 +5,6 @@ import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdAwareUserDetails
 import com.saveourtool.save.authservice.utils.username
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -22,13 +21,13 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Component
 class ConvertingAuthenticationManager(
-    @Autowired private var authenticationUserDetailsService: AuthenticationUserDetailsService
+    private val authenticationUserDetailsService: AuthenticationUserDetailsService
 ) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
      * by [CustomAuthenticationBasicConverter] with record in DB
      *
-     * @return argument mono of UsernamePasswordAuthenticationToken with additional details
+     * @return augmented mono of UsernamePasswordAuthenticationToken with additional details
      * @throws BadCredentialsException in case of bad credentials
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {

@@ -1,5 +1,6 @@
 package com.saveourtool.save.gateway.utils
 
+import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.GatewayFilterChain
@@ -21,19 +22,20 @@ import java.util.Base64
  * Also insert source data (where the user identity is coming from) into X-Authorization-Source header
  */
 @Component
-class ConvertAuthorizationHeaderGatewayFilterFactory : AbstractGatewayFilterFactory<Any>() {
+class ConvertAuthorizationHeaderGatewayFilterFactory(
+    private val backendService: BackendService,
+) : AbstractGatewayFilterFactory<Any>() {
     override fun apply(config: Any?): GatewayFilter = GatewayFilter { exchange: ServerWebExchange, chain: GatewayFilterChain ->
         exchange.getPrincipal<Principal>()
             .flatMap { principal ->
                 when (principal) {
-                    is OAuth2AuthenticationToken -> Mono.just(
-                        principal.userName() to principal.authorizedClientRegistrationId
-                    )
+                    is OAuth2AuthenticationToken -> backendService.findByOriginalLogin(principal.authorizedClientRegistrationId, principal.userName())
+                        .map { it.username to principal.authorizedClientRegistrationId }
                     is UsernamePasswordAuthenticationToken -> {
                         // Note: current authentication type we support only for save-api, which already set
                         // user source into X-Authorization-Source header, however, in general case
                         // we need to provide it here too, somehow
-                        Mono.just(principal.userName() to "basic")
+                        Mono.just(principal.userName() to null)
                     }
                     else -> Mono.error(BadCredentialsException("Unsupported authentication type: ${principal::class}"))
                 }

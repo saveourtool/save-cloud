@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
+import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -27,6 +28,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @Import(
     UserDetailsService::class,
     ConvertingAuthenticationManager::class,
+    CustomAuthenticationBasicConverter::class,
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
 )
@@ -43,7 +45,7 @@ class BasicSecurityTest {
 
     @BeforeEach
     fun setUp() {
-        whenever(authenticationUserRepository.findByNameAndSource("user", "basic")).thenReturn(
+        whenever(authenticationUserRepository.findByName("user")).thenReturn(
             User("user", null, "ROLE_USER", "basic").apply {
                 id = 99
             }

@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.getIdAwareUserDetails
+import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -12,35 +12,37 @@ import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Mono
 
 import java.util.*
 
 /**
- * A service that provides `UserDetails`
+ * A service that provides access to [UserRepository] and [OriginalLoginRepository]
  */
 @Service
 class UserDetailsService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
-) : ReactiveUserDetailsService {
-    override fun findByUsername(username: String): Mono<UserDetails> = blockingToMono {
+) {
+    /**
+     * @param username
+     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     */
+    fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
-    }.getIdAwareUserDetails(username)
+    }
+        .mapToIdentitySourceAwareUserDetailsOrNotFound { username }
 
     /**
      * @param username
      * @param source source (where the user identity is coming from)
      * @return IdentitySourceAwareUserDetails retrieved from UserDetails
      */
-    fun findByUsernameAndSource(username: String, source: String): Mono<UserDetails> =
-            blockingToMono { originalLoginRepository.findByNameAndSource(username, source) }
-                .map { it.user }
-                .getIdAwareUserDetails(username, source)
+    fun findByOriginalLogin(username: String, source: String) = blockingToMono {
+        originalLoginRepository.findByNameAndSource(username, source)?.user
+    }
+        .mapToIdentitySourceAwareUserDetailsOrNotFound { "$username from $source" }
 
     /**
      * @param name
