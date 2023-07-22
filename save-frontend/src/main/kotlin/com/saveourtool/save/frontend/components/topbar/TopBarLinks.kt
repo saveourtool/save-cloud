@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.utils.isIndex
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -46,10 +47,10 @@ private val vulnTopbarLinks = sequenceOf(
 val topBarLinks: FC<TopBarLinksProps> = FC { props ->
     ul {
         className = ClassName("navbar-nav mx-auto")
-        if (props.location.isVuln()) {
-            vulnTopbarLinks
-        } else {
-            saveTopbarLinks
+        when {
+            props.location.isVuln() -> vulnTopbarLinks
+            props.location.isIndex() -> vulnTopbarLinks
+            else -> saveTopbarLinks
         }
             .forEach { elem ->
                 li {
