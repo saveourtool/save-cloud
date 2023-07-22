@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.extractUserNameAndSource
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
@@ -57,17 +56,30 @@ class UsersController(
     }
 
     /**
+     * Find user by name
+     *
+     * @param userName user name
+     * @return found [IdentitySourceAwareUserDetails] as a String
+     */
+    @GetMapping("/find-by-name/{userName}")
+    fun findByName(
+        @PathVariable userName: String,
+    ): Mono<StringResponse> = userService.findByName(userName).map {
+        ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
+    }
+
+    /**
      * Find user by name and source
      *
-     * @param userInformation user source and name, separated by `@`
+     * @param source user source
+     * @param nameInSource user name
+     * @return found [IdentitySourceAwareUserDetails] as a String
      */
-    @GetMapping("/{userInformation}")
-    fun findByUsernameAndSource(
-        @PathVariable userInformation: String,
-    ): Mono<StringResponse> {
-        val (name, source) = extractUserNameAndSource(userInformation)
-        return userService.findByUsernameAndSource(name, source).map {
-            ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
-        }
+    @GetMapping("/find-by-original-login/{source}/{nameInSource}")
+    fun findByOriginalLogin(
+        @PathVariable source: String,
+        @PathVariable nameInSource: String,
+    ): Mono<StringResponse> = userService.findByOriginalLogin(nameInSource, source).map {
+        ResponseEntity.ok().body(objectMapper.writeValueAsString(it))
     }
 }

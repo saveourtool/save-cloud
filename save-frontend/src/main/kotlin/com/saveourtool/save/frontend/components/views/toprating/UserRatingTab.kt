@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views.toprating
 
+import com.saveourtool.save.frontend.components.basic.renderUserAvatarWithName
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -9,17 +10,13 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
 import react.Fragment
 import react.Props
 import react.create
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.td
-import react.router.dom.Link
 import web.cssom.*
 
 val userRatingTable: FC<Props> = FC { _ ->
@@ -64,20 +61,9 @@ val userRatingTable: FC<Props> = FC { _ ->
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
-                            Link {
-                                img {
-                                    className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellContext.row.original.avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: AVATAR_PROFILE_PLACEHOLDER
-                                    style = jso {
-                                        height = 2.rem
-                                        width = 2.rem
-                                    }
-                                }
-                                to = "/${FrontendRoutes.PROFILE}/${cellContext.value}"
-                                +" ${cellContext.value}"
+                            renderUserAvatarWithName(cellContext.row.original) {
+                                height = 2.rem
+                                width = 2.rem
                             }
                         }
                     }

@@ -11789,9 +11789,10 @@
       },
       "User": {
         "required": [
-          "isActive",
+          "name",
           "rating",
-          "source"
+          "source",
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -11810,9 +11811,6 @@
           "id": {
             "type": "integer",
             "format": "int64"
-          },
-          "isActive": {
-            "type": "boolean"
           },
           "linkedin": {
             "type": "string"
@@ -11836,6 +11834,14 @@
           "source": {
             "type": "string"
           },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "ACTIVE",
+              "DELETED"
+            ]
+          },
           "twitter": {
             "type": "string"
           }
@@ -11843,12 +11849,13 @@
       },
       "UserInfo": {
         "required": [
-          "isActive",
           "name",
           "organizations",
           "originalLogins",
           "projects",
-          "rating"
+          "rating",
+          "source",
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -11877,9 +11884,6 @@
           "id": {
             "type": "integer",
             "format": "int64"
-          },
-          "isActive": {
-            "type": "boolean"
           },
           "linkedin": {
             "type": "string"
@@ -11931,6 +11935,14 @@
           },
           "source": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "ACTIVE",
+              "DELETED"
+            ]
           },
           "twitter": {
             "type": "string"

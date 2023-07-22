@@ -4,9 +4,8 @@ import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.authservice.utils.extractUserNameAndIdentitySource
-import com.saveourtool.save.utils.AUTH_SEPARATOR
+import com.saveourtool.save.authservice.utils.username
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -23,7 +22,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  */
 @Component
 class ConvertingAuthenticationManager(
-    @Autowired private var authenticationUserDetailsService: AuthenticationUserDetailsService
+    private val authenticationUserDetailsService: AuthenticationUserDetailsService
 ) : ReactiveAuthenticationManager {
     /**
      * Authenticate user, by checking the received data, which converted into UsernamePasswordAuthenticationToken
@@ -34,8 +33,7 @@ class ConvertingAuthenticationManager(
      */
     override fun authenticate(authentication: Authentication): Mono<Authentication> = if (authentication is UsernamePasswordAuthenticationToken) {
         val (name, identitySource) = authentication.extractUserNameAndIdentitySource()
-        val nameAndSource = "$name$AUTH_SEPARATOR$identitySource"
-        authenticationUserDetailsService.findByUsername(nameAndSource)
+        authenticationUserDetailsService.findByUsername(name)
             .cast<IdentitySourceAwareUserDetails>()
             .filter {
                 it.identitySource == identitySource
