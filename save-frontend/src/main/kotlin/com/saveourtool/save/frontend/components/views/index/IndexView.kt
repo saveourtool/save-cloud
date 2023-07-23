@@ -32,14 +32,16 @@ val indexView: FC<IndexViewProps> = FC { props ->
                         className = ClassName("row")
                         div {
                             className = ClassName("col")
+                            @Suppress("MAGIC_NUMBER")
                             style = jso {
                                 background = "rgb(0,0,0) url(img/logo-bg-p-3.png)".unsafeCast<Background>()
                                 backgroundRepeat = "no-repeat".unsafeCast<BackgroundRepeat>()
                                 backgroundSize = "100% auto".unsafeCast<BackgroundSize>()
+                                // need to hardcode the height, as it is very tightly linked to the size of the img
+                                // and to logo alignments
                                 height = 33.rem
                             }
                             logoButtons { }
-
                         }
                     }
 
@@ -72,7 +74,6 @@ val indexView: FC<IndexViewProps> = FC { props ->
         }
     }
 }
-
 
 /**
  * properties for index view (user info )

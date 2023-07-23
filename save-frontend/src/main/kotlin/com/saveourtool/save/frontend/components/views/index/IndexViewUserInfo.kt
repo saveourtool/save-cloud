@@ -7,15 +7,13 @@ package com.saveourtool.save.frontend.components.views.index
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import web.cssom.*
 
-const val indexViewCustomIconsBackground = "rgb(247, 250, 253)"
+const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 val indexViewInfo: FC<IndexViewProps> = FC { props ->
     div {
@@ -38,6 +36,10 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
     }
 }
 
+/**
+ * @param img to show it with description on welcome view
+ */
+@Suppress("MAGIC_NUMBER")
 internal fun ChildrenBuilder.cardImage(img: String) {
     img {
         src = img

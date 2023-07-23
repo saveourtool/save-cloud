@@ -19,7 +19,9 @@ import web.cssom.*
 val logoButtons = VFC {
     div {
         className = ClassName("row logo-parent mb-5 d-flex justify-content-center")
+        @Suppress("MAGIC_NUMBER")
         style = jso {
+            // mt-5 is not enough in my case, but frontend is already flexible, so it should work
             marginTop = 4.rem
         }
         div {
@@ -39,7 +41,7 @@ val logoButtons = VFC {
             "Archive of 1-Day Vulnerabilities Aggregated from Various Sources",
             "img/vuln-logo-bg.png",
 
-            )
+        )
 
         div {
             className = ClassName("col-2 text-center")
@@ -47,8 +49,12 @@ val logoButtons = VFC {
     }
 }
 
-
-private fun ChildrenBuilder.logo(input: String, url: String, labelText: String, img: String) {
+private fun ChildrenBuilder.logo(
+    input: String,
+    url: String,
+    labelText: String,
+    img: String
+) {
     div {
         className = ClassName("col-4 text-center logo-main")
         imgLogo(
@@ -63,7 +69,6 @@ private fun ChildrenBuilder.logo(input: String, url: String, labelText: String, 
         )
     }
 }
-
 
 private fun ChildrenBuilder.imgLogo(url: String, img: String) {
     div {

@@ -1,3 +1,7 @@
+/**
+ * This card provides a global information about SaveOurTool
+ */
+
 package com.saveourtool.save.frontend.components.views.index
 
 import js.core.jso
@@ -10,7 +14,6 @@ import web.cssom.TextAlign
 
 // FixMe: all links with descriptions in pretty format
 
-
 private const val SERVICES = """
     SaveOurTool provides Intelligent Services for developers of code analysis tools. Our two main directions:
     1. SAVE - a platform for a distributed Cloud CI of code analyzers with a special test framework. With SAVE you can:
@@ -22,8 +25,7 @@ private const val SERVICES = """
     finding bugs and compete with other projects.
 """
 
-
-val cardServiceInfo = FC<IndexViewProps> { props ->
+val cardServiceInfo: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("col-3 mx-2 mt-2")
         div {

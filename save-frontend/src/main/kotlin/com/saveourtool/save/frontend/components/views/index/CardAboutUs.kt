@@ -1,3 +1,7 @@
+/**
+ * Just info about us on welcome page
+ */
+
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.buttonBuilder
@@ -20,7 +24,7 @@ private const val WHO_ARE_WE = """
     developers of analyzers focus on their primary work: find bugs in code.
 """
 
-val cardAboutUs = FC<IndexViewProps> { props ->
+val cardAboutUs: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("col-3 mx-2 mt-2")
         div {

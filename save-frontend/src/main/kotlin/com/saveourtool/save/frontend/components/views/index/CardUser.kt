@@ -1,3 +1,7 @@
+/**
+ * On Index view we should have a small personal feed for the user with all useful links. It will be implemented here.
+ */
+
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.components.topbar.logoSize
@@ -38,7 +42,7 @@ private const val START_NOW = """
     start working with services that you like. 
 """
 
-val cardUser = FC<IndexViewProps> { props ->
+val cardUser: FC<IndexViewProps> = FC { props ->
     val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
 
     div {
@@ -68,7 +72,7 @@ val cardUser = FC<IndexViewProps> { props ->
                 className = ClassName("col-3")
                 img {
                     className =
-                        ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
+                            ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
                     src = props.userInfo?.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
                     style = logoSize
                     onError = {
@@ -96,7 +100,6 @@ val cardUser = FC<IndexViewProps> { props ->
                             }
                         }
                     }
-
                 }
                     ?: run {
                         p {
