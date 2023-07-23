@@ -128,7 +128,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     }
                     dropdownEntry(
                         faCity,
-                        "My organizations"
+                        "Manage organizations"
                     ) { attrs ->
                         attrs.onClick = {
                             navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")

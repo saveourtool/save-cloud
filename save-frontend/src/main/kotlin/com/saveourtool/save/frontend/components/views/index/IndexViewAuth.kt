@@ -71,13 +71,13 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
 
 val separator = VFC {
     div {
-        className = ClassName("row")
+        className = ClassName("row mt-2")
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-2")
         }
 
         div {
-            className = ClassName("col-6 mt-2")
+            className = ClassName("col-8 mt-2")
 
             div {
                 className = ClassName("separator text-black")
@@ -85,7 +85,7 @@ val separator = VFC {
             }
         }
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-2")
         }
     }
 }

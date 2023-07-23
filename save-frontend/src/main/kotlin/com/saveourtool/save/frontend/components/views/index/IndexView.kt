@@ -50,14 +50,14 @@ val indexView: FC<IndexViewProps> = FC { props ->
                             style = jso {
                                 background = indexViewCustomIconsBackground.unsafeCast<Background>()
                             }
+
                             props.userInfo
-                                ?.let {
-                                    indexViewUserInfo { props.userInfo }
-                                }
                                 ?: run {
                                     separator { }
                                     indexAuth { props.userInfo }
                                 }
+
+                            indexViewInfo { userInfo = props.userInfo }
                         }
                     }
                 }
