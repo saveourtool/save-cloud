@@ -50,7 +50,7 @@ val indexView: FC<IndexViewProps> = FC { props ->
                         div {
                             className = ClassName("col min-vh-100")
                             style = jso {
-                                background = indexViewCustomIconsBackground.unsafeCast<Background>()
+                                background = INDEX_VIEW_CUSTOM_BG.unsafeCast<Background>()
                             }
 
                             props.userInfo
