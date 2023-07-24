@@ -1,15 +1,13 @@
 package com.saveourtool.save.gateway.service
 
-import com.saveourtool.save.authservice.utils.IdentitySourceAwareUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
-import com.saveourtool.save.utils.IdentitySourceAwareUserDetailsMixin
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
-import org.springframework.http.codec.json.Jackson2JsonEncoder
+import org.springframework.security.core.userdetails.User as SpringUser
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.jackson2.CoreJackson2Module
+import org.springframework.security.jackson2.SecurityJackson2Modules
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
@@ -22,19 +20,14 @@ import reactor.core.publisher.Mono
 @Service
 class BackendService(
     configurationProperties: ConfigurationProperties,
+    objectMapper: ObjectMapper,
 ) {
-    private val objectMapper = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .addMixIn(IdentitySourceAwareUserDetails::class.java, IdentitySourceAwareUserDetailsMixin::class.java)
-    private val webClient = WebClient.create(configurationProperties.backend.url)
-        .mutate()
-        .codecs {
-            it.defaultCodecs().jackson2JsonEncoder(
-                Jackson2JsonEncoder(objectMapper)
-            )
+    private val springUserDetailsReader = objectMapper
+        .also {
+            it.registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
         }
-        .build()
+        .readerFor(SpringUser::class.java)
+    private val webClient = WebClient.create(configurationProperties.backend.url)
 
     /**
      * @param username
@@ -48,7 +41,7 @@ class BackendService(
         }
         .toEntity<String>()
         .map {
-            objectMapper.readValue(it.body, UserDetails::class.java)
+            springUserDetailsReader.readValue(it.body)
         }
 
     /**
@@ -64,19 +57,19 @@ class BackendService(
         }
         .toEntity<String>()
         .map {
-            objectMapper.readValue(it.body, UserDetails::class.java)
+            springUserDetailsReader.readValue(it.body)
         }
 
     /**
      * Saves a new [User] in DB
      *
-     * @param user
+     * @param source
+     * @param nameInSource
      * @return empty [Mono]
      */
-    fun createNewIfRequired(user: User): Mono<Void> = webClient.post()
-        .uri("/internal/users/new")
+    fun createNewIfRequired(source: String, nameInSource: String): Mono<Void> = webClient.post()
+        .uri("/internal/users/new/$source/$nameInSource")
         .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(user)
         .retrieve()
         .onStatus({ it.is4xxClientError }) {
             Mono.error(ResponseStatusException(it.statusCode()))

@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
@@ -42,7 +41,6 @@ import reactor.util.function.Tuples
     LnkUserProjectService::class,
     LnkUserOrganizationService::class,
     ConvertingAuthenticationManager::class,
-    CustomAuthenticationBasicConverter::class,
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
 )

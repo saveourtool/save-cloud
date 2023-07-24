@@ -16,7 +16,7 @@ import web.cssom.ClassName
  * Component for adding user to some group
  */
 val addUserComponent: FC<AddUserComponentProps> = FC { props ->
-    val (user, setUser) = useState(UserInfo(name = "", source = ""))
+    val (user, setUser) = useState(UserInfo(name = ""))
 
     div {
         className = ClassName("")

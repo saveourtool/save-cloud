@@ -27,7 +27,7 @@ class TopBarTest {
                     "/"
                 )
                 topBarComponent {
-                    userInfo = UserInfo(name = "Test User", source = "basic")
+                    userInfo = UserInfo(name = "Test User")
                 }
             }
         )
