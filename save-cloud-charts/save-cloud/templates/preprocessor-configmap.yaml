@@ -9,3 +9,4 @@ data:
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.preprocessor.managementPort }}
+    logging.level.com.saveourtool.save.configs.ServiceAccountTokenHeaderWebClientCustomizer=DEBUG

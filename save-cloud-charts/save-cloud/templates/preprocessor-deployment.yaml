@@ -31,6 +31,7 @@ spec:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: repos-storage
               mountPath: /home/cnb
+            - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.preprocessor | nindent 10 }}
           resources:
             limits:
@@ -44,3 +45,4 @@ spec:
           # and each pod of preprocessor can `git clone` on its own.
           emptyDir:
             sizeLimit: 100Mi
+        - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.backend) | indent 10 | trim }}

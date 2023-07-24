@@ -6,6 +6,8 @@ import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.blockingToMono
 
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.Primary
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -21,6 +23,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
  * where user identity is already guaranteed.
  */
 @Component
+@Primary
 class ConvertingAuthenticationManager(
     private val authenticationUserRepository: AuthenticationUserRepository,
 ) : ReactiveAuthenticationManager {

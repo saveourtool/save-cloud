@@ -18,7 +18,8 @@ spring:
     kubernetes:
       enabled: true
       config:
-        enabled: false
+        enabled: true
+        paths: /home/cnb/config/application.properties
       secrets:
         enabled: true
         paths:

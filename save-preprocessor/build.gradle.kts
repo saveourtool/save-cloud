@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.authenticationService)
     testImplementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm) {

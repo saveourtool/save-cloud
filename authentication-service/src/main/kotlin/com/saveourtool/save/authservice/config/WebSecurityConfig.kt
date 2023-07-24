@@ -11,6 +11,8 @@ import com.saveourtool.save.v1
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
@@ -20,22 +22,34 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
 import javax.annotation.PostConstruct
 
+/**
+ * Common configuration for web security which exposes [SecurityWebFilterChain] beans.
+ * Note: configuration of [ServerHttpSecurity] should start with [ServerHttpSecurity.securityMatcher] invocation
+ * to be able to use multiple [SecurityWebFilterChain]s. See [comments form this answer](https://stackoverflow.com/a/54792674)
+ * for details.
+ */
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
     @Autowired private var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
 ) {
     @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        authorizeExchange()
+        securityMatcher(
+            // This `SecurityWebFilterChain` should be applicable to all requests not matched above
+            ServerWebExchangeMatchers.anyExchange()
+        )
+            .authorizeExchange()
             .pathMatchers(*publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
@@ -120,7 +134,9 @@ class NoopWebSecurityConfig {
     @Bean
     fun securityWebFilterChain(
         http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http.authorizeExchange()
+    ): SecurityWebFilterChain = http
+        .securityMatcher(ServerWebExchangeMatchers.anyExchange())
+        .authorizeExchange()
         .anyExchange()
         .permitAll()
         .and()

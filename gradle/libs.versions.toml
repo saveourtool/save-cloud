@@ -29,6 +29,7 @@ testcontainers = "1.18.3"
 okhttp3 = "4.11.0"
 reckon = "0.18.0"
 commons-compress = "1.23.0"
+commons-io = "2.11.0"
 zip4j = "2.11.5"
 ktoml = "0.5.0"
 springdoc = "1.7.0"
@@ -97,19 +98,24 @@ spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-
 spring-boot-starter-quartz = { module = "org.springframework.boot:spring-boot-starter-quartz" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
 spring-boot = { module = "org.springframework.boot:spring-boot" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }
 spring-security-core = { module = "org.springframework.security:spring-security-core" }
+spring-security-web = { module = "org.springframework.security:spring-security-web" }
+spring-security-config = { module = "org.springframework.security:spring-security-config" }
 spring-security-oauth2-client = { module = "org.springframework.security:spring-security-oauth2-client" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 spring-cloud-starter-gateway = { module = "org.springframework.cloud:spring-cloud-starter-gateway", version.ref = "spring-cloud" }
 spring-cloud-starter-kubernetes-client-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-client-config", version.ref = "spring-cloud-kubernetes" }
+spring-cloud-starter-kubernetes-fabric8-config = { module = "org.springframework.cloud:spring-cloud-starter-kubernetes-fabric8-config", version.ref = "spring-cloud-kubernetes" }
 spring-boot-starter-oauth2-client = { module = "org.springframework.boot:spring-boot-starter-oauth2-client" }
 spring-data-jpa = { module = "org.springframework.data:spring-data-jpa" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 spring-web = { module = "org.springframework:spring-web" }
 spring-webflux = { module = "org.springframework:spring-webflux" }
+spring-jdbc = { module = "org.springframework:spring-jdbc" }
 spring-jdbc-starter = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
 
@@ -188,6 +194,7 @@ diktat-gradle-plugin = { module = "org.cqfn.diktat:diktat-gradle-plugin", versio
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version.ref = "reckon" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
 zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 gradle-plugin-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }

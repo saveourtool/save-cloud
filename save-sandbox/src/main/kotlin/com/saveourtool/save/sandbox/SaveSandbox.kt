@@ -1,7 +1,8 @@
 package com.saveourtool.save.sandbox
 
+import com.saveourtool.save.authservice.config.SecurityWebClientCustomizers
+import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.s3.DefaultS3Configuration
-import com.saveourtool.save.sandbox.config.ConfigProperties
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.Import
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
-@Import(DefaultS3Configuration::class)
+@Import(SecurityWebClientCustomizers::class, DefaultS3Configuration::class)
 @EntityScan(
     "com.saveourtool.save.entities",
     "com.saveourtool.save.sandbox.entity",
