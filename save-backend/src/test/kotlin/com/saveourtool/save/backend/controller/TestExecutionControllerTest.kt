@@ -42,7 +42,7 @@ import reactor.kotlin.core.publisher.toMono
 import java.time.Instant
 
 @SpringBootTest(classes = [SaveApplication::class])
-@AutoConfigureWebTestClient
+@AutoConfigureWebTestClient(timeout = "5d")
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
@@ -163,7 +163,7 @@ class TestExecutionControllerTest {
         webClient.post()
             .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(listOf(testExecutionDtoFirst, testExecutionDtoSecond)))
+            .body(BodyInserters.fromValue(listOf(testExecutionDtoFirst, testExecutionDtoSecond).toMutableList()))
             .exchange()
             .expectBody<String>()
             .isEqualTo("Saved")

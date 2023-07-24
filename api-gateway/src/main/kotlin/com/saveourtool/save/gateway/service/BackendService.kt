@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.security.core.userdetails.User as SpringUser
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.jackson2.SecurityJackson2Modules
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -20,12 +21,11 @@ import reactor.core.publisher.Mono
 @Service
 class BackendService(
     configurationProperties: ConfigurationProperties,
-    objectMapper: ObjectMapper,
 ) {
-    private val springUserDetailsReader = objectMapper
-        .also {
-            it.registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
-        }
+    private val springUserDetailsReader = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
         .readerFor(SpringUser::class.java)
     private val webClient = WebClient.create(configurationProperties.backend.url)
 
