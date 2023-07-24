@@ -343,6 +343,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     users = state.usersInOrganization.orEmpty()
                     avatarOuterClasses = "col-4 px-0"
                     avatarInnerClasses = "mx-sm-3"
+                    widthAndHeight = 6.rem
                 }
             }
         }

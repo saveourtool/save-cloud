@@ -19,6 +19,7 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 import kotlinx.browser.window
@@ -133,6 +134,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 users = usersInProject
                 avatarOuterClasses = "col-4 px-0"
                 avatarInnerClasses = "mx-sm-3"
+                widthAndHeight = 7.rem
             }
         }
 
