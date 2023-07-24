@@ -15,12 +15,12 @@
   color: var(--glow-color);
   cursor: pointer;
   padding: 0.35em 1em;
-  border: 0.15em solid var(--glow-color);
+  border: 0.1em solid var(--glow-color);
   border-radius: 0.45em;
   background: none;
   perspective: 2em;
   font-family: "Raleway", sans-serif;
-  font-size: 2em;
+  font-size: 1.5em;
   font-weight: 900;
   letter-spacing: 1em;
 
@@ -189,23 +189,21 @@ a:hover {
 }
 
 .logo-main img {
-	-webkit-filter: grayscale(100%);
-	filter: grayscale(100%);
-	-webkit-transition: .3s ease-in-out;
-	transition: .3s ease-in-out;
-}
-
-.logo-main:hover img {
-	-webkit-filter: grayscale(0);
-	filter: grayscale(0);
-}
-
-.logo-main h3 {
-    opacity: 0.2;
+    -webkit-filter: brightness(90%);
     transition: 0.7s
 }
 
-.logo-main:hover h3 {
+.logo-main:hover img {
+	-webkit-filter: brightness(160%);
+	transition: 0.7s
+}
+
+.logo-main h4 {
+    opacity: 0.5;
+    transition: 0.7s
+}
+
+.logo-main:hover h4 {
     opacity: 1;
     transition: 0.7s
 }
@@ -222,23 +220,24 @@ a:hover {
 }
 
 .animated-provider .text {
+    color: gray;
+    font-weight: 600;
     transition: 0.4s;
-    color: white;
 }
 
 .animated-provider:hover svg {
     transition: 0.4s;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .animated-provider:hover img {
     transition: 0.4s;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .animated-provider:hover .text {
     transition: 0.4s;
-    transform: scale(1.4);
+    transform: scale(1.3);
     color: var(--glow-color);
     -webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
      0 0 0.45em var(--glow-color);

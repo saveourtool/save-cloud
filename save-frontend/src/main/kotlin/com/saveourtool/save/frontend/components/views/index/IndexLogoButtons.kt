@@ -10,55 +10,67 @@ import react.ChildrenBuilder
 import react.VFC
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
-import web.cssom.Border
-import web.cssom.ClassName
-import web.cssom.rem
+import web.cssom.*
 
 val logoButtons = VFC {
     div {
-        className = ClassName("row logo-parent mb-5")
+        className = ClassName("row logo-parent mb-5 d-flex justify-content-center")
+        @Suppress("MAGIC_NUMBER")
+        style = jso {
+            // mt-5 is not enough in my case, but frontend is already flexible, so it should work
+            marginTop = 4.rem
+        }
         div {
-            className = ClassName("col-3 text-center")
+            className = ClassName("col-2 text-center")
         }
 
-        div {
-            className = ClassName("col-3 text-center logo-main")
-            creationCard(
-                "/${FrontendRoutes.SAVE}",
-                "img/save-logo-bg.jpg",
-            )
-            neonLightingText(
-                "SAVE",
-                "/${FrontendRoutes.SAVE}",
-                "Cloud Platform for CI and Benchmarking of Code Analyzers"
-            )
-        }
+        logo(
+            "SAVE",
+            "/${FrontendRoutes.SAVE}",
+            "Cloud Platform for CI and Benchmarking of Code Analyzers",
+            "img/save-logo-bg.jpg"
+        )
+
+        logo(
+            "VULN",
+            "/${FrontendRoutes.VULN}",
+            "Archive of 1-Day Vulnerabilities Aggregated from Various Sources",
+            "img/vuln-logo-bg.png",
+
+        )
 
         div {
-            className = ClassName("col-3 text-center logo-main")
-            creationCard(
-                "/${FrontendRoutes.VULN}",
-                "img/vuln-logo-bg.jpg",
-            )
-
-            neonLightingText(
-                "VULN",
-                "/${FrontendRoutes.VULN}",
-                "Archive of 1-Day Vulnerabilities Aggregated from Various Sources"
-            )
-        }
-
-        div {
-            className = ClassName("col-3 text-center")
+            className = ClassName("col-2 text-center")
         }
     }
 }
 
-private fun ChildrenBuilder.creationCard(url: String, img: String) {
+private fun ChildrenBuilder.logo(
+    input: String,
+    url: String,
+    labelText: String,
+    img: String
+) {
+    div {
+        className = ClassName("col-4 text-center logo-main")
+        imgLogo(
+            url,
+            img,
+        )
+
+        neonLightingText(
+            input,
+            url,
+            labelText
+        )
+    }
+}
+
+private fun ChildrenBuilder.imgLogo(url: String, img: String) {
     div {
         className = ClassName("col")
         Link {
@@ -67,8 +79,9 @@ private fun ChildrenBuilder.creationCard(url: String, img: String) {
             (img {
                 src = img
                 style = jso {
-                    width = 17.rem
-                    border = "0.2rem solid hsl(186 100% 69%)".unsafeCast<Border>()
+                    width = 15.rem
+                    border = "0.1rem solid hsl(186 100% 69%)".unsafeCast<Border>()
+                    borderRadius = 1.rem
                 }
             })
         }
@@ -79,7 +92,7 @@ private fun ChildrenBuilder.neonLightingText(input: String, url: String, labelTe
     Link {
         to = url
         div {
-            className = ClassName("row")
+            className = ClassName("row mb-4")
             div {
                 className = ClassName("col text-center")
                 button {
@@ -97,7 +110,7 @@ private fun ChildrenBuilder.neonLightingText(input: String, url: String, labelTe
             }
         }
 
-        h3 {
+        h4 {
             className = ClassName("mt-5 mx-3 text-white")
             +labelText
         }

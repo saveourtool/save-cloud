@@ -65,7 +65,7 @@ class UserSettingsProfileMenuView : UserSettingsView() {
 
                 div {
                     className = ClassName("col-5 mt-2 text-left align-self-center")
-                    +"Company:"
+                    +"Company/affiliation:"
                 }
                 div {
                     className = ClassName("col-7 mt-2 input-group pl-0")
