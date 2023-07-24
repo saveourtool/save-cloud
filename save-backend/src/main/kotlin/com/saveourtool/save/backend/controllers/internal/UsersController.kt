@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.User as SpringUser
+import org.springframework.security.jackson2.CoreJackson2Module
 import org.springframework.security.jackson2.SecurityJackson2Modules
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
@@ -26,13 +27,12 @@ import reactor.core.publisher.Mono
 class UsersController(
     private val userService: UserDetailsService,
     private val originalLoginRepository: OriginalLoginRepository,
-    objectMapper: ObjectMapper,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val springUserDetailsWriter = objectMapper
-        .also {
-            it.registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
-        }
+    private val springUserDetailsWriter = ObjectMapper()
+        .findAndRegisterModules()
+        .registerModule(CoreJackson2Module())
+        .registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
         .writerFor(SpringUser::class.java)
 
     /**
