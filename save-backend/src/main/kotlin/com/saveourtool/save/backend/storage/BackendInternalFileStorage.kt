@@ -22,6 +22,6 @@ class BackendInternalFileStorage(
     s3Operations,
 ) {
     override suspend fun doInitAdditionally(underlying: DefaultStorageCoroutines<InternalFileKey>) {
-//        underlying.downloadSaveCliFromGithub()
+        underlying.downloadSaveCliFromGithub()
     }
 }
