@@ -20,4 +20,10 @@ data class FileDto(
     val sizeBytes: Long = -1L,
     val isExecutable: Boolean = false,
     override val id: Long? = null,
-) : DtoWithId()
+) : DtoWithId() {
+    /**
+     * @return [String] that describes [FileDto] in human-readable format
+     */
+    @Suppress("MagicNumber")
+    fun prettyPrint() = "$name (uploaded at $uploadedTime, size ${sizeBytes / 1024} KiB)"
+}

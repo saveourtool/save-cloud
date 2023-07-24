@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
@@ -43,6 +44,12 @@ import reactor.util.function.Tuples
     AuthenticationUserDetailsService::class,
     AuthenticationUserRepository::class,
 )
+@MockBeans(
+    MockBean(LnkUserProjectService::class),
+    MockBean(LnkUserOrganizationService::class),
+    MockBean(OriginalLoginRepository::class),
+    MockBean(NamedParameterJdbcTemplate::class),
+)
 @AutoConfigureWebTestClient
 class PermissionControllerTest {
     @Autowired private lateinit var webTestClient: WebTestClient
@@ -52,11 +59,7 @@ class PermissionControllerTest {
     @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var projectService: ProjectService
     @MockBean private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
-    @MockBean private lateinit var lnkUserProjectService: LnkUserProjectService
-    @MockBean private lateinit var lnkUserOrganizationService: LnkUserOrganizationService
     @MockBean private lateinit var organizationService: OrganizationService
-    @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
-    @MockBean private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @Test
     @WithMockUser

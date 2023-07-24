@@ -7,8 +7,8 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestDto
-import com.saveourtool.save.entities.ContestStatus
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
 import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
 import com.saveourtool.save.frontend.components.modal.displaySimpleModal
@@ -18,14 +18,14 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import react.router.dom.Link
 import react.router.useNavigate
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString
@@ -43,8 +43,8 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "name", header = "Contest Name", { name }) { cellContext ->
                 Fragment.create {
                     td {
-                        a {
-                            href = "#/contests/${cellContext.row.original.name}"
+                        Link {
+                            to = "/contests/${cellContext.row.original.name}"
                             +cellContext.value
                         }
                     }
@@ -92,12 +92,10 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
         }
     },
     initialPageSize = 10,
-    useServerPaging = false,
-    usePageSelection = false,
-    getAdditionalDependencies = {
-        arrayOf(it.isContestCreated)
-    }
-)
+    useServerPaging = false
+) {
+    arrayOf(it.isContestCreated)
+}
 
 /**
  * OrganizationContestsMenu component props

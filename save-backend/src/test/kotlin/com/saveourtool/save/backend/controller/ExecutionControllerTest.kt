@@ -35,6 +35,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(ProjectController::class),
+    MockBean(LnkContestExecutionService::class),
 )
 class ExecutionControllerTest {
     @Autowired
@@ -45,9 +46,6 @@ class ExecutionControllerTest {
 
     @Autowired
     lateinit var projectRepository: ProjectRepository
-
-    @MockBean
-    private lateinit var lnkContestExecutionService: LnkContestExecutionService
 
     @Test
     @WithMockUser("JohnDoe")

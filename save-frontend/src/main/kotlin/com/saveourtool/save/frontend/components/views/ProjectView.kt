@@ -23,9 +23,6 @@ import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 
-import csstype.ClassName
-import csstype.Cursor
-import history.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -34,6 +31,9 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -107,7 +107,7 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER")
-class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
+class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_LIGHT) {
     init {
         state.project = ProjectDto.empty
         state.isErrorOpen = false
@@ -219,6 +219,23 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
             ProjectMenuBar.SETTINGS -> renderSettings()
             ProjectMenuBar.INFO -> renderInfo()
             ProjectMenuBar.DEMO -> renderDemo()
+            ProjectMenuBar.SECURITY -> renderSecurity()
+            ProjectMenuBar.FILES -> renderFiles()
+        }
+    }
+
+    private fun ChildrenBuilder.renderSecurity() {
+        projectSecurityMenu {
+            project = state.project
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown")
+        }
+    }
+
+    private fun ChildrenBuilder.renderFiles() {
+        projectFilesMenu {
+            project = state.project
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown")
+            selfRole = state.selfRole
         }
     }
 
@@ -244,7 +261,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
                 className = ClassName("nav nav-tabs mb-4")
                 ProjectMenuBar.values()
                     .filterNot {
-                        (it == ProjectMenuBar.RUN || it == ProjectMenuBar.SETTINGS) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+                        it in listOf(ProjectMenuBar.RUN, ProjectMenuBar.SETTINGS, ProjectMenuBar.FILES) && !state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                     }
                     .forEach { projectMenu ->
                         li {
@@ -297,7 +314,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     private fun ChildrenBuilder.renderSettings() {
         projectSettingsMenu {
             project = state.project
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Unknown")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Unknown")
             selfRole = state.selfRole
             updateErrorMessage = { response, message ->
                 setState {
@@ -344,7 +361,7 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(false) {
     }
 
     companion object :
-        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext>>(ProjectView::class) {
+        RStatics<ProjectViewProps, ProjectViewState, ProjectView, Context<RequestStatusContext?>>(ProjectView::class) {
         const val TEST_ROOT_DIR_HINT = """
             The path you are providing should be relative to the root directory of your repository.
             This directory should contain <a href = "https://github.com/saveourtool/save#how-to-configure"> save.properties </a>

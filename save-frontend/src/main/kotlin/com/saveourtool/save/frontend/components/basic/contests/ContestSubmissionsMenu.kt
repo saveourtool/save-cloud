@@ -2,20 +2,20 @@
 
 package com.saveourtool.save.frontend.components.basic.contests
 
-import com.saveourtool.save.entities.ContestResult
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
-import csstype.*
-import react.*
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.div
 
+import react.*
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.td
+import react.router.dom.Link
+import web.cssom.*
 
 /**
  * SUBMISSIONS tab in ContestView
@@ -32,9 +32,9 @@ private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
             column(id = "project_name", header = "Project Name", { this }) { cellContext ->
                 Fragment.create {
                     td {
-                        a {
+                        Link {
                             cellContext.value.let {
-                                href = "#/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
+                                to = "/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
                                 +"${it.organizationName}/${it.projectName}"
                             }
                         }
@@ -66,7 +66,6 @@ private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
     },
     initialPageSize = 10,
     useServerPaging = false,
-    usePageSelection = false,
 )
 
 /**

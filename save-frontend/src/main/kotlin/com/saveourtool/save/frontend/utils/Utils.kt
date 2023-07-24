@@ -8,7 +8,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -23,9 +22,13 @@ import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
+import web.cssom.ClassName
 import web.dom.Element
 import web.html.HTMLInputElement
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -33,6 +36,13 @@ import kotlinx.serialization.json.Json
  * Avatar placeholder if an error was thrown.
  */
 internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
+
+/**
+ * Avatar profile for those who don't want to upload it
+ */
+internal const val AVATAR_PROFILE_PLACEHOLDER = "img/undraw_profile.svg"
+
+const val ON_BLUR_TIMEOUT_MILLIS = 100
 
 /**
  * The body of a [useDeferredRequest] invocation.
@@ -92,6 +102,33 @@ fun StateSetter<String?>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
  */
 fun StateSetter<String>.fromInput(): (ChangeEvent<HTMLInputElement>) -> Unit =
         { event -> this(event.target.value) }
+
+/**
+ * Parse string in format
+ *
+ * FILE (START_ROW:START_COL-END_ROW:END_COL)
+ *
+ * into [[START_ROW, START_COL], [END_ROW, END_COL]]
+ *
+ * @return list in format: [[START_ROW, START_COL], [END_ROW, END_COL]]
+ */
+@Suppress("MAGIC_NUMBER")
+fun String.parsePositionString(): List<Int>? = substringAfter("(", "")
+    .substringBefore(")", "")
+    .split("-")
+    .map { positionList -> positionList.split(":") }
+    .flatten()
+    .takeIf { it.size == 4 }
+    ?.mapIndexed { idx, value -> value.toInt() - idx % 2 }
+
+/**
+ * @param time time to set to [LocalDateTime]
+ * @return [LocalDateTime] from [String]
+ */
+fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
+    LocalDate.parse(this),
+    time,
+)
 
 /**
  * @return `true` if this user is a super-admin, `false` otherwise.

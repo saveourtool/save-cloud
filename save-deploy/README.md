@@ -81,7 +81,11 @@ In the file `/home/saveu/configs/gateway/application.properties` the following p
 * `spring.security.oauth2.client.provider.<provider name>.issuer-uri`
 * `spring.security.oauth2.client.registration.<provider name>.client-id`
 * `spring.security.oauth2.client.registration.<provider name>.client-secret`
-  
+
+## Huawei ID and authorization 
+Everything is easy with Github OAUTH and Gitee OAUTH, but for Huawei OAUTH you need to spend a lot of time to find this link:
+https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/web-preparations-0000001050050891
+ 
 ## Local deployment
 Usually, not the whole stack is required for development. Application logic is performed by save-backend, save-orchestrator and save-preprocessor, so most time you'll need those three.
 * Ensure that docker daemon is running and `docker compose` is installed.
@@ -92,9 +96,8 @@ Usually, not the whole stack is required for development. Application logic is p
   Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be
   proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js).
 * For developing most part of platform's logic, the above will be enough. If local testing of authentication flow is required, however,
-  `api-gateway` can be run locally together with [dex](https://github.com/dexidp/dex) OAuth2 server. In order to do so, run 
-  `docker compose up -d dex` and then start `api-gateway` with `dev` profile enabled. Using [`application-dev.yaml`](../api-gateway/src/main/resources/application-dev.yml)
-  one can connect gateway with dev build of frontend running with webpack by changing `gateway.frontend.url`.
+  `api-gateway` can be run locally together with [dex](https://github.com/dexidp/dex) OAuth2 server. [`application-dev.yaml`](../api-gateway/src/main/resources/application-dev.yml)
+  already contains configuration for dev authorization providers (see the description below).
 
 ### Using OAuth with a local deployment
 
@@ -103,7 +106,7 @@ Usually, not the whole stack is required for development. Application logic is p
    omitting any gateway. When enabling OAuth, make sure the gateway is contacted
    instead:
  
-   * `context`: add `/sec/**`, `/oauth2/**`, and `/login/oauth2/**` to the list;
+   * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
    * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
      default gateway URL); 
    * `onProxyReq`: drop the entire callback, since both headers (`Authorization`
@@ -119,7 +122,7 @@ Usually, not the whole stack is required for development. Application logic is p
        {
          proxy: [
            {
-             context: ["/api/**", "/sec/**", "/oauth2/**", "/login/oauth2/**", "**.ico", "**.png"],
+             context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**", "**.ico", "**.png"],
              target: 'http://localhost:5300',
              logLevel: 'debug',
            }
@@ -221,7 +224,7 @@ two reasons:
 Under WSL, from a separate local _Git_ repository run:
 
 ```bash
-./gradlew :save-agent:copyAgentDistribution
+./gradlew :save-agent:clean :save-agent:build :save-agent:copyAgentDistribution -x spotlessKotlin -Preckon.stage=snapshot -Psave.profile=dev
 ```
 
 and provide the path to the JAR archive which contains `save-agent.kexe` via the

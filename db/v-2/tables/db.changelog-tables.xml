@@ -38,6 +38,12 @@
     <include file="vulnerability.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-description.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-project.xml" relativeToChangelogFile="true"/>
+    <include file="project-problem.xml" relativeToChangelogFile="true"/>
+    <include file="comments.xml" relativeToChangelogFile="true"/>
+    <include file="contest-sample.xml" relativeToChangelogFile="true"/>
+    <include file="contest-sample-field.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-date.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-user.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

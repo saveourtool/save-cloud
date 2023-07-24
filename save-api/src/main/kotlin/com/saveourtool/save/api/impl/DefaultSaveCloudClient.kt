@@ -11,12 +11,15 @@ import com.saveourtool.save.api.http.getAndCheck
 import com.saveourtool.save.api.http.postAndCheck
 import com.saveourtool.save.api.io.readChannel
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.execution.TestingType.CONTEST_MODE
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.permission.Permission.READ
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
@@ -34,6 +37,7 @@ import io.ktor.client.request.accept
 import io.ktor.client.request.forms.ChannelProvider
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -42,6 +46,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Application
 import io.ktor.http.ContentType.Text
 import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders.ContentDisposition
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.contentType
@@ -90,7 +95,7 @@ internal class DefaultSaveCloudClient(
         authConfiguration
     )
 
-    override suspend fun listOrganizations(): Either<SaveCloudError, List<Organization>> =
+    override suspend fun listOrganizations(): Either<SaveCloudError, List<OrganizationDto>> =
             getAndCheck("/organizations/get/list")
 
     override suspend fun listProjects(organizationName: String): Either<SaveCloudError, List<ProjectDto>> =
@@ -160,7 +165,9 @@ internal class DefaultSaveCloudClient(
                         headers
                     )
                 })
-            ).getOrElse { error ->
+            ) {
+                this[CONTENT_LENGTH_CUSTOM] = file.fileSize().toString()
+            }.getOrElse { error ->
                 return error.left()
             }
         }
@@ -313,6 +320,18 @@ internal class DefaultSaveCloudClient(
                 contentType?.let {
                     contentType(contentType)
                 }
+                setBody(requestBody)
+            }
+
+    private suspend inline fun <reified T> postAndCheck(
+        absolutePath: String,
+        requestBody: Any = EmptyContent,
+        noinline requestHeaders: HeadersBuilder.() -> Unit = {},
+    ): Either<SaveCloudError, T> =
+            httpClient.postAndCheck {
+                url(backendUrl.apiUrl(absolutePath))
+                accept(Application.Json)
+                headers(requestHeaders)
                 setBody(requestBody)
             }
 

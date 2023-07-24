@@ -97,7 +97,26 @@ spring:
     oauth2:
       client:
         provider:
+            # we also have "google" provider, but its default implementation is good enough by for now
+            # until we have fixed https://github.com/saveourtool/save-cloud/issues/2336
+            # (now we use sub as a default user-name-attribute)
+            # ===================
+          gitee:
+            authorization-uri: https://gitee.com/oauth/authorize
+            token-uri: https://gitee.com/oauth/token
+            user-info-uri: https://gitee.com/api/v5/user
+            user-name-attribute: login
           github:
             # value that will work with GitHub API, where GitHub provides username as "login" in the response
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
+        registration:
+          gitee:
+            client-name: Gitee
+            provider: gitee
+            # it can be '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}',
+            # but for security reasons I would like to hardcode a domain name
+            redirect-uri: 'https://saveourtool.com/login/oauth2/code/gitee'
+            authorization-grant-type: authorization_code
+            scope:
+              - user_info

@@ -5,7 +5,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -17,6 +16,7 @@ import react.dom.html.ReactHTML.select
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.useState
+import web.cssom.ClassName
 
 /**
  * SelectFormRequired component props
@@ -45,7 +45,7 @@ external interface SelectFormRequiredProps<D : Any> : Props {
     /**
      * lambda invoked once to fetch data for selection
      */
-    var getData: suspend WithRequestStatusContext.() -> List<D>
+    var getData: suspend (WithRequestStatusContext) -> List<D>
 
     /**
      * Currently chosen field
@@ -109,7 +109,7 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
     val (elements, setElements) = useState(listOf<D>())
 
     useRequest(props.getDataRequestDependencies) {
-        setElements((props.getData)())
+        setElements((props.getData)(this))
     }
 
     div {
@@ -157,10 +157,10 @@ fun <D : Any> selectFormRequired() = FC<SelectFormRequiredProps<D>> { props ->
                     }
                 }
                 className = when {
-                    value == "" || value == null -> ClassName("${props.selectClasses} form-control")
-                    props.validInput == true -> ClassName(" ${props.selectClasses} form-control is-valid")
-                    props.validInput == false -> ClassName(" ${props.selectClasses} form-control is-invalid")
-                    else -> ClassName(" ${props.selectClasses} form-control")
+                    value == "" || value == null -> ClassName("form-control ${props.selectClasses}")
+                    props.validInput == true -> ClassName("form-control ${props.selectClasses} is-valid")
+                    props.validInput == false -> ClassName("form-control ${props.selectClasses} is-invalid")
+                    else -> ClassName("form-control ${props.selectClasses}")
                 }
                 onChange = { event ->
                     elements.find {

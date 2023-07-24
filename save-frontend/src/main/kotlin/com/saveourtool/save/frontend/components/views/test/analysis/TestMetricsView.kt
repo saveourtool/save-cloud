@@ -5,12 +5,13 @@ package com.saveourtool.save.frontend.components.views.test.analysis
 import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
 import com.saveourtool.save.test.analysis.metrics.RegularTestMetrics
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
-import csstype.ClassName
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import web.cssom.ClassName
 
 /**
  * Displays [TestMetrics].

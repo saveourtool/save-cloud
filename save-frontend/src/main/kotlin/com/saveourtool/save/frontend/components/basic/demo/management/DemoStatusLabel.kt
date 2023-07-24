@@ -5,10 +5,11 @@
 package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoStatus
-import csstype.ClassName
+
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 
 private const val HIDE_TIMEOUT_DEFAULT_MILLIS = 100
 private const val HIDE_TIMEOUT_ON_ERROR_MILLIS = 800

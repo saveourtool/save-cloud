@@ -16,8 +16,6 @@ import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate
 import com.saveourtool.save.utils.isValidScore
 
-import csstype.ClassName
-import csstype.Width
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.aria.AriaRole
@@ -30,6 +28,9 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
+import web.cssom.Width
+import web.cssom.rem
 import web.html.HTMLAnchorElement
 
 /**
@@ -147,7 +148,7 @@ fun ChildrenBuilder.displayExecutionInfoHeader(
         className = ClassName(classes)
         displayProjectVersion(executionDto, isContest, "$relativeWidth $innerClasses", height)
         displayPassRate(executionDto, isContest, "$relativeWidth $innerClasses", height)
-        displayStatistics(executionDto, isContest, "$relativeWidth $innerClasses", height)
+        displayStatistics(executionDto, "$relativeWidth $innerClasses", height)
         displayRerunExecutionButton(executionDto, isContest, "$relativeWidth $innerClasses", height, onRerunExecution)
     }
 }
@@ -249,6 +250,10 @@ fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
             className = ClassName("d-flex justify-content-center")
             img {
                 src = "img/sad_cat.gif"
+                @Suppress("MAGIC_NUMBER")
+                style = jso {
+                    width = 10.rem
+                }
             }
         }
         div {
@@ -347,14 +352,12 @@ fun ChildrenBuilder.displayPassRate(
  * Function that renders execution statistics label
  *
  * @param executionDto execution that should be used as data source
- * @param isContest flag that defines whether to use contest styles or not
  * @param classes [ClassName]s that will be applied to highest div
  * @param height height of label
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 fun ChildrenBuilder.displayStatistics(
     executionDto: ExecutionDto?,
-    isContest: Boolean,
     classes: String = "",
     height: String = "h-100",
 ) {

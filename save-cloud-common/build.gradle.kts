@@ -25,7 +25,10 @@ kotlin {
     jvmToolchain {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
-    js(BOTH).browser()
+    js(IR) {
+        browser()
+        useCommonJs()
+    }
 
     // setup native compilation
     linuxX64()
@@ -33,7 +36,10 @@ kotlin {
 
     sourceSets {
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         val commonMain by getting {
             dependencies {
@@ -58,6 +64,7 @@ kotlin {
                 }
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
@@ -78,10 +85,12 @@ kotlin {
                 implementation(libs.aws.sdk.s3)
                 implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
                 implementation(libs.ktoml.file)
                 api(libs.kotlinx.coroutines.reactor)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             tasks.withType<Test> {
                 useJUnitPlatform()
@@ -97,6 +106,7 @@ kotlin {
         val linuxX64Main by getting
         val macosX64Main by getting
 
+        @Suppress("UNUSED_VARIABLE")
         val nativeMain by creating {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
@@ -104,6 +114,7 @@ kotlin {
 
             dependencies {
                 implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
                 implementation(libs.ktoml.file)
             }
         }

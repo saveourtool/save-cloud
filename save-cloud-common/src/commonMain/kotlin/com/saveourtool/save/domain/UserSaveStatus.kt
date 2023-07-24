@@ -14,6 +14,11 @@ enum class UserSaveStatus(val message: String) {
     CONFLICT("This name is already taken"),
 
     /**
+     * Deleted user
+     */
+    DELETED("User successfully deleted"),
+
+    /**
      * New user
      */
     NEW("User saved successfully"),

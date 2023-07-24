@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="contest-sample-field" author="frolov" context="dev or prod">
+        <createTable tableName="contest_sample_field">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="contest_sample_id" type="bigint">
+                <constraints foreignKeyName="fk_contest_sample_field" references="contest_sample(id)" nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="name" type="varchar(250)"/>
+            <column name="type" type="varchar(250)"/>
+            <column name="create_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="update_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_contest_sample_field_user" references="user(id)" nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

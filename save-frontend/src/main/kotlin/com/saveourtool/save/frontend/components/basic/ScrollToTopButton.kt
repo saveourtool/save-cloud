@@ -7,12 +7,12 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.frontend.externals.fontawesome.faAngleUp
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.ClassName
 import org.w3c.dom.SMOOTH
 import org.w3c.dom.ScrollBehavior
 import org.w3c.dom.ScrollToOptions
 import react.*
 import react.dom.html.ReactHTML.a
+import web.cssom.ClassName
 
 import kotlinx.browser.document
 import kotlinx.browser.window

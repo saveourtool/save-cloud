@@ -1,11 +1,14 @@
 package com.saveourtool.save.gateway.controller
 
-import com.saveourtool.save.gateway.utils.userName
+import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.info.OauthProviderInfo
-import org.slf4j.LoggerFactory
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
-import java.security.Principal
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller that returns various public information
@@ -14,9 +17,8 @@ import java.security.Principal
 @RequestMapping("/sec")
 class SecurityInfoController(
     private val clientRegistrationRepository: InMemoryReactiveClientRegistrationRepository,
+    private val backendService: BackendService,
 ) {
-    private val logger = LoggerFactory.getLogger(SecurityInfoController::class.java)
-
     /**
      * @return a list of [OauthProviderInfo] for all configured providers
      */
@@ -33,9 +35,17 @@ class SecurityInfoController(
     /**
      * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
      *
-     * @param principal
+     * @param authentication
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(principal: Principal?): String? = principal?.userName()
+    fun currentUserName(authentication: Authentication?): Mono<String> = when (authentication) {
+        is UsernamePasswordAuthenticationToken -> authentication.name.toMono()
+        is OAuth2AuthenticationToken -> {
+            val source = authentication.authorizedClientRegistrationId
+            val nameInSource = authentication.name
+            backendService.findByOriginalLogin(source, nameInSource).map { it.username }
+        }
+        else -> Mono.empty()
+    }
 }

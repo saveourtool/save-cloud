@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.authentication.BadCredentialsException
@@ -30,18 +31,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
     AuthenticationUserRepository::class,
 )
 @ActiveProfiles("secure")
+@MockBeans(
+    MockBean(UserRepository::class),
+    MockBean(OriginalLoginRepository::class),
+    MockBean(NamedParameterJdbcTemplate::class),
+)
 class BasicSecurityTest {
     @Autowired
     private lateinit var convertingAuthenticationManager: ConvertingAuthenticationManager
-    @MockBean private lateinit var userRepository: UserRepository
     @MockBean private lateinit var authenticationUserRepository: AuthenticationUserRepository
-    @MockBean private lateinit var originalLoginRepository: OriginalLoginRepository
-    @MockBean private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @BeforeEach
     fun setUp() {
         whenever(authenticationUserRepository.findByName("user")).thenReturn(
-            User("user", null, "ROLE_USER", "basic").apply {
+            User("user", null, "ROLE_USER").apply {
                 id = 99
             }
         )
@@ -49,31 +52,24 @@ class BasicSecurityTest {
 
     @Test
     fun `should allow access for registered user`() {
-        val authentication = tryAuthenticate("basic:user", "basic")
+        val authentication = tryAuthenticate("user")
 
         Assertions.assertTrue(authentication.isAuthenticated)
     }
 
     @Test
-    fun `should forbid requests if user has the same name but different source`() {
+    fun `should forbid requests if user not valid`() {
         Assertions.assertThrows(BadCredentialsException::class.java) {
-            tryAuthenticate("github:user", "github")
+            tryAuthenticate("not_existed")
         }
     }
 
-    @Test
-    fun `should forbid requests if user has the same name but no source`() {
-        Assertions.assertThrows(BadCredentialsException::class.java) {
-            tryAuthenticate(":user", "")
-        }
-    }
-
-    private fun tryAuthenticate(principal: String, identitySource: String) = convertingAuthenticationManager.authenticate(
+    private fun tryAuthenticate(principal: String) = convertingAuthenticationManager.authenticate(
         UsernamePasswordAuthenticationToken(
             principal,
             ""
         ).apply {
-            details = AuthenticationDetails(id = 99, identitySource = identitySource)
+            details = AuthenticationDetails(id = 99)
         }
     )
         .block()!!

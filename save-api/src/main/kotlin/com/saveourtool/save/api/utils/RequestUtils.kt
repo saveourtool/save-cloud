@@ -9,7 +9,6 @@ import com.saveourtool.save.api.config.WebClientProperties
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.request.CreateExecutionRequest
-import com.saveourtool.save.utils.extractUserNameAndSource
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.v1
 
@@ -56,11 +55,9 @@ private object Backend {
 
 /**
  * @property username
- * @property source source (where the user identity is coming from)
  */
 private object UserInformation {
     lateinit var username: String
-    lateinit var source: String
 }
 
 /**
@@ -80,7 +77,6 @@ suspend fun HttpClient.uploadAdditionalFile(
     file: String,
 ): FileDto = this.post {
     url("${Backend.url}/api/$v1/files/upload")
-    header("X-Authorization-Source", UserInformation.source)
     body = MultiPartFormDataContent(formData {
         append(
             key = "file",
@@ -101,7 +97,6 @@ suspend fun HttpClient.uploadAdditionalFile(
 @Suppress("TOO_LONG_FUNCTION")
 suspend fun HttpClient.submitExecution(createExecutionRequest: CreateExecutionRequest): HttpResponse = this.post {
     url("${Backend.url}/api/$v1/run/trigger")
-    header("X-Authorization-Source", UserInformation.source)
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(createExecutionRequest)
 }
@@ -130,7 +125,6 @@ suspend fun HttpClient.getExecutionById(
 
 private suspend fun HttpClient.getRequestWithAuthAndJsonContentType(url: String): HttpResponse = this.get {
     url(url)
-    header("X-Authorization-Source", UserInformation.source)
     contentType(ContentType.Application.Json)
 }
 
@@ -144,9 +138,7 @@ fun initializeHttpClient(
     webClientProperties: WebClientProperties,
 ): HttpClient {
     Backend.url = webClientProperties.backendUrl
-    val (name, source) = extractUserNameAndSource(authorization.userInformation)
-    UserInformation.username = name
-    UserInformation.source = source
+    UserInformation.username = authorization.userInformation
 
     return HttpClient {
         install(Logging) {
@@ -163,7 +155,7 @@ fun initializeHttpClient(
                 // therefore, adding sendWithoutRequest is required
                 sendWithoutRequest { true }
                 credentials {
-                    BasicAuthCredentials(username = authorization.userInformation, password = authorization.token.orEmpty())
+                    BasicAuthCredentials(username = authorization.userInformation, password = authorization.token)
                 }
             }
         }

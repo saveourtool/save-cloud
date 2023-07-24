@@ -10,8 +10,6 @@ import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
-import csstype.Cursor
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -19,6 +17,8 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 private const val ROWS_TEXTAREA = 10
 

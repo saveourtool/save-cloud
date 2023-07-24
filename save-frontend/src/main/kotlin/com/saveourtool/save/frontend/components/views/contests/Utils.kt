@@ -7,7 +7,6 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.*
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
@@ -15,6 +14,7 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+import web.cssom.*
 
 /**
  * @param title

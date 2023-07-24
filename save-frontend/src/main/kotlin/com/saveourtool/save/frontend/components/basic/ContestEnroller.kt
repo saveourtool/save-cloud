@@ -13,16 +13,16 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
-import csstype.ClassName
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.cssom.ClassName
+import web.html.ButtonType
 
 import kotlinx.coroutines.await
 
@@ -224,7 +224,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
             className = ClassName("d-flex justify-content-center mt-3")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary d-flex justify-content-center")
+                className = ClassName("btn btn-outline-primary d-flex justify-content-center")
                 +"Participate"
                 onClick = {
                     enrollRequest()

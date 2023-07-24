@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
-import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
@@ -21,7 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.http.MediaType
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -42,13 +40,7 @@ class ProjectControllerTest {
     private lateinit var organizationRepository: OrganizationRepository
 
     @Autowired
-    private lateinit var gitRepository: GitRepository
-
-    @Autowired
     lateinit var webClient: WebTestClient
-
-    @Autowired
-    private lateinit var namedParameterJdbcTemplate: NamedParameterJdbcTemplate
 
     @Test
     @WithMockUser

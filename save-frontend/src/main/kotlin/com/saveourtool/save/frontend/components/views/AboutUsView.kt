@@ -10,8 +10,8 @@ import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.particles
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
@@ -21,6 +21,9 @@ import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
+import web.cssom.Color
+import web.cssom.rem
 
 /**
  * [Props] of [AboutUsView]
@@ -37,12 +40,12 @@ external interface AboutUsViewState : State
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) {
+open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>() {
     private val developers = listOf(
         Developer("Vlad", "Frolov", "Cheshiriks", "Fullstack"),
         Developer("Peter", "Trifanov", "petertrr", "Arch"),
         Developer("Andrey", "Shcheglov", "0x6675636b796f75676974687562", "Backend"),
-        Developer("Sasha", "Frolov", "sanyavertolet", "Frontend"),
+        Developer("Sasha", "Frolov", "sanyavertolet", "Fullstack"),
         Developer("Andrey", "Kuleshov", "akuleshov7", "Ideas 😎"),
         Developer("Nariman", "Abdullin", "nulls", "Fullstack"),
         Developer("Alexey", "Votintsev", "Arrgentum", "Frontend"),
@@ -56,11 +59,12 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     protected val devCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
     /**
-     * card with an infor about SAVE with padding
+     * card with an info about SAVE with padding
      */
     protected val infoCard = cardComponent(hasBg = true, isPaddingBottomNull = true, isNoPadding = false)
 
     override fun ChildrenBuilder.render() {
+        particles()
         renderViewHeader()
         renderSaveourtoolInfo()
         renderDevelopers(NUMBER_OF_COLUMNS)
@@ -94,7 +98,11 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                             div {
                                 className = ClassName("m-2 d-flex align-items-center align-self-stretch flex-column")
                                 img {
-                                    src = "${GITHUB_AVATAR_LINK}saveourtool?size=$DEFAULT_AVATAR_SIZE"
+                                    src = "img/save-logo-no-bg.png"
+                                    @Suppress("MAGIC_NUMBER")
+                                    style = jso {
+                                        width = 8.rem
+                                    }
                                     className = ClassName("img-fluid mt-auto mb-auto")
                                 }
                                 a {
@@ -118,7 +126,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     protected fun ChildrenBuilder.renderDevelopers(columns: Int) {
         div {
             h4 {
-                className = ClassName("text-center mb-1 mt-4")
+                className = ClassName("text-center mb-1 mt-4 text-white")
                 +"Active contributors"
             }
             div {
@@ -156,6 +164,10 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                     img {
                         src = "$GITHUB_AVATAR_LINK${developer.githubNickname}?size=$DEFAULT_AVATAR_SIZE"
                         className = ClassName("img-fluid border border-dark rounded-circle m-0")
+                        @Suppress("MAGIC_NUMBER")
+                        style = jso {
+                            width = 10.rem
+                        }
                     }
                 }
                 div {
@@ -173,6 +185,9 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
                         +developer.description
                     }
                     a {
+                        style = jso {
+                            fontSize = 2.rem
+                        }
                         className = ClassName("d-flex justify-content-center")
                         href = "$GITHUB_LINK${developer.githubNickname}"
                         fontAwesomeIcon(faGithub)
@@ -183,7 +198,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
     }
 
     companion object :
-        RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext>>(AboutUsView::class) {
+        RStatics<AboutUsViewProps, AboutUsViewState, AboutUsView, Context<RequestStatusContext?>>(AboutUsView::class) {
         protected const val DEFAULT_AVATAR_SIZE = "200"
         protected const val GITHUB_AVATAR_LINK = "https://avatars.githubusercontent.com/"
         protected const val GITHUB_LINK = "https://github.com/"
@@ -216,6 +231,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>(true) 
  * @property description brief developer description
  * @property surname
  */
+@JsExport
 data class Developer(
     val name: String,
     val surname: String,

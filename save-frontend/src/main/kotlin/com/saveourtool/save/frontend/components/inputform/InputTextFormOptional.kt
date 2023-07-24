@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.useTooltipAndPopover
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Props
@@ -20,6 +19,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.sup
+import web.cssom.ClassName
 import web.html.HTMLInputElement
 import web.html.InputType
 
@@ -99,7 +99,7 @@ private fun ChildrenBuilder.inputTextFormOptional(
 
         name?.let { name ->
             label {
-                className = ClassName("form-label")
+                className = ClassName("form-label mb-0")
                 htmlFor = form.name
                 +name
             }
@@ -126,7 +126,8 @@ private fun ChildrenBuilder.inputTextFormOptional(
             placeholder = form.placeholder
             form.tooltip?.let {
                 title = it
-                asDynamic()["tooltip-placement"] = "right"
+                asDynamic()["data-toggle"] = "tooltip"
+                asDynamic()["data-placement"] = "bottom"
             }
             className = if (textValue.isNullOrEmpty()) {
                 ClassName("form-control")

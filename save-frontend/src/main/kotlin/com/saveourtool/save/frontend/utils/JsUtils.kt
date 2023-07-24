@@ -14,6 +14,14 @@ import kotlinx.browser.window
 
 private const val SUPER_ADMIN_MESSAGE = "Keep in mind that you are super admin, so you are able to manage organization regardless of your organization permissions."
 
+const val SAVE_DARK_GRADIENT = "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))"
+
+const val VULN_DARK_GRADIENT = "-webkit-linear-gradient(270deg, #3e295e, #662cbd)"
+
+const val SAVE_LIGHT_GRADIENT = "-webkit-linear-gradient(270deg, rgb(209, 229, 235),  rgb(217, 215, 235))"
+
+const val VULN_DARK_REVERSED_GRADIENT = "-webkit-linear-gradient(90deg, #3e295e, #662cbd)"
+
 /**
  * @property globalBackground
  * @property topBarBgColor
@@ -28,19 +36,40 @@ enum class Style(
     val borderForContainer: String,
     val marginBottomForTopBar: String,
 ) {
-    BLUE(
-        "-webkit-linear-gradient(270deg, rgb(0,20,73), rgb(13,71,161))",
+    INDEX(
+        "-webkit-linear-gradient(0deg, rgb(0,20,73), #662cbd)",
         "",
         "transparent",
         "px-0",
-        ""
+        "",
     ),
-    WHITE (
+    SAVE_DARK(
+        SAVE_DARK_GRADIENT,
+        "",
+        "transparent",
+        "px-0",
+        "",
+    ),
+    SAVE_LIGHT(
         "bg-light",
         "bg-dark",
         "bg-dark",
         "",
-        "mb-3"
+        "mb-3",
+    ),
+    VULN_DARK(
+        VULN_DARK_GRADIENT,
+        "",
+        "transparent",
+        "px-0",
+        "",
+    ),
+    VULN_LIGHT(
+        "bg-light",
+        "#563d7c",
+        "#563d7c",
+        "",
+        "mb-3",
     ),
     ;
 }

@@ -20,7 +20,7 @@ val saveCliVersion: String = the<LibrariesForLibs>()
     .get()
 
 dependencies {
-    if (saveCliVersion.isSnapshot()) {
+    if (saveCliVersion.isSnapshot() && System.getenv().containsKey("DOWNLOAD_SAVE_CLI_DEPENDENCY")) {
         val target = "$buildDir/save-cli"
         val saveCliPath = providers.gradleProperty("saveCliPath")
         logger.info(

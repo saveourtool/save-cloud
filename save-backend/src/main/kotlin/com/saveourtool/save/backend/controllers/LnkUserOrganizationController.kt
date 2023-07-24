@@ -7,8 +7,8 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.authservice.utils.toUser
+import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -60,8 +60,6 @@ class LnkUserOrganizationController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     @GetMapping("/{organizationName}/users")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get list of users that are connected with given organization.",
@@ -74,7 +72,6 @@ class LnkUserOrganizationController(
     @ApiResponse(responseCode = "404", description = "Contest with such name was not found.")
     fun getAllUsersByOrganizationName(
         @PathVariable organizationName: String,
-        authentication: Authentication,
     ): Mono<List<UserInfo>> = organizationService.findByNameAndCreatedStatus(organizationName)
         .toMono()
         .switchIfEmptyToNotFound {
@@ -90,8 +87,6 @@ class LnkUserOrganizationController(
         }
 
     @GetMapping("/{organizationName}/users/roles")
-    @RequiresAuthorizationSourceHeader
-    @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
         summary = "Get user's role in organization with given name.",
@@ -108,17 +103,18 @@ class LnkUserOrganizationController(
     @Suppress("TOO_MANY_LINES_IN_LAMBDA", "UnsafeCallOnNullableType")
     fun getRole(
         @PathVariable organizationName: String,
-        @RequestParam(required = false) userName: String?,
-        authentication: Authentication,
-    ): Mono<Role> = getUserAndOrganizationWithPermissions(
-        userName ?: authentication.toUser().name!!,
-        organizationName,
-        Permission.READ,
-        authentication,
-    )
-        .map { (user, organization) ->
-            lnkUserOrganizationService.getRole(user, organization)
-        }
+        authentication: Authentication?,
+    ): Mono<Role> = authentication?.let {
+        getUserAndOrganizationWithPermissions(
+            authentication.username(),
+            organizationName,
+            Permission.READ,
+            authentication,
+        )
+            .map { (user, organization) ->
+                lnkUserOrganizationService.getRole(user, organization)
+            }
+    } ?: Role.NONE.toMono()
 
     @PostMapping("/{organizationName}/users/roles")
     @RequiresAuthorizationSourceHeader
@@ -202,7 +198,6 @@ class LnkUserOrganizationController(
     fun getAllUsersNotFromOrganizationWithNamesStartingWith(
         @PathVariable organizationName: String,
         @RequestParam prefix: String,
-        authentication: Authentication,
     ): Mono<List<UserInfo>> = Mono.just(organizationName)
         .filter {
             prefix.isNotEmpty()
@@ -249,7 +244,7 @@ class LnkUserOrganizationController(
     fun getAllUsersOrganizationsThatCanCreateContests(
         authentication: Authentication,
     ): Flux<Organization> = Flux.fromIterable(
-        lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
+        lnkUserOrganizationService.getSuperOrganizationsWithRole(authentication.userId())
     )
 
     @PostMapping("/by-filters")
@@ -270,7 +265,7 @@ class LnkUserOrganizationController(
         @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
-        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+        lnkUserOrganizationService.getUserById(authentication.userId())
     )
         .switchIfEmptyToNotFound()
         .flatMapIterable {
@@ -279,7 +274,7 @@ class LnkUserOrganizationController(
         .map {
             OrganizationWithUsers(
                 organization = it.organization.toDto(),
-                userRoles = mapOf(it.user.name!! to it.role),
+                userRoles = mapOf(it.user.name to it.role),
             )
         }
 

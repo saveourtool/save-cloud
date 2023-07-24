@@ -14,6 +14,8 @@ import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Failure
@@ -24,6 +26,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.withType
+import org.gradle.plugins.signing.Sign
 import org.gradle.plugins.signing.SigningExtension
 
 /**
@@ -149,6 +152,16 @@ private fun Project.configureSigningCommon(useKeys: SigningExtension.() -> Unit 
         }
         styledOut(logCategory = "signing").style(style).println(message)
         sign(*publications.toTypedArray())
+    }
+
+    /*-
+     * A Kotlin/MPP work-around for https://youtrack.jetbrains.com/issue/KT-46466.
+     *
+     * See also https://github.com/gradle/gradle/issues/17043.
+     */
+    val signingTasks: TaskCollection<Sign> = tasks.withType()
+    tasks.withType<AbstractPublishToMaven>().configureEach {
+        dependsOn(signingTasks)
     }
 }
 

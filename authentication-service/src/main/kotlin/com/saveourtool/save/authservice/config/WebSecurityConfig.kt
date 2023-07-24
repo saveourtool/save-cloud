@@ -5,40 +5,51 @@
 package com.saveourtool.save.authservice.config
 
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.utils.roleHierarchy
 import com.saveourtool.save.v1
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Profile
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
 import javax.annotation.PostConstruct
 
+/**
+ * Common configuration for web security which exposes [SecurityWebFilterChain] beans.
+ * Note: configuration of [ServerHttpSecurity] should start with [ServerHttpSecurity.securityMatcher] invocation
+ * to be able to use multiple [SecurityWebFilterChain]s. See [comments form this answer](https://stackoverflow.com/a/54792674)
+ * for details.
+ */
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @Profile("secure")
-@Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+@Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class WebSecurityConfig(
     private val authenticationManager: ConvertingAuthenticationManager,
     @Autowired private var defaultMethodSecurityExpressionHandler: DefaultMethodSecurityExpressionHandler
 ) {
     @Bean
+    @Order(Ordered.LOWEST_PRECEDENCE)
     fun securityWebFilterChain(
         http: ServerHttpSecurity
     ): SecurityWebFilterChain = http.run {
-        authorizeExchange()
+        securityMatcher(
+            // This `SecurityWebFilterChain` should be applicable to all requests not matched above
+            ServerWebExchangeMatchers.anyExchange()
+        )
+            .authorizeExchange()
             .pathMatchers(*publicEndpoints.toTypedArray())
             .permitAll()
             // resources for frontend
@@ -56,12 +67,9 @@ class WebSecurityConfig(
             // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }
-        .addFilterBefore(
-            AuthenticationWebFilter(authenticationManager).apply {
-                setServerAuthenticationConverter(CustomAuthenticationBasicConverter())
-            },
-            SecurityWebFiltersOrder.HTTP_BASIC,
-        )
+        .httpBasic {
+            it.authenticationManager(authenticationManager)
+        }
         .exceptionHandling {
             it.authenticationEntryPoint(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
@@ -109,7 +117,12 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/public-test",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
-            "/demo/api/*/run"
+            "/demo/api/*/run",
+            "/api/$v1/vulnerabilities/get-all-public",
+            // `fossGraphView` is public page
+            "/api/$v1/vulnerabilities/by-name-with-description",
+            "/api/$v1/comments/get-all",
+            "/api/$v1/users/all",
         )
     }
 }
@@ -121,7 +134,9 @@ class NoopWebSecurityConfig {
     @Bean
     fun securityWebFilterChain(
         http: ServerHttpSecurity
-    ): SecurityWebFilterChain = http.authorizeExchange()
+    ): SecurityWebFilterChain = http
+        .securityMatcher(ServerWebExchangeMatchers.anyExchange())
+        .authorizeExchange()
         .anyExchange()
         .permitAll()
         .and()

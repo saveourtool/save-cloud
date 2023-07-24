@@ -19,14 +19,14 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import csstype.ClassName
+
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
+import web.html.ButtonType
 
 val organizationToolsMenu = organizationToolsMenu()
 
@@ -101,8 +101,8 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                         td {
                             when (projectDto.status) {
                                 ProjectStatus.CREATED -> div {
-                                    a {
-                                        href = "#/${projectDto.organizationName}/${cellContext.value}"
+                                    Link {
+                                        to = "/${projectDto.organizationName}/${cellContext.value}"
                                         +cellContext.value
                                     }
                                     spanWithClassesAndText("text-muted", "active")
@@ -124,7 +124,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 column(id = "description", header = "Description") {
                     Fragment.create {
                         td {
-                            +(it.value.description ?: "Description not provided")
+                            +it.value.description
                         }
                     }
                 }
@@ -148,7 +148,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
 
                                 when (project.status) {
                                     ProjectStatus.CREATED -> actionButton {
-                                        title = "WARNING: About to delete this project..."
+                                        title = "WARNING: You are about to delete this project"
                                         errorTitle = "You cannot delete the project $projectName"
                                         message = """Are you sure you want to delete the project "$projectName"?"""
                                         clickMessage = "Also ban this project"
@@ -184,7 +184,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                         }
                                     }
                                     ProjectStatus.DELETED -> actionButton {
-                                        title = "WARNING: About to recover this project..."
+                                        title = "WARNING: You are about to recover this project"
                                         errorTitle = "You cannot recover the project $projectName"
                                         message = """Are you sure you want to recover the project "$projectName"?"""
                                         buttonStyleBuilder = { childrenBuilder ->
@@ -219,7 +219,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                                     }
                                     ProjectStatus.BANNED -> if (props.currentUserInfo.isSuperAdmin()) {
                                         actionButton {
-                                            title = "WARNING: About to unban this BANNED project..."
+                                            title = "WARNING: You are about to unban this BANNED project"
                                             errorTitle = "You cannot unban the project $projectName"
                                             message = """Are you sure you want to unban the project "$projectName"?"""
                                             buttonStyleBuilder = { childrenBuilder ->
@@ -260,18 +260,16 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 }
             }
         },
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = { tableProps ->
-            /*-
-             * Necessary for the table to get re-rendered once a project gets
-             * deleted.
-             *
-             * The order and size of the array must remain constant.
-             */
-            arrayOf(tableProps)
-        }
-    )
+        useServerPaging = false
+    ) { tableProps ->
+        /*-
+         * Necessary for the table to get re-rendered once a project gets
+         * deleted.
+         *
+         * The order and size of the array must remain constant.
+         */
+        arrayOf(tableProps)
+    }
 
     div {
         className = ClassName("row justify-content-center")
@@ -281,7 +279,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 className = ClassName("d-flex justify-content-center mb-2")
                 if (props.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
                     Link {
-                        to = "/${FrontendRoutes.CREATE_PROJECT.path}/${props.organization?.name}"
+                        to = "/${FrontendRoutes.CREATE_PROJECT}/${props.organization?.name}"
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-outline-info")

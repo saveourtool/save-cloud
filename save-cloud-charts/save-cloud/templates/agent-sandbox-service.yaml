@@ -7,6 +7,8 @@ metadata:
   namespace: {{ .Values.agentNamespace }}
 spec:
   type: ExternalName
-  externalName: {{ .Values.sandbox.name }}.save-cloud.svc.cluster.local
+  externalName: {{ .Values.sandbox.name }}.{{ .Values.namespace }}.svc.cluster.local
+  ports:
+    - port: {{ .Values.sandbox.containerPort }}
 
 {{ end }}

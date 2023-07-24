@@ -7,12 +7,14 @@
 package com.saveourtool.save.frontend.components.basic.cpg
 
 import com.saveourtool.save.demo.cpg.CpgGraph
-import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutCircular
-import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutForceAtlas2
-import com.saveourtool.save.frontend.externals.sigma.layouts.useLayoutRandom
-import com.saveourtool.save.frontend.externals.sigma.paintNodes
-import com.saveourtool.save.frontend.externals.sigma.toJson
-import com.saveourtool.save.frontend.externals.sigma.useLoadGraph
+import com.saveourtool.save.frontend.externals.graph.paintNodes
+import com.saveourtool.save.frontend.externals.graph.sigma.layouts.LayoutInstance
+import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutCircular
+import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutForceAtlas2
+import com.saveourtool.save.frontend.externals.graph.sigma.layouts.useLayoutRandom
+import com.saveourtool.save.frontend.externals.graph.sigma.useLoadGraph
+import com.saveourtool.save.frontend.externals.graph.toGraphologyJson
+
 import js.core.jso
 import react.FC
 import react.Props
@@ -21,21 +23,21 @@ import react.useEffect
 /**
  * Component that is used to load the graph into sigma
  */
-@Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION")
+@Suppress("MAGIC_NUMBER", "COMPLEX_EXPRESSION", "REDUNDANT_ELSE_IN_WHEN")
 val graphLoader: FC<GraphLoaderProps> = FC { props ->
     val loadGraph = useLoadGraph()
-    val (_, circularAssign) = useLayoutCircular()
-    val (_, randomAssign) = useLayoutRandom()
-    val (_, atlasAssign) = useLayoutForceAtlas2(jso {
+    val circularAssign = useLayoutCircular().getPositions()
+    val randomAssign = useLayoutRandom().getPositions()
+    val atlasAssign = useLayoutForceAtlas2(jso {
         iterations = 150
         settings = jso {
             gravity = 10
             barnesHutOptimize = true
         }
-    })
+    }).getPositions()
 
     useEffect(props.cpgGraph.nodes, props.selectedLayout) {
-        loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toJson())
+        loadGraph(props.cpgGraph.removeMultiEdges().paintNodes().toGraphologyJson())
         when (props.selectedLayout) {
             SigmaLayout.ATLAS -> {
                 circularAssign()
@@ -43,6 +45,7 @@ val graphLoader: FC<GraphLoaderProps> = FC { props ->
             }
             SigmaLayout.CIRCULAR -> circularAssign()
             SigmaLayout.RANDOM -> randomAssign()
+            else -> circularAssign()
         }
     }
 }
@@ -68,7 +71,7 @@ enum class SigmaLayout(val layoutName: String) {
     RANDOM("Random"),
     ;
     companion object {
-        val preferredLayout = CIRCULAR
+        val preferredLayout = RANDOM
     }
 }
 
@@ -86,3 +89,8 @@ external interface GraphLoaderProps : Props {
      */
     var selectedLayout: SigmaLayout
 }
+
+/**
+ * Extension to get positions from the original library
+ */
+internal fun LayoutInstance.getPositions() = this.asDynamic()["positions"]

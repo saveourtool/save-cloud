@@ -5,17 +5,18 @@
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
 import com.saveourtool.save.frontend.components.basic.markdown
-import csstype.ClassName
-import csstype.rem
+
 import js.core.jso
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import web.cssom.ClassName
+import web.cssom.rem
 
 private val saveDemoIntroMd = """
     |## save-demo
-    |We are happy yo introduce you a new service - **save-demo**, which will help static analysis tool developers demonstrate their solutions. 
+    |We are happy yo introduce you a new service - **Static Analyzers Online Demo**, which will help developers of code analysis tools demonstrate their capabilities. 
 """.trimMargin()
 
 private val saveDemoHowToMd = """
@@ -24,8 +25,10 @@ private val saveDemoHowToMd = """
     |2. Go to your project's demo tab;
     |3. Upload your tool, select sdk and set run commands;
     |4. Make sure all the inputted filenames match filenames in run commands; 
+    |5. Make sure that run commands are enough to start your tool;
     |5. Create demo and run demo container.
     |
+    |Save platform will automatically prepare and run a container with your tool and configurations.
     |In case of any error feel free to [contact us](https://github.com/saveourtool/save-cloud/issues/new).
 """.trimMargin()
 

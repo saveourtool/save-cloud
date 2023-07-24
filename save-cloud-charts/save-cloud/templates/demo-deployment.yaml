@@ -57,6 +57,7 @@ spec:
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - name: s3-secrets
               mountPath: {{ .Values.s3.secretFile }}
+            - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.demo | nindent 10 }}
           resources:
             limits:
@@ -130,3 +131,4 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: { }
+        - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.demo) | indent 10 | trim }}

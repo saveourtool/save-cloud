@@ -9,21 +9,27 @@ import com.saveourtool.save.frontend.components.views.AboutUsView
 import com.saveourtool.save.frontend.components.views.Developer
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.utils.particles
+import js.core.jso
 
-import csstype.*
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
+import web.cssom.ClassName
+import web.cssom.rem
 
 /**
  * A component representing "About us" page
+ * If you need mobile version in future - use:
+ * val isMobile = window.matchMedia("only screen and (max-width:950px)").matches
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class AboutUsMobileView : AboutUsView() {
     override fun ChildrenBuilder.render() {
+        particles()
         renderViewHeader()
         renderSaveourtoolInfo()
         renderDevelopers(NUMBER_OF_COLUMNS)
@@ -34,19 +40,20 @@ class AboutUsMobileView : AboutUsView() {
             div {
                 className = ClassName("mt-3 d-flex justify-content-center align-items-center")
                 div {
-                    className = ClassName("col-11")
+                    className = ClassName("col-6 p-0")
                     infoCard {
                         div {
-                            className = ClassName("justify-content-center")
+                            className = ClassName("m-2 d-flex justify-content-around align-items-center")
                             div {
-                                className = ClassName("row justify-content-center")
+                                className = ClassName("m-2 d-flex align-items-center align-self-stretch flex-column")
                                 img {
-                                    src = "${GITHUB_AVATAR_LINK}saveourtool?size=$DEFAULT_AVATAR_SIZE"
+                                    src = "img/save-logo-no-bg.png"
+                                    @Suppress("MAGIC_NUMBER")
+                                    style = jso {
+                                        width = 8.rem
+                                    }
                                     className = ClassName("img-fluid mt-auto mb-auto")
                                 }
-                            }
-                            div {
-                                className = ClassName("row justify-content-center")
                                 a {
                                     className = ClassName("text-center mt-auto mb-2 align-self-end")
                                     href = "mailto:$SAVEOURTOOL_EMAIL"
@@ -70,10 +77,17 @@ class AboutUsMobileView : AboutUsView() {
                     img {
                         src = "$GITHUB_AVATAR_LINK${developer.githubNickname}?size=$DEFAULT_AVATAR_SIZE"
                         className = ClassName("img-fluid border border-dark rounded-circle m-0")
+                        @Suppress("MAGIC_NUMBER")
+                        style = jso {
+                            width = 10.rem
+                        }
                     }
                 }
                 div {
                     className = ClassName("mt-2")
+                    style = jso {
+                        fontSize = 2.rem
+                    }
                     h6 {
                         className = ClassName("d-flex justify-content-center text-center")
                         +developer.name

@@ -45,21 +45,14 @@ fun parseArguments(args: Array<String>): CliArguments? {
         fullName = "user",
         shortName = "u",
         description = "User name in SAVE-cloud system"
-    )
-
-    val oauth2Source by parser.option(
-        ArgType.String,
-        fullName = "oauth2Source",
-        shortName = "o",
-        description = "Oauth2 source, where the user identity is coming from"
-    )
+    ).required()
 
     // FixMe: any opportunity to hide process of password entering, via some additional window which doesn't show user input?
     val token by parser.option(
         ArgType.String,
         fullName = "token",
         shortName = "t",
-        description = "OAuth token for SAVE-cloud system"
+        description = "Basic token for SAVE-cloud system"
     )
         .required()
 
@@ -80,9 +73,7 @@ fun parseArguments(args: Array<String>): CliArguments? {
 
     parser.parse(args)
 
-    val authorization = oauth2Source?.let {
-        Authorization("$oauth2Source@${username!!}", token)
-    } ?: Authorization(username!!, token)
+    val authorization = Authorization(username, token)
 
     return CliArguments(
         authorization,

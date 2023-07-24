@@ -7,12 +7,13 @@ package com.saveourtool.save.frontend.components.basic.demo.welcome
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import csstype.ClassName
+
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
 import react.useState
+import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 internal val statistics = VFC {
@@ -43,7 +44,7 @@ internal val statistics = VFC {
         div {
             className = ClassName("row mx-3")
             div {
-                className = ClassName("col-lg-6 mt-2 mb-2")
+                className = ClassName("col-6 mt-2 mb-2")
                 div {
                     className = ClassName("row justify-content-center")
                     strong {
@@ -60,7 +61,7 @@ internal val statistics = VFC {
                 }
             }
             div {
-                className = ClassName("col-lg-6 mt-2")
+                className = ClassName("col-6 mt-2")
                 div {
                     className = ClassName("row justify-content-center")
                     strong {

@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
@@ -15,13 +15,13 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
+import web.html.ButtonType
 
 val testResourcesSelection = prepareTestResourcesSelection()
 
@@ -183,7 +183,7 @@ private fun ChildrenBuilder.renderForContestMode(
             className = ClassName("card-body d-flex justify-content-center")
             button {
                 type = ButtonType.button
-                className = ClassName("d-flex justify-content-center btn btn-primary")
+                className = ClassName("d-flex justify-content-center btn btn-outline-primary")
                 +"Enroll for a contest"
                 onClick = contestEnrollerWindowOpenness.openWindowAction().withUnusedArg()
             }

@@ -11,12 +11,12 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.useState
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -42,7 +42,7 @@ external interface SandboxCodeEditorComponentProps : Props {
     /**
      * Action to run execution
      */
-    var doRunExecution: (String) -> Unit
+    var doRunExecution: () -> Unit
 
     /**
      * Action to reload debug info
@@ -156,13 +156,13 @@ private fun sandboxCodeEditorComponent() = FC<SandboxCodeEditorComponentProps> {
                 if (hasAnyUncommittedChanges) {
                     if (window.confirm("Some changes are not saved. Save and run execution?")) {
                         uploadTexts()
-                        props.doRunExecution("Successfully saved and started execution.")
+                        props.doRunExecution()
                     } else {
                         window.alert("Run canceled.")
                     }
                 } else {
                     uploadTexts()
-                    props.doRunExecution("Successfully started execution.")
+                    props.doRunExecution()
                 }
             },
         ) { fileType ->

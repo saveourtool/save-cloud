@@ -19,6 +19,7 @@ import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.test.context.TestPropertySource
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -29,10 +30,12 @@ import java.net.HttpURLConnection
 @ExtendWith(KubernetesMockServerExtension::class)
 @EnableKubernetesMockClient
 @TestPropertySource("classpath:application-kubernetes.properties")
+@MockBeans(
+    MockBean(OrchestratorAgentService::class),
+)
 class KubernetesManagerTest {
     @Autowired private lateinit var configProperties: ConfigProperties
     private lateinit var kubernetesManager: KubernetesManager
-    @MockBean private lateinit var agentRepository: OrchestratorAgentService
 
     @BeforeEach
     fun setUp() {

@@ -13,13 +13,14 @@ import com.saveourtool.save.test.analysis.results.IrregularTest
 import com.saveourtool.save.test.analysis.results.PermanentFailure
 import com.saveourtool.save.test.analysis.results.Regression
 import com.saveourtool.save.test.analysis.results.RegularTest
-import csstype.ColorProperty
-import csstype.MarginRight
+
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.abbr
+import web.cssom.ColorProperty
+import web.cssom.MarginRight
 
 /**
  * Displays a single [AnalysisResult].

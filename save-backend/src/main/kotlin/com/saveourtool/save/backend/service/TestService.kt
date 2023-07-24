@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.repository.TestRepository
@@ -35,8 +34,6 @@ import java.util.concurrent.ConcurrentHashMap
 @Suppress("LongParameterList")
 class TestService(
     private val testRepository: TestRepository,
-    private val agentRepository: AgentRepository,
-    private val agentService: AgentService,
     private val executionRepository: ExecutionRepository,
     private val testExecutionRepository: TestExecutionRepository,
     private val testSuitesService: TestSuitesService,

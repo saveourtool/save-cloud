@@ -9,9 +9,9 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.selectorBuilder
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 private val toolbarCard = cardComponent(isBordered = true)
 

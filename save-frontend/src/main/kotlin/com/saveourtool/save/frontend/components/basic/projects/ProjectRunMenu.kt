@@ -4,12 +4,12 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
-import com.saveourtool.save.entities.ContestDto
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.fileuploader.fileUploaderForProjectRun
+import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -17,10 +17,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.label
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 
@@ -204,16 +204,15 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                 label {
                     className =
                             ClassName("control-label col-auto justify-content-between font-weight-bold text-gray-800 mb-1 pl-0")
-                    +"1. Upload or select the tool (and other resources) for testing:"
+                    +"1. Upload your tool-related files on FILES tab and select them for testing:"
                 }
-                fileUploaderForProjectRun(
-                    ProjectCoordinates(props.organizationName, props.projectName),
-                    files,
-                    { fileToAdd ->
-                        setFiles { it + fileToAdd }
+                simpleFileUploader {
+                    isDisabled = false
+                    fileDtosSetter = setFiles
+                    getUrlForSelectedFilesFetch = null
+                    getUrlForAvailableFilesFetch = {
+                        "$apiUrl/files/${props.organizationName}/${props.projectName}/list"
                     }
-                ) { fileToRemove ->
-                    setFiles { it - fileToRemove }
                 }
             }
 

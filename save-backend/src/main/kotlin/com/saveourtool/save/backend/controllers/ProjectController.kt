@@ -1,9 +1,10 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.OrganizationService
+import com.saveourtool.save.backend.service.ProjectProblemService
 import com.saveourtool.save.backend.service.ProjectService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -11,6 +12,7 @@ import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
+import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -22,7 +24,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -48,6 +49,7 @@ import java.util.*
 @RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(
     private val projectService: ProjectService,
+    private val projectProblemService: ProjectProblemService,
     private val organizationService: OrganizationService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
     private val lnkUserProjectService: LnkUserProjectService,
@@ -167,7 +169,7 @@ class ProjectController(
             ))
         }
         .map { (projectId, status) ->
-            lnkUserProjectService.setRoleByIds((authentication.details as AuthenticationDetails).id, projectId, Role.OWNER)
+            lnkUserProjectService.setRoleByIds(authentication.userId(), projectId, Role.OWNER)
             ResponseEntity.ok(status.message)
         }
 
@@ -259,8 +261,81 @@ class ProjectController(
             }
         }
 
-    companion object {
-        @JvmStatic
-        private val log = LoggerFactory.getLogger(ProjectController::class.java)
+    @PostMapping("/problem/save")
+    @Operation(
+        method = "POST",
+        summary = "Save project problem.",
+        description = "Save project problem.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully saved project problem")
+    @PreAuthorize("permitAll()")
+    fun save(
+        @RequestBody projectProblemDto: ProjectProblemDto,
+        authentication: Authentication,
+    ): Mono<StringResponse> = blockingToMono {
+        projectProblemService.saveProjectProblem(projectProblemDto, authentication)
+    }.map {
+        ResponseEntity.ok("Project problem was successfully saved")
     }
+
+    @GetMapping("/problem/all")
+    @Operation(
+        method = "GET",
+        summary = "Get all project problems.",
+        description = "Get all project problems.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched all project problems")
+    @Suppress("TYPE_ALIAS")
+    fun getAllProjectProblems(
+        @RequestParam projectName: String,
+        @RequestParam organizationName: String,
+    ): Mono<List<ProjectProblemDto>> = blockingToMono {
+        projectProblemService.getAllProblemsByProjectNameAndProjectOrganizationName(projectName, organizationName).map(
+            ProjectProblem::toDto)
+    }
+
+    @GetMapping("/problem/get/by-id")
+    @Operation(
+        method = "GET",
+        summary = "Get project problem by id.",
+        description = "Get project problem by id.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched project problem")
+    fun getProjectProblemById(
+        @RequestParam id: Long,
+    ): Mono<ProjectProblemDto> = blockingToMono {
+        projectProblemService.getProjectProblemById(id).toDto()
+    }
+
+    @PostMapping("/problem/update")
+    @Operation(
+        method = "POST",
+        summary = "Update project problem.",
+        description = "Update project problem.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully updated project problem")
+    @PreAuthorize("permitAll()")
+    fun update(
+        @RequestBody projectProblemDto: ProjectProblemDto,
+    ): Mono<StringResponse> = blockingToMono {
+        projectProblemService.updateProjectProblem(projectProblemDto)
+    }.map {
+        ResponseEntity.ok("Project problem was successfully updated")
+    }
+
+    @PostMapping("/problem/by-filters")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "POST",
+        summary = "Get project problems matching filters",
+        description = "Get filtered project problems available for the current user.",
+    )
+    @Parameters(
+        Parameter(name = "projectFilter", `in` = ParameterIn.DEFAULT, description = "project filters", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched projects.")
+    fun getFilteredProjectProblems(
+        @RequestBody projectProblemFilter: ProjectProblemFilter,
+    ): Flux<ProjectProblemDto> =
+            blockingToFlux { projectProblemService.getFiltered(projectProblemFilter).map { it.toDto() } }
 }

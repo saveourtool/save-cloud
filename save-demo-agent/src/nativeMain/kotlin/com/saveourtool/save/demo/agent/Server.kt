@@ -14,6 +14,7 @@ import com.saveourtool.save.demo.agent.utils.getConfiguration
 import com.saveourtool.save.demo.agent.utils.setupEnvironment
 import com.saveourtool.save.utils.protectAuthToken
 import com.saveourtool.save.utils.retry
+
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -24,6 +25,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.reflect.*
+
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 
@@ -95,6 +99,7 @@ private fun Routing.configure(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/run") {
     if (!config.isCompleted) {
         logError("Cannot run demo as it was not configured yet.")
@@ -102,7 +107,13 @@ private fun Routing.run(config: CompletableDeferred<DemoAgentConfig>) = post("/r
     }
     val runRequest: DemoRunRequest = call.receive()
     logDebug("Running demo on code [${runRequest.codeLines}]")
-    val result: DemoResult = runDemo(runRequest, config)
+    val result: DemoResult = measureTimedValue {
+        runDemo(runRequest, config)
+    }
+        .let {
+            logDebug("Time taken: ${it.duration}")
+            it.value
+        }
     call.respond(result)
 }
 

@@ -25,12 +25,14 @@ openApi {
     }
 }
 
-tasks.named("jar") {
-    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
-}
-
-tasks.named("inspectClassesForKotlinIC") {
-    mustRunAfter("forkedSpringBootRun", "generateOpenApiDocs")
+// a workaround for https://github.com/springdoc/springdoc-openapi-gradle-plugin/issues/102
+project.afterEvaluate {
+    tasks.findByName("inspectClassesForKotlinIC")
+        ?.let { incrementalTask ->
+            tasks.named("forkedSpringBootRun") {
+                mustRunAfter("jar", incrementalTask)
+            }
+        }
 }
 
 tasks.named("processTestResources") {
@@ -51,7 +53,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
     implementation(libs.reactor.extra)
     implementation(libs.arrow.kt.core)
     implementation(project.dependencies.platform(libs.aws.sdk.bom))
@@ -62,6 +64,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.client.apache)
+    implementation(libs.commons.io)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.kotlinx.serialization.json)
     testImplementation(projects.testUtils)

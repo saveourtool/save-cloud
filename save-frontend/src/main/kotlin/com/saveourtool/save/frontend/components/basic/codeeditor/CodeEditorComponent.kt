@@ -7,10 +7,10 @@ import com.saveourtool.save.frontend.externals.reactace.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
+import web.cssom.ClassName
 
 /**
  * Component with pure code editor
@@ -24,11 +24,17 @@ val codeEditorComponent: FC<CodeEditorComponentProps> = FC { props ->
             }
         }
 
+        val additionalMarkers = if (props.aceMarkers != undefined) {
+            props.aceMarkers
+        } else {
+            emptyArray()
+        }
+
         aceBuilder(
             props.draftText,
             props.selectedMode,
             props.selectedTheme,
-            getAceMarkers(props.savedText, props.draftText),
+            getAceMarkers(props.savedText, props.draftText) + additionalMarkers,
             props.isDisabled,
         ) {
             props.onDraftTextUpdate(it)
@@ -74,4 +80,9 @@ external interface CodeEditorComponentProps : Props {
      * Flag to disable form editing
      */
     var isDisabled: Boolean
+
+    /**
+     * Additional [AceMarkers]
+     */
+    var aceMarkers: AceMarkers
 }

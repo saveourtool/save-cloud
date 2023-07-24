@@ -6,7 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic.cpg
 
-import com.saveourtool.save.frontend.externals.sigma.*
+import com.saveourtool.save.frontend.externals.graph.sigma.useRegisterEvents
+import com.saveourtool.save.frontend.externals.graph.sigma.useSetSettings
+import com.saveourtool.save.frontend.externals.graph.sigma.useSigma
 import js.core.jso
 import react.*
 
@@ -58,7 +60,7 @@ val graphEvents: FC<GraphEventsProps> = FC { props ->
             enterNode = { event: dynamic ->
                 setHoveredNode(event.node)
             }
-            leaveNode = { event: dynamic ->
+            leaveNode = { _: dynamic ->
                 setHoveredNode(undefined)
             }
             clickNode = { event: dynamic ->

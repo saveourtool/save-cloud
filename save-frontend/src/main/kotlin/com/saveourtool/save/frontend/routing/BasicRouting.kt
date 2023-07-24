@@ -10,34 +10,36 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
+import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
-import com.saveourtool.save.frontend.components.views.contests.ContestGlobalRatingView
-import com.saveourtool.save.frontend.components.views.contests.ContestListView
-import com.saveourtool.save.frontend.components.views.contests.UserRatingTab
+import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
+import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
-import com.saveourtool.save.frontend.components.views.demo.demoMainView
+import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
-import com.saveourtool.save.frontend.components.views.fossgraph.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.fossgraph.fossGraph
-import com.saveourtool.save.frontend.components.views.fossgraph.fossGraphCollectionView
+import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
+import com.saveourtool.save.frontend.components.views.toprating.topRatingView
+import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
 import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.components.views.welcome.WelcomeView
+import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
+import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
+import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
 
-import js.core.get
 import org.w3c.dom.url.URLSearchParams
 import react.*
-import react.router.Navigate
-import react.router.Route
-import react.router.Routes
+import react.router.*
 
 val testExecutionDetailsView = testExecutionDetailsView()
 
@@ -45,6 +47,13 @@ val testExecutionDetailsView = testExecutionDetailsView()
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
+
+    val userProfileView: VFC = withRouter { _, params ->
+        userProfileView {
+            userName = params["name"]!!
+        }
+    }
+
     val contestView: VFC = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
@@ -121,6 +130,13 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
+    val contestTemplateView: VFC = withRouter { _, params ->
+        contestTemplateView {
+            id = requireNotNull(params["id"]).toLong()
+            currentUserInfo = props.userInfo
+        }
+    }
+
     val demoView: VFC = withRouter { _, params ->
         demoView {
             projectCoordinates = ProjectCoordinates(
@@ -130,32 +146,51 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val fossGraphCollectionView: VFC = VFC {
-        fossGraphCollectionView {
+    val vulnerabilityCollectionView: VFC = VFC {
+        vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
         }
     }
 
-    val fossGraphView: VFC = withRouter { _, params ->
-        fossGraph {
+    val vulnerabilityView: VFC = withRouter { _, params ->
+        vulnerabilityView {
             name = requireNotNull(params["vulnerabilityName"])
             currentUserInfo = props.userInfo
         }
     }
 
+    val createProjectProblemView: VFC = withRouter { _, params ->
+        createProjectProblem {
+            organizationName = requireNotNull(params["owner"])
+            projectName = requireNotNull(params["name"])
+        }
+    }
+
+    val projectProblemView: VFC = withRouter { _, params ->
+        projectProblem {
+            organizationName = requireNotNull(params["owner"])
+            projectName = requireNotNull(params["name"])
+            projectProblemId = requireNotNull(params["id"]).toLong()
+        }
+    }
+
     Routes {
         listOf(
-            WelcomeView::class.react.create { userInfo = props.userInfo } to "/",
-            SandboxView::class.react.create() to "/$SANDBOX",
+            indexView.create { userInfo = props.userInfo } to "/",
+            saveWelcomeView.create { userInfo = props.userInfo } to "/$SAVE",
+            vulnWelcomeView.create { userInfo = props.userInfo } to "/$VULN",
+            sandboxView.create() to "/$SANDBOX",
             AboutUsView::class.react.create() to "/$ABOUT_US",
             CreationView::class.react.create() to "/$CREATE_PROJECT",
             CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
-            RegistrationView::class.react.create { userInfo = props.userInfo } to "/$REGISTRATION",
+            registrationView.create { userInfo = props.userInfo } to "/$REGISTRATION",
             CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
-            ContestListView::class.react.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+            contestListView.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
 
             contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
             contestView.create() to "/$CONTESTS/:contestName",
+            createContestTemplateView.create() to "/$CREATE_CONTESTS_TEMPLATE",
+            contestTemplateView.create() to "/$CONTESTS_TEMPLATE/:id",
             contestExecutionView.create() to "/$CONTESTS/:contestName/:organizationName/:projectName",
             awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
             creationView.create() to "/$CREATE_PROJECT/:owner",
@@ -163,14 +198,20 @@ val basicRouting: FC<AppProps> = FC { props ->
             organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to "/:owner/:name/history",
             projectView.create() to "/:owner/:name",
+            createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
+            projectProblemView.create() to "project/:owner/:name/security/problems/:id",
             executionView.create() to "/:owner/:name/history/execution/:executionId",
             demoView.create() to "/$DEMO/:organizationName/:projectName",
             cpgView.create() to "/$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            fossGraphCollectionView.create() to "/$FOSS_GRAPH",
+            vulnerabilityCollectionView.create() to "$VULN/list",
             createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
-            fossGraphView.create() to "/$FOSS_GRAPH/:vulnerabilityName",
-            demoMainView.create() to "/$DEMO",
+            vulnerabilityView.create() to "/$VULN/:vulnerabilityName",
+            demoCollectionView.create() to "/$DEMO",
+            userProfileView.create() to "/$PROFILE/:name",
+            topRatingView.create() to "/$TOP_RATING",
+
+            termsOfUsageView.create() to "/$TERMS_OF_USE",
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
@@ -189,14 +230,14 @@ val basicRouting: FC<AppProps> = FC { props ->
             ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
         ).forEach {
-            Route {
+            PathRoute {
                 this.element = it.first
                 this.path = "/${it.second}"
             }
         }
 
         props.userInfo?.name.run {
-            Route {
+            PathRoute {
                 path = "/$this"
                 element = Navigate.create {
                     to = "/$this/$SETTINGS_PROFILE"
@@ -204,7 +245,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             }
         }
 
-        Route {
+        PathRoute {
             path = "/$MANAGE_ORGANIZATIONS"
             element = when (props.userInfo.isSuperAdmin()) {
                 true -> OrganizationAdminView::class.react.create()
@@ -237,7 +278,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             contestGlobalRatingView
         )
 
-        Route {
+        PathRoute {
             path = "*"
             element = FallbackView::class.react.create {
                 bigText = "404"
@@ -268,7 +309,6 @@ external interface AppProps : PropsWithChildren {
  * @param view
  * @return a view or a fallback of user info is null
  */
-fun AppProps.viewWithFallBack(view: ReactElement<*>) =
-        this.userInfo?.name?.let {
-            view
-        } ?: fallbackNode
+fun AppProps.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
+    view
+} ?: fallbackNode

@@ -19,18 +19,12 @@ import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.Cursor
-import csstype.FontWeight
-import csstype.rem
-import history.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.*
 import react.dom.aria.ariaDescribedBy
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -48,6 +42,13 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
+import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Cursor
+import web.cssom.FontWeight
+import web.cssom.rem
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.coroutines.launch
@@ -95,7 +96,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>(true) {
+class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchmarksState>() {
     init {
         state.selectedMenu = BenchmarkCategoryEnum.defaultTab
         state.lang = ALL_LANGS
@@ -109,7 +110,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         scope.launch {
             getBenchmarks()
             setState {
-                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS}")
             }
         }
     }
@@ -124,24 +125,25 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
     override fun ChildrenBuilder.render() {
+        particles()
+
         main {
-            className = ClassName("main-content mt-0 ps")
+            className = ClassName("main-content mt-0 ps text-gray-800")
             div {
                 className = ClassName("page-header align-items-start min-vh-100")
                 div {
                     className = ClassName("row justify-content-center")
                     div {
-                        className = ClassName("col-lg-6")
+                        className = ClassName("col-6")
                         div {
                             className = ClassName("row mb-2")
                             div {
-                                className = ClassName("col-md-6")
+                                className = ClassName("col-6")
                                 div {
                                     className = ClassName("card flex-md-row mb-1 box-shadow")
                                     style = jso {
                                         height = 14.rem
                                     }
-
                                     div {
                                         className = ClassName("card-body d-flex flex-column align-items-start")
                                         strong {
@@ -175,7 +177,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                 }
                             }
                             div {
-                                className = ClassName("col-md-6")
+                                className = ClassName("col-6")
                                 div {
                                     className = ClassName("card flex-md-row mb-1 box-shadow")
                                     style = jso {
@@ -235,7 +237,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     div {
                                         className = ClassName("input-group-append")
                                         button {
-                                            className = ClassName("btn btn-primary")
+                                            className = ClassName("btn btn-outline-primary")
                                             type = ButtonType.button
                                             fontAwesomeIcon(icon = faSearch, classes = "trash-alt")
                                         }
@@ -245,7 +247,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                         }
 
                         div {
-                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                            className = ClassName("col container card o-hidden border-0 shadow-lg my-2 card-body p-0")
                             div {
                                 className = ClassName("p-5 text-center")
                                 h1 {
@@ -285,7 +287,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                 div {
                                     className = ClassName("row mt-3")
                                     div {
-                                        className = ClassName("col-lg-8")
+                                        className = ClassName("col-8")
                                         var matchingBenchmarksCount = 0
                                         // Nice icons for programming languages: https://devicon.dev
                                         state.benchmarks.forEach { benchmark ->
@@ -315,8 +317,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
                                                             benchmark.tags.split(DATABASE_DELIMITER).map { " #$it " }.forEach {
-                                                                a {
-                                                                    className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+                                                                Link {
+                                                                    to = "/${FrontendRoutes.AWESOME_BENCHMARKS}"
                                                                     +it
                                                                 }
                                                             }
@@ -324,7 +326,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                         div {
                                                             className = ClassName("navbar-landing mt-3")
                                                             a {
-                                                                className = ClassName("btn-sm btn-primary mr-2")
+                                                                className = ClassName("btn-sm btn-outline-primary mr-2")
                                                                 href = benchmark.documentation
                                                                 +"""Docs"""
                                                             }
@@ -353,7 +355,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                         }
                                     }
                                     div {
-                                        className = ClassName("col-lg-4")
+                                        className = ClassName("col-4")
                                         ul {
                                             className = ClassName("list-group")
                                             val languages = state.benchmarks.map { it.language }
@@ -400,7 +402,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                     }
 
                     div {
-                        className = ClassName("col-lg-4 mb-4")
+                        className = ClassName("col-4 mb-4")
                         div {
                             className = ClassName("card shadow mb-4")
                             div {
@@ -464,9 +466,9 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     li {
                                         fontAwesomeIcon(icon = faGithub)
                                         +""" Go to the"""
-                                        a {
-                                            className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
-                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS.path} """
+                                        Link {
+                                            to = "https://github.com/saveourtool/awesome-benchmarks"
+                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS} """
                                         }
                                         +"""repository"""
                                     }
@@ -514,7 +516,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
             it.set("Content-Type", "application/json")
         }
         val response: List<AwesomeBenchmarks> = get(
-            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS}",
             headers,
             loadingHandler = ::classLoadingHandler,
         ).decodeFromJsonString()
@@ -524,7 +526,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         }
     }
 
-    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext>>(AwesomeBenchmarksView::class) {
+    companion object : RStatics<AwesomeBenchmarksProps, AwesomeBenchmarksState, AwesomeBenchmarksView, Context<RequestStatusContext?>>(AwesomeBenchmarksView::class) {
         init {
             contextType = requestStatusContext
         }

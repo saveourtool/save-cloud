@@ -15,6 +15,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
+import com.saveourtool.save.frontend.components.basic.table.filters.testExecutionFiltersRow
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -32,7 +33,6 @@ import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -40,13 +40,13 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.th
 import react.dom.html.ReactHTML.tr
+import web.cssom.*
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -116,7 +116,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
+class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LIGHT) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
     private val testExecutionsTable: FC<StatusProps<TestExecutionExtDto>> = tableComponent(
@@ -253,9 +253,22 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
             }
         },
         useServerPaging = true,
-        usePageSelection = true,
         tableOptionsCustomizer = { tableOptions ->
             enableExpanding(tableOptions)
+        },
+        getRowProps = { row ->
+            val color = when (row.original.testExecution.status) {
+                TestResultStatus.FAILED -> Colors.RED
+                TestResultStatus.IGNORED -> Colors.GOLD
+                TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
+                TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
+                TestResultStatus.PASSED -> Colors.GREEN
+            }
+            jso {
+                style = jso {
+                    background = color.value.unsafeCast<Background>()
+                }
+            }
         },
         renderExpandedRow = { tableInstance, row ->
             val (errorDescription, trdi, trei) = additionalInfo[row.id] ?: AdditionalRowInfo()
@@ -299,25 +312,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
                     }
                 }
             }
-        },
-        getRowProps = { row ->
-            val color = when (row.original.testExecution.status) {
-                TestResultStatus.FAILED -> Colors.RED
-                TestResultStatus.IGNORED -> Colors.GOLD
-                TestResultStatus.READY_FOR_TESTING, TestResultStatus.RUNNING -> Colors.GREY
-                TestResultStatus.INTERNAL_ERROR, TestResultStatus.TEST_ERROR -> Colors.DARK_RED
-                TestResultStatus.PASSED -> Colors.GREEN
-            }
-            jso {
-                style = jso {
-                    background = color.value.unsafeCast<Background>()
-                }
-            }
-        },
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
         }
-    )
+    ) {
+        arrayOf(it.filters)
+    }
 
     init {
         state.executionDto = null
@@ -490,7 +488,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(false) {
         }
     }
 
-    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext>>(ExecutionView::class) {
+    companion object : RStatics<ExecutionProps, ExecutionState, ExecutionView, Context<RequestStatusContext?>>(ExecutionView::class) {
         init {
             contextType = requestStatusContext
         }

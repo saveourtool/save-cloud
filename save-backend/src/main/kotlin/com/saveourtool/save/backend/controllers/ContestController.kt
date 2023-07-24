@@ -7,6 +7,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.Contest.Companion.toContest
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.test.TestFilesContent
@@ -102,7 +104,6 @@ internal class ContestController(
     @ApiResponse(responseCode = "404", description = "Contest with given name is not found.")
     fun addOrDeleteContestToFeatured(
         @RequestParam contestName: String,
-        authentication: Authentication,
     ): Mono<StringResponse> = getContestOrNotFound(contestName)
         .flatMap {
             blockingToMono {

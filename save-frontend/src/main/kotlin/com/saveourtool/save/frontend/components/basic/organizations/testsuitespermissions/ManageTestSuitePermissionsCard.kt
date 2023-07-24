@@ -22,12 +22,12 @@ import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
-import react.dom.html.ReactHTML.option
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.coroutines.await
@@ -112,15 +112,10 @@ private fun ChildrenBuilder.displayPermissionManager(
                 inputWithDebounceForString {
                     selectedOption = organizationName
                     setSelectedOption = { setOrganizationName(it) }
-                    getOptionFromString = { it }
-                    getString = { it }
-                    getUrlForOptions = { prefix -> "$apiUrl/organizations/get/by-prefix?prefix=$prefix" }
+                    getUrlForOptionsFetch = { prefix -> "$apiUrl/organizations/get/by-prefix?prefix=$prefix" }
                     placeholder = "Start typing organization name..."
-                    decodeListFromJsonString = { it.decodeFromJsonString() }
-                    getHTMLDataListElementFromOption = { childrenBuilder, organizationName ->
-                        with(childrenBuilder) {
-                            option { value = organizationName }
-                        }
+                    renderOption = { childrenBuilder, organizationName ->
+                        with(childrenBuilder) { h5 { +organizationName } }
                     }
                 }
             }

@@ -25,14 +25,14 @@ import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 
-import csstype.Background
-import csstype.ClassName
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
+import web.cssom.Background
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlin.js.Date
@@ -41,7 +41,6 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -121,29 +120,28 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     "GENERIC_VARIABLE_WRONG_DECLARATION",
     "TOO_MANY_LINES_IN_LAMBDA",
 )
-class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
+class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGHT) {
     private val selectedExecutionIds = mutableListOf<Long>()
     private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {
             columns {
                 column("result", "", { status }) { cellProps ->
-                    val result = when (cellProps.row.original.status) {
-                        ExecutionStatus.ERROR -> ResultColorAndIcon("text-danger", faExclamationTriangle)
-                        ExecutionStatus.OBSOLETE -> ResultColorAndIcon("text-secondary", faExclamationTriangle)
-                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> ResultColorAndIcon("text-success", faSpinner)
-                        ExecutionStatus.RUNNING -> ResultColorAndIcon("text-success", faSpinner)
+                    val (resColor, resIcon) = when (cellProps.row.original.status) {
+                        ExecutionStatus.ERROR -> "text-danger" to faExclamationTriangle
+                        ExecutionStatus.OBSOLETE -> "text-secondary" to faExclamationTriangle
+                        ExecutionStatus.INITIALIZATION, ExecutionStatus.PENDING -> "text-success" to faSpinner
+                        ExecutionStatus.RUNNING -> "text-success" to faSpinner
                         ExecutionStatus.FINISHED -> if (cellProps.row.original.failedTests != 0L) {
-                            ResultColorAndIcon("text-danger", faExclamationTriangle)
+                            "text-danger" to faExclamationTriangle
                         } else {
-                            ResultColorAndIcon("text-success", faCheck)
+                            "text-success" to faCheck
                         }
                     }
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
-                                fontAwesomeIcon(result.resIcon, classes = result.resColor)
+                                href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                fontAwesomeIcon(resIcon, classes = resColor)
                             }
                         }
                     }
@@ -152,8 +150,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +"${cellContext.value}"
                             }
                         }
@@ -163,8 +160,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
@@ -174,8 +170,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
@@ -185,8 +180,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +"${cellContext.value}"
                             }
                         }
@@ -283,11 +277,11 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
                     background = color.value.unsafeCast<Background>()
                 }
             }
-        },
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
         }
-    )
+    ) {
+        arrayOf(it.filters)
+    }
+
     init {
         state.isConfirmWindowOpen = false
         state.isDeleteExecutionWindowOpen = false
@@ -479,13 +473,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(false) {
         "${window.location}/execution/$id${status?.let { "?status=$it" } ?: ""}"
     }
 
-    /**
-     * @property resColor
-     * @property resIcon
-     */
-    private data class ResultColorAndIcon(val resColor: String, val resIcon: dynamic)
-
-    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext>>(HistoryView::class) {
+    companion object : RStatics<HistoryProps, HistoryViewState, HistoryView, Context<RequestStatusContext?>>(HistoryView::class) {
         init {
             contextType = requestStatusContext
         }

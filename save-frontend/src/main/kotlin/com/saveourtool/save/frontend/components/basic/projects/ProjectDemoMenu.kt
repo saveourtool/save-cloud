@@ -18,11 +18,11 @@ import com.saveourtool.save.frontend.components.basic.demo.management.renderButt
 import com.saveourtool.save.frontend.components.basic.demo.management.renderFileUploading
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import io.ktor.http.*
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.hr
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString

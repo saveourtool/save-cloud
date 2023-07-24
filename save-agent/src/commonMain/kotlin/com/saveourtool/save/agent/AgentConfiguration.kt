@@ -29,6 +29,7 @@ import kotlinx.serialization.Serializable
  * @property parentUserName name of a parent process user, needed for token isolation
  * @property childUserName name of a child process user, needed for token isolation
  * @property save additional configuration for save-cli
+ * @property kubernetes a flag which shows that agent runs in k8s
  */
 @Serializable
 data class AgentConfiguration(
@@ -42,6 +43,7 @@ data class AgentConfiguration(
     val logFilePath: String = "logs.txt",
     val parentUserName: String? = null,
     val childUserName: String? = null,
+    val kubernetes: Boolean = false,
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
     companion object {
@@ -59,6 +61,7 @@ data class AgentConfiguration(
             ),
             parentUserName = optionalEnv(AgentEnvName.PARENT_PROCESS_USERNAME.name),
             childUserName = optionalEnv(AgentEnvName.CHILD_PROCESS_USERNAME.name),
+            kubernetes = optionalEnv(AgentEnvName.KUBERNETES.name).toBoolean(),
         )
     }
 }

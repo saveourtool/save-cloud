@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.utils.toFixedStr
 
-import csstype.*
 import js.core.jso
 import react.FC
 import react.Props
@@ -12,42 +11,18 @@ import react.dom.aria.AriaRole
 import react.dom.aria.ariaValueMax
 import react.dom.aria.ariaValueMin
 import react.dom.aria.ariaValueNow
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
-
-/**
- * ReactElement that represents scorecard
- */
-val scoreCard = scoreCard()
-
-/**
- * ProjectScoreCardProps component props
- */
-external interface ScoreCardProps : Props {
-    /**
-     * Name of a current project or contest (acts as a card header)
-     */
-    var name: String
-
-    /**
-     * Score of a project in a contest
-     */
-    var contestScore: Double
-
-    /**
-     * Url to the project
-     */
-    var url: String?
-}
+import react.router.dom.Link
+import web.cssom.*
 
 /**
  * Functional component for project score demonstration
  *
  * @return ReactElement
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun scoreCard() = FC<ScoreCardProps> { props ->
+@Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
+val scoreCard: FC<ScoreCardProps> = FC { props ->
     div {
         className = ClassName("card border-left-info shadow h-70 py-2")
         div {
@@ -94,9 +69,9 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
                                     alignSelf = AlignSelf.center
                                 }
 
-                                props.url?.let {
-                                    a {
-                                        href = props.url
+                                props.url?.let { link ->
+                                    Link {
+                                        to = link
                                         +props.name
                                     }
                                 } ?: run {
@@ -122,4 +97,24 @@ private fun scoreCard() = FC<ScoreCardProps> { props ->
             }
         }
     }
+}
+
+/**
+ * ProjectScoreCardProps component props
+ */
+external interface ScoreCardProps : Props {
+    /**
+     * Name of a current project or contest (acts as a card header)
+     */
+    var name: String
+
+    /**
+     * Score of a project in a contest
+     */
+    var contestScore: Double
+
+    /**
+     * Url to the project
+     */
+    var url: String?
 }

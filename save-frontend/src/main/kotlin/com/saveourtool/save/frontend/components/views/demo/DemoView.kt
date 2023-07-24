@@ -13,9 +13,9 @@ import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
-import csstype.*
 import react.*
 import react.dom.html.ReactHTML.div
+import web.cssom.*
 
 private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = true)
 
@@ -23,7 +23,7 @@ private val backgroundCard = cardComponent(hasBg = true, isPaddingBottomNull = t
  * Demo View
  */
 val demoView: FC<DemoViewProps> = FC { props ->
-    useBackground(Style.WHITE)
+    useBackground(Style.SAVE_LIGHT)
 
     val (selectedTheme, setSelectedTheme) = useState(AceThemes.preferredTheme)
     div {

@@ -2,11 +2,6 @@
 
 package com.saveourtool.save.frontend.components.views.test.analysis
 
-import csstype.ClassName
-import csstype.ColorProperty
-import csstype.FontWeight
-import csstype.PaddingLeft
-import csstype.WhiteSpace
 import js.core.JsoDsl
 import js.core.jso
 import react.CSSProperties
@@ -16,6 +11,11 @@ import react.Props
 import react.VFC
 import react.dom.html.ReactHTML.abbr
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
+import web.cssom.ColorProperty
+import web.cssom.FontWeight
+import web.cssom.PaddingLeft
+import web.cssom.WhiteSpace
 
 internal const val FLIP_RATE_DESCRIPTION: String = """
 A flip is a test status change ${'\u2014'} either from "PASSED" to "FAILED", or vice versa.

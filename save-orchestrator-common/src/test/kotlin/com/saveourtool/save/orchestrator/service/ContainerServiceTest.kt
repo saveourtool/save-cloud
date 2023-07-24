@@ -54,7 +54,7 @@ class ContainerServiceTest {
     }
 
     @BeforeEach
-    fun setUp(@TempDir tmpDir: Path) {
+    fun setUp() {
         whenever(orchestratorAgentService.updateExecutionStatus(any(), any(), anyOrNull()))
             .thenReturn(ResponseEntity.ok().build<Void>().toMono())
     }

@@ -13,10 +13,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
 import react.FC
 import react.Props
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -25,6 +23,8 @@ import react.dom.html.ReactHTML.label
 import react.useEffect
 import react.useRef
 import react.useState
+import web.cssom.ClassName
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString
@@ -114,14 +114,14 @@ private fun projectInfo() = FC<ProjectInfoProps> { props ->
             className = ClassName("row g-3 ml-3 mr-3 pb-2 pt-2  border-bottom")
             idToValue.forEach { (fieldId, text) ->
                 div {
-                    className = ClassName("col-md-6 pl-0 pr-0")
+                    className = ClassName("col-6 pl-0 pr-0")
                     label {
                         className = ClassName("control-label col-auto justify-content-between pl-0")
                         +projectInformationHeaders.getValue(fieldId)
                     }
                 }
                 div {
-                    className = ClassName("col-md-6 pl-0")
+                    className = ClassName("col-6 pl-0")
                     div {
                         className = ClassName("controls col-auto pl-0")
                         input {

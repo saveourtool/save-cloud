@@ -7,18 +7,16 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.ClassName
-import csstype.Width
 import js.core.jso
 import react.*
-import react.dom.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -26,6 +24,9 @@ import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
+import web.cssom.rem
+import web.html.ButtonType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
@@ -64,7 +65,7 @@ external interface OrganizationSaveViewState : State {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(true) {
+class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() {
     init {
         state.isErrorWithOrganizationSave = false
         state.errorMessage = ""
@@ -72,17 +73,15 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
         state.conflictErrorMessage = null
     }
 
-    @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun saveOrganization() {
         scope.launch {
-            val responseFromCreationOrganization =
-                    post(
-                        "$apiUrl/organizations/save",
-                        jsonHeaders,
-                        Json.encodeToString(state.organizationDto),
-                        loadingHandler = ::classLoadingHandler,
-                        responseHandler = ::classComponentResponseHandlerWithValidation,
-                    )
+            val responseFromCreationOrganization = post(
+                "$apiUrl/organizations/save",
+                jsonHeaders,
+                Json.encodeToString(state.organizationDto),
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::classComponentResponseHandlerWithValidation,
+            )
             if (responseFromCreationOrganization.ok) {
                 window.location.href = "${window.location.origin}#/${state.organizationDto.name}/"
                 window.location.reload()
@@ -91,7 +90,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                 setState {
                     conflictErrorMessage = responseText
                 }
-            } else {
+            } else if (!responseFromCreationOrganization.isUnauthorized()) {
                 responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
                         isErrorWithOrganizationSave = true
@@ -138,7 +137,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mb-4")
                                     src = "img/company.svg"
                                     style = jso {
-                                        width = "40%".unsafeCast<Width>()
+                                        width = 8.rem
                                     }
                                 }
                                 form {
@@ -180,6 +179,13 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>(tr
                     }
                 }
             }
+        }
+    }
+    companion object : RStatics<Props, OrganizationSaveViewState, CreateOrganizationView, Context<RequestStatusContext?>>(
+        CreateOrganizationView::class
+    ) {
+        init {
+            CreateOrganizationView.contextType = requestStatusContext
         }
     }
 }

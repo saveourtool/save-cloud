@@ -13,21 +13,20 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.v1
 
-import csstype.ClassName
 import react.*
 import react.dom.aria.AriaRole
 import react.dom.aria.ariaLabel
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import web.cssom.ClassName
+import web.html.ButtonType
 
 import kotlin.js.json
 
@@ -79,7 +78,7 @@ fun ChildrenBuilder.showTestSuiteSourceUpsertModal(
                 "bottom" to "auto",
                 "position" to "absolute",
                 "overflow" to "hide",
-            ).unsafeCast<CssProperties>()
+            ).unsafeCast<CSSProperties>()
         )
         div {
             className = ClassName("d-flex justify-content-between")
@@ -184,11 +183,11 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             validInput = saveStatus != EntitySaveStatus.CONFLICT
             classes = "mb-2"
             formName = "Git Credentials"
-            getData = {
-                get(
+            getData = { context ->
+                context.get(
                     "$apiUrl/organizations/${props.organizationName}/list-git",
                     headers = jsonHeaders,
-                    loadingHandler = ::loadingHandler,
+                    loadingHandler = context::loadingHandler,
                 )
                     .unsafeMap {
                         it.decodeFromJsonString()
@@ -234,7 +233,7 @@ private fun testSuiteSourceUpsertComponent() = FC<TestSuiteSourceUpsertProps> { 
             className = ClassName("d-flex justify-content-center")
             button {
                 type = ButtonType.button
-                className = ClassName("btn btn-primary mt-2 mb-2")
+                className = ClassName("btn btn-outline-primary mt-2 mb-2")
                 disabled = !testSuiteSource.validate() || saveStatus != null
                 onClick = requestToUpsertEntity.withUnusedArg()
                 +"Submit"

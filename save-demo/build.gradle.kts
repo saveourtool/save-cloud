@@ -19,8 +19,8 @@ kotlin {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
@@ -30,7 +30,7 @@ dependencies {
     api(projects.saveCloudCommon)
     implementation(libs.save.common.jvm)
 
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
 
     api(libs.ktor.client.auth)
     implementation(libs.ktor.client.core)

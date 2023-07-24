@@ -5,12 +5,13 @@ package com.saveourtool.save.frontend.components.topbar
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
+import js.core.jso
 import react.*
 import react.dom.aria.*
 import react.dom.html.ReactHTML.a
@@ -21,22 +22,18 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.router.useNavigate
+import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 
-val topBarUserField = topBarUserField()
-
-/**
- * [Props] of the top bar user field component
- */
-external interface TopBarUserFieldProps : Props {
-    /**
-     * Currently logged in user or `null`.
-     */
-    var userInfo: UserInfo?
+@Suppress("MAGIC_NUMBER")
+val logoSize: CSSProperties = jso {
+    height = 2.5.rem
+    width = 2.5.rem
 }
 
 /**
@@ -48,12 +45,12 @@ external interface TopBarUserFieldProps : Props {
     "TOO_LONG_FUNCTION",
     "LOCAL_VARIABLE_EARLY_DECLARATION"
 )
-private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
+val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     val scope = CoroutineScope(Dispatchers.Default)
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useState(props.userInfo?.avatar?.let { "/api/$v1/avatar$it" })
+    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -69,9 +66,7 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
         // Nav Item - User Information
         li {
             className = ClassName("nav-item dropdown no-arrow")
-            onClickCapture = {
-                isAriaExpanded = !isAriaExpanded
-            }
+            onClickCapture = { isAriaExpanded = !isAriaExpanded }
             a {
                 href = "#"
                 className = ClassName("nav-link dropdown-toggle")
@@ -90,20 +85,23 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                             +(props.userInfo?.name.orEmpty())
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
-                        if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
-                            small {
-                                className = ClassName("text-gray-400 text-justify")
-                                +globalRole.formattedName
+                        small {
+                            className = ClassName("text-gray-400 text-justify")
+                            props.userInfo?.let {
+                                if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                                    +"Super user"
+                                } else {
+                                    +"User settings"
+                                }
                             }
                         }
                     }
-                    avatar?.let { avatar ->
+                    props.userInfo?.let { userInfo ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = avatar
-                            height = 45.0
-                            width = 45.0
+                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
+                            style = logoSize
                             onError = {
                                 setAvatar { AVATAR_PLACEHOLDER }
                             }
@@ -118,23 +116,34 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else ""}")
                 ariaLabelledBy = "userDropdown"
                 props.userInfo?.name?.let { name ->
+                    dropdownEntry(faUser, "Profile") { attrs ->
+                        attrs.onClick = {
+                            navigate(to = "/${FrontendRoutes.PROFILE}/$name")
+                        }
+                    }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL.path}")
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
                         }
                     }
                     dropdownEntry(
                         faCity,
-                        "My organizations"
+                        "Manage organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}")
+                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
-                }
-                dropdownEntry(faSignOutAlt, "Log out") { attrs ->
-                    attrs.onClick = {
-                        isLogoutModalOpen = true
+                    dropdownEntry(faSignOutAlt, "Log out") { attrs ->
+                        attrs.onClick = {
+                            isLogoutModalOpen = true
+                        }
+                    }
+                } ?: run {
+                    dropdownEntry(faSignInAlt, "Log in") { attrs ->
+                        attrs.onClick = {
+                            navigate(to = "/")
+                        }
                     }
                 }
             }
@@ -146,4 +155,14 @@ private fun topBarUserField() = FC<TopBarUserFieldProps> { props ->
     }() {
         isOpen = isLogoutModalOpen
     }
+}
+
+/**
+ * [Props] of the top bar user field component
+ */
+external interface TopBarUserFieldProps : Props {
+    /**
+     * Currently logged-in user or `null`.
+     */
+    var userInfo: UserInfo?
 }

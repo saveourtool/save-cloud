@@ -2,25 +2,79 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.SAVE_CLOUD_GITHUB_URL
+import com.saveourtool.save.frontend.utils.isIndex
+import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import csstype.Width
-import csstype.rem
-import history.Location
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
-import react.router.NavigateFunction
 import react.router.dom.Link
-import react.router.useLocation
-import react.router.useNavigate
+import remix.run.router.Location
+import web.cssom.ClassName
+import web.cssom.Width
+import web.cssom.rem
 
-val topBarLinks = topBarLinks()
+/**
+ * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],
+ * there is no need to highlight topbar element as we have `/#/demo` and `/#/project/.../demo`
+ */
+private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
+
+@Suppress("MAGIC_NUMBER")
+private val saveTopbarLinks = sequenceOf(
+    TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
+    TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", width = 3.rem, text = "CPG"),
+    TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
+    TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 10.rem, text = "Try SAVE format"),
+    TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 9.rem, text = "Projects board"),
+    TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
+    TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
+)
+
+@Suppress("MAGIC_NUMBER")
+private val vulnTopbarLinks = sequenceOf(
+    TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, width = 13.rem, text = "Propose vulnerability"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 8.rem, text = "Vulnerabilities"),
+    TopBarLink(hrefAnchor = FrontendRoutes.TOP_RATING.path, width = 7.rem, text = "Top Rating"),
+)
+
+/**
+ * Displays the static links that do not depend on the url.
+ */
+@Suppress("LongMethod", "TOO_LONG_FUNCTION")
+val topBarLinks: FC<TopBarLinksProps> = FC { props ->
+    ul {
+        className = ClassName("navbar-nav mx-auto")
+        when {
+            props.location.isVuln() -> vulnTopbarLinks
+            props.location.isIndex() -> vulnTopbarLinks
+            else -> saveTopbarLinks
+        }
+            .forEach { elem ->
+                li {
+                    className = ClassName("nav-item")
+                    if (elem.isExternalLink) {
+                        a {
+                            className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
+                            style = jso { width = elem.width }
+                            href = elem.hrefAnchor
+                            +elem.text
+                        }
+                    } else {
+                        Link {
+                            className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
+                            style = jso { width = elem.width }
+                            to = elem.hrefAnchor
+                            +elem.text
+                        }
+                    }
+                }
+            }
+    }
+}
 
 /**
  * [Props] of the top bar links component
@@ -45,65 +99,11 @@ data class TopBarLink(
     val isExternalLink: Boolean = false,
 )
 
-private fun ChildrenBuilder.demoDropdownEntry(
-    name: String,
-    href: String,
+private fun textColor(
+    hrefAnchor: String,
     location: Location,
-    navigate: NavigateFunction,
-    deactivateDropdown: () -> Unit,
-) {
-    dropdownEntry(null, name, location.pathname.endsWith(href)) { attrs ->
-        attrs.onClick = {
-            deactivateDropdown()
-            navigate(to = href)
-        }
-    }
+) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
+    "text-warning"
+} else {
+    "text-light"
 }
-
-/**
- * Displays the static links that do not depend on the url.
- */
-@Suppress("MAGIC_NUMBER", "LongMethod", "TOO_LONG_FUNCTION")
-private fun topBarLinks() = FC<TopBarLinksProps> { props ->
-    val navigate = useNavigate()
-    val location = useLocation()
-    var isDemoDropdownActive by useState(false)
-    val deactivateDropdown = { isDemoDropdownActive = false }
-
-    ul {
-        className = ClassName("navbar-nav mx-auto")
-        sequenceOf(
-            TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
-            TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO.path}/cpg", width = 3.rem, text = "CPG"),
-            TopBarLink(hrefAnchor = FrontendRoutes.FOSS_GRAPH.path, width = 7.rem, text = "FossGraph"),
-            TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 12.rem, text = "Awesome Benchmarks"),
-            TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 9.rem, text = "Try SAVE format"),
-            TopBarLink(hrefAnchor = SAVE_CLOUD_GITHUB_URL, width = 9.rem, text = "SAVE on GitHub", isExternalLink = true),
-            TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 8.rem, text = "Projects board"),
-            TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
-            TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
-        ).forEach { elem ->
-            li {
-                className = ClassName("nav-item")
-                if (elem.isExternalLink) {
-                    a {
-                        className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
-                        style = jso { width = elem.width }
-                        href = elem.hrefAnchor
-                        +elem.text
-                    }
-                } else {
-                    Link {
-                        className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
-                        style = jso { width = elem.width }
-                        to = elem.hrefAnchor
-                        +elem.text
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun textColor(hrefAnchor: String, location: Location) =
-        if (location.pathname.endsWith(hrefAnchor)) "text-warning" else "text-light"

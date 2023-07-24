@@ -7,14 +7,16 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
+import com.saveourtool.save.frontend.components.basic.fileuploader.FileDtosSetter
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 import com.saveourtool.save.frontend.utils.apiUrl
-import csstype.ClassName
+
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
 
 /**
  * Display file uploader of demo management card
@@ -30,7 +32,6 @@ import react.dom.html.ReactHTML.input
     "TOO_LONG_FUNCTION",
     "LongMethod",
     "TOO_MANY_PARAMETERS",
-    "TYPE_ALIAS",
     "LongParameterList"
 )
 internal fun ChildrenBuilder.renderFileUploading(
@@ -39,7 +40,7 @@ internal fun ChildrenBuilder.renderFileUploading(
     isDisabled: Boolean,
     githubProjectCoordinates: ProjectCoordinates,
     setGithubProjectCoordinates: StateSetter<ProjectCoordinates>,
-    setSelectedFileDtos: StateSetter<List<FileDto>>,
+    setSelectedFileDtos: FileDtosSetter,
 ) {
     div {
         className = ClassName("d-flex justify-content-between align-items-center")
@@ -92,22 +93,14 @@ internal fun ChildrenBuilder.renderFileUploading(
             className = ClassName("col pr-0")
             div {
                 simpleFileUploader {
-                    buttonLabel = " Upload files"
                     getUrlForAvailableFilesFetch = {
                         with(demoDto) { "$apiUrl/files/$projectCoordinates/list" }
                     }
-                    getUrlForDemoFilesFetch = {
+                    getUrlForSelectedFilesFetch = {
                         with(demoDto) { "$apiUrl/demo/$projectCoordinates/list-file" }
                     }
-                    getUrlForFileDeletion = {
-                        with(demoDto) { "$apiUrl/demo/$projectCoordinates/delete?fileId=${it.id}" }
-                    }
-                    getUrlForFileUpload = {
-                        with(demoDto) { "$apiUrl/files/$projectCoordinates/upload" }
-                    }
-                    updateFileDtos = { setSelectedFileDtos(it) }
+                    fileDtosSetter = setSelectedFileDtos
                     this.isDisabled = isDisabled
-                    uploadFilesButtonTooltip = "Executables / Configuration files / setup.sh"
                 }
             }
         }

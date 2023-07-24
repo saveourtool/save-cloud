@@ -1,6 +1,8 @@
 // Import Custom Variables (Overrides Default Bootstrap Variables)
 @import "variables.scss";
 
+@import "root.scss";
+
 // Import npm dependencies; path will be resolved relative to node_modules in rootProject.buildDir (kotlin js plugin adds `resolve` directive to webpack config)
 @import "bootstrap/scss/bootstrap.scss";
 
@@ -20,6 +22,7 @@
 @import "error.scss";
 @import "footer.scss";
 @import "team.scss";
+@import "glow.scss";
 
 
 // do not use name `.popover`, because it's used in popover library and it breaks position

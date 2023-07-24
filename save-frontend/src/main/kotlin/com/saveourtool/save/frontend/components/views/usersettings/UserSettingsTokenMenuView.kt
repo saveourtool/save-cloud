@@ -6,14 +6,14 @@ import com.saveourtool.save.frontend.utils.jsonHeaders
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.post
 
-import csstype.ClassName
 import kotlinext.js.assign
-import react.FC
-import react.dom.html.ButtonType
+import react.VFC
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.input
+import web.cssom.ClassName
+import web.html.ButtonType
 
 import kotlinx.coroutines.launch
 
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 class UserSettingsTokenMenuView : UserSettingsView() {
     private val tokenCard = cardComponent(isBordered = false, hasBg = true)
     @Suppress("TOO_LONG_FUNCTION")
-    override fun renderMenu(): FC<UserSettingsProps> = FC { props ->
+    override fun renderMenu(): VFC = VFC {
         tokenCard {
             div {
                 className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
@@ -35,7 +35,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
                 className = ClassName("row justify-content-center")
                 button {
                     type = ButtonType.button
-                    className = ClassName("btn btn-primary mb-2 mr-2")
+                    className = ClassName("btn btn-outline-primary mb-2 mr-2")
                     +"Generate new token"
                     onClick = {
                         generateToken()
@@ -45,7 +45,7 @@ class UserSettingsTokenMenuView : UserSettingsView() {
 
             state.token?.let {
                 div {
-                    className = ClassName("col-md-12 mt-3")
+                    className = ClassName("col-12 mt-3")
                     input {
                         value = state.token ?: ""
                         required = true

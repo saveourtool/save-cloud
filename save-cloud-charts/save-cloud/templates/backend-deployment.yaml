@@ -18,6 +18,7 @@ spec:
       annotations:
         {{- include "pod.common.annotations" (dict "service" .Values.backend ) | nindent 8 }}
     spec:
+      serviceAccountName: microservice-sa
       restartPolicy: Always
       {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
@@ -37,6 +38,7 @@ spec:
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - name: s3-secrets
               mountPath: {{ .Values.s3.secretFile }}
+            - {{ include "spring-boot.sa-token-mount" . | indent 14 | trim }}
           {{- include "spring-boot.management" .Values.backend | nindent 10 }}
           resources:
             limits:
@@ -111,3 +113,4 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: {}
+        - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.backend) | indent 10 | trim }}

@@ -2,27 +2,26 @@
 
 package com.saveourtool.save.frontend.components.basic.contests
 
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.showContestTestSuitesSelectorModal
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.inputTextDisabled
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.modal
-import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
+import web.cssom.ClassName
+import web.html.ButtonType
 
 import kotlin.js.json
 import kotlinx.datetime.*
@@ -80,7 +79,7 @@ fun ChildrenBuilder.showContestCreationModal(
                 "bottom" to "auto",
                 "position" to "absolute",
                 "overflow" to "hide"
-            ).unsafeCast<CssProperties>()
+            ).unsafeCast<CSSProperties>()
         )
         contestCreationComponent {
             this.organizationName = organizationName
@@ -100,11 +99,6 @@ fun ChildrenBuilder.showContestCreationModal(
         }
     }
 }
-
-private fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = LocalDateTime(
-    LocalDate.parse(this),
-    time,
-)
 
 /**
  * @param startTime
@@ -132,14 +126,14 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
 
     val onSaveButtonPressed = useDeferredRequest {
         val response = post(
-            "$apiUrl/${FrontendRoutes.CONTESTS.path}/create",
+            "$apiUrl/${FrontendRoutes.CONTESTS}/create",
             jsonHeaders,
             Json.encodeToString(contestDto),
             ::noopLoadingHandler,
             ::responseHandlerWithValidation
         )
         if (response.ok) {
-            props.onSaveSuccess("/${FrontendRoutes.CONTESTS.path}/${contestDto.name}")
+            props.onSaveSuccess("/${FrontendRoutes.CONTESTS}/${contestDto.name}")
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
         } else {
@@ -243,7 +237,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                 className = ClassName("mt-3 d-flex justify-content-center")
                 button {
                     type = ButtonType.button
-                    className = ClassName("btn btn-primary")
+                    className = ClassName("btn btn-outline-primary")
                     disabled = isButtonDisabled(contestDto) || conflictErrorMessage != null
                     onClick = { onSaveButtonPressed() }
                     +"Create contest"

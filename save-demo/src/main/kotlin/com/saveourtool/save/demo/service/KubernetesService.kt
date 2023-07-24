@@ -54,7 +54,7 @@ class KubernetesService(
      * @return [Mono] of [StringResponse] filled with readable message
      */
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
-    fun start(demo: Demo, version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
+    fun start(demo: Demo, @Suppress("UnusedParameter") version: String = "manual"): Mono<StringResponse> = Mono.fromCallable {
         logger.info("Creating job ${jobNameForDemo(demo)}...")
         try {
             val downloadAgentUrl = internalFileStorage.generateRequiredUrlToDownloadFromContainer(
@@ -78,7 +78,7 @@ class KubernetesService(
      */
     fun stop(demo: Demo): List<StatusDetails> {
         logger.info("Stopping job...")
-        return kc.getJobByName(demo).delete()
+        return kc.getJobByNameInNamespace(demo, kubernetesSettings.agentNamespace).delete()
     }
 
     /**
@@ -117,9 +117,9 @@ class KubernetesService(
 
     private fun createConfiguredJob(demo: Demo, downloadAgentUrl: String) {
         val job = getJobObjectForDemo(demo, downloadAgentUrl, kubernetesSettings, agentConfig)
-        val createdJob = kc.createResourceOrThrow(job)
+        val createdJob = kc.createResourceOrThrow(job, kubernetesSettings.agentNamespace)
         val service = getServiceObjectForDemo(demo, createdJob, kubernetesSettings)
-        kc.createResourceOrThrow(service)
+        kc.createResourceOrThrow(service, kubernetesSettings.agentNamespace)
     }
 
     /**
