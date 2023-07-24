@@ -1,6 +1,5 @@
 package com.saveourtool.save.gateway.service
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
@@ -68,15 +67,13 @@ class BackendService(
      * @param nameInSource
      * @return empty [Mono]
      */
-    fun createNewIfRequired(source: String, nameInSource: String): Mono<Void> {
-        return webClient.post()
-            .uri("/internal/users/new/$source/$nameInSource")
-            .contentType(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .onStatus({ it.is4xxClientError }) {
-                Mono.error(ResponseStatusException(it.statusCode()))
-            }
-            .toBodilessEntity()
-            .then()
-    }
+    fun createNewIfRequired(source: String, nameInSource: String): Mono<Void> = webClient.post()
+        .uri("/internal/users/new/$source/$nameInSource")
+        .contentType(MediaType.APPLICATION_JSON)
+        .retrieve()
+        .onStatus({ it.is4xxClientError }) {
+            Mono.error(ResponseStatusException(it.statusCode()))
+        }
+        .toBodilessEntity()
+        .then()
 }

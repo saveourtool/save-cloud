@@ -2,10 +2,10 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.domain.Role
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.User as SpringUser

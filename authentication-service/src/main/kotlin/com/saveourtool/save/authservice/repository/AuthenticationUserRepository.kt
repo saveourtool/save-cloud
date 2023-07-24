@@ -52,6 +52,7 @@ class AuthenticationUserRepository(
     }
 
     companion object {
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val logger = getLogger<AuthenticationUserRepository>()
     }
 }
