@@ -8829,6 +8829,36 @@
         ]
       }
     },
+    "/api/v1/users/delete/{userName}": {
+      "get": {
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/global-role": {
       "get": {
         "operationId": "getSelfGlobalRole",
@@ -9521,7 +9551,7 @@
     "/api/v1/vulnerabilities/delete-user": {
       "delete": {
         "description": "Delete user.",
-        "operationId": "deleteUser",
+        "operationId": "deleteUser_1",
         "requestBody": {
           "content": {
             "application/json": {

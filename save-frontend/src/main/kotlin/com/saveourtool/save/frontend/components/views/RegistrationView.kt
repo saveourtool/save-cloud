@@ -20,6 +20,7 @@ import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
 import js.core.jso
+import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -77,6 +78,19 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             window.location.reload()
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
+        }
+    }
+
+    val logOut = useDeferredRequest {
+        val replyToLogout = post(
+            "${window.location.origin}/logout",
+            Headers(),
+            "ping",
+            loadingHandler = ::loadingHandler,
+        )
+        if (replyToLogout.ok) {
+            window.location.href = "${window.location.origin}/#"
+            window.location.reload()
         }
     }
 
@@ -162,9 +176,15 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 buttonBuilder(
                                     "Sign up",
                                     "info",
-                                    classes = "mt-4",
+                                    classes = "mt-4 mr-4",
                                     isDisabled = !isTermsOfUseOk,
                                 ) { saveUser() }
+
+                                buttonBuilder(
+                                    "Log out",
+                                    "danger",
+                                    classes = "mt-4",
+                                ) { logOut() }
 
                                 conflictErrorMessage?.let {
                                     div {
