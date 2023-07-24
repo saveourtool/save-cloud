@@ -16,6 +16,8 @@ import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
+
 
 /**
  * Placeholder for organization avatar
@@ -49,10 +51,15 @@ fun ChildrenBuilder.renderAvatar(
     userInfo: UserInfo?,
     classes: String = "",
     link: String? = null,
-    styleBuilder: CSSProperties.() -> Unit = {},
+    styleBuilder: CSSProperties.() -> Unit,
 ) {
     val newLink = link?.takeIf { userInfo?.status != UserStatus.DELETED }
-    return renderAvatar(userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER, classes, newLink, styleBuilder)
+    return renderAvatar(
+        userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
+        classes,
+        newLink,
+        styleBuilder
+    )
 }
 
 /**
@@ -85,7 +92,7 @@ private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,
     classes: String,
     link: String?,
-    styleBuilder: CSSProperties.() -> Unit,
+    styleBuilder: CSSProperties.() -> Unit
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
         img {

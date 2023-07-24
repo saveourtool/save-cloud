@@ -8,12 +8,15 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
+import react.CSSProperties
 
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import web.cssom.ClassName
+import web.cssom.Length
+import web.cssom.rem
 
 /**
  * A functional component to display users' avatars.
@@ -27,7 +30,10 @@ val userBoard: FC<UserBoardProps> = FC { props ->
                 div {
                     className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
-                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}")
+                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}") {
+                            width = props.widthAndHeight ?: 4.rem
+                            height = props.widthAndHeight ?: 4.rem
+                        }
                     }
                 }
             }
@@ -53,4 +59,9 @@ external interface UserBoardProps : Props {
      * Classes that are applied to img tag
      */
     var avatarInnerClasses: String?
+
+    /**
+     * Size of avatar or any other properties
+     */
+    var widthAndHeight: Length?
 }
