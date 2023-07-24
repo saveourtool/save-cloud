@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -18,7 +19,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @SpringBootTest(classes = [SaveApplication::class])
 @AutoConfigureWebTestClient
 @ExtendWith(InfraExtension::class)
-
 class UsersDetailsControllerTest {
     @Autowired
     private lateinit var webClient: WebTestClient
@@ -34,7 +34,7 @@ class UsersDetailsControllerTest {
             name = "admin",
             email = "example@save.com",
             company = "Example",
-            isActive = true,
+            status = UserStatus.ACTIVE,
         )
 
         webClient.post()
@@ -57,7 +57,7 @@ class UsersDetailsControllerTest {
             oldName = "admin",
             email = "example@save.com",
             company = "Example",
-            isActive = true,
+            status = UserStatus.ACTIVE,
         )
 
         webClient.post()

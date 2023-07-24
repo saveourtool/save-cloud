@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faHistory
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.*
 
-import csstype.ClassName
 import js.core.jso
 import react.FC
 import react.Props
@@ -23,6 +22,7 @@ import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.textarea
 import react.useState
+import web.cssom.ClassName
 
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.*

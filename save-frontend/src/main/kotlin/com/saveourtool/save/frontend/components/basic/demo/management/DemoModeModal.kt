@@ -11,9 +11,10 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.modal.modalBuilder
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.utils.isNotNull
-import csstype.ClassName
+
 import react.*
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
 
 /**
  * Display modal for better run command management

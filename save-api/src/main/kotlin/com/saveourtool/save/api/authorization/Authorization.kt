@@ -3,10 +3,10 @@ package com.saveourtool.save.api.authorization
 /**
  * Authorization data
  *
- * @property userInformation user source and name, separated by `@`
+ * @property userInformation user name
  * @property token
  */
 data class Authorization(
     val userInformation: String,
-    val token: String? = null
+    val token: String,
 )

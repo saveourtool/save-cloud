@@ -9,6 +9,7 @@ import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.utils.optionalEnv
 import com.saveourtool.save.utils.requiredEnv
 import generated.SAVE_CLOUD_VERSION
 
@@ -26,6 +27,7 @@ import kotlinx.serialization.Serializable
  * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
  * @property save additional configuration for save-cli
+ * @property kubernetes a flag which shows that agent runs in k8s
  */
 @Serializable
 data class AgentConfiguration(
@@ -37,6 +39,7 @@ data class AgentConfiguration(
     val debug: Boolean = false,
     val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
+    val kubernetes: Boolean = false,
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
     companion object {
@@ -52,6 +55,7 @@ data class AgentConfiguration(
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL.name),
             ),
+            kubernetes = optionalEnv(AgentEnvName.KUBERNETES.name).toBoolean(),
         )
     }
 }

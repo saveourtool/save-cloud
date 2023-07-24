@@ -65,7 +65,6 @@ data class CpgGraph(
                     null
                 }
             }
-            // fixme: each and every edge is printed to be two-directed
             listOf(
                 CpgEdge(
                     newId,
@@ -105,12 +104,18 @@ data class CpgGraph(
          * @return generated graph with [numberOfNodes] nodes and [numberOfEdges] edges
          */
         fun randomGraph(numberOfNodes: Long, numberOfEdges: Long): CpgGraph = CpgGraph(
-            LongRange(0, numberOfNodes - 1).map { CpgNode("$it-node") },
+            LongRange(0, numberOfNodes - 1).map {
+                CpgNode(
+                    "$it-node",
+                    CpgNodeAttributes(label = "$it-node"),
+                )
+            },
             LongRange(0, numberOfEdges - 1).map {
                 CpgEdge(
                     "$it-edge",
                     "${Random.nextLong(0, numberOfNodes - 1)}-node",
                     "${Random.nextLong(0, numberOfNodes - 1)}-node",
+                    CpgEdgeAttributes(label = "$it-edge"),
                 )
             },
         )

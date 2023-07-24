@@ -4,11 +4,9 @@
 
 package com.saveourtool.save.frontend.components.tables
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.StateSetter
 import react.dom.aria.ariaDescribedBy
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
@@ -19,6 +17,8 @@ import react.dom.html.ReactHTML.select
 import tanstack.table.core.RowData
 import tanstack.table.core.Table
 import tanstack.table.core.Updater
+import web.cssom.ClassName
+import web.html.ButtonType
 import web.html.InputType
 
 /**
@@ -37,7 +37,7 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
         div {
             className = ClassName("input-group-sm input-group")
             select {
-                className = ClassName("form-control")
+                className = ClassName("form-control custom-select")
                 listOf("10", "25", "50", "100").forEach {
                     option {
                         className = ClassName("list-group-item")

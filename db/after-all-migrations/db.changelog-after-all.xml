@@ -6,7 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <include file="high-level-names-insert.xml" relativeToChangelogFile="true"/>
-    <include file="original-login-insert.xml" relativeToChangelogFile="true"/>
     <include file="clearing-tables.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="after-all-migrations" author="sanyavertolet">

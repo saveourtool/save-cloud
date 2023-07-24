@@ -2,9 +2,16 @@
 
 package com.saveourtool.save.frontend.components.modal
 
-import com.saveourtool.save.frontend.externals.modal.CssProperties
 import com.saveourtool.save.frontend.externals.modal.Styles
+import react.CSSProperties
 import kotlin.js.json
+
+/**
+ * Maximum zIndex in the project, should be only used in modal windows
+ */
+internal const val MAX_Z_INDEX = 1000
+
+private val defaultOverlayProperties: CSSProperties = json("zIndex" to MAX_Z_INDEX.toString()).unsafeCast<CSSProperties>()
 
 val defaultModalStyle = Styles(
     // make modal window occupy center of the screen
@@ -14,7 +21,8 @@ val defaultModalStyle = Styles(
         "right" to "35%",
         "bottom" to "auto",
         "overflow" to "hide"
-    ).unsafeCast<CssProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val smallTransparentModalStyle = Styles(
@@ -26,7 +34,8 @@ val smallTransparentModalStyle = Styles(
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CssProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val mediumTransparentModalStyle = Styles(
@@ -38,7 +47,8 @@ val mediumTransparentModalStyle = Styles(
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CssProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val largeTransparentModalStyle = Styles(
@@ -50,7 +60,8 @@ val largeTransparentModalStyle = Styles(
         "overflow" to "hide",
         "backgroundColor" to "transparent",
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CssProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )
 
 val loaderModalStyle = Styles(
@@ -63,5 +74,6 @@ val loaderModalStyle = Styles(
         "backgroundColor" to "transparent",
         // small hack to remove modal border and make loader prettier
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
-    ).unsafeCast<CssProperties>()
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
 )

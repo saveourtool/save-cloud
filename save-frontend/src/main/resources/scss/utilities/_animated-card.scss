@@ -79,3 +79,50 @@
 .bordered-div:hover  {
   border-color: #5cb85c;
 }
+
+.btn-hov {
+  cursor: pointer;
+  position: relative;
+  border: solid #777 0;
+  color: $blue;
+  z-index: 1;
+  transition: all 0.3s ease-in-out;
+  border-radius: 0;
+  background: transparent;
+}
+
+.btn-hov:before {
+  content: "";
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #b7d7f7;
+  transform: scale(0);
+  transition: 0.3s ease-in-out;
+  z-index: -1;
+}
+
+.btn-hov:hover:before {
+  transform: scale(1);
+}
+
+.btn-hov:hover {
+  color: #224abe;
+  border-color: #b7d7f7;
+}
+
+.btn-hov:active:before {
+  background-color: #a7c7e7;
+}
+
+.btn-hov:active {
+  border-color: #a7c7e7;
+  color: #224abe;
+  background-color: #a7c7e7;
+}
+
+.btn-hov:focus {
+  outline: none
+}

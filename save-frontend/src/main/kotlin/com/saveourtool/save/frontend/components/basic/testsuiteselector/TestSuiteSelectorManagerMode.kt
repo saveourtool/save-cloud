@@ -10,11 +10,11 @@ import com.saveourtool.save.frontend.components.basic.showAvailableTestSuites
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
-import csstype.ClassName
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h6
 import react.useState
+import web.cssom.ClassName
 
 val testSuiteSelectorManagerMode = testSuiteSelectorManagerMode()
 

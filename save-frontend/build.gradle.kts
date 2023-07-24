@@ -37,7 +37,7 @@ dependencies {
 }
 
 kotlin {
-    js(LEGACY) {
+    js(IR) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
             testTask {
@@ -57,10 +57,16 @@ kotlin {
                 }
             }
         }
+        // kotlin-wrapper migrates to commonjs and missed @JsNonModule annotations
+        // https://github.com/JetBrains/kotlin-wrappers/issues/1935
+        useCommonJs()
         binaries.executable()  // already default for LEGACY, but explicitly needed for IR
         sourceSets.all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.apply {
+                optIn("kotlin.RequiresOptIn")
+                optIn("kotlinx.serialization.ExperimentalSerializationApi")
+                optIn("kotlin.js.ExperimentalJsExport")
+            }
         }
         sourceSets["main"].dependencies {
             compileOnly(devNpm("sass", "^1.43.0"))
@@ -116,6 +122,8 @@ kotlin {
             implementation(npm("@react-sigma/layout-random", "^3.1.0"))
             implementation(npm("@react-sigma/layout-circular", "^3.1.0"))
             implementation(npm("@react-sigma/layout-forceatlas2", "^3.1.0"))
+            implementation(npm("react-graph-viz-engine", "^0.1.0"))
+            implementation(npm("cytoscape", "^3.25.0"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))

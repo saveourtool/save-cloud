@@ -9,10 +9,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.organizations.organizationContestsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationTestsMenu
-import com.saveourtool.save.frontend.components.basic.organizations.organizationToolsMenu
+import com.saveourtool.save.frontend.components.basic.organizations.*
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
@@ -25,12 +22,9 @@ import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.v1
 
-import csstype.*
-import history.Location
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -42,6 +36,9 @@ import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.textarea
+import remix.run.router.Location
+import web.cssom.*
+import web.html.ButtonType
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -157,7 +154,7 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
 /**
  * A Component for owner view
  */
-class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(false) {
+class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(Style.SAVE_LIGHT) {
     init {
         state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
@@ -208,7 +205,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: "img/undraw_profile.svg"
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
@@ -231,9 +228,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
             OrganizationMenuBar.TOOLS -> renderTools()
-            OrganizationMenuBar.TESTS -> renderTests()
+            OrganizationMenuBar.BENCHMARKS -> renderBenchmarks()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
+            OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
         }
     }
 
@@ -274,7 +272,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             className = ClassName("row justify-content-center")
 
             div {
-                className = ClassName("col-3 mb-4")
+                className = ClassName("col-4 mb-4")
                 div {
                     className = ClassName("card shadow mb-4")
                     div {
@@ -340,9 +338,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
 
             div {
-                className = ClassName("col-3")
+                className = ClassName("col-2")
                 userBoard {
                     users = state.usersInOrganization.orEmpty()
+                    avatarOuterClasses = "col-4 px-0"
+                    avatarInnerClasses = "mx-sm-3"
+                    widthAndHeight = 6.rem
                 }
             }
         }
@@ -387,7 +388,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun ChildrenBuilder.renderTests() {
+    private fun ChildrenBuilder.renderBenchmarks() {
         organizationTestsMenu {
             organizationName = props.organizationName
             selfRole = state.selfRole
@@ -408,10 +409,16 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun ChildrenBuilder.renderVulnerabilities() {
+        organizationVulnerabilitiesTab {
+            organizationName = props.organizationName
+        }
+    }
+
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Undefined")
             selfRole = state.selfRole
             updateErrorMessage = { response, message ->
                 setState {
@@ -488,7 +495,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 scoreCard {
                     name = it.name
                     contestScore = it.contestRating
-                    url = "#/${props.organizationName}/${it.name}"
+                    url = "/${props.organizationName}/${it.name}"
                 }
             }
         }
@@ -530,11 +537,13 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     img {
                         className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                         src = state.avatar
-                        height = 100.0
-                        width = 100.0
+                        style = jso {
+                            height = "10rem".unsafeCast<Height>()
+                            width = "10rem".unsafeCast<Width>()
+                        }
                         onError = {
                             setState {
-                                avatar = AVATAR_PLACEHOLDER
+                                avatar = ORGANIZATION_AVATAR_PLACEHOLDER
                             }
                         }
                     }
@@ -590,7 +599,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     companion object :
-        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext>>(
+        RStatics<OrganizationProps, OrganizationViewState, OrganizationView, Context<RequestStatusContext?>>(
         OrganizationView::class
     ) {
         private const val AVATAR_TITLE = "Change organization's avatar"

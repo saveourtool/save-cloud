@@ -15,7 +15,7 @@ spec:
         # Allow traffic to save-demo
         - namespaceSelector:
             matchLabels:
-              name: save-cloud
+              name: {{ .Values.namespace }}
         - podSelector:
             matchLabels:
               io.kompose.service: demo

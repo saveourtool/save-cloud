@@ -36,9 +36,6 @@ import kotlinx.coroutines.flow.map
 
 private const val DEFAULT_PART_SIZE: Long = 5 * 1024 * 1024
 
-@Suppress("WRONG_WHITESPACE")
-private val logger = getLogger({}.javaClass)
-
 /**
  * @param status
  * @param messageCreator
@@ -260,6 +257,36 @@ fun ByteReadChannel.toByteArrayFlow(partSize: Long = DEFAULT_PART_SIZE): Flow<By
             emit(bytes)
         }
     }
+}
+
+/**
+ * @param status [HttpStatus] that the [ResponseStatusException] should have
+ * @param messageCreator lazy error message
+ * @return [Mono] filled with [ResponseStatusException] with [status] and message created with [messageCreator]
+ */
+fun <T> Mono<T>.switchIfErrorToResponseException(
+    status: HttpStatus,
+    messageCreator: () -> String? = { null },
+) = onErrorMap { _ -> ResponseStatusException(status, messageCreator()) }
+
+/**
+ * @param messageCreator lazy error message
+ * @return [Mono] filled with [ResponseStatusException] with [HttpStatus.CONFLICT] status and message created with [messageCreator]
+ */
+fun <T> Mono<T>.switchIfErrorToConflict(
+    messageCreator: () -> String? = { null },
+) = switchIfErrorToResponseException(HttpStatus.CONFLICT, messageCreator)
+
+/**
+ * @param function blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [R]
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
+ */
+fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R): Mono<R> = flatMap { value ->
+    blockingToMono { function(value) }
 }
 
 /**

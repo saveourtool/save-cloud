@@ -2,8 +2,8 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
 import com.saveourtool.save.frontend.externals.fontawesome.faHistory
@@ -12,14 +12,15 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
+import web.cssom.ClassName
+import web.cssom.rem
+import web.html.ButtonType
 
 import kotlinx.browser.window
 
@@ -110,8 +111,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                     .forEach {
                         li {
                             className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0 mb-3")
-                            a {
-                                href = "#/${FrontendRoutes.CONTESTS.path}/${it.contestName}"
+                            Link {
+                                to = "/${FrontendRoutes.CONTESTS}/${it.contestName}"
                                 className = ClassName("stretched-link")
                             }
                             scoreCard {
@@ -124,13 +125,16 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         }
 
         div {
-            className = ClassName("col-4")
+            className = ClassName("col-3 mr-3")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Members"
             }
             userBoard {
                 users = usersInProject
+                avatarOuterClasses = "col-4 px-0"
+                avatarInnerClasses = "mx-sm-3"
+                widthAndHeight = 7.rem
             }
         }
 
@@ -162,8 +166,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 div {
                     className = ClassName("ml-3 align-items-left")
                     fontAwesomeIcon(icon = faCalendarAlt)
-                    a {
-                        href = "#/${props.organizationName}/${props.projectName}/history"
+                    Link {
+                        to = "/${props.organizationName}/${props.projectName}/history"
                         className = ClassName("btn btn-link text-left")
                         +"Execution History"
                     }

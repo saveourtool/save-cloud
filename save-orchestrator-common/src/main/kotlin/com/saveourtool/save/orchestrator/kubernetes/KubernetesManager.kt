@@ -87,7 +87,9 @@ class KubernetesManager(
         }
         logger.debug { "Attempt to create Job from the following spec: $job" }
         try {
-            kc.resource(job)
+            kc
+                .resource(job)
+                .inNamespace(kubernetesSettings.agentNamespace)
                 .create()
             logger.info("Created Job for execution id=$executionId")
         } catch (kex: KubernetesClientException) {
@@ -98,7 +100,11 @@ class KubernetesManager(
     override fun cleanupAllByExecution(executionId: Long) {
         logger.debug { "Removing a job for execution id=$executionId" }
         val jobName = jobNameForExecution(executionId)
-        val job = kcJobsWithName(jobName)
+        val job = kc.batch()
+            .v1()
+            .jobs()
+            .inNamespace(kubernetesSettings.agentNamespace)
+            .withName(jobName)
         job.get()?.let {
             val deletedResources = job.delete()
             val isDeleted = deletedResources.size == 1
@@ -110,18 +116,21 @@ class KubernetesManager(
             logger.warn { "Failed to delete job with name $jobName: there is no such job" }
             return
         }
-        logger.debug("Cleanup job for execution id=$executionId")
+        logger.debug { "Cleanup job for execution id=$executionId" }
     }
 
     override fun isStopped(containerId: String): Boolean {
-        val pod = kc.pods().withName(containerId).get()
+        val pod = kc.pods()
+            .inNamespace(kubernetesSettings.agentNamespace)
+            .withName(containerId)
+            .get()
         return pod == null || run {
             // Retrieve reason based on https://github.com/kubernetes/kubernetes/issues/22839
             val reason = pod.status.phase ?: pod.status.reason
             val isRunning = pod.status.containerStatuses.any {
                 it.ready && it.state.running != null
             }
-            logger.debug("Pod name=$containerId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}")
+            logger.debug { "Pod name=$containerId is still present; reason=$reason, isRunning=$isRunning, conditions=${pod.status.conditions}" }
             if (reason == "Completed" && isRunning) {
                 "ContainerReady" in pod.status.conditions.map { it.type }
             } else {
@@ -146,7 +155,7 @@ class KubernetesManager(
         imagePullPolicy = "IfNotPresent"  // so that local images could be used
 
         val staticEnvs = env.mapToEnvs()
-        this.env = staticEnvs + containerIdEnv
+        this.env = staticEnvs + containerIdEnv + kubernetesEnv
 
         this.command = agentRunCmd.dropLast(1)
         this.args = listOf(agentRunCmd.last())
@@ -167,18 +176,6 @@ class KubernetesManager(
         }
     }
 
-    private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = map { (envName, envValue) ->
-        EnvVar().apply {
-            name = envName.name
-            value = envValue.toString()
-        }
-    }
-
-    private fun kcJobsWithName(name: String) = kc.batch()
-        .v1()
-        .jobs()
-        .withName(name)
-
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
         private const val EXECUTION_ID_LABEL = "executionId"
@@ -194,5 +191,13 @@ class KubernetesManager(
                     }
                 }
             }
+        private val kubernetesEnv: EnvVar = AgentEnvName.KUBERNETES.toEnv(true)
+
+        private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = entries.map { (key, value) -> key.toEnv(value) }
+
+        private fun AgentEnvName.toEnv(value: Any): EnvVar = EnvVar().apply {
+            this.name = this@toEnv.name
+            this.value = value.toString()
+        }
     }
 }

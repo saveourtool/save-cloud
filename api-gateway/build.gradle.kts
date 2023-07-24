@@ -12,4 +12,13 @@ dependencies {
     implementation(libs.spring.cloud.starter.kubernetes.fabric8.config)
     implementation(libs.spring.security.core)
     implementation(projects.authenticationService)
+
+    // FixMe: we officially bring serialization CVE to our project
+    // easy way to hack us during the deserialization:
+    // https://github.com/advisories/GHSA-mjmj-j48q-9wg2
+    implementation("org.yaml:snakeyaml") {
+        version {
+            strictly("1.33")
+        }
+    }
 }

@@ -7,12 +7,12 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.ContestResult
 import com.saveourtool.save.entities.LnkContestProject
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
@@ -111,7 +111,7 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
-        lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).filter { it.public }
+        lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId()).filter { it.public }
     }
         .map { userProjects ->
             userProjects to lnkContestProjectService.getProjectsFromListAndContest(contestName, userProjects).map { it.project }
@@ -136,7 +136,6 @@ class LnkContestProjectController(
     fun getAvailableContestsForProject(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        authentication: Authentication,
     ): Mono<List<String>> = Mono.fromCallable {
         lnkContestProjectService.getByProjectNameAndOrganizationName(projectName, organizationName, MAX_AMOUNT)
             .mapNotNull { it.contest.id }
@@ -168,7 +167,6 @@ class LnkContestProjectController(
         @PathVariable contestName: String,
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
-        authentication: Authentication,
     ): Flux<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMapIterable { (contest, project) ->
             lnkContestExecutionService.getPageExecutionsByContestAndProject(
@@ -200,7 +198,6 @@ class LnkContestProjectController(
         @PathVariable organizationName: String,
         @PathVariable projectName: String,
         @PathVariable contestName: String,
-        authentication: Authentication
     ): Mono<ExecutionDto> = getContestAndProject(contestName, organizationName, projectName)
         .flatMap { (contest, project) ->
             lnkContestExecutionService.getLatestExecutionByContestAndProject(contest, project).toMono()
@@ -298,7 +295,7 @@ class LnkContestProjectController(
             "Contest with name $contestName was not found."
         }
         .map { contest ->
-            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses((authentication.details as AuthenticationDetails).id).map { it.requiredId() }
+            contest to lnkUserProjectService.getProjectsByUserIdAndStatuses(authentication.userId()).map { it.requiredId() }
         }
         .flatMapMany { (contest, projectIds) ->
             blockingToFlux {

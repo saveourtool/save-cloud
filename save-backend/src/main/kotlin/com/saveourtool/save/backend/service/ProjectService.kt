@@ -26,12 +26,10 @@ import java.util.*
  * @property projectRepository
  */
 @Service
-@OptIn(ExperimentalStdlibApi::class)
 class ProjectService(
     private val projectRepository: ProjectRepository,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
-
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
 ) {
     /**
      * Store [project] in the database

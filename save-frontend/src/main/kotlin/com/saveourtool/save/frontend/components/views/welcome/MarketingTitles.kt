@@ -6,21 +6,21 @@ package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.faChevronDown
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import csstype.*
-import js.core.jso
 
+import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
+import web.cssom.*
 
 /**
  * @param textColor
  * @param isDark
  */
-fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
+fun ChildrenBuilder.saveWelcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
     div {
-        className = ClassName("col-lg-4 ml-auto mt-3 mb-5 mr-5 ml-0 $textColor")
+        className = ClassName("col-4 text-left mt-5 $textColor")
         marketingTitle("Software", isDark)
         marketingTitle("Analysis", isDark)
         marketingTitle("Verification &", isDark)
@@ -33,6 +33,30 @@ fun ChildrenBuilder.welcomeMarketingTitle(textColor: String, isDark: Boolean = f
             }
             className = ClassName("mt-4")
             +"Advanced open-source cloud eco-system for continuous integration, evaluation and benchmarking of software tools."
+        }
+    }
+}
+
+/**
+ * @param textColor
+ * @param isDark
+ */
+fun ChildrenBuilder.vulnWelcomeMarketingTitle(textColor: String, isDark: Boolean = false) {
+    div {
+        className = ClassName("col-4 text-left mt-5 mx-5 $textColor")
+        marketingTitle("Vulnerability", isDark)
+        marketingTitle("Database", isDark)
+        marketingTitle(" and", isDark)
+        marketingTitle("Benchmark", isDark)
+        marketingTitle("Archive", isDark)
+        h3 {
+            if (isDark) {
+                style = jso {
+                    color = "rgb(6, 7, 89)".unsafeCast<Color>()
+                }
+            }
+            className = ClassName("mt-4")
+            +"A huge storage of known vulnerabilities."
         }
     }
 }
@@ -60,9 +84,9 @@ fun ChildrenBuilder.marketingTitle(str: String, isDark: Boolean) {
 @Suppress("MAGIC_NUMBER")
 fun ChildrenBuilder.chevron(col: String) {
     div {
-        className = ClassName("row justify-content-center")
+        className = ClassName("mt-5 row justify-content-center")
         h1 {
-            className = ClassName("animate__animated animate__pulse animate__infinite")
+            className = ClassName("mt-5 animate__animated animate__pulse animate__infinite")
             style = jso {
                 fontSize = 5.rem
                 color = col.unsafeCast<Color>()

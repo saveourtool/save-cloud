@@ -2,29 +2,26 @@
  * A view for registration
  */
 
-@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport")
+@file:Suppress("FILE_WILDCARD_IMPORTS", "WildcardImport", "FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 
-import csstype.ClassName
-import csstype.rem
 import js.core.asList
 import js.core.jso
+import org.w3c.fetch.Headers
 import react.*
-import react.dom.events.ChangeEvent
-import react.dom.html.ButtonType
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
@@ -33,128 +30,168 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
-import web.html.HTMLInputElement
+import react.router.dom.Link
+import react.router.useNavigate
+import web.cssom.ClassName
+import web.cssom.ZIndex
+import web.cssom.rem
+import web.file.File
 import web.html.InputType
+import web.window.WindowTarget
 
 import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-/**
- * `Props` retrieved from router
- */
-external interface RegistrationProps : PropsWithChildren {
-    /**
-     * Currently logged in user or null
-     */
-    var userInfo: UserInfo?
-}
-
-/**
- * [State] of registration view component
- */
-external interface RegistrationViewState : State {
-    /**
-     * Conflict error message
-     */
-    var conflictErrorMessage: String?
-
-    /**
-     * Validation of input fields
-     */
-    var isValidUserName: Boolean?
-
-    /**
-     * Map for input fields
-     */
-    var fieldsMap: MutableMap<InputTypes, String>
-}
 
 /**
  * A Component for registration view
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>() {
-    init {
-        state.isValidUserName = true
-        state.fieldsMap = mutableMapOf()
+val registrationView: FC<RegistrationProps> = FC { props ->
+    useBackground(Style.INDEX)
+    particles()
+    val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
+    val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
+    val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(name = "")) { userInfo ->
+        // weed to process user names, as some authorization providers pass emails instead of names
+        val atIndex = userInfo.name.indexOf('@')
+        val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
+        userInfo.copy(name = processedName)
     }
 
-    override fun componentDidMount() {
-        super.componentDidMount()
-        setState {
-            props.userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
-        }
-    }
+    val navigate = useNavigate()
 
-    override fun componentDidUpdate(prevProps: RegistrationProps, prevState: RegistrationViewState, snapshot: Any) {
-        if (props.userInfo != prevProps.userInfo) {
-            setState {
-                props.userInfo?.name?.let { fieldsMap[InputTypes.USER_NAME] = it }
-            }
-        }
-    }
-    private fun changeFields(
-        fieldName: InputTypes,
-        target: ChangeEvent<HTMLInputElement>,
-    ) {
-        val tg = target.target
-        setState {
-            fieldsMap[fieldName] = tg.value
-        }
-    }
-
-    private fun saveUser() {
-        val newUserInfo = props.userInfo?.copy(
-            name = state.fieldsMap[InputTypes.USER_NAME]?.trim() ?: props.userInfo!!.name,
-            oldName = props.userInfo!!.name,
-            isActive = true,
+    val saveUser = useDeferredRequest {
+        val newUserInfo = userInfo.copy(
+            oldName = props.userInfo?.name!!,
+            status = UserStatus.ACTIVE,
         )
-
-        scope.launch {
-            val response = post(
-                "$apiUrl/users/save",
-                jsonHeaders,
-                Json.encodeToString(newUserInfo),
-                loadingHandler = ::classLoadingHandler,
-                responseHandler = ::classComponentResponseHandlerWithValidation,
-            )
-            if (response.ok) {
-                window.location.href = "#/${FrontendRoutes.PROJECTS.path}"
-                window.location.reload()
-            } else if (response.isConflict()) {
-                val responseText = response.unpackMessage()
-                setState {
-                    conflictErrorMessage = responseText
-                }
-            }
+        val response = post(
+            "$apiUrl/users/save",
+            jsonHeaders,
+            Json.encodeToString(newUserInfo),
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::responseHandlerWithValidation,
+        )
+        if (response.ok) {
+            window.location.reload()
+        } else if (response.isConflict()) {
+            setConflictErrorMessage(response.unpackMessage())
         }
     }
 
-    @Suppress(
-        "EMPTY_BLOCK_STRUCTURE_ERROR",
-    )
-    override fun ChildrenBuilder.render() {
-        main {
-            className = ClassName("main-content mt-0 ps")
+    val logOut = useDeferredRequest {
+        val replyToLogout = post(
+            "${window.location.origin}/logout",
+            Headers(),
+            "ping",
+            loadingHandler = ::loadingHandler,
+        )
+        if (replyToLogout.ok) {
+            window.location.href = "${window.location.origin}/#"
+            window.location.reload()
+        }
+    }
+
+    val (newAvatar, setNewAvatar) = useState<File?>(null)
+    useRequest(dependencies = arrayOf(newAvatar)) {
+        newAvatar?.let { avatar ->
+            postImageUpload(
+                avatar,
+                props.userInfo?.name!!,
+                AvatarType.USER,
+                loadingHandler = ::noopLoadingHandler,
+            )
+        }
+    }
+
+    if (props.userInfo?.status == UserStatus.ACTIVE) {
+        navigate("/", jso { replace = true })
+    }
+
+    main {
+        className = ClassName("main-content mt-0 ps")
+        div {
+            className = ClassName("page-header align-items-start min-vh-100")
+            span {
+                className = ClassName("mask bg-gradient-dark opacity-6")
+            }
             div {
-                className = ClassName("page-header align-items-start min-vh-100")
-                span {
-                    className = ClassName("mask bg-gradient-dark opacity-6")
-                }
+                className = ClassName("row justify-content-center")
                 div {
-                    className = ClassName("row justify-content-center")
+                    className = ClassName("col-sm-4")
                     div {
-                        className = ClassName("col-sm-4")
+                        className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
+                        style = jso {
+                            zIndex = (MAX_Z_INDEX - 1).unsafeCast<ZIndex>()
+                        }
                         div {
-                            className = ClassName("container card o-hidden border-0 shadow-lg my-2 card-body p-0")
-                            div {
-                                className = ClassName("p-5 text-center")
-                                renderTitle()
-                                renderAvatar()
-                                renderInputForm()
+                            className = ClassName("p-5 text-center")
+
+                            h1 {
+                                className = ClassName("h4 text-gray-900 mb-4")
+                                +"Set your user name and avatar"
+                            }
+
+                            renderAvatar(props.userInfo?.avatar) { setNewAvatar(it) }
+
+                            form {
+                                div {
+                                    inputTextFormRequired {
+                                        form = InputTypes.USER_NAME
+                                        textValue = userInfo.name
+                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName()
+                                        classes = ""
+                                        name = "User name"
+                                        conflictMessage = conflictErrorMessage
+                                        onChangeFun = { event ->
+                                            setUserInfo { previousUserInfo -> previousUserInfo.copy(name = event.target.value) }
+                                            setConflictErrorMessage(null)
+                                        }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("mt-2 form-check")
+                                    input {
+                                        className = ClassName("form-check-input")
+                                        type = "checkbox".unsafeCast<InputType>()
+                                        value = ""
+                                        id = "terms-of-use"
+                                        onChange = { setIsTermsOfUseOk(it.target.checked) }
+                                    }
+                                    label {
+                                        className = ClassName("form-check-label")
+                                        htmlFor = "terms-of-use"
+                                        +" I agree with "
+                                        Link {
+                                            to = "/terms-of-use"
+                                            target = "_blank".unsafeCast<WindowTarget>()
+                                            +"terms of use"
+                                        }
+                                    }
+                                }
+
+                                buttonBuilder(
+                                    "Sign up",
+                                    "info",
+                                    classes = "mt-4 mr-4",
+                                    isDisabled = !isTermsOfUseOk,
+                                ) { saveUser() }
+
+                                buttonBuilder(
+                                    "Log out",
+                                    "danger",
+                                    classes = "mt-4",
+                                ) { logOut() }
+
+                                conflictErrorMessage?.let {
+                                    div {
+                                        className = ClassName("invalid-feedback d-block")
+                                        +it
+                                    }
+                                }
                             }
                         }
                     }
@@ -162,82 +199,38 @@ class RegistrationView : AbstractView<RegistrationProps, RegistrationViewState>(
             }
         }
     }
+}
 
-    private fun ChildrenBuilder.renderTitle() {
-        h1 {
-            className = ClassName("h4 text-gray-900 mb-4")
-            +"Set your user name and avatar"
-        }
-    }
+/**
+ * `Props` retrieved from router
+ */
+external interface RegistrationProps : PropsWithChildren {
+    /**
+     * Currently logged-in user or null
+     */
+    var userInfo: UserInfo?
+}
 
-    @Suppress(
-        "MAGIC_NUMBER",
-    )
-    private fun ChildrenBuilder.renderAvatar() {
-        label {
-            className = ClassName("btn")
-            title = "Change the user's avatar"
-            input {
-                type = InputType.file
-                hidden = true
-                onChange = { event ->
-                    scope.launch {
-                        event.target.files!!.asList().single().let { file ->
-                            postImageUpload(file, props.userInfo?.name!!, AvatarType.USER, ::classLoadingHandler)
-                        }
-                    }
-                }
-            }
-            img {
-                className =
-                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                src = props.userInfo?.avatar?.let {
-                    "/api/$v1/avatar$it"
-                }
-                    ?: "img/undraw_profile.svg"
-                style = jso {
-                    height = 16.rem
-                    width = 16.rem
-                }
+@Suppress("MAGIC_NUMBER")
+private fun ChildrenBuilder.renderAvatar(avatar: String?, onAvatarUpload: (File) -> Unit) {
+    label {
+        className = ClassName("btn")
+        title = "Change the user's avatar"
+        input {
+            type = InputType.file
+            hidden = true
+            onChange = { event ->
+                val file = event.target.files!!.asList()
+                    .single()
+                onAvatarUpload(file)
             }
         }
-    }
-
-    @Suppress(
-        "PARAMETER_NAME_IN_OUTER_LAMBDA",
-    )
-    private fun ChildrenBuilder.renderInputForm() {
-        form {
-            val input = state.fieldsMap[InputTypes.USER_NAME] ?: ""
-            div {
-                inputTextFormRequired {
-                    form = InputTypes.USER_NAME
-                    textValue = input
-                    validInput = input.isEmpty() || input.isValidName()
-                    classes = ""
-                    name = "User name"
-                    conflictMessage = state.conflictErrorMessage
-                    onChangeFun = {
-                        changeFields(InputTypes.USER_NAME, it)
-                        setState {
-                            conflictErrorMessage = null
-                        }
-                    }
-                }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-info mt-4 mr-3")
-                +"Registration"
-                onClick = {
-                    saveUser()
-                }
-            }
-            state.conflictErrorMessage?.let {
-                div {
-                    className = ClassName("invalid-feedback d-block")
-                    +it
-                }
+        img {
+            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+            src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+            style = jso {
+                height = 16.rem
+                width = 16.rem
             }
         }
     }

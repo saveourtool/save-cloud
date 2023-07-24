@@ -18,11 +18,11 @@ import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -41,7 +41,7 @@ enum class ProjectListTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ProjectListTab = PUBLIC
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)")
+        override val regexForUrlClassification = "/${FrontendRoutes.PROJECTS}/($postfixInRegex)"
         override fun valueOf(elem: String): ProjectListTab = ProjectListTab.valueOf(elem)
         override fun values(): Array<ProjectListTab> = ProjectListTab.values()
     }
@@ -125,14 +125,12 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
                 }
             }
         },
-        isTransparentGrid = true,
         initialPageSize = 10,
         useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = {
-            arrayOf(it.filters)
-        },
-    )
+        isTransparentGrid = true,
+    ) {
+        arrayOf(it.filters)
+    }
 
     init {
         state.selectedMenu = ProjectListTab.defaultTab
@@ -146,10 +144,12 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         "LongMethod",
     )
     override fun ChildrenBuilder.render() {
+        particles()
+
         div {
-            className = ClassName("row justify-content-center")
+            className = ClassName("row text-gray-800 justify-content-center")
             div {
-                className = ClassName("col-lg-10 mt-4 min-vh-100")
+                className = ClassName("col-10 mt-4 min-vh-100")
                 div {
                     className = ClassName("row mb-2")
                     topLeftCard()
@@ -200,7 +200,7 @@ class CollectionView : AbstractView<CollectionViewProps, CollectionViewState>() 
         }
     }
 
-    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext>>(CollectionView::class) {
+    companion object : RStatics<CollectionViewProps, CollectionViewState, CollectionView, Context<RequestStatusContext?>>(CollectionView::class) {
         init {
             contextType = requestStatusContext
         }

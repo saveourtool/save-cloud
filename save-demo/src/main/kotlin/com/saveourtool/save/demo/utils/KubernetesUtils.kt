@@ -35,12 +35,13 @@ private val logger = LoggerFactory.getLogger("KubernetesUtils")
  * Create kubernetes resource and process possible exceptions
  *
  * @param resourceToCreate resource (e.g. [Job], [Service] etc) that should be created by [KubernetesClient]
+ * @param namespace resource's namespace
  * @return created [HasMetadata] resource
  * @throws KubernetesRunnerException on failed job creation
  */
-fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T): T = try {
-    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}" }
-    resource(resourceToCreate).create().also {
+fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T, namespace: String): T = try {
+    logger.debug { "Attempt to create ${resourceToCreate.kind} with the following name: ${resourceToCreate.metadata.name}" }
+    resource(resourceToCreate).inNamespace(namespace).create().also {
         logger.info("Created ${resourceToCreate.kind} with the following name: ${resourceToCreate.fullResourceName}")
     }
 } catch (kex: KubernetesClientException) {
@@ -49,11 +50,13 @@ fun <T : HasMetadata> KubernetesClient.createResourceOrThrow(resourceToCreate: T
 
 /**
  * @param demo demo entity
+ * @param namespace namespace to look or the [demo] pod
  * @return [ScalableResource] of [Job]
  */
-fun KubernetesClient.getJobByName(demo: Demo): ScalableResource<Job> = batch()
+fun KubernetesClient.getJobByNameInNamespace(demo: Demo, namespace: String): ScalableResource<Job> = batch()
     .v1()
     .jobs()
+    .inNamespace(namespace)
     .withName(jobNameForDemo(demo))
 
 private fun ContainerPort.default(port: Int) = apply {
@@ -220,16 +223,17 @@ private fun demoAgentContainerSpec(
 
     resources = with(kubernetesSettings) {
         ResourceRequirements().apply {
-            requests = mapOf(
-                "cpu" to Quantity(agentCpuRequests),
-                "memory" to Quantity(agentMemoryRequests),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageRequests),
-            )
-            limits = mapOf(
-                "cpu" to Quantity(agentCpuLimits),
-                "memory" to Quantity(agentMemoryLimits),
-                "ephemeral-storage" to Quantity(agentEphemeralStorageLimits),
-            )
+            requests = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.requestsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.requestsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.requestsQuantity()) }
+            }
+
+            limits = buildMap {
+                agentCpuLimitations?.let { set("cpu", it.limitsQuantity()) }
+                agentMemoryLimitations?.let { set("memory", it.limitsQuantity()) }
+                agentEphemeralStorageLimitations?.let { set("ephemeral-storage", it.limitsQuantity()) }
+            }
         }
     }
 }

@@ -9,19 +9,19 @@ sources:
   - https://github.com/saveourtool/save-cli
 dependencies:
   - name: grafana
-    version: ^6.0.0
+    version: ^6.0.0 <=6.50.7
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: prometheus
-    version: ^19.0.0
+    version: ^19.0.0 <=19.3.3
     repository: https://prometheus-community.github.io/helm-charts
     condition: prometheus.enabled
   - name: promtail
-    version: ^6.0.0
+    version: ^6.0.0 <=6.8.2
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
   - name: loki
-    version: ^4.0.0
+    version: ^4.0.0 <=4.4.2
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
   - name: neo4j

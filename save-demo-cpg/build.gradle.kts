@@ -19,6 +19,12 @@ repositories {
             artifact("/[organisation].[module]_[revision].[ext]")
         }
     }
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        content {
+            includeGroup("com.saveourtool.save")
+        }
+    }
     mavenCentral()
     maven {
         name = "0x6675636b796f75676974687562/kotlintree"
@@ -55,13 +61,16 @@ dependencies {
     implementation(libs.neo4j.java.driver, excludeLogging)
 
     implementation(libs.cpg.core, excludeLogging)
+    implementation(libs.cpg.cxx, excludeLogging)
+    implementation(libs.cpg.java, excludeLogging)
     implementation(libs.cpg.python, excludeLogging)
+    implementation(libs.cpg.typescript, excludeLogging)
 
     jepArchive("com.icemachined:jep-distro:4.1.1@tgz")
     runtimeOnly(fileTree("$buildDir/distros/jep-distro").apply {
         builtBy(resolveJep)
     })
-    implementation("io.github.oxisto:kotlin-tree-jna:0.0.1")
+    implementation("io.github.oxisto:kotlin-tree-jna:0.0.2")
 }
 
 // This is a special hack for macOS and JEP, see: https://github.com/Fraunhofer-AISEC/cpg/pull/995/files

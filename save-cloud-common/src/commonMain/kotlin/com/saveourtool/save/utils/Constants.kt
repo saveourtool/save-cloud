@@ -2,7 +2,11 @@
  * Module with defined constants
  */
 
+@file:JsExport
+
 package com.saveourtool.save.utils
+
+import kotlin.js.JsExport
 
 /**
  * Link to save-cloud on GitHub
@@ -50,6 +54,13 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
+ * `X-Authorization-Source`, used to specify an _OAuth_ provider (`basic`,
+ * `github`, `dex`, etc.).
+ */
+const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
+
+/**
  * Default time to execute setup.sh
  */
-const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS = 60_000L
+@Suppress("NON_EXPORTABLE_TYPE")
+const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L

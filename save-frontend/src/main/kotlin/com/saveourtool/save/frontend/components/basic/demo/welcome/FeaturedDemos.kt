@@ -9,22 +9,24 @@ import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import csstype.ClassName
+import com.saveourtool.save.v1
+
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
+import react.useEffect
 import react.useState
+import web.cssom.ClassName
 
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 internal val featuredDemos = VFC {
-    val (featuredDemos, setFeaturedDemos) = useState<List<DemoDto>>(
+    val (featuredDemos, setFeaturedDemos) = useState(
         listOf(
             DemoDto.emptyForProject("saveourtool", "Diktat"),
-            DemoDto.emptyForProject("saveourtool", "Ktlint")
+            DemoDto.emptyForProject("Pinterest", "ktlint")
         )
     )
     useRequest {
@@ -37,14 +39,26 @@ internal val featuredDemos = VFC {
         setFeaturedDemos(demos)
     }
 
-    @Suppress("MAGIC_NUMBER")
-    carousel(featuredDemos, "demoCarousel") { demoDto ->
+    val (avatars, setAvatars) = useState<Map<String, String>>(emptyMap())
+    useEffect(featuredDemos) {
+        setAvatars {
+            featuredDemos.associate { demoDto ->
+                with(demoDto.projectCoordinates) {
+                    organizationName to "/api/$v1/avatar/organizations/$organizationName"
+                }
+            }
+        }
+    }
+
+    carousel(featuredDemos, "demoCarousel", outerClasses = "p-2 card") { demoDto ->
         div {
             className = ClassName("col-3 ml-auto justify-content-center")
             img {
                 className = ClassName("img-fluid")
-                // FixMe: we need to have information about the programming language in demo in order to show img
-                src = "img/undraw_join_re_w1lh.svg"
+                // FixMe: we need to have information about the programming language in demo in order to show label
+                src = avatars.getOrElse(demoDto.projectCoordinates.organizationName) {
+                    "img/undraw_join_re_w1lh.svg"
+                }
             }
         }
         div {
@@ -57,9 +71,9 @@ internal val featuredDemos = VFC {
                 }
                 h3 {
                     className = ClassName("mb-0")
-                    a {
+                    Link {
                         className = ClassName("text-dark")
-                        href = "#/demo/${demoDto.projectCoordinates}"
+                        to = "/demo/${demoDto.projectCoordinates}"
                         +demoDto.projectCoordinates.toString()
                     }
                 }

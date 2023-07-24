@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.spring.entity.BaseEntity
 
 import javax.persistence.Entity

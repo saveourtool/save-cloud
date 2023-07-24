@@ -8,11 +8,14 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import csstype.ClassName
-import react.FC
 
+import js.core.jso
+import react.FC
 import react.PropsWithChildren
 import react.dom.html.ReactHTML.div
+import web.cssom.ClassName
+import web.cssom.Height
+import web.cssom.Width
 
 /**
  * Props for card component
@@ -30,7 +33,8 @@ external interface CardProps : PropsWithChildren {
  * @param isBordered adds a border to the card
  * @param hasBg adds a white background
  * @param isPaddingBottomNull disables bottom padding (pb-0)
- * @param isNoPadding is true - removes all remaining padding (pt-0 pr-0 pl-0)
+ * @param isNoPadding if true - removes all remaining padding (pt-0 pr-0 pl-0)
+ * @param isFilling
  * @return a functional component representing a card
  */
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
@@ -38,7 +42,8 @@ fun cardComponent(
     isBordered: Boolean = false,
     hasBg: Boolean = false,
     isPaddingBottomNull: Boolean = false,
-    isNoPadding: Boolean = true
+    isNoPadding: Boolean = true,
+    isFilling: Boolean = false,
 ) = FC<CardProps> { props ->
     val boarder = if (isBordered) "border-secondary" else ""
     val card = if (hasBg) "card" else ""
@@ -46,8 +51,14 @@ fun cardComponent(
     val paddingInside = if (isNoPadding) "pt-0 pr-0 pl-0" else ""
     div {
         className = ClassName("$card card-body mt-0 $paddingInside $pb $boarder")
+        if (isFilling) {
+            style = jso {
+                width = "100%".unsafeCast<Width>()
+                height = "100%".unsafeCast<Height>()
+            }
+        }
         div {
-            className = ClassName("col mr-2 pr-0 pl-0")
+            className = ClassName("col pr-0 pl-0")
             div {
                 className = ClassName("mb-0 text-gray-800")
                 props.children?.let { +it }

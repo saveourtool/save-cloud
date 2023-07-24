@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'master'
-      
+
 concurrency:
   # https://docs.github.com/en/actions/using-jobs/using-concurrency
   # The latest queued workflow is preferred; the ones already in progress get cancelled
@@ -14,81 +14,67 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build_save-cloud-common:
+    name: Build and test save-cloud-common
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-cloud-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-orchestrator-common:
+    name: Build and test save-orchestrator-common
+    needs: [ build_save-cloud-common ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-orchestrator-common
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-agent:
+    name: Build and test save-agent
+    needs: [ build_save-orchestrator-common ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_save-demo-agent:
+    name: Build and test save-demo-agent
+    needs: [ build_save-agent ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: save-demo-agent
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
+  build_all:
+    name: Build and test left modules
+    needs: [ build_save-demo-agent ]
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [
+          'api-gateway',
+          'save-backend',
+          'save-orchestrator',
+          'save-frontend',
+          'save-preprocessor',
+          'test-utils',
+          'save-api',
+          'save-api-cli',
+          'save-sandbox',
+          'authentication-service',
+          'save-demo',
+          'save-demo-cpg',
+          'test-analysis-core'
+        ]
+    uses: ./.github/workflows/build_and_test_reusable.yml
+    with:
+      module: ${{ matrix.module }}
+      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
   build_and_test_with_code_coverage:
     name: Build, test and upload code coverage
-    runs-on: ubuntu-20.04
-
+    needs: [ build_all ]
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          # required for correct codecov upload
-          fetch-depth: 0
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11
-          distribution: temurin
-      - name: Install system packages
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Retrieve Kotlin version
-        run: |
-          kv=$(cat gradle/libs.versions.toml | grep '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
-          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
-      - name: Cache konan
-        uses: actions/cache@v3
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
-      - name: Build all (excluding save-orchestrator-common, save-orchestrator and save-sandbox)
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          gradle-home-cache-cleanup: true
-          arguments: |
-            build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -x :save-orchestrator-common:build
-            -x :save-orchestrator:build
-            -x :save-sandbox:build
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
-      - name: Build save-orchestrator-common, save-orchestrator and save-sandbox
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: wrapper
-          gradle-home-cache-cleanup: true
-          arguments: |
-            :save-orchestrator-common:build
-            :save-orchestrator:build
-            :save-sandbox:build
-            -x detekt
-            -x spotlessCheck
-            -x :save-agent:linkDebugExecutableLinuxX64
-            -Pdetekt.multiplatform.disabled=true
-            -PgprUser=${{ github.actor }}
-            -PgprKey=${{ secrets.GITHUB_TOKEN }}
-            --scan
-            --build-cache
+      - name: Download gradle reports
+        uses: actions/download-artifact@v3
 
-      - name: Upload gradle reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: gradle-reports
-          path: '**/build/reports/'
-          retention-days: 1
-      - name: Upload frontend distribution
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-frontend
-          path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
-          retention-days: 1
       - name: Code coverage report
         uses: codecov/codecov-action@v3
         with:

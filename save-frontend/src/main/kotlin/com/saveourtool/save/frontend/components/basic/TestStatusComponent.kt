@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 
-import csstype.ClassName
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
@@ -21,6 +20,7 @@ import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
 import react.dom.html.ReactHTML.tr
 import tanstack.table.core.Table
+import web.cssom.ClassName
 
 import kotlinx.browser.window
 

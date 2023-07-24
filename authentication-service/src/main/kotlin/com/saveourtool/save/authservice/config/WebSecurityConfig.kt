@@ -5,7 +5,6 @@
 package com.saveourtool.save.authservice.config
 
 import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.security.CustomAuthenticationBasicConverter
 import com.saveourtool.save.authservice.utils.roleHierarchy
 import com.saveourtool.save.v1
 
@@ -18,12 +17,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 
@@ -70,12 +67,9 @@ class WebSecurityConfig(
             // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }
-        .addFilterBefore(
-            AuthenticationWebFilter(authenticationManager).apply {
-                setServerAuthenticationConverter(CustomAuthenticationBasicConverter())
-            },
-            SecurityWebFiltersOrder.HTTP_BASIC,
-        )
+        .httpBasic {
+            it.authenticationManager(authenticationManager)
+        }
         .exceptionHandling {
             it.authenticationEntryPoint(
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
@@ -123,7 +117,12 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/public-test",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
-            "/demo/api/*/run"
+            "/demo/api/*/run",
+            "/api/$v1/vulnerabilities/get-all-public",
+            // `fossGraphView` is public page
+            "/api/$v1/vulnerabilities/by-name-with-description",
+            "/api/$v1/comments/get-all",
+            "/api/$v1/users/all",
         )
     }
 }

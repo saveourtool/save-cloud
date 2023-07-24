@@ -26,8 +26,8 @@ class TopBarTest {
                 initialEntries = arrayOf(
                     "/"
                 )
-                topBar().invoke {
-                    userInfo = UserInfo("Test User")
+                topBarComponent {
+                    userInfo = UserInfo(name = "Test User")
                 }
             }
         )
@@ -35,11 +35,12 @@ class TopBarTest {
         val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNotNull(userInfoSpan)
 
-        // push the button
-        val button = screen.getByRole("button", jso { name = "Test User" })
+        // push the button, this weird test searches for the button that contains a name "Test User"
+        // and "User setting" hint label
+        val button = screen.getByRole("button", jso { name = "Test UserUser settings" })
         userEvent.click(button)
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
-        assertEquals(3, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
+        assertEquals(4, dropdown.children.length, "When user is logged in, dropdown menu should contain 3 entries")
     }
 
     @Test
@@ -49,7 +50,7 @@ class TopBarTest {
                 initialEntries = arrayOf(
                     "/"
                 )
-                topBar().invoke {
+                topBarComponent {
                     userInfo = null
                 }
             }

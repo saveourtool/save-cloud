@@ -8,20 +8,17 @@ import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.frontend.externals.fontawesome.faUser
 import com.saveourtool.save.frontend.utils.*
 
-import csstype.*
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.p
-
-val myProjectsRating = myProjectsRatings()
+import web.cssom.*
 
 /**
- * @return functional component
+ * [FC] that displays user's project ratings
  */
-@Suppress("TOO_LONG_FUNCTION", "LongMethod")
-fun myProjectsRatings() = FC<ContestListViewProps> { props ->
+val myProjectsRating: FC<ContestListViewProps> = FC { props ->
     val (myProjects, setMyProjects) = useState(emptySet<ProjectDto>())
     val getMyProjects = useDeferredRequest {
         setMyProjects(
@@ -29,7 +26,8 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
                 url = "$apiUrl/projects/get-for-current-user",
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
-            ).decodeFromJsonString<Set<ProjectDto>>()
+            )
+                .unsafeMap { it.decodeFromJsonString<Set<ProjectDto>>() }
         )
     }
 
@@ -38,21 +36,24 @@ fun myProjectsRatings() = FC<ContestListViewProps> { props ->
     }
 
     div {
-        className = ClassName("col-lg-2")
+        className = ClassName("col-2")
         div {
             className = ClassName("card flex-md-row mb-1 box-shadow")
             style = jso {
-                minHeight = 40.rem
+                @Suppress("MAGIC_NUMBER")
+                minHeight = 20.rem
+                height = "100%".unsafeCast<Height>()
             }
             div {
-                className = ClassName("col")
+                className = ClassName("col text-center")
                 style = jso {
+                    @Suppress("MAGIC_NUMBER")
                     minHeight = 7.rem
                 }
                 title(" Your stats ", icon = faUser)
                 if (myProjects.isEmpty()) {
                     div {
-                        className = ClassName("row justify-content-center")
+                        className = ClassName("row text-center")
                         p {
                             +"You don't have any projects"
                         }

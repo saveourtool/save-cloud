@@ -1,5 +1,6 @@
 package com.saveourtool.save.domain
 
+import kotlin.js.JsExport
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,6 +10,7 @@ import kotlinx.serialization.Serializable
  */
 @Suppress("MAGIC_NUMBER", "MagicNumber")
 @Serializable
+@JsExport
 enum class Role(val formattedName: String, val priority: Int) {
     /**
      * admin in organization

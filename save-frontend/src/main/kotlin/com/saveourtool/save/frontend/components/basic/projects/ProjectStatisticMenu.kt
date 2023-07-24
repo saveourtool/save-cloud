@@ -12,12 +12,13 @@ import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
 import com.saveourtool.save.frontend.utils.*
-import csstype.ClassName
+
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.td
+import web.cssom.ClassName
 
 @Suppress(
     "MAGIC_NUMBER",
@@ -51,7 +52,6 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
     },
     initialPageSize = 10,
     useServerPaging = false,
-    usePageSelection = false,
 )
 
 /**
@@ -114,7 +114,7 @@ private fun projectStatisticMenu() = FC<ProjectStatisticMenuProps> { props ->
                 +"Total number of tests by test suite"
             }
             div {
-                className = ClassName("col-xl col-md-6 mb-4")
+                className = ClassName("col-xl col-6 mb-4")
                 val data = latestExecutionStatisticDtos?.map {
                     DataPieChart(it.testSuiteName, it.countTest, randomColor())
                 }.orEmpty()

@@ -43,6 +43,6 @@ spec:
         - name: repos-storage
           # This mount is not intended to be shared among nodes, because this is temporary data,
           # and each pod of preprocessor can `git clone` on its own.
-          hostPath:
-            path: /tmp/save/repos
+          emptyDir:
+            sizeLimit: 100Mi
         - {{ include "spring-boot.sa-token-volume" (dict "service" .Values.backend) | indent 10 | trim }}

@@ -1,63 +1,34 @@
 package com.saveourtool.save.gateway.utils
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.gateway.service.BackendService
 
 import org.slf4j.LoggerFactory
-import org.springframework.http.MediaType
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.Authentication
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.web.server.WebFilterExchange
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
 
 /**
  * [ServerAuthenticationSuccessHandler] that sends user data to backend on successful login
  */
 class StoringServerAuthenticationSuccessHandler(
-    configurationProperties: ConfigurationProperties,
+    private val backendService: BackendService,
 ) : ServerAuthenticationSuccessHandler {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val webClient = WebClient.create(configurationProperties.backend.url)
 
     override fun onAuthenticationSuccess(
         webFilterExchange: WebFilterExchange,
         authentication: Authentication
     ): Mono<Void> {
-        logger.info("Authenticated user ${authentication.userName()} with authentication type ${authentication::class}, will send data to backend")
+        logger.info("Authenticated user ${authentication.name} with authentication type ${authentication::class}, will send data to backend")
 
-        val user = authentication.toUser().apply {
-            // https://github.com/saveourtool/save-cloud/issues/583
-            // fixme: this sets a default role for a new user with minimal scope, however this way we discard existing role
-            // from authentication provider. In the future we may want to use this information and have a mapping of existing
-            // roles to save-cloud roles.
-            role = Role.VIEWER.asSpringSecurityRole()
+        val (source, nameInSource) = if (authentication is OAuth2AuthenticationToken) {
+            authentication.authorizedClientRegistrationId to authentication.principal.name
+        } else {
+            throw BadCredentialsException("Not supported authentication type ${authentication::class}")
         }
-
-        return webClient.post()
-            .uri("/internal/users/new")
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(user)
-            .retrieve()
-            .onStatus({ it.is4xxClientError }) {
-                Mono.error(ResponseStatusException(it.statusCode()))
-            }
-            .toBodilessEntity()
-            .then()
+        return backendService.createNewIfRequired(source, nameInSource)
     }
 }
-
-/**
- * @return [User] with data from this [Authentication]
- */
-fun Authentication.toUser(): User = User(
-    userName(),
-    null,
-    authorities.joinToString(",") { it.authority },
-    toIdentitySource(),
-    null,
-    isActive = false,
-    originalLogins = emptyList(),
-)

@@ -3,7 +3,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.ContestDto
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
@@ -19,8 +19,6 @@ import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import csstype.ClassName
-import history.Location
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -29,6 +27,8 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.nav
 import react.dom.html.ReactHTML.p
+import remix.run.router.Location
+import web.cssom.ClassName
 import web.html.InputType
 
 import kotlinx.coroutines.launch
@@ -47,7 +47,7 @@ enum class ContestMenuBar {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = Regex("/${FrontendRoutes.CONTESTS.path}/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS}/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
         override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
     }
@@ -88,7 +88,7 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
+class ContestView : AbstractView<ContestViewProps, ContestViewState>(Style.SAVE_LIGHT) {
     init {
         state.selectedMenu = ContestMenuBar.defaultTab
         state.isFeatured = false
@@ -107,7 +107,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
 
     override fun componentDidMount() {
         super.componentDidMount()
-        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
+        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
         urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
         fetchContest()
@@ -238,7 +238,7 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(false) {
         }
     }
 
-    companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext>>(ContestView::class) {
+    companion object : RStatics<ContestViewProps, ContestViewState, ContestView, Context<RequestStatusContext?>>(ContestView::class) {
         init {
             contextType = requestStatusContext
         }

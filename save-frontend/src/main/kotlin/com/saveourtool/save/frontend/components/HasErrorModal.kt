@@ -4,20 +4,20 @@ package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.components.modal.loaderModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
+import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.animations.ringLoader
-import com.saveourtool.save.frontend.topBarComponent
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
+import web.cssom.ClassName
+import web.html.ButtonType
 
 import kotlinx.browser.window
 
@@ -35,7 +35,7 @@ val ringLoader = ringLoader(jso {
  * Context to store data about current request such as errors and isLoading flag.
  */
 @Suppress("TYPE_ALIAS")
-val requestStatusContext: Context<RequestStatusContext> = createContext()
+val requestStatusContext: Context<RequestStatusContext?> = createContext()
 
 /**
  * Component that displays generic warning about unsuccessful request based on info in [requestStatusContext].
@@ -96,7 +96,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
             button {
-                className = ClassName("btn btn-primary")
+                className = ClassName("btn btn-outline-primary")
                 type = ButtonType.button
                 onClick = {
                     if (response?.status == 401.toShort()) {
@@ -153,7 +153,8 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                     withRouterLink = false
                 }
             }
-            Footer::class.react()
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+            footer { }
         }
     } else {
         props.children

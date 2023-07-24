@@ -5,18 +5,17 @@ on:
     # triggers the workflow every day at 5:30 UTC
     - cron: '30 5 * * *'
   workflow_dispatch:
-    inputs:
-      branch:
-        type: string
-        default: master
-        description: Branch to update backend api spec from
-        required: false
 
 jobs:
+  build_cli:
+    name: Build save-cli
+    uses: ./.github/workflows/build_save-cli_reusable.yml
+
   update_backend_api_spec:
     runs-on: ubuntu-latest
+    needs: build_cli
     steps:
-      - uses: peterjgrainger/action-create-branch@v2.3.0
+      - uses: peterjgrainger/action-create-branch@v2.4.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -25,15 +24,38 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: 'infra/update-backend-api-spec'
+          fetch-depth: 0 # we need a full history to make rebase with master
 
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: temurin
+
+      - name: Set up Git
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
       - name: Install system packages
         # libcurl is needed for ktor-client-curl
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Update branch from master
+        run: |
+          git pull origin master --no-edit --rebase
+
+      # we need save-cli.kexe to start backend, because InternalFileStorage requires it when save-cli has -SNAPSHOT version
+      - name: Download save-cli
+        if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
+        uses: actions/download-artifact@v3
+        with:
+          name: save-cli
+          path: ${{ github.workspace }}/save
+      - name: Override saveCliVersion and saveCliPath in Gradle
+        if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
+        run: |
+          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
 
       - name: Generate open api doc
         uses: gradle/gradle-build-action@v2
@@ -41,20 +63,18 @@ jobs:
           gradle-version: wrapper
           arguments: |
             :save-backend:generateOpenApiDocs
+            ${{ env.SAVE_CLI_GRADLE_OPTS || '' }}
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push if api spec is changed
         id: commit-and-push
         run: |
-          git pull origin master --no-edit
           git add save-backend/backend-api-docs.json
           if git diff --staged --quiet; then
             echo Everything is UP-TO-DATE
           else
             echo Pushing updated backend-api-docs.json
-            git config user.name github-actions[bot]
-            git config user.email 'github-actions[bot]@users.noreply.github.com'
             git commit -m "Update backend-api-docs.json"
             git push
             echo "SHOULD_CREATE_PR=1" >> $GITHUB_OUTPUT

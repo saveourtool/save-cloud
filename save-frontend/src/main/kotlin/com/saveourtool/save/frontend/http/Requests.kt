@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.http
 
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
@@ -102,6 +103,33 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
         FormData().apply {
             set(FILE_PART_NAME, file)
         },
+        loadingHandler,
+    )
+    if (response.ok) {
+        window.location.reload()
+    }
+}
+
+/**
+ * @param file image file
+ * @param name avatar owner name
+ * @param type avatar type
+ * @param loadingHandler
+ */
+suspend fun WithRequestStatusContext.postImageUpload(
+    file: File,
+    name: String,
+    type: AvatarType,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+) {
+    val response = post(
+        url = "$apiUrl/avatar/upload",
+        params = jso<dynamic> {
+            owner = name
+            this.type = type
+        },
+        Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
+        FormData().apply { set(FILE_PART_NAME, file) },
         loadingHandler,
     )
     if (response.ok) {

@@ -9,13 +9,14 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorMode
 import com.saveourtool.save.testsuite.TestSuiteVersioned
-import csstype.ClassName
+
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.small
+import web.cssom.ClassName
 
 /**
  * @param testSuites

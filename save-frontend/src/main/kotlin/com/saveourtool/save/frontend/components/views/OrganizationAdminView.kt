@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 
-import csstype.ClassName
 import react.ChildrenBuilder
 import react.FC
 import react.Fragment
@@ -24,6 +23,7 @@ import react.create
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -32,7 +32,7 @@ import kotlinx.serialization.json.Json
 /**
  * The list of all organizations, visible to super-users.
  */
-internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(hasBg = false) {
+internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(Style.SAVE_LIGHT) {
     private val comparator: Comparator<OrganizationDto> =
             compareBy<OrganizationDto> { it.status.ordinal }
                 .thenBy { it.name }
@@ -88,7 +88,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
 
                             when (organization.status) {
                                 OrganizationStatus.CREATED -> actionButton {
-                                    title = "WARNING: About to delete this organization..."
+                                    title = "WARNING: You are about to delete this organization"
                                     errorTitle = "You cannot delete the organization $organizationName"
                                     message = "Are you sure you want to delete the organization $organizationName?"
                                     clickMessage = "Also ban this organization"
@@ -123,7 +123,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                 }
                                 OrganizationStatus.DELETED -> actionButton {
-                                    title = "WARNING: About to recover this organization..."
+                                    title = "WARNING: You are about to recover this organization"
                                     errorTitle = "You cannot recover the organization $organizationName"
                                     message = "Are you sure you want to recover the organization $organizationName?"
                                     buttonStyleBuilder = { childrenBuilder ->
@@ -152,7 +152,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                     }
                                 }
                                 OrganizationStatus.BANNED -> actionButton {
-                                    title = "WARNING: About to unban this organization..."
+                                    title = "WARNING: You are about to unban this organization..."
                                     errorTitle = "You cannot unban the organization $organizationName"
                                     message = "Are you sure you want to unban the organization $organizationName?"
                                     buttonStyleBuilder = { childrenBuilder ->
@@ -187,18 +187,16 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             }
         },
         initialPageSize = INITIAL_PAGE_SIZE,
-        useServerPaging = false,
-        usePageSelection = false,
-        getAdditionalDependencies = { tableProps ->
-            /*-
-             * Necessary for the table to get re-rendered once an organization
-             * gets deleted.
-             *
-             * The order and size of the array must remain constant.
-             */
-            arrayOf(tableProps)
-        }
-    )
+        useServerPaging = false
+    ) { tableProps ->
+        /*-
+         * Necessary for the table to get re-rendered once an organization
+         * gets deleted.
+         *
+         * The order and size of the array must remain constant.
+         */
+        arrayOf(tableProps)
+    }
 
     init {
         state.organizations = mutableListOf()
@@ -241,7 +239,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
             className = ClassName("row justify-content-center")
 
             div {
-                className = ClassName("col-lg-10 mt-4 min-vh-100")
+                className = ClassName("col-10 mt-4 min-vh-100")
 
                 organizationTable {
                     getData = { _, _ ->

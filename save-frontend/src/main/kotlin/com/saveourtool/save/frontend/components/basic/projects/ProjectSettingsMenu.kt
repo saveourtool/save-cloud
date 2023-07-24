@@ -12,11 +12,9 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 
-import csstype.ClassName
 import org.w3c.fetch.Response
 import react.*
 import react.dom.*
-import react.dom.html.ButtonType
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
@@ -26,6 +24,8 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
 import react.router.useNavigate
+import web.cssom.ClassName
+import web.html.ButtonType
 import web.html.HTMLInputElement
 import web.html.InputType
 
@@ -35,56 +35,6 @@ import kotlinx.serialization.json.Json
 /**
  * SETTINGS tab in ProjectView
  */
-val projectSettingsMenu = projectSettingsMenu()
-
-/**
- * ProjectSettingsMenu component props
- */
-external interface ProjectSettingsMenuProps : Props {
-    /**
-     * Current project settings
-     */
-    var project: ProjectDto
-
-    /**
-     * Information about current user
-     */
-    var currentUserInfo: UserInfo
-
-    /**
-     * Role of a current user
-     */
-    var selfRole: Role
-
-    /**
-     * Callback to update project state in ProjectView after update request's response is received.
-     */
-    var onProjectUpdate: (ProjectDto) -> Unit
-
-    /**
-     * Callback to show error message
-     */
-    @Suppress("TYPE_ALIAS")
-    var updateErrorMessage: (Response, String) -> Unit
-}
-
-/**
- * Makes a call to change project status
- *
- * @param status - the status that will be assigned to the project [project]
- * @param projectPath - the path [organizationName/projectName] for response
- * @return lazy response
- */
-fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
-    post(
-        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
-        headers = jsonHeaders,
-        body = undefined,
-        loadingHandler = ::noopLoadingHandler,
-        responseHandler = ::noopResponseHandler,
-    )
-}
-
 @Suppress(
     "TOO_LONG_FUNCTION",
     "LongMethod",
@@ -92,7 +42,7 @@ fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): sus
     "ComplexMethod",
     "EMPTY_BLOCK_STRUCTURE_ERROR"
 )
-private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
+val projectSettingsMenu: FC<ProjectSettingsMenuProps> = FC { props ->
     @Suppress("LOCAL_VARIABLE_EARLY_DECLARATION")
     val projectRef = useRef(props.project)
     val (draftProject, setDraftProject) = useState(props.project)
@@ -121,10 +71,10 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
     }
 
     div {
-        className = ClassName("row justify-content-center mb-2")
+        className = ClassName("row justify-content-center mb-2 text-gray-900")
         // ===================== LEFT COLUMN =======================================================================
         div {
-            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            className = ClassName("col-4 mb-2 mr-2 ml-2")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Users"
@@ -138,13 +88,13 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
         }
         // ===================== RIGHT COLUMN ======================================================================
         div {
-            className = ClassName("col-4 mb-2 pl-0 pr-0 mr-2 ml-2")
+            className = ClassName("col-4 mb-2 mr-2 ml-2")
             div {
                 className = ClassName("text-xs text-center font-weight-bold text-primary text-uppercase mb-3")
                 +"Main settings"
             }
             div {
-                className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+                className = ClassName("card border card-body mt-0")
                 div {
                     className = ClassName("row mt-2 ml-2 mr-2")
                     div {
@@ -172,7 +122,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                         +"Project visibility:"
                     }
                     form {
-                        className = ClassName("col-7 form-group row d-flex justify-content-around")
+                        className = ClassName("col-7 form-group row")
                         div {
                             className = ClassName("form-check-inline")
                             input {
@@ -247,7 +197,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         button {
                             type = ButtonType.button
-                            className = ClassName("btn btn-sm btn-primary")
+                            className = ClassName("btn btn-sm btn-outline-primary")
                             onClick = {
                                 updateProject()
                             }
@@ -257,7 +207,7 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                     div {
                         className = ClassName("col-3 d-sm-flex align-items-center justify-content-center")
                         actionButton {
-                            title = "WARNING: About to delete this project..."
+                            title = "WARNING: You are about to delete this project"
                             errorTitle = "You cannot delete the project ${props.project.name}"
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
@@ -266,14 +216,18 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {
-                                    +"Delete ${props.project.name}"
+                                    +"Delete project"
                                 }
                             }
-                            classes = "btn btn-sm btn-danger"
+                            classes = "btn btn-sm btn-outline-danger"
                             modalButtons = { action, closeWindow, childrenBuilder, isClickMode ->
                                 val actionName = if (isClickMode) "ban" else "delete"
                                 with(childrenBuilder) {
-                                    buttonBuilder(label = "Yes, $actionName ${props.project.name}", style = "danger", classes = "mr-2") {
+                                    buttonBuilder(
+                                        label = "Yes, $actionName ${props.project.name}",
+                                        style = "danger",
+                                        classes = "mr-2"
+                                    ) {
                                         action()
                                         closeWindow()
                                     }
@@ -293,4 +247,52 @@ private fun projectSettingsMenu() = FC<ProjectSettingsMenuProps> { props ->
             }
         }
     }
+}
+
+/**
+ * ProjectSettingsMenu component props
+ */
+external interface ProjectSettingsMenuProps : Props {
+    /**
+     * Current project settings
+     */
+    var project: ProjectDto
+
+    /**
+     * Information about current user
+     */
+    var currentUserInfo: UserInfo
+
+    /**
+     * Role of a current user
+     */
+    var selfRole: Role
+
+    /**
+     * Callback to update project state in ProjectView after update request's response is received.
+     */
+    var onProjectUpdate: (ProjectDto) -> Unit
+
+    /**
+     * Callback to show error message
+     */
+    @Suppress("TYPE_ALIAS")
+    var updateErrorMessage: (Response, String) -> Unit
+}
+
+/**
+ * Makes a call to change project status
+ *
+ * @param status - the status that will be assigned to the project [project]
+ * @param projectPath - the path [organizationName/projectName] for response
+ * @return lazy response
+ */
+fun responseChangeProjectStatus(projectPath: String, status: ProjectStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/projects/$projectPath/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
 }

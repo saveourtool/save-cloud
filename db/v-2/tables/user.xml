@@ -59,4 +59,38 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="user-add-column-3" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="rating" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="user-name-not-nullable" author="nulls">
+        <addNotNullConstraint tableName="user" columnName="name" columnDataType="varchar(64)"/>
+        <addNotNullConstraint tableName="user" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
+    </changeSet>
+
+    <changeSet id="user-add-status" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="status" type="varchar(64)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <sql>
+            UPDATE user SET status = 'ACTIVE' WHERE is_active = 1;
+        </sql>
+
+        <dropColumn tableName="user">
+            <column name="is_active"/>
+        </dropColumn>
+    </changeSet>
+
+
+    <changeSet id="user-drop-source" author="nulls">
+        <dropColumn tableName="user" columnName="source"/>
+    </changeSet>
+
 </databaseChangeLog>

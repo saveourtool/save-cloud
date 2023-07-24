@@ -67,6 +67,7 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 implementation(libs.ktor.client.apache)
@@ -74,6 +75,7 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting {
             tasks.withType<Test> {
                 useJUnitPlatform()
@@ -84,12 +86,14 @@ kotlin {
             }
         }
 
+        @Suppress("UNUSED_VARIABLE")
         val linuxX64Main by getting {
             dependencies {
                 implementation(libs.ktor.client.curl)
                 implementation(libs.kotlinx.coroutines.core.linuxx64)
             }
         }
+        @Suppress("UNUSED_VARIABLE")
         val linuxX64Test by getting
     }
 
@@ -142,10 +146,12 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinTest> {
 /*
  * On Windows, it's impossible to link a Linux executable against
  * `io.ktor:ktor-client-curl` because `-lcurl` is not found by `ld`.
+ *
+ * Also, additionally disable debug artifacts for CI to speed-up builds
  */
 tasks.named("linkDebugExecutableLinuxX64") {
     onlyIf {
-        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
     }
 }
 
@@ -157,6 +163,6 @@ tasks.named("linkReleaseExecutableLinuxX64") {
 
 tasks.named("linkDebugTestLinuxX64") {
     onlyIf {
-        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows
+        !DefaultNativePlatform.getCurrentOperatingSystem().isWindows && (System.getenv("CI") == null)
     }
 }

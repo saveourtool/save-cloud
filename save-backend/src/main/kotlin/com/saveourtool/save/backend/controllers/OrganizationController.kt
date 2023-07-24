@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -33,6 +33,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
@@ -56,8 +57,6 @@ internal class OrganizationController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val gitService: GitService,
     private val testSuitesSourceService: TestSuitesSourceService,
-    private val testSuitesService: TestSuitesService,
-    private val testsSourceVersionService: TestsSourceVersionService,
     private val testsSourceSnapshotStorage: TestsSourceSnapshotStorage,
     config: ConfigProperties,
 ) {
@@ -137,7 +136,7 @@ internal class OrganizationController(
         authentication: Authentication?,
     ): Flux<OrganizationDto> = authentication.toMono()
         .map { auth ->
-            (auth.details as AuthenticationDetails).id
+            auth.userId()
         }
         .flatMapMany {
             lnkUserOrganizationService.findAllByAuthenticationAndStatuses(it)
@@ -145,6 +144,20 @@ internal class OrganizationController(
         .map {
             it.organization.toDto()
         }
+
+    @GetMapping("/get/list-by-user-name")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get your organizations.",
+        description = "Get list of all organizations where current user is a participant.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationsByUserName(
+        @RequestParam userName: String,
+    ): Flux<OrganizationDto> = blockingToFlux {
+        lnkUserOrganizationService.findAllByUserName(userName).map { it.organization.toDto() }
+    }
 
     @GetMapping("/get/by-prefix")
     @PreAuthorize("permitAll()")
@@ -215,10 +228,9 @@ internal class OrganizationController(
     fun saveOrganization(
         @RequestBody newOrganization: OrganizationDto,
         authentication: Authentication,
-    ): Mono<StringResponse> = Mono.just(newOrganization)
-        .map {
-            organizationService.saveOrganization(it.toOrganization())
-        }
+    ): Mono<StringResponse> = blockingToMono {
+        organizationService.saveOrganization(newOrganization.toOrganization())
+    }
         .filter { (_, status) ->
             status == OrganizationSaveStatus.NEW
         }
@@ -227,7 +239,7 @@ internal class OrganizationController(
         }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
-                (authentication.details as AuthenticationDetails).id,
+                authentication.userId(),
                 organizationId,
                 Role.OWNER,
             )
@@ -328,7 +340,8 @@ internal class OrganizationController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "There are projects connected to $organizationName. Please delete all of them and try again."
         }
-        .map {organization ->
+        .publishOn(Schedulers.boundedElastic())
+        .map { organization ->
             when (status) {
                 OrganizationStatus.BANNED -> {
                     organizationService.banOrganization(organization)

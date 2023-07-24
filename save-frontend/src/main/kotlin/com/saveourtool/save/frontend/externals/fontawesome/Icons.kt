@@ -32,6 +32,10 @@ external val faExclamationTriangle: FontAwesomeIconModule
 @JsNonModule
 external val faTimesCircle: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faTimes")
+@JsNonModule
+external val faTimes: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faQuestionCircle")
 @JsNonModule
 external val faQuestionCircle: FontAwesomeIconModule
@@ -188,6 +192,14 @@ external val faCode: FontAwesomeIconModule
 @JsNonModule
 external val faTag: FontAwesomeIconModule
 
+@JsModule("@fortawesome/free-solid-svg-icons/faTable")
+@JsNonModule
+external val faTable: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faImage")
+@JsNonModule
+external val faImage: FontAwesomeIconModule
+
 @JsModule("@fortawesome/free-solid-svg-icons/faCodeBranch")
 @JsNonModule
 external val faCodeBranch: FontAwesomeIconModule
@@ -211,3 +223,23 @@ external val faDice: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faBug")
 @JsNonModule
 external val faBug: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faShieldVirus")
+@JsNonModule
+external val faShieldVirus: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faGlobe")
+@JsNonModule
+external val faGlobe: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faLink")
+@JsNonModule
+external val faLink: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faPaperPlane")
+@JsNonModule
+external val faPaperPlane: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faWindowClose")
+@JsNonModule
+external val faWindowClose: FontAwesomeIconModule

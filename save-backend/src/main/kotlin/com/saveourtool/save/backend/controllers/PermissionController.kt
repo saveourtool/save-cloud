@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.toUser
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.OrganizationService
@@ -12,6 +12,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.trace
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
@@ -78,11 +79,13 @@ class PermissionController(
         @PathVariable projectName: String,
         @RequestParam(required = false) userName: String?,
         authentication: Authentication,
-    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.toUser().name!!, projectName, organizationName, authentication)
+    ): Mono<Role> = getUserAndProjectOrNotFound(userName ?: authentication.username(), projectName, organizationName, authentication)
         .map { (user, project) ->
             permissionService.getRole(user, project)
                 .also {
-                    logger.trace("User ${user.source}:${user.name} has role $it")
+                    logger.trace {
+                        "User ${user.name} has role $it"
+                    }
                 }
         }
         .switchIfEmptyToNotFound()

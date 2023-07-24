@@ -73,4 +73,10 @@
     <modifyDataType tableName="organization" columnName="date_created" newDataType="DATETIME(3)"/>
   </changeSet>
 
+  <changeSet id="organization-7" author="frolov" context="dev or prod">
+    <addColumn tableName="organization">
+      <column name="rating" type="bigint" defaultValue="0"/>
+    </addColumn>
+  </changeSet>
+
 </databaseChangeLog>

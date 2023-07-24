@@ -10,8 +10,9 @@ import com.saveourtool.save.frontend.TabMenuBar
 enum class OrganizationMenuBar(private val title: String? = null) {
     INFO,
     TOOLS,
-    TESTS,
+    BENCHMARKS,
     CONTESTS,
+    VULNERABILITIES,
     SETTINGS,
     ;
 
@@ -25,7 +26,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = "organization"
         override val defaultTab: OrganizationMenuBar = INFO
-        override val regexForUrlClassification = Regex("/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)")
+        override val regexForUrlClassification = "/$nameOfTheHeadUrlSection/[^/]+/($postfixInRegex)"
         override fun valueOf(elem: String): OrganizationMenuBar = OrganizationMenuBar.valueOf(elem)
         override fun values(): Array<OrganizationMenuBar> = OrganizationMenuBar.values()
         override fun isAvailableWithThisRole(role: Role, elem: OrganizationMenuBar?, isOrganizationCanCreateContest: Boolean?): Boolean =

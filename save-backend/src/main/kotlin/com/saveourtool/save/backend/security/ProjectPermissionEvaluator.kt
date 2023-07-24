@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.security
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.LnkUserProjectService
@@ -59,7 +59,7 @@ class ProjectPermissionEvaluator(
             return true
         }
 
-        val userId = (authentication.details as AuthenticationDetails).id
+        val userId = authentication.userId()
         val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
@@ -116,7 +116,7 @@ class ProjectPermissionEvaluator(
      * Only [SUPER_ADMIN] can ban the project. And a user with such a global role has permissions for all actions.
      * Since we have all the rights issued depending on the following, you need to set [false] here
      */
-    @Suppress("FunctionOnlyReturningConstant")
+    @Suppress("FunctionOnlyReturningConstant", "UnusedParameter")
     private fun hasBanAccess(userId: Long?, projectRole: Role, organizationRole: Role): Boolean = false
 
     /**

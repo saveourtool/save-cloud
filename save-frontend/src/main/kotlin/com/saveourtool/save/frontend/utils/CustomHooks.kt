@@ -144,11 +144,21 @@ fun useRequestStatusContext(): WithRequestStatusContext {
     val statusContext = useContext(requestStatusContext)
     val context = object : WithRequestStatusContext {
         override val coroutineScope = CoroutineScope(Dispatchers.Default)
-        override fun setResponse(response: Response) = statusContext.setResponse(response)
-        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) = statusContext.setRedirectToFallbackView(
-            isNeedRedirect && response.status == 404.toShort()
-        )
-        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) = statusContext.setLoadingCounter(transform)
+        override fun setResponse(response: Response) {
+            statusContext?.run {
+                setResponse(response)
+            }
+        }
+        override fun setRedirectToFallbackView(isNeedRedirect: Boolean, response: Response) {
+            statusContext?.run {
+                setRedirectToFallbackView(
+                    isNeedRedirect && response.status == 404.toShort()
+                )
+            }
+        }
+        override fun setLoadingCounter(transform: (oldValue: Int) -> Int) {
+            statusContext?.run { setLoadingCounter(transform) }
+        }
     }
     return context
 }
@@ -157,11 +167,22 @@ fun useRequestStatusContext(): WithRequestStatusContext {
  * @param colorStyle page style
  */
 fun useBackground(colorStyle: Style) {
+    useOnce {
+        document.getElementById("main-body")?.apply {
+            className = when (colorStyle) {
+                Style.SAVE_DARK, Style.SAVE_LIGHT -> className.replace("vuln", "save")
+                Style.VULN_DARK, Style.VULN_LIGHT -> className.replace("save", "vuln")
+                Style.INDEX -> className.replace("vuln", "save")
+            }
+        }
+    }
     useEffect {
-        document.getElementById("content-wrapper")?.setAttribute(
-            "style",
-            "background: ${colorStyle.globalBackground}"
-        )
+        document.getElementById("content-wrapper")?.apply {
+            setAttribute(
+                "style",
+                "background: ${colorStyle.globalBackground}",
+            )
+        }
         configureTopBar(colorStyle)
     }
 }
@@ -270,17 +291,18 @@ fun useEventStream(
  * In this case, [useStateFromProps] should update the state once on first [valueFromProps] change.
  *
  * @param valueFromProps value that somehow depends on variable from [Props]
+ * @param postProcess callback that should be applied to [valueFromProps] when [Props] are loaded
  * @return [StateInstance] of [valueFromProps] changing its value on first [valueFromProps] change
  * @see [useState]
  */
-fun <T : Any> useStateFromProps(valueFromProps: T): StateInstance<T> {
+fun <T : Any> useStateFromProps(valueFromProps: T, postProcess: (T) -> T = { it }): StateInstance<T> {
     val state = useState(valueFromProps)
     val onceWrapper = useOnceAction()
     val reference = useRef(valueFromProps)
     useEffect(valueFromProps) {
         if (reference.current != valueFromProps) {
             onceWrapper {
-                state.component2().invoke(valueFromProps)
+                state.component2().invoke(valueFromProps.let(postProcess))
             }
         }
     }

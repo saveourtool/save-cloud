@@ -14,8 +14,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.spread
 import com.saveourtool.save.frontend.utils.useRequestStatusContext
 
-import csstype.ClassName
-import csstype.Cursor
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -44,6 +42,8 @@ import tanstack.table.core.TableOptions
 import tanstack.table.core.TableState
 import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
+import web.cssom.ClassName
+import web.cssom.Cursor
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -71,6 +71,11 @@ external interface TableProps<D : Any> : Props {
      * Lambda to update number of pages
      */
     var getPageCount: (suspend (pageSize: Int) -> Int)?
+
+    /**
+     * [ClassName] that is applied to card-body section of a table (table itself)
+     */
+    var cardBodyClassName: String
 }
 
 /**
@@ -80,7 +85,6 @@ external interface TableProps<D : Any> : Props {
  * @param initialPageSize initial size of table page
  * @param getRowProps a function returning `TableRowProps` for customization of table row, defaults to empty
  * @param useServerPaging whether data is split into pages server-side or in browser
- * @param usePageSelection whether to display entries settings
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
  * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
@@ -111,11 +115,10 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     columns: (P) -> Array<out ColumnDef<D, *>>,
     initialPageSize: Int = 10,
     useServerPaging: Boolean = false,
-    usePageSelection: Boolean = false,
     isTransparentGrid: Boolean = false,
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR") tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {},
     additionalOptions: TableOptions<D>.() -> Unit = {},
-    getRowProps: ((Row<D>) -> PropsWithStyle) = { jso() },
+    getRowProps: (Row<D>) -> PropsWithStyle = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
     commonHeader: ChildrenBuilder.(table: Table<D>, navigate: NavigateFunction) -> Unit = { _, _ -> },
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
@@ -134,7 +137,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     val tableInstance: Table<D> = useReactTable(options = jso<TableOptions<D>> {
         this.columns = useMemo { columns(props) }
         this.data = data
-        this.getCoreRowModel = tanstack.table.core.getCoreRowModel()
+        this.getCoreRowModel = getCoreRowModel()
         this.manualPagination = useServerPaging
         if (useServerPaging) {
             this.pageCount = pageCount
@@ -154,7 +157,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
         this.onSortingChange = { updater ->
             setSorting.invoke(updater)
         }
-        this.getSortedRowModel = tanstack.table.core.getSortedRowModel()
+        this.getSortedRowModel = getSortedRowModel()
         this.getPaginationRowModel = tanstack.table.core.getPaginationRowModel()
         additionalOptions()
     }.also { tableOptionsCustomizer(it) })
@@ -209,19 +212,21 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
     div {
         className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
-        div {
-            className = ClassName("card-header py-3")
-            h6 {
-                className = ClassName("m-0 font-weight-bold text-primary text-center")
-                +props.tableHeader
+        if (props.tableHeader != undefined) {
+            div {
+                className = ClassName("card-header py-3")
+                h6 {
+                    className = ClassName("m-0 font-weight-bold text-primary text-center")
+                    +props.tableHeader
+                }
             }
         }
         div {
-            className = ClassName("card-body")
+            className = ClassName("${props.cardBodyClassName} card-body")
             div {
                 className = ClassName("table-responsive")
                 table {
-                    className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"}")
+                    className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"} mb-0")
                     width = 100.0
                     cellSpacing = "0"
                     thead {
@@ -275,21 +280,24 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     div {
                         className = ClassName("align-items-center justify-content-center mb-4")
                         h6 {
-                            className = ClassName("m-0 font-weight-bold text-primary text-center")
+                            className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
                             +"No results found"
                         }
                     }
                 }
 
-                div {
-                    className = ClassName("wrapper container m-0 p-0")
-                    pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
-
+                if (tableInstance.getPageCount() > 1) {
                     div {
-                        className = ClassName("row ml-1")
-                        +"Page "
-                        em {
-                            +"${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
+                        className = ClassName("wrapper container m-0 p-0 mt-2")
+                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+
+                        div {
+                            className = ClassName("row ml-1")
+                            +"Page "
+                            em {
+                                className = ClassName("ml-1")
+                                +" ${tableInstance.getState().pagination.pageIndex + 1} of ${tableInstance.getPageCount()}"
+                            }
                         }
                     }
                 }

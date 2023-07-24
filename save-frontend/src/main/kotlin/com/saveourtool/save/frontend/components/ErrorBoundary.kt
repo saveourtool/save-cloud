@@ -4,10 +4,9 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
-import com.saveourtool.save.frontend.topBarComponent
 
-import csstype.ClassName
 import js.core.jso
 import react.Component
 import react.PropsWithChildren
@@ -17,6 +16,7 @@ import react.State
 import react.create
 import react.dom.html.ReactHTML.div
 import react.react
+import web.cssom.ClassName
 
 /**
  * State of error boundary component
@@ -46,7 +46,8 @@ class ErrorBoundary : Component<PropsWithChildren, ErrorBoundaryState>() {
                 bigText = "Error"
                 smallText = "Something went wrong"
             }
-            Footer::class.react()
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+            footer { }
         }
     } else {
         props.children
