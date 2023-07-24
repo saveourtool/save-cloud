@@ -8,8 +8,8 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.p
 import react.router.Navigate
 import react.router.dom.Link
@@ -35,7 +35,7 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
         div {
             className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
 
-            ReactHTML.h5 {
+            h5 {
                 style = jso {
                     textAlign = TextAlign.center
                 }

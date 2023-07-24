@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.CSSProperties
@@ -45,13 +46,13 @@ fun ChildrenBuilder.renderAvatar(
  * @param styleBuilder [CSSProperties] builder
  */
 fun ChildrenBuilder.renderAvatar(
-    userInfo: UserInfo,
+    userInfo: UserInfo?,
     classes: String = "",
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
-    val newLink = link?.takeIf { userInfo.status != UserStatus.DELETED }
-    return renderAvatar(userInfo.avatar ?: AVATAR_PROFILE_PLACEHOLDER, classes, newLink, styleBuilder)
+    val newLink = link?.takeIf { userInfo?.status != UserStatus.DELETED }
+    return renderAvatar(userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER, classes, newLink, styleBuilder)
 }
 
 /**

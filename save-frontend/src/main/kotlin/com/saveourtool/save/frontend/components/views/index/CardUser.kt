@@ -4,9 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.components.topbar.logoSize
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
-import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
+import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useStateFromProps
 import com.saveourtool.save.v1
@@ -16,11 +14,11 @@ import react.FC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.router.Navigate
 import web.cssom.ClassName
 import web.cssom.TextAlign
+import web.cssom.rem
 
 // FixMe: List of organizations where user included, if not - link to creation of organization
 // FixMe: Current Rating in Vulnerabilities
@@ -68,16 +66,15 @@ val cardUser: FC<IndexViewProps> = FC { props ->
 
         div {
             className = ClassName("row d-flex justify-content-center")
+            @Suppress("MAGIC_NUMBER")
             div {
                 className = ClassName("col-3")
-                img {
-                    className =
-                            ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                    src = props.userInfo?.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
-                    style = logoSize
-                    onError = {
-                        setAvatar { AVATAR_PLACEHOLDER }
-                    }
+                renderAvatar(
+                    props.userInfo,
+                    "align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mx-2"
+                ) {
+                    height = 4.rem
+                    width = 4.rem
                 }
             }
 

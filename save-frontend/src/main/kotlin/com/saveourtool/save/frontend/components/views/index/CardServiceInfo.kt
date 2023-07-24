@@ -6,8 +6,8 @@ package com.saveourtool.save.frontend.components.views.index
 
 import js.core.jso
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.p
 import web.cssom.ClassName
 import web.cssom.TextAlign
@@ -36,7 +36,7 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
         div {
             className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
 
-            ReactHTML.h5 {
+            h5 {
                 style = jso {
                     textAlign = TextAlign.center
                 }
