@@ -64,3 +64,5 @@ const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
  */
 @Suppress("NON_EXPORTABLE_TYPE")
 const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L
+
+const val DEFAULT_KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"

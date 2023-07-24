@@ -15,7 +15,15 @@ import okio.Path.Companion.toPath
 expect val fs: FileSystem
 
 /**
- * Mark [this] file as executable. Sets permissions to rwxr--r--
+ * Sets permissions to [this] file to r--|---|---
+ *
+ * @param ownerName name of owner user
+ * @param groupName name of group
+ */
+expect fun Path.permitReadingOnlyForOwner(ownerName: String, groupName: String)
+
+/**
+ * Mark [this] file as executable. Sets permissions to rwx|r--|r--
  */
 expect fun Path.markAsExecutable()
 
@@ -98,3 +106,17 @@ inline fun <reified C : Any> parseConfigOrDefault(
     logInfo("Config file $configName not found, falling back to default config.")
     defaultConfig
 }
+
+/**
+ * Allow reading file with path [tokenPathString] to owner only
+ *
+ * @param ownerName name of an owner to permit reading
+ * @param groupName name of an owner's group to permit reading
+ * @param tokenPathString path to token file
+ * @return Unit
+ */
+fun protectAuthToken(
+    ownerName: String,
+    groupName: String,
+    tokenPathString: String = DEFAULT_KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH
+) = tokenPathString.toPath().permitReadingOnlyForOwner(ownerName, groupName)

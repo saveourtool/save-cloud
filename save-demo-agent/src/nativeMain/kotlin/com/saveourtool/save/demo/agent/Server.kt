@@ -12,6 +12,7 @@ import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.demo.ServerConfiguration
 import com.saveourtool.save.demo.agent.utils.getConfiguration
 import com.saveourtool.save.demo.agent.utils.setupEnvironment
+import com.saveourtool.save.utils.protectAuthToken
 import com.saveourtool.save.utils.retry
 
 import io.ktor.http.*
@@ -52,10 +53,11 @@ private fun Application.getConfigurationOnStartup(
                 logDebug("Configuration successfully fetched.")
                 config
             }
+            ?.also { config -> config.parentUserName?.let { userName -> protectAuthToken(userName, userName) } }
             ?.also(updateConfig)
             ?.let { config ->
                 logTrace("Configuration successfully updated.")
-                setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.demoConfiguration)
+                setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.childUserName, config.demoConfiguration)
             }
             ?: run { logWarn("Could not prepare save-demo-agent, expecting /setup call.") }
     }
@@ -69,20 +71,31 @@ private fun Routing.alive(configuration: CompletableDeferred<DemoAgentConfig>) =
     })
 }
 
-private fun Routing.configure(updateConfig: (DemoAgentConfig) -> Unit) = post("/setup") {
-    val config = call.receive<DemoAgentConfig>().also(updateConfig)
-    logInfo("Agent has received configuration.")
-    try {
-        setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.demoConfiguration)
+private fun Routing.configure(
+    deferredConfig: CompletableDeferred<DemoAgentConfig>,
+    updateConfig: (DemoAgentConfig) -> Unit,
+) = post("/setup") {
+    if (deferredConfig.isCompleted) {
         call.respondText(
-            "Agent is set up.",
-            status = HttpStatusCode.OK,
+            "save-demo-agent is already configured.",
+            status = HttpStatusCode.Conflict,
         )
-    } catch (exception: IllegalStateException) {
-        call.respondText(
-            exception.message ?: "Internal agent error.",
-            status = HttpStatusCode.InternalServerError,
-        )
+    } else {
+        val config = call.receive<DemoAgentConfig>().also(updateConfig)
+        logInfo("Agent has received configuration.")
+        config.parentUserName?.let { parentUserName -> protectAuthToken(parentUserName, parentUserName) }
+        try {
+            setupEnvironment(config.demoUrl, config.setupShTimeoutMillis, config.childUserName, config.demoConfiguration)
+            call.respondText(
+                "Agent is set up.",
+                status = HttpStatusCode.OK,
+            )
+        } catch (exception: IllegalStateException) {
+            call.respondText(
+                exception.message ?: "Internal agent error.",
+                status = HttpStatusCode.InternalServerError,
+            )
+        }
     }
 }
 
@@ -121,7 +134,7 @@ fun server(serverConfiguration: ServerConfiguration, skipStartupConfiguration: B
     install(ContentNegotiation) { json() }
     routing {
         alive(deferredConfig)
-        configure { deferredConfig.complete(it) }
+        configure(deferredConfig) { deferredConfig.complete(it) }
         run(deferredConfig)
     }
 }

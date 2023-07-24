@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: save-agent-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      io.kompose.service: save-agent
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              io.kompose.service: orchestrator
+    - to:
+        # https://stackoverflow.com/q/73049535
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            # Forbid private IP ranges effectively allowing only egress to the Internet
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: "kube-system"
+        - podSelector:
+            matchLabels:
+              k8s-app: "kube-dns"

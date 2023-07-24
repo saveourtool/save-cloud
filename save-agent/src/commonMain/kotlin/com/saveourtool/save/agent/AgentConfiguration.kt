@@ -26,6 +26,8 @@ import kotlinx.serialization.Serializable
  * @property debug whether debug logging should be enabled
  * @property testSuitesDir directory where tests and additional files need to be stored into
  * @property logFilePath path to logs of save-cli execution
+ * @property parentUserName name of a parent process user, needed for token isolation
+ * @property childUserName name of a child process user, needed for token isolation
  * @property save additional configuration for save-cli
  * @property kubernetes a flag which shows that agent runs in k8s
  */
@@ -39,6 +41,8 @@ data class AgentConfiguration(
     val debug: Boolean = false,
     val testSuitesDir: String = TEST_SUITES_DIR_NAME,
     val logFilePath: String = "logs.txt",
+    val parentUserName: String? = null,
+    val childUserName: String? = null,
     val kubernetes: Boolean = false,
     val save: SaveCliConfig = SaveCliConfig(),
 ) {
@@ -55,6 +59,8 @@ data class AgentConfiguration(
             heartbeat = HeartbeatConfig(
                 url = requiredEnv(AgentEnvName.HEARTBEAT_URL.name),
             ),
+            parentUserName = optionalEnv(AgentEnvName.PARENT_PROCESS_USERNAME.name),
+            childUserName = optionalEnv(AgentEnvName.CHILD_PROCESS_USERNAME.name),
             kubernetes = optionalEnv(AgentEnvName.KUBERNETES.name).toBoolean(),
         )
     }

@@ -100,6 +100,7 @@ class SaveAgent(
             ?.let { fileName ->
                 val targetFile = targetDirectory / fileName
                 logDebugCustom("Additionally setup of evaluated tool by $targetFile")
+                // todo: protect me after ProcessBuilder is updated (https://github.com/saveourtool/save-cli/issues/521)
                 val setupResult = ProcessBuilder(true, fs)
                     .exec(
                         "./$targetFile",
@@ -287,6 +288,9 @@ class SaveAgent(
 
     private fun runSave(cliArgs: String): ExecutionResult {
         val fullCliCommand = buildString {
+            config.childUserName?.let { userName ->
+                append("sudo -u $userName ")
+            }
             append(config.cliCommand)
             append(" ${config.testSuitesDir}")
             append(" $cliArgs")

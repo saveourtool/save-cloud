@@ -13,9 +13,26 @@ import platform.posix.*
 import kotlin.system.getTimeNanos
 import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
+import kotlinx.cinterop.pointed
 import kotlinx.serialization.serializer
 
 actual val fs: FileSystem = FileSystem.SYSTEM
+
+@OptIn(UnsafeNumber::class)
+@Suppress("TooGenericExceptionThrown")
+actual fun Path.permitReadingOnlyForOwner(ownerName: String, groupName: String) {
+    val owner = requireNotNull(getpwnam(ownerName)) { "Could not find user with name $ownerName" }
+    val group = requireNotNull(getgrnam(groupName)) { "Could not find group with name $groupName" }
+
+    if (chown(toString(), owner.pointed.pw_uid, group.pointed.gr_gid) != 0) {
+        throw RuntimeException("Could not change file owner or group")
+    }
+
+    val mode: mode_t = S_IRUSR.convert()
+    if (chmod(toString(), mode) != 0) {
+        throw RuntimeException("Could not change file permissions")
+    }
+}
 
 @OptIn(UnsafeNumber::class)
 actual fun Path.markAsExecutable() {

@@ -17,6 +17,8 @@ data:
     sandbox.agent-settings.sandbox-url=http://{{ .Values.sandbox.name }}
     orchestrator.agent-settings.heartbeat-url=http://{{ .Values.sandbox.name }}/heartbeat
     orchestrator.agent-settings.debug=true
+    orchestrator.agent-settings.parent-user-name={{ .Values.agentParentUserName }}
+    orchestrator.agent-settings.child-user-name={{ .Values.agentChildUserName }}
 
     logging.level.com.saveourtool.save.orchestrator.kubernetes=DEBUG
 

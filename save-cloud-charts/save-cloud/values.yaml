@@ -222,3 +222,5 @@ demo:
 
 namespace: save-cloud
 agentNamespace: save-agent
+agentParentUserName: save-agent
+agentChildUserName: save-executor

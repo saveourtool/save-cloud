@@ -25,9 +25,13 @@ data class ConfigProperties(
 ) : S3OperationsProperties.Provider {
     /**
      * @property demoUrl url of save-demo
+     * @property parentUserName name of a parent process user, needed for token isolation
+     * @property childUserName name of a child process user, needed for token isolation
      */
     data class AgentConfig(
-        val demoUrl: String
+        val demoUrl: String,
+        val parentUserName: String? = null,
+        val childUserName: String? = null,
     )
 }
 

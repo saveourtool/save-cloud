@@ -7,10 +7,8 @@ package com.saveourtool.save.demo.agent
 import com.saveourtool.save.core.files.readLines
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.utils.ProcessBuilder
-import com.saveourtool.save.demo.DemoAgentConfig
-import com.saveourtool.save.demo.DemoResult
-import com.saveourtool.save.demo.DemoRunRequest
-import com.saveourtool.save.demo.RunConfiguration
+import com.saveourtool.save.demo.*
+import com.saveourtool.save.demo.agent.utils.wrapCommandForUser
 import com.saveourtool.save.utils.createAndWrite
 import com.saveourtool.save.utils.createAndWriteIfNeeded
 import com.saveourtool.save.utils.createTempDir
@@ -66,6 +64,20 @@ fun runDemo(demoRunRequest: DemoRunRequest, deferredConfig: CompletableDeferred<
         cleanUp(tempDir)
     }
 }
+
+/**
+ * Get run command and prepend
+ *
+ * `sudo -u childProcessUserName`
+ *
+ * if [childProcessUserName] is not null
+ */
+private fun getRunCommand(
+    runCommands: RunCommandMap,
+    mode: String,
+    childProcessUserName: String?,
+) = requireNotNull(runCommands[mode]) { "Could not find run command for mode $mode." }
+    .wrapCommandForUser(childProcessUserName)
 
 private fun createRequiredFiles(
     demoRunRequest: DemoRunRequest,

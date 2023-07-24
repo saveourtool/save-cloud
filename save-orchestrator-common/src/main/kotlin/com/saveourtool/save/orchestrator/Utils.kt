@@ -98,6 +98,9 @@ internal fun fillAgentPropertiesFromConfiguration(
     with(agentSettings) {
         put(AgentEnvName.HEARTBEAT_URL, heartbeatUrl)
         debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
+
+        parentUserName?.let { put(AgentEnvName.PARENT_PROCESS_USERNAME, parentUserName) }
+        childUserName?.let { put(AgentEnvName.CHILD_PROCESS_USERNAME, childUserName) }
     }
 }
 

@@ -20,14 +20,25 @@ private const val SETUP_SH_LOGS_FILENAME = "setup.logs"
 private const val CWD = "."
 
 /**
+ * @param childUserName name of child process user
+ */
+fun String.wrapCommandForUser(childUserName: String?) = "${childUserName?.let { " sudo -u $it " }.orEmpty()}$this"
+
+/**
  * Download all the required files from save-demo
  *
  * @param demoUrl url to save-demo
  * @param setupShTimeoutMillis amount of milliseconds to run setup.sh if it is present
+ * @param childUserName name of user that the child process should be run by
  * @param demoConfiguration all the information required for tool download
  * @throws IllegalStateException when it was caught from [downloadDemoFiles]
  */
-suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoConfiguration: DemoConfiguration) {
+suspend fun setupEnvironment(
+    demoUrl: String,
+    setupShTimeoutMillis: Long,
+    childUserName: String?,
+    demoConfiguration: DemoConfiguration,
+) {
     logInfo("Setting up the environment...")
 
     try {
@@ -39,7 +50,7 @@ suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoCo
 
     logDebug("All files successfully downloaded.")
 
-    val executionResult = executeSetupSh(setupShTimeoutMillis)
+    val executionResult = executeSetupSh(setupShTimeoutMillis, childUserName)
     executionResult?.let {
         if (executionResult.code != 0) {
             logError("Setup script has finished with ${executionResult.code} code.")
@@ -51,12 +62,16 @@ suspend fun setupEnvironment(demoUrl: String, setupShTimeoutMillis: Long, demoCo
     logInfo("The environment is successfully set up.")
 }
 
-private fun executeSetupSh(setupShTimeoutMillis: Long, setupShName: String = "setup.sh"): ExecutionResult? = setupShName.takeIf {
+private fun executeSetupSh(
+    setupShTimeoutMillis: Long,
+    childUserName: String?,
+    setupShName: String = "setup.sh",
+): ExecutionResult? = setupShName.takeIf {
     fs.exists(it.toPath())
 }
     ?.let { setupSh ->
         ProcessBuilder(true, fs).exec(
-            "./$setupSh",
+            "./$setupSh".wrapCommandForUser(childUserName),
             CWD,
             SETUP_SH_LOGS_FILENAME.toPath(),
             setupShTimeoutMillis,

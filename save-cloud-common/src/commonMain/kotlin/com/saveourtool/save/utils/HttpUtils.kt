@@ -34,8 +34,9 @@ val KubernetesServiceAccountAuthHeaderPlugin = createClientPlugin(
     val token = ExpiringValueWrapper(pluginConfig.expirationTime) {
         fs.read(pluginConfig.tokenPath.toPath()) { readUtf8() }
     }
+    val headerName = pluginConfig.headerName
     onRequest { request, _ ->
-        request.headers.append(SA_HEADER_NAME, token.getValue())
+        request.headers.append(headerName, token.getValue())
     }
 }
 
@@ -47,7 +48,7 @@ class KubernetesServiceAccountAuthHeaderPluginConfig {
     /**
      * Kubernetes service account token path configuration
      */
-    var tokenPath: String = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    var tokenPath: String = DEFAULT_KUBERNETES_SERVICE_ACCOUNT_TOKEN_PATH
 
     /**
      * Token expiration [Duration] configuration

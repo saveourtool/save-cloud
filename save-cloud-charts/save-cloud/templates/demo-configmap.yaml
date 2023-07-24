@@ -22,3 +22,5 @@ data:
 
     demo.backend-url=http://backend/internal
     demo.agent-config.demo-url=http://demo
+    demo.agent-config.parent-user-name={{ .Values.agentParentUserName }}
+    demo.agent-config.child-user-name={{ .Values.agentChildUserName }}
