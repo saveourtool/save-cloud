@@ -3,9 +3,9 @@ package com.saveourtool.save.backend.controllers.internal
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.utils.StringResponse
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.userdetails.User as SpringUser
@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+
+typealias AuthenticationUserDetailsResponse = ResponseEntity<AuthenticationUserDetails>
 
 /**
  * Controller that handles operation with users
@@ -68,8 +70,8 @@ class UsersController(
     @GetMapping("/find-by-name/{userName}")
     fun findByName(
         @PathVariable userName: String,
-    ): Mono<StringResponse> = userService.findByName(userName).map {
-        ResponseEntity.ok().body(springUserDetailsWriter.writeValueAsString(it))
+    ): Mono<AuthenticationUserDetailsResponse> = userService.findByName(userName).map {
+        ResponseEntity.ok().body(AuthenticationUserDetails(it))
     }
 
     /**
@@ -83,8 +85,8 @@ class UsersController(
     fun findByOriginalLogin(
         @PathVariable source: String,
         @PathVariable nameInSource: String,
-    ): Mono<StringResponse> = userService.findByOriginalLogin(nameInSource, source).map {
-        ResponseEntity.ok().body(springUserDetailsWriter.writeValueAsString(it))
+    ): Mono<AuthenticationUserDetailsResponse> = userService.findByOriginalLogin(nameInSource, source).map {
+        ResponseEntity.ok().body(AuthenticationUserDetails(it))
     }
 
     companion object {

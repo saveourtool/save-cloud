@@ -3,11 +3,9 @@ package com.saveourtool.save.gateway.service
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import org.springframework.http.MediaType
-import org.springframework.security.core.userdetails.User as SpringUser
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.jackson2.SecurityJackson2Modules
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
@@ -20,13 +18,7 @@ import reactor.core.publisher.Mono
 @Service
 class BackendService(
     configurationProperties: ConfigurationProperties,
-    objectMapper: ObjectMapper,
 ) {
-    private val springUserDetailsReader = objectMapper
-        .also {
-            it.registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
-        }
-        .readerFor(SpringUser::class.java)
     private val webClient = WebClient.create(configurationProperties.backend.url)
 
     /**
@@ -39,9 +31,9 @@ class BackendService(
         .onStatus({ it.is4xxClientError }) {
             Mono.error(ResponseStatusException(it.statusCode()))
         }
-        .toEntity<String>()
-        .map {
-            springUserDetailsReader.readValue(it.body)
+        .toEntity<AuthenticationUserDetails>()
+        .mapNotNull {
+            it.body?.toSpringUserDetails()
         }
 
     /**
@@ -49,15 +41,15 @@ class BackendService(
      * @param nameInSource
      * @return [UserDetails] found in DB by source and name in this source
      */
-    fun findByOriginalLogin(source: String, nameInSource: String): Mono<UserDetails> = webClient.get()
+    fun findByOriginalLogin(source: String, nameInSource: String): Mono<AuthenticationUserDetails> = webClient.get()
         .uri("/internal/users/find-by-original-login/$source/$nameInSource")
         .retrieve()
         .onStatus({ it.is4xxClientError }) {
             Mono.error(ResponseStatusException(it.statusCode()))
         }
-        .toEntity<String>()
-        .map {
-            springUserDetailsReader.readValue(it.body)
+        .toEntity<AuthenticationUserDetails>()
+        .mapNotNull {
+            it.body
         }
 
     /**

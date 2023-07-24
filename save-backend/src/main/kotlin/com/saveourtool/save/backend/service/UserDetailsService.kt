@@ -34,7 +34,6 @@ class UserDetailsService(
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .map { it.toSpringUserDetails() }
 
     /**
      * @param username
@@ -44,7 +43,6 @@ class UserDetailsService(
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .map { it.toSpringUserDetails() }
 
     /**
      * @param name

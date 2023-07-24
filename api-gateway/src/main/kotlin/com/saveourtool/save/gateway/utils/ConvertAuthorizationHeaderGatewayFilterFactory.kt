@@ -30,7 +30,7 @@ class ConvertAuthorizationHeaderGatewayFilterFactory(
             .flatMap { principal ->
                 when (principal) {
                     is OAuth2AuthenticationToken -> backendService.findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
-                        .map { it.username to principal.authorizedClientRegistrationId }
+                        .map { it.name to principal.authorizedClientRegistrationId }
                     is UsernamePasswordAuthenticationToken -> {
                         // Note: current authentication type we support only for save-api, which already set
                         // user source into X-Authorization-Source header, however, in general case
