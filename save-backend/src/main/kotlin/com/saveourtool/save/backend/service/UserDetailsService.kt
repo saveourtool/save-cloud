@@ -99,7 +99,7 @@ class UserDetailsService(
     fun saveNewUser(userNameCandidate: String, userRole: String): User {
         val existedUser = userRepository.findByName(userNameCandidate)
         val name = existedUser?.let {
-            val prefix = "${userNameCandidate}_"
+            val prefix = "$userNameCandidate$UNIQUE_NAME_SEPARATOR"
             val suffix = userRepository.findByNameStartingWith(prefix)
                 .map { it.name.replace(prefix, "") }
                 .mapNotNull { it.toIntOrNull() }
@@ -155,5 +155,9 @@ class UserDetailsService(
         originalLoginRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
+    }
+
+    companion object {
+        private const val UNIQUE_NAME_SEPARATOR = "_"
     }
 }
