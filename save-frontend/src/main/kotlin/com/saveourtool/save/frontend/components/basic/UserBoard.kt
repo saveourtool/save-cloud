@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import react.CSSProperties
 
 import react.FC
 import react.Props
@@ -21,6 +20,7 @@ import web.cssom.rem
 /**
  * A functional component to display users' avatars.
  */
+@Suppress("MAGIC_NUMBER")
 val userBoard: FC<UserBoardProps> = FC { props ->
     div {
         className = ClassName("latest-photos")
@@ -31,6 +31,8 @@ val userBoard: FC<UserBoardProps> = FC { props ->
                     className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
                         renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}") {
+                            // just some default values in case you don't want to provide value
+                            // in this case you will get small avatar
                             width = props.widthAndHeight ?: 4.rem
                             height = props.widthAndHeight ?: 4.rem
                         }

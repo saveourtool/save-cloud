@@ -16,8 +16,6 @@ import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.ClassName
-import web.cssom.rem
-
 
 /**
  * Placeholder for organization avatar
@@ -92,7 +90,7 @@ private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,
     classes: String,
     link: String?,
-    styleBuilder: CSSProperties.() -> Unit
+    styleBuilder: CSSProperties.() -> Unit,
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
         img {
