@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.mapToIdentitySourceAwareUserDetailsOrNotFound
+import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
@@ -29,22 +29,22 @@ class UserDetailsService(
 ) {
     /**
      * @param username
-     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     * @return spring's UserDetails retrieved from save's user found by provided values
      */
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .mapToIdentitySourceAwareUserDetailsOrNotFound { username }
+        .map { it.toSpringUserDetails() }
 
     /**
      * @param username
      * @param source source (where the user identity is coming from)
-     * @return IdentitySourceAwareUserDetails retrieved from UserDetails
+     * @return spring's UserDetails retrieved from save's user found by provided values
      */
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .mapToIdentitySourceAwareUserDetailsOrNotFound { "$username from $source" }
+        .map { it.toSpringUserDetails() }
 
     /**
      * @param name
@@ -78,29 +78,54 @@ class UserDetailsService(
      * @return UserSaveStatus
      */
     @Transactional
-    fun saveUser(user: User, oldName: String?): UserSaveStatus {
-        val userName = user.name
-        return if (oldName == null) {
-            userRepository.save(user)
-            UserSaveStatus.UPDATE
-        } else if (userRepository.validateName(userName) != 0L) {
-            userRepository.deleteHighLevelName(oldName)
-            userRepository.saveHighLevelName(userName)
-            userRepository.save(user)
-            UserSaveStatus.UPDATE
-        } else {
-            UserSaveStatus.CONFLICT
+    fun saveUser(user: User, oldName: String?): UserSaveStatus = if (oldName == null) {
+        userRepository.save(user)
+        UserSaveStatus.UPDATE
+    } else if (userRepository.validateName(user.name) != 0L) {
+        userRepository.deleteHighLevelName(oldName)
+        userRepository.saveHighLevelName(user.name)
+        userRepository.save(user)
+        UserSaveStatus.UPDATE
+    } else {
+        UserSaveStatus.CONFLICT
+    }
+
+    /**
+     * @param userNameCandidate
+     * @param userRole
+     * @return created [User]
+     */
+    @Transactional
+    fun saveNewUser(userNameCandidate: String, userRole: String): User {
+        val existedUser = userRepository.findByName(userNameCandidate)
+        val name = existedUser?.let {
+            val prefix = "$userNameCandidate$UNIQUE_NAME_SEPARATOR"
+            val suffix = userRepository.findByNameStartingWith(prefix)
+                .map { it.name.replace(prefix, "") }
+                .mapNotNull { it.toIntOrNull() }
+                .maxOrNull()
+                ?.inc()
+                ?: 1
+            "$prefix$suffix"
+        } ?: run {
+            userNameCandidate
         }
+        return userRepository.save(User(
+            name = name,
+            password = null,
+            role = userRole,
+            status = UserStatus.CREATED,
+        ))
     }
 
     /**
      * @param user
-     * @return UserSaveStatus
+     * @param nameInSource
+     * @param source
      */
     @Transactional
-    fun saveNewUser(user: User) {
-        val newUser = userRepository.save(user)
-        originalLoginRepository.save(OriginalLogin(user.name, newUser, user.source))
+    fun addSource(user: User, nameInSource: String, source: String) {
+        originalLoginRepository.save(OriginalLogin(nameInSource, user, source))
     }
 
     /**
@@ -130,5 +155,9 @@ class UserDetailsService(
         originalLoginRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
+    }
+
+    companion object {
+        private const val UNIQUE_NAME_SEPARATOR = "_"
     }
 }

@@ -278,6 +278,18 @@ fun <T> Mono<T>.switchIfErrorToConflict(
 ) = switchIfErrorToResponseException(HttpStatus.CONFLICT, messageCreator)
 
 /**
+ * @param function blocking operation like JDBC
+ * @return [Mono] from result of blocking operation [R]
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
+ */
+fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R): Mono<R> = flatMap { value ->
+    blockingToMono { function(value) }
+}
+
+/**
  * Taking from https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking
  *
  * @param supplier blocking operation like JDBC

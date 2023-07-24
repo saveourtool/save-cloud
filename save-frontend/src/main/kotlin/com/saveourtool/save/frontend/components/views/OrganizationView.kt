@@ -417,7 +417,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
-            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Undefined", source = "Undefined")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Undefined")
             selfRole = state.selfRole
             updateErrorMessage = { response, message ->
                 setState {

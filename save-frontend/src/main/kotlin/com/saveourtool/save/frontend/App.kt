@@ -85,7 +85,6 @@ class App : ComponentWithScope<PropsWithChildren, AppState>() {
                 UserInfo(
                     name = userName,
                     globalRole = globalRole,
-                    source = "Undefined",
                 )
             }
 

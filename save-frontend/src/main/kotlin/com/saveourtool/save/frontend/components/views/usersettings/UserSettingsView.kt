@@ -312,7 +312,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             name = newName ?: nameInDb,
             oldName = oldName,
             originalLogins = state.userInfo!!.originalLogins,
-            source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
             company = fieldsMap[InputTypes.COMPANY]?.trim(),

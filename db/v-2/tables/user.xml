@@ -88,4 +88,9 @@
         </dropColumn>
     </changeSet>
 
+
+    <changeSet id="user-drop-source" author="nulls">
+        <dropColumn tableName="user" columnName="source"/>
+    </changeSet>
+
 </databaseChangeLog>
