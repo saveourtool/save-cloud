@@ -27,3 +27,8 @@ fun Location.notIn(routes: List<FrontendRoutes>) = notIn(routes.map { "/$it" })
  * @return true if [Location.pathname] starts with `/vuln`, false otherwise
  */
 fun Location.isVuln() = pathname.startsWith("/vuln")
+
+/**
+ * @return true if we are on a main (index) page
+ */
+fun Location.isIndex() = pathname == "/"

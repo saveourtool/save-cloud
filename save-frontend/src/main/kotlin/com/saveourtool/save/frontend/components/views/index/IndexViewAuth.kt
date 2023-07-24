@@ -41,14 +41,16 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
     div {
         className = ClassName("row mt-2")
         div {
-            className = ClassName("col-4 text-center")
+            className = ClassName("col-3 text-center")
         }
         div {
-            className = ClassName("col-4 text-center")
+            className = ClassName("col-6 text-center")
             @Suppress("MAGIC_NUMBER")
             div {
                 className = ClassName("row")
-                oauthProviders.map { userInfo ->
+                oauthProviders.sortedBy {
+                    it.registrationId
+                }.map { userInfo ->
                     val oauthProvider = userInfo.registrationId
                     processRegistrationId(
                         OauthProvidersFeConfig(
@@ -62,28 +64,28 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
             }
         }
         div {
-            className = ClassName("col-4 text-center")
+            className = ClassName("col-3 text-center")
         }
     }
 }
 
 val separator = VFC {
     div {
-        className = ClassName("row")
+        className = ClassName("row mt-2")
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-2")
         }
 
         div {
-            className = ClassName("col-6 mt-2")
+            className = ClassName("col-8 mt-2")
 
             div {
-                className = ClassName("separator text-white")
-                +"Sign in"
+                className = ClassName("separator text-black")
+                +"Sign in with"
             }
         }
         div {
-            className = ClassName("col-3")
+            className = ClassName("col-2")
         }
     }
 }

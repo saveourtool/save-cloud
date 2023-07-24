@@ -41,7 +41,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
             }
             h4 {
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
-                +"Sign in"
+                +"Sign in with"
             }
             div {
                 className = ClassName("row")
