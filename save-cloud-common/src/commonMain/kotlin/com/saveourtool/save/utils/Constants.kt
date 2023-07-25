@@ -60,6 +60,21 @@ const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
 
 /**
+ * `X-Authorization-Roles` used to specify save's user id
+ */
+const val AUTHORIZATION_ID = "X-Authorization-Id"
+
+/**
+ * `X-Authorization-Roles` used to specify save's username
+ */
+const val AUTHORIZATION_NAME = "X-Authorization-Name"
+
+/**
+ * `X-Authorization-Roles` used to specify save's user roles
+ */
+const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
+
+/**
  * Default time to execute setup.sh
  */
 @Suppress("NON_EXPORTABLE_TYPE")

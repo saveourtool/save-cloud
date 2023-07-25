@@ -1,9 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
-import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
-import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository

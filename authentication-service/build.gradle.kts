@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation("org.springframework:spring-jdbc")
+    implementation(libs.javax.servlet.api)
     testImplementation(libs.spring.security.test)
     testImplementation(libs.junit.jupiter.api)
 }
