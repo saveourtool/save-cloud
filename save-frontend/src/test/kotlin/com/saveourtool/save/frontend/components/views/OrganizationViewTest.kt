@@ -25,7 +25,6 @@ class OrganizationViewTest {
         )
     private val testUserInfo = UserInfo(
         "TestUser",
-        source = "basic",
         projects = emptyMap(),
         organizations = mapOf(testOrganization.name to Role.ADMIN),
         globalRole = Role.SUPER_ADMIN,
@@ -102,11 +101,9 @@ class OrganizationViewTest {
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = wrapper.create {
-        MemoryRouter {
-            OrganizationView::class.react {
-                organizationName = testOrganization.name
-                currentUserInfo = userInfo
-            }
+        OrganizationView::class.react {
+            organizationName = testOrganization.name
+            currentUserInfo = userInfo
         }
     }
         .let {

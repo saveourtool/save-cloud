@@ -2,14 +2,14 @@
  * [Last page] Main information about SAVE-cloud
  */
 
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
+import react.router.dom.Link
 import web.cssom.AlignItems
 import web.cssom.AlignSelf
 import web.cssom.ClassName
@@ -21,16 +21,19 @@ import web.cssom.em
 
 /**
  * rendering of "Read more" section
+ *
+ * @param platformName
  */
 @Suppress("MAGIC_NUMBER")
-fun ChildrenBuilder.renderReadMorePage() {
+fun ChildrenBuilder.renderReadMorePage(platformName: String = "SAVE") {
     div {
         className = ClassName("col")
         style = jso {
-            bottom = 30.em
+            this.bottom = 30.em
+            color?.let { this.color = it }
         }
 
-        wantToKnowMore()
+        wantToKnowMore(platformName)
 
         div {
             className = ClassName("col justify-content-center")
@@ -44,13 +47,13 @@ fun ChildrenBuilder.renderReadMorePage() {
             }
             div {
                 className = ClassName("row justify-content-center")
-                link("#/about", "About us")
+                link("/about", "About us")
             }
         }
     }
 }
 
-private fun ChildrenBuilder.wantToKnowMore() {
+private fun ChildrenBuilder.wantToKnowMore(platformName: String) {
     div {
         className = ClassName("col justify-content-center")
         h1 {
@@ -58,7 +61,7 @@ private fun ChildrenBuilder.wantToKnowMore() {
                 textAlign = TextAlign.center
                 color = "rgb(6, 7, 89)".unsafeCast<Color>()
             }
-            +"Want to know more about SAVE?"
+            +"Want to know more about $platformName?"
         }
     }
 }
@@ -72,8 +75,8 @@ private fun ChildrenBuilder.link(url: String, text: String) {
             alignItems = AlignItems.center
             alignSelf = AlignSelf.center
         }
-        a {
-            href = url
+        Link {
+            to = url
             h3 {
                 className = ClassName("text-center")
                 +text

@@ -45,7 +45,7 @@ open class AboutUsView : AbstractView<AboutUsViewProps, AboutUsViewState>() {
         Developer("Vlad", "Frolov", "Cheshiriks", "Fullstack"),
         Developer("Peter", "Trifanov", "petertrr", "Arch"),
         Developer("Andrey", "Shcheglov", "0x6675636b796f75676974687562", "Backend"),
-        Developer("Sasha", "Frolov", "sanyavertolet", "Frontend"),
+        Developer("Sasha", "Frolov", "sanyavertolet", "Fullstack"),
         Developer("Andrey", "Kuleshov", "akuleshov7", "Ideas 😎"),
         Developer("Nariman", "Abdullin", "nulls", "Fullstack"),
         Developer("Alexey", "Votintsev", "Arrgentum", "Frontend"),

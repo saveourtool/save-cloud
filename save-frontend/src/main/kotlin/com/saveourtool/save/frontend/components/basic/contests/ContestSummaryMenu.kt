@@ -6,11 +6,11 @@ import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.frontend.utils.*
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import web.cssom.*
 
 /**
@@ -44,7 +44,7 @@ private fun ChildrenBuilder.displayTopProjects(sortedResults: List<ContestResult
                 contestResult.projectName,
                 contestResult.organizationName,
                 contestResult.score?.toFixedStr(2) ?: "-",
-                "#/${contestResult.organizationName}/${contestResult.projectName}"
+                "/${contestResult.organizationName}/${contestResult.projectName}"
             )
         }
     }
@@ -61,8 +61,8 @@ private fun ChildrenBuilder.displayResult(
         val disabled = linkToProject?.let { "" } ?: "disabled bg-light"
         className = ClassName("list-group-item $disabled")
         linkToProject?.let {
-            a {
-                href = it
+            Link {
+                to = it
                 className = ClassName("stretched-link")
             }
         }

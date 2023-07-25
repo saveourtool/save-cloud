@@ -1,5 +1,6 @@
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
+import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
 import com.saveourtool.save.frontend.externals.animations.*
 
 import js.core.jso
@@ -9,7 +10,7 @@ import web.cssom.Height
 import web.cssom.rem
 
 @Suppress("CUSTOM_GETTERS_SETTERS", "MAGIC_NUMBER")
-object TestsSelector : WelcomePager {
+object AwesomeBenchmarks : WelcomePager {
     override val animation: Animation
         get() = batch(fade(), sticky())
 
@@ -19,11 +20,12 @@ object TestsSelector : WelcomePager {
 
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
+            @Suppress("MAGIC_NUMBER")
             style = jso {
-                width = 40.rem
+                width = 80.rem
                 height = "auto".unsafeCast<Height>()
             }
-            src = "img/tests_selector.png"
+            src = "img/awesome_view.png"
         }
     }
 }

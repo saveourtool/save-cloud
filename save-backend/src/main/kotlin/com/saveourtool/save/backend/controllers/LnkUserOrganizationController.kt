@@ -7,8 +7,8 @@
 
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
-import com.saveourtool.save.authservice.utils.toUser
+import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.OrganizationService
@@ -106,7 +106,7 @@ class LnkUserOrganizationController(
         authentication: Authentication?,
     ): Mono<Role> = authentication?.let {
         getUserAndOrganizationWithPermissions(
-            authentication.toUser().name!!,
+            authentication.username(),
             organizationName,
             Permission.READ,
             authentication,
@@ -244,7 +244,7 @@ class LnkUserOrganizationController(
     fun getAllUsersOrganizationsThatCanCreateContests(
         authentication: Authentication,
     ): Flux<Organization> = Flux.fromIterable(
-        lnkUserOrganizationService.getSuperOrganizationsWithRole((authentication.details as AuthenticationDetails).id)
+        lnkUserOrganizationService.getSuperOrganizationsWithRole(authentication.userId())
     )
 
     @PostMapping("/by-filters")
@@ -265,7 +265,7 @@ class LnkUserOrganizationController(
         @RequestBody organizationFilter: OrganizationFilter,
         authentication: Authentication,
     ): Flux<OrganizationWithUsers> = Mono.justOrEmpty(
-        lnkUserOrganizationService.getUserById((authentication.details as AuthenticationDetails).id)
+        lnkUserOrganizationService.getUserById(authentication.userId())
     )
         .switchIfEmptyToNotFound()
         .flatMapIterable {
@@ -274,7 +274,7 @@ class LnkUserOrganizationController(
         .map {
             OrganizationWithUsers(
                 organization = it.organization.toDto(),
-                userRoles = mapOf(it.user.name!! to it.role),
+                userRoles = mapOf(it.user.name to it.role),
             )
         }
 

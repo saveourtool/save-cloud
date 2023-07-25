@@ -41,7 +41,7 @@ enum class ProjectListTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: ProjectListTab = PUBLIC
-        override val regexForUrlClassification = "/${FrontendRoutes.PROJECTS.path}/($postfixInRegex)"
+        override val regexForUrlClassification = "/${FrontendRoutes.PROJECTS}/($postfixInRegex)"
         override fun valueOf(elem: String): ProjectListTab = ProjectListTab.valueOf(elem)
         override fun values(): Array<ProjectListTab> = ProjectListTab.values()
     }

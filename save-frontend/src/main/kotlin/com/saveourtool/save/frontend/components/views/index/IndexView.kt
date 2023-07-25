@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import js.core.jso
 import react.FC
 import react.Props
 
@@ -24,11 +25,43 @@ val indexView: FC<IndexViewProps> = FC { props ->
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {
-                className = ClassName("grid mt-5")
-                logoButtons { }
-                props.userInfo ?: run {
-                    separator { }
-                    indexAuth { props.userInfo }
+                className = ClassName("row justify-content-center")
+                div {
+                    className = ClassName("col-8 card border-secondary lg-shadow shadow-box")
+                    div {
+                        className = ClassName("row")
+                        div {
+                            className = ClassName("col")
+                            @Suppress("MAGIC_NUMBER")
+                            style = jso {
+                                background = "rgb(0,0,0) url(img/logo-bg-p-3.png)".unsafeCast<Background>()
+                                backgroundRepeat = "no-repeat".unsafeCast<BackgroundRepeat>()
+                                backgroundSize = "100% auto".unsafeCast<BackgroundSize>()
+                                // need to hardcode the height, as it is very tightly linked to the size of the img
+                                // and to logo alignments
+                                height = 33.rem
+                            }
+                            logoButtons { }
+                        }
+                    }
+
+                    div {
+                        className = ClassName("row d-flex justify-content-center")
+                        div {
+                            className = ClassName("col min-vh-100")
+                            style = jso {
+                                background = INDEX_VIEW_CUSTOM_BG.unsafeCast<Background>()
+                            }
+
+                            props.userInfo
+                                ?: run {
+                                    separator { }
+                                    indexAuth { props.userInfo }
+                                }
+
+                            indexViewInfo { userInfo = props.userInfo }
+                        }
+                    }
                 }
             }
         }

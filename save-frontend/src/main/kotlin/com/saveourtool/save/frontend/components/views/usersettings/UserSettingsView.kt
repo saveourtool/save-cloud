@@ -22,16 +22,17 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
 import react.dom.events.ChangeEvent
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
+import react.router.dom.Link
 import web.cssom.*
 import web.html.HTMLInputElement
 
+import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -229,9 +230,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             className = ClassName("menu")
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE.path}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -240,9 +241,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL.path}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -251,9 +252,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             }
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS.path}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -274,9 +275,9 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                             className = ClassName("menu")
                                             div {
                                                 className = ClassName("mt-2")
-                                                a {
+                                                Link {
                                                     className = ClassName("item")
-                                                    href = "#/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN.path}"
+                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -311,7 +312,6 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             name = newName ?: nameInDb,
             oldName = oldName,
             originalLogins = state.userInfo!!.originalLogins,
-            source = state.userInfo!!.source,
             projects = state.userInfo!!.projects,
             email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
             company = fieldsMap[InputTypes.COMPANY]?.trim(),
@@ -320,7 +320,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
             twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
             avatar = state.userInfo!!.avatar,
-            isActive = state.userInfo!!.isActive,
+            status = state.userInfo!!.status,
         )
 
         val headers = Headers().also {
@@ -342,6 +342,30 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             } else {
                 setState {
                     conflictErrorMessage = null
+                }
+            }
+        }
+    }
+
+    @Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+    fun deleteUser() {
+        scope.launch {
+            val response = get(
+                url = "$apiUrl/users/delete/${state.userInfo!!.name}",
+                headers = jsonHeaders,
+                loadingHandler = ::classLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                val replyToLogout = post(
+                    "${window.location.origin}/logout",
+                    Headers(),
+                    "ping",
+                    loadingHandler = ::classLoadingHandler,
+                )
+                if (replyToLogout.ok) {
+                    window.location.href = "${window.location.origin}/#"
+                    window.location.reload()
                 }
             }
         }

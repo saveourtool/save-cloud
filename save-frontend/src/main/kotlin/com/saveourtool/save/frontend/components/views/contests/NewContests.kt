@@ -9,12 +9,12 @@ import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
 import react.VFC
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
@@ -62,8 +62,8 @@ internal val newContests = VFC {
                     +"Checkout and participate in newest contests"
                 }
                 newContests.forEach { contest ->
-                    a {
-                        href = "#/contests/${contest.name}"
+                    Link {
+                        to = "/contests/${contest.name}"
                         +contest.name
                     }
                 }

@@ -21,7 +21,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -102,8 +101,8 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                         td {
                             when (projectDto.status) {
                                 ProjectStatus.CREATED -> div {
-                                    a {
-                                        href = "#/${projectDto.organizationName}/${cellContext.value}"
+                                    Link {
+                                        to = "/${projectDto.organizationName}/${cellContext.value}"
                                         +cellContext.value
                                     }
                                     spanWithClassesAndText("text-muted", "active")
@@ -280,7 +279,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 className = ClassName("d-flex justify-content-center mb-2")
                 if (props.selfRole.isHigherOrEqualThan(Role.ADMIN)) {
                     Link {
-                        to = "/${FrontendRoutes.CREATE_PROJECT.path}/${props.organization?.name}"
+                        to = "/${FrontendRoutes.CREATE_PROJECT}/${props.organization?.name}"
                         button {
                             type = ButtonType.button
                             className = ClassName("btn btn-outline-info")

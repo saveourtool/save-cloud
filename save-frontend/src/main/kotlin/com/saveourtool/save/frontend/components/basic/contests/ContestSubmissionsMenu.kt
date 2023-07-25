@@ -11,10 +11,10 @@ import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.td
+import react.router.dom.Link
 import web.cssom.*
 
 /**
@@ -32,9 +32,9 @@ private val myProjectsTable: FC<TableProps<ContestResult>> = tableComponent(
             column(id = "project_name", header = "Project Name", { this }) { cellContext ->
                 Fragment.create {
                     td {
-                        a {
+                        Link {
                             cellContext.value.let {
-                                href = "#/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
+                                to = "/contests/${it.contestName}/${it.organizationName}/${it.projectName}"
                                 +"${it.organizationName}/${it.projectName}"
                             }
                         }

@@ -2,15 +2,16 @@
  * Slogans that will be used in welcome page
  */
 
-package com.saveourtool.save.frontend.components.views.welcome.pagers
+package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
+import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
 import com.saveourtool.save.frontend.externals.animations.Animation
 import com.saveourtool.save.frontend.externals.animations.zoomInScrollOut
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.h1
+import react.router.dom.Link
 import web.cssom.Color
 import web.cssom.FontSize
 import web.cssom.TextAlign
@@ -41,8 +42,8 @@ open class Slogan(
             +text
         }
         if (linkUrl.isNotEmpty()) {
-            a {
-                href = linkUrl
+            Link {
+                to = linkUrl
                 h1 {
                     style = jso {
                         textAlign = TextAlign.center
@@ -58,4 +59,4 @@ open class Slogan(
 object SloganAboutCi : Slogan("Cloud CI platform with a main focus on code analyzers")
 object SloganAboutTests : Slogan("Share your tests with the community")
 object SloganAboutBenchmarks : Slogan("Archive with popular community benchmarks")
-object SloganAboutContests : Slogan("Participate in Community", "#/contests", "Contests")
+object SloganAboutContests : Slogan("Participate in Community", "/contests", "Contests")

@@ -19,11 +19,11 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
+import react.router.dom.Link
 import web.cssom.ClassName
 import web.cssom.Height
 import web.cssom.rem
@@ -169,9 +169,9 @@ private fun ChildrenBuilder.contestListTable(
                         }
                         +"Enroll"
                     }
-                    a {
+                    Link {
                         className = ClassName("btn btn-outline-info mr-2")
-                        href = "#/${FrontendRoutes.CONTESTS.path}/${contest.name}"
+                        to = "/${FrontendRoutes.CONTESTS}/${contest.name}"
                         +"Rules and more "
                         fontAwesomeIcon(icon = faArrowRight)
                     }

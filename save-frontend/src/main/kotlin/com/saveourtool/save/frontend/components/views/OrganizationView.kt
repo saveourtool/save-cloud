@@ -343,6 +343,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                     users = state.usersInOrganization.orEmpty()
                     avatarOuterClasses = "col-4 px-0"
                     avatarInnerClasses = "mx-sm-3"
+                    widthAndHeight = 6.rem
                 }
             }
         }
@@ -417,7 +418,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
-            currentUserInfo = props.currentUserInfo ?: UserInfo("Undefined")
+            currentUserInfo = props.currentUserInfo ?: UserInfo(name = "Undefined")
             selfRole = state.selfRole
             updateErrorMessage = { response, message ->
                 setState {
@@ -494,7 +495,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 scoreCard {
                     name = it.name
                     contestScore = it.contestRating
-                    url = "#/${props.organizationName}/${it.name}"
+                    url = "/${props.organizationName}/${it.name}"
                 }
             }
         }

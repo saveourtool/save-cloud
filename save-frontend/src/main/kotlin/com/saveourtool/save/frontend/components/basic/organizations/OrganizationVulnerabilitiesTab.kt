@@ -31,7 +31,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${FrontendRoutes.VULNERABILITIES}/${cellContext.row.original.name}"
+                            to = "/${FrontendRoutes.VULN}/${cellContext.row.original.name}"
                             +cellContext.value
                         }
                     }

@@ -17,7 +17,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h1
@@ -201,14 +200,12 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                                         className = ClassName("menu")
                                         div {
                                             className = ClassName("mt-2 pl-2")
-                                            a {
-                                                projectProblem.vulnerabilityName?.let {
-                                                    Link {
-                                                        to = "/${FrontendRoutes.VULNERABILITIES}/${projectProblem.vulnerabilityName}"
-                                                        +it
-                                                    }
-                                                } ?: +"No known CVE"
-                                            }
+                                            projectProblem.vulnerabilityName?.let {
+                                                Link {
+                                                    to = "/${FrontendRoutes.VULN}/${projectProblem.vulnerabilityName}"
+                                                    +it
+                                                }
+                                            } ?: +"No known CVE"
                                         }
                                     }
                                 }

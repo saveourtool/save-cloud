@@ -24,14 +24,13 @@ import web.timers.setTimeout
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val DROPDOWN_ID = "option-dropdown"
-private const val ON_BLUR_TIMEOUT_MILLIS = 100
 
 /**
  * Component that encapsulates debounced prefix autocompletion over [UserInfo.name]
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val inputWithDebounceForUserInfo = inputWithDebounce(
-    asOption = { UserInfo(this) },
+    asOption = { UserInfo(name = this) },
     asString = { name },
     decodeListFromJsonString = { decodeFromJsonString() },
 )

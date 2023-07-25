@@ -8,20 +8,20 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
+import react.router.dom.Link
 import web.cssom.*
 
 /**
  * Buttons for creation and deletion of new projects and organizations
  */
 internal fun ChildrenBuilder.topRightCard() {
-    creationCard("img/undraw_for_review_eqxk.svg", "organization", "#/${FrontendRoutes.CREATE_ORGANIZATION.path}/")
-    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "#/${FrontendRoutes.CREATE_PROJECT.path}/")
+    creationCard("img/undraw_for_review_eqxk.svg", "organization", "/${FrontendRoutes.CREATE_ORGANIZATION}/")
+    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "/${FrontendRoutes.CREATE_PROJECT}/")
 }
 
 /**
@@ -100,9 +100,9 @@ private fun ChildrenBuilder.creationCard(image: String, text: String, url: Strin
                 className = ClassName("row")
                 div {
                     className = ClassName("col-6 link-container")
-                    a {
+                    Link {
                         className = ClassName("link-three ml-5")
-                        href = url
+                        to = url
                         style = jso {
                             textDecoration = "none".unsafeCast<TextDecoration>()
                         }

@@ -29,7 +29,7 @@ class Comment(
 ) : BaseEntityWithDateAndDto<CommentDto>() {
     override fun toDto() = CommentDto(
         message = message,
-        userName = user.name ?: "Unknown",
+        userName = user.name,
         userRating = user.rating,
         userAvatar = user.avatar,
         createDate = createDate?.toKotlinLocalDateTime(),

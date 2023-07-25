@@ -80,7 +80,7 @@ fun ChildrenBuilder.buttonBuilder(
     title: String? = null,
     onClickFun: MouseEventHandler<HTMLButtonElement>,
 ) {
-    buttonBuilder({ fontAwesomeIcon(icon) }, style, isDisabled, isOutline, isActive, classes, title, onClickFun)
+    buttonBuilder({ fontAwesomeIcon(icon) { it.className = "align-middle" } }, style, isDisabled, isOutline, isActive, classes, title, onClickFun)
 }
 
 /**
@@ -138,6 +138,7 @@ private fun ChildrenBuilder.buttonBuilder(
                     append(" active")
                 }
             }
+            append(" align-middle")
             append(" $classes")
         }
         className = ClassName(builtClasses)

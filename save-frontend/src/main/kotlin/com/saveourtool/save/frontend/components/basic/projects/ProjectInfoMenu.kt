@@ -13,12 +13,13 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 import kotlinx.browser.window
@@ -110,8 +111,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                     .forEach {
                         li {
                             className = ClassName("list-group-item pl-0 pr-0 pb-0 pt-0 mb-3")
-                            a {
-                                href = "#/${FrontendRoutes.CONTESTS.path}/${it.contestName}"
+                            Link {
+                                to = "/${FrontendRoutes.CONTESTS}/${it.contestName}"
                                 className = ClassName("stretched-link")
                             }
                             scoreCard {
@@ -133,6 +134,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 users = usersInProject
                 avatarOuterClasses = "col-4 px-0"
                 avatarInnerClasses = "mx-sm-3"
+                widthAndHeight = 7.rem
             }
         }
 
@@ -164,8 +166,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                 div {
                     className = ClassName("ml-3 align-items-left")
                     fontAwesomeIcon(icon = faCalendarAlt)
-                    a {
-                        href = "#/${props.organizationName}/${props.projectName}/history"
+                    Link {
+                        to = "/${props.organizationName}/${props.projectName}/history"
                         className = ClassName("btn btn-link text-left")
                         +"Execution History"
                     }

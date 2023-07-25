@@ -8829,6 +8829,36 @@
         ]
       }
     },
+    "/api/v1/users/delete/{userName}": {
+      "get": {
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/global-role": {
       "get": {
         "operationId": "getSelfGlobalRole",
@@ -9521,7 +9551,7 @@
     "/api/v1/vulnerabilities/delete-user": {
       "delete": {
         "description": "Delete user.",
-        "operationId": "deleteUser",
+        "operationId": "deleteUser_1",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11789,9 +11819,9 @@
       },
       "User": {
         "required": [
-          "isActive",
+          "name",
           "rating",
-          "source"
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -11810,9 +11840,6 @@
           "id": {
             "type": "integer",
             "format": "int64"
-          },
-          "isActive": {
-            "type": "boolean"
           },
           "linkedin": {
             "type": "string"
@@ -11833,8 +11860,13 @@
           "role": {
             "type": "string"
           },
-          "source": {
-            "type": "string"
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "ACTIVE",
+              "DELETED"
+            ]
           },
           "twitter": {
             "type": "string"
@@ -11843,12 +11875,12 @@
       },
       "UserInfo": {
         "required": [
-          "isActive",
           "name",
           "organizations",
           "originalLogins",
           "projects",
-          "rating"
+          "rating",
+          "status"
         ],
         "type": "object",
         "properties": {
@@ -11877,9 +11909,6 @@
           "id": {
             "type": "integer",
             "format": "int64"
-          },
-          "isActive": {
-            "type": "boolean"
           },
           "linkedin": {
             "type": "string"
@@ -11929,8 +11958,13 @@
             "type": "integer",
             "format": "int64"
           },
-          "source": {
-            "type": "string"
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATED",
+              "ACTIVE",
+              "DELETED"
+            ]
           },
           "twitter": {
             "type": "string"

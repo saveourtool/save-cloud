@@ -34,7 +34,7 @@ class PermissionServiceTest {
     @Test
     fun `should return a role`() {
         given(userRepository.findByName(any())).willAnswer { invocationOnMock ->
-            User(invocationOnMock.arguments[0] as String, null, null, "basic")
+            User(invocationOnMock.arguments[0] as String, null, null)
                 .apply { id = 99 }
         }
         given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willAnswer {
@@ -66,7 +66,7 @@ class PermissionServiceTest {
     @Test
     fun `should add a role`() {
         given(userRepository.findByName(any())).willAnswer { invocationOnMock ->
-            User(invocationOnMock.arguments[0] as String, null, null, "basic")
+            User(invocationOnMock.arguments[0] as String, null, null)
                 .apply { id = 99 }
         }
         given(projectService.findByNameAndOrganizationNameAndCreatedStatus(any(), any())).willAnswer {

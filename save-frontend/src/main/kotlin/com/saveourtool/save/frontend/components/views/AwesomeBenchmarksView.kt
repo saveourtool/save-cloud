@@ -42,6 +42,7 @@ import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.strong
 import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
 import web.cssom.Cursor
@@ -109,7 +110,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
         scope.launch {
             getBenchmarks()
             setState {
-                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS.path}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS}")
             }
         }
     }
@@ -316,8 +317,8 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                             className = ClassName("navbar-landing mt-2")
                                                             // FixMe: links should be limited with the length of the div
                                                             benchmark.tags.split(DATABASE_DELIMITER).map { " #$it " }.forEach {
-                                                                a {
-                                                                    className = ClassName("/#/${FrontendRoutes.AWESOME_BENCHMARKS.path}")
+                                                                Link {
+                                                                    to = "/${FrontendRoutes.AWESOME_BENCHMARKS}"
                                                                     +it
                                                                 }
                                                             }
@@ -465,9 +466,9 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     li {
                                         fontAwesomeIcon(icon = faGithub)
                                         +""" Go to the"""
-                                        a {
-                                            className = ClassName("https://github.com/saveourtool/awesome-benchmarks")
-                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS.path} """
+                                        Link {
+                                            to = "https://github.com/saveourtool/awesome-benchmarks"
+                                            +""" ${FrontendRoutes.AWESOME_BENCHMARKS} """
                                         }
                                         +"""repository"""
                                     }
@@ -515,7 +516,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
             it.set("Content-Type", "application/json")
         }
         val response: List<AwesomeBenchmarks> = get(
-            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS.path}",
+            "$apiUrl/${FrontendRoutes.AWESOME_BENCHMARKS}",
             headers,
             loadingHandler = ::classLoadingHandler,
         ).decodeFromJsonString()

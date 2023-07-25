@@ -17,7 +17,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
@@ -90,9 +89,9 @@ internal val globalRating = VFC {
                         alignItems = AlignItems.center
                         alignSelf = AlignSelf.start
                     }
-                    a {
+                    Link {
                         className = ClassName("mb-5")
-                        href = "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/${selectedTab.name.lowercase()}"
+                        to = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/${selectedTab.name.lowercase()}"
                         +"View more "
                     }
                 }
@@ -114,7 +113,7 @@ enum class UserRatingTab {
         private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserRatingTab = UserRatingTab.ORGS
-        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING.path}/($postfixInRegex)"
+        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS_GLOBAL_RATING}/($postfixInRegex)"
         override fun valueOf(elem: String): UserRatingTab = UserRatingTab.valueOf(elem)
         override fun values(): Array<UserRatingTab> = UserRatingTab.values()
     }
@@ -142,7 +141,7 @@ private fun ChildrenBuilder.renderingProjectChampionsTable(
                     strong {
                         className = ClassName("d-block text-gray-dark")
                         Link {
-                            to = "#/${project.url}"
+                            to = "/${project.url}"
                             +project.name
                         }
                     }
@@ -182,8 +181,8 @@ private fun ChildrenBuilder.renderingOrganizationChampionsTable(
                     with(organizationWithRating.organization) {
                         strong {
                             className = ClassName("d-block text-gray-dark")
-                            a {
-                                href = "#/$name"
+                            Link {
+                                to = "/$name"
                                 +name
                             }
                         }

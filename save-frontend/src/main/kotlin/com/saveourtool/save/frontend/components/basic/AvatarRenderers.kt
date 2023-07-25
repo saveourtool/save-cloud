@@ -7,6 +7,9 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
@@ -43,11 +46,45 @@ fun ChildrenBuilder.renderAvatar(
  * @param styleBuilder [CSSProperties] builder
  */
 fun ChildrenBuilder.renderAvatar(
+    userInfo: UserInfo?,
+    classes: String = "",
+    link: String? = null,
+    styleBuilder: CSSProperties.() -> Unit,
+) {
+    val newLink = link?.takeIf { userInfo?.status != UserStatus.DELETED }
+    return renderAvatar(
+        userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
+        classes,
+        newLink,
+        styleBuilder
+    )
+}
+
+/**
+ * @param userInfo
+ * @param classes
+ * @param link
+ * @param styleBuilder
+ */
+fun ChildrenBuilder.renderUserAvatarWithName(
     userInfo: UserInfo,
     classes: String = "",
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
-) = renderAvatar(userInfo.avatar ?: AVATAR_PROFILE_PLACEHOLDER, classes, link, styleBuilder)
+) {
+    val renderImg: ChildrenBuilder.() -> Unit = {
+        renderAvatar(userInfo, classes, link, styleBuilder)
+        +" ${userInfo.name}"
+    }
+    return if (userInfo.status != UserStatus.DELETED) {
+        Link {
+            to = "/${FrontendRoutes.PROFILE}/${userInfo.name}"
+            renderImg()
+        }
+    } else {
+        renderImg()
+    }
+}
 
 private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,

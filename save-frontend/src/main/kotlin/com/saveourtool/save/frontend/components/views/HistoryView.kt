@@ -140,8 +140,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
+                                href = getHrefToExecution(cellProps.row.original.id, cellProps.row.original.status, null)
                                 fontAwesomeIcon(resIcon, classes = resColor)
                             }
                         }
@@ -151,8 +150,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +"${cellContext.value}"
                             }
                         }
@@ -162,8 +160,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
@@ -173,8 +170,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +(formattingDate(cellContext.value) ?: "Starting")
                             }
                         }
@@ -184,8 +180,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     Fragment.create {
                         td {
                             a {
-                                href =
-                                        getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
+                                href = getHrefToExecution(cellContext.row.original.id, cellContext.row.original.status, null)
                                 +"${cellContext.value}"
                             }
                         }
