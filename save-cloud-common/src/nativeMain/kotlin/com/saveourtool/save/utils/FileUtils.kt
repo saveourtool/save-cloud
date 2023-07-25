@@ -11,13 +11,13 @@ import okio.Path.Companion.toPath
 import platform.posix.*
 
 import kotlin.system.getTimeNanos
-import kotlinx.cinterop.UnsafeNumber
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.convert
 import kotlinx.serialization.serializer
 
 actual val fs: FileSystem = FileSystem.SYSTEM
 
-@OptIn(UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class)
 actual fun Path.markAsExecutable() {
     val mode: mode_t = (S_IRUSR or S_IWUSR or S_IXUSR or S_IRGRP or S_IROTH).convert()
     chmod(this.toString(), mode)

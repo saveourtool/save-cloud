@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.utils
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 
 actual class AtomicLong actual constructor(value: Long) {
@@ -27,4 +28,5 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     }
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun getenv(envName: String): String? = platform.posix.getenv(envName)?.toKString()
