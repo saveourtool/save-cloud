@@ -11821,7 +11821,6 @@
         "required": [
           "name",
           "rating",
-          "source",
           "status"
         ],
         "type": "object",
@@ -11861,9 +11860,6 @@
           "role": {
             "type": "string"
           },
-          "source": {
-            "type": "string"
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -11884,7 +11880,6 @@
           "originalLogins",
           "projects",
           "rating",
-          "source",
           "status"
         ],
         "type": "object",
@@ -11962,9 +11957,6 @@
           "rating": {
             "type": "integer",
             "format": "int64"
-          },
-          "source": {
-            "type": "string"
           },
           "status": {
             "type": "string",
