@@ -1,34 +1,46 @@
-![Build and test](https://github.com/saveourtool/save-cloud/workflows/Build%20and%20test/badge.svg)
+[![Build and test](https://github.com/saveourtool/save-cloud/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/saveourtool/save-cloud/actions/workflows/build_and_test.yml?query=branch%3Amaster)
 [![License](https://img.shields.io/github/license/saveourtool/save-cloud)](https://github.com/saveourtool/save-cloud/blob/master/LICENSE)
-[![codecov](https://codecov.io/gh/saveourtool/save-cloud/branch/master/graph/badge.svg)](https://codecov.io/gh/saveourtool/save-cloud)
-
-## What is SAVE?
-[SAVE](https://github.com/saveourtool/save) (Software Analysis Verification & Evaluation) - is an eco-system for measuring, testing and certification of software tools. Instead of writing your test framework SAVE will provide you a command line application
-and with a test sets for the language that you are developing analyzer/compiler/or any other dev-tool for. 
-It provides you also a cloud service that can be used to determine the readiness of your tool. SAVE has a committee of software analysis and system programming experts
-that regularly update tests and discuss the best practices for particular programming languages.
-
-## Motivation
-[Motivation of this project](info/SaveMotivation.md)
-
-## How it looks like from the high-level perspective?
-![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_shield)
 
-## What is SAVE Cloud?
-SAVE Cloud is a service for executing tests using the SAVE tool. You can provide a link to a git repository with a project, configured to
-run SAVE. These tests will then be executed server-side, providing you access to execution results, statistics and logs.
+## What is save-cloud?
+Save-cloud is a Non-profit Opensource Ecosystem with a focus on Code Analysis. 
+Together with [save-cli](https://github.com/saveourtool/save-cli) test framework it offers intelligent services tailored for developers of code analysis tools. 
+Our key focus is to make life of developers who analyze code easier. 
 
-## How it looks like for a user?
-![image](https://user-images.githubusercontent.com/58667063/138879509-39bfcf1d-aec7-405d-801b-15145217c0b0.png)
-![image](https://user-images.githubusercontent.com/58667063/138879602-bc9836a8-bb93-4409-b01a-ef96907e4fd6.png)
+1. **SAVE** - A distributed Cloud CI platform for testing and benchmarking code analyzers, equipped with a specialized test framework and test format. With SAVE, you can:
+    - Swiftly set up testing and **CI for your code analyzer**;
+    - **Share your tests** with the community, allowing comparisons of other tools using your benchmarks;
+    - Use SAVE to create an **online demo for your analyzer** and set it up for your community's use;
+    - Benchmarks Archive with the **list of popular benchmarks** (with a reference to [awesome-benchmarks](https://github.com/saveourtool/awesome-benchmarks)).
 
-## Build
-To build the project and run all tests, execute `./gradlew build`. For more detailed instructions, including deployment instructions, see [save-deploy/README.md](save-deploy/README.md).
+2. **VULN** - A platform designed for the **reporting**, aggregation, and deduplication of day-one **vulnerabilities**.
+
+Additionally, on our platform we host **contests** in the field of code analysis. 
+This provides an opportunity for you to submit your automated solutions for bug detection, and compete with other innovative projects.
+
+## Links
+- Collection of Code Analyzers Demo: [Demo](https://saveourtool.com/#/demo)
+- Benchmarks Archive: [Benchmarks](https://saveourtool.com/#/awesome-benchmarks)
+- CI projects: [CI Projects](https://saveourtool.com/#/projects)
+- Vulnerabilities Collection: [1-day Vulnerabilities](https://saveourtool.com/#/vuln/list)
+
+## Motivation
+- [Motivation of **SAVE** and more details](info/SaveMotivation.md)
+- Motivation of **VULN** and more details: TBD
+
+## High-level perspective
+![SAVE processing](https://user-images.githubusercontent.com/58667063/146387903-24ba9c91-a2a3-45e7-a07a-cb7bc388e4aa.jpg)
+
+## Build and deploy
+To build the project and run all tests, execute `./gradlew build`. 
+
+For more detailed instructions, including **deployment instructions**, see [save-deploy/README.md](save-deploy/README.md).
+
+## Local deployment
+1. Ensure that docker daemon is running and `docker compose` is installed. We suggest [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+2. Run `./gradlew deployLocal -Psave.profile=dev` to start the MySql DB, Minio and will run all Spring Microservices with Docker Compose.
+3. Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be
+  proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js). User will be hardcoded with `admin` user. 
 
 ## Architecture and design
-<img src="/save.svg" width="1024px"/>
-
-
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaveourtool%2Fsave-cloud?ref=badge_large)
+<img src="/info/img/save-diagram.png" width="512px"/>

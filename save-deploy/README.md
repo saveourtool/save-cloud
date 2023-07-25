@@ -2,7 +2,7 @@
 ## Components
 SAVE Cloud contains the following microservices:
 * backend: REST API for DB
-* test-preprocessor: clones projects for test and discovers tests
+* preprocessor: clones projects for test and discovers tests
 * orchestrator: moderates distributed execution of tests, feeds new batches of tests to a set of agents
 save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for schema initialization and migration.
 
