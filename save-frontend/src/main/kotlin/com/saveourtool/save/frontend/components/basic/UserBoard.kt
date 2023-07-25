@@ -14,10 +14,13 @@ import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.figure
 import web.cssom.ClassName
+import web.cssom.Length
+import web.cssom.rem
 
 /**
  * A functional component to display users' avatars.
  */
+@Suppress("MAGIC_NUMBER")
 val userBoard: FC<UserBoardProps> = FC { props ->
     div {
         className = ClassName("latest-photos")
@@ -27,7 +30,12 @@ val userBoard: FC<UserBoardProps> = FC { props ->
                 div {
                     className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
-                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}")
+                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}") {
+                            // just some default values in case you don't want to provide value
+                            // in this case you will get small avatar
+                            width = props.widthAndHeight ?: 4.rem
+                            height = props.widthAndHeight ?: 4.rem
+                        }
                     }
                 }
             }
@@ -53,4 +61,9 @@ external interface UserBoardProps : Props {
      * Classes that are applied to img tag
      */
     var avatarInnerClasses: String?
+
+    /**
+     * Size of avatar or any other properties
+     */
+    var widthAndHeight: Length?
 }

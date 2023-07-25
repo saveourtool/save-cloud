@@ -49,10 +49,15 @@ fun ChildrenBuilder.renderAvatar(
     userInfo: UserInfo?,
     classes: String = "",
     link: String? = null,
-    styleBuilder: CSSProperties.() -> Unit = {},
+    styleBuilder: CSSProperties.() -> Unit,
 ) {
     val newLink = link?.takeIf { userInfo?.status != UserStatus.DELETED }
-    return renderAvatar(userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER, classes, newLink, styleBuilder)
+    return renderAvatar(
+        userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
+        classes,
+        newLink,
+        styleBuilder
+    )
 }
 
 /**
