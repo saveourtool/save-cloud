@@ -21,7 +21,7 @@ actual class AtomicLong actual constructor(value: Long) {
 
 @Suppress("USE_DATA_CLASS")
 actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
-    private val holder: kotlin.native.concurrent.AtomicReference<T> = kotlin.native.concurrent.AtomicReference(valueToStore)
+    private val holder: kotlin.concurrent.AtomicReference<T> = kotlin.concurrent.AtomicReference(valueToStore)
     actual fun get(): T = holder.value
     actual fun set(newValue: T) {
         holder.value = newValue
