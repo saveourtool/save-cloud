@@ -299,6 +299,7 @@ fun Project.createStackDeployTask(profile: String) {
     tasks.register<Exec>("deployLocal") {
         dependsOn(subprojects.flatMap { it.tasks.withType<BootBuildImage>() })
         dependsOn("startMysqlDb")
+        dependsOn("startMinio")
         commandLine(
             "docker",
             "compose",
