@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.utils.isIndex
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -50,7 +49,6 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         className = ClassName("navbar-nav mx-auto")
         when {
             props.location.isVuln() -> vulnTopbarLinks
-            props.location.isIndex() -> vulnTopbarLinks
             else -> saveTopbarLinks
         }
             .forEach { elem ->
@@ -65,7 +63,14 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                         }
                     } else {
                         Link {
-                            className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
+                            className = ClassName(
+                                "nav-link d-flex align-items-center me-2 ${
+                                    textColor(
+                                        elem.hrefAnchor,
+                                        props.location
+                                    )
+                                } active"
+                            )
                             style = jso { width = elem.width }
                             to = elem.hrefAnchor
                             +elem.text
@@ -102,8 +107,9 @@ data class TopBarLink(
 private fun textColor(
     hrefAnchor: String,
     location: Location,
-) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
-    "text-warning"
-} else {
-    "text-light"
-}
+) =
+    if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
+        "text-warning"
+    } else {
+        "text-light"
+    }

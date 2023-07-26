@@ -35,7 +35,7 @@ fun ChildrenBuilder.renderAvatar(
     classes: String = "",
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
-) = renderAvatar(organizationDto.avatar ?: ORGANIZATION_AVATAR_PLACEHOLDER, classes, link, styleBuilder)
+) = renderAvatar(organizationDto.avatar ?: ORGANIZATION_AVATAR_PLACEHOLDER, classes, link ?: "/${organizationDto.name}", styleBuilder)
 
 /**
  * Render user avatar or placeholder
@@ -49,9 +49,10 @@ fun ChildrenBuilder.renderAvatar(
     userInfo: UserInfo?,
     classes: String = "",
     link: String? = null,
+    isLinkActive: Boolean = true,
     styleBuilder: CSSProperties.() -> Unit,
 ) {
-    val newLink = link?.takeIf { userInfo?.status != UserStatus.DELETED }
+    val newLink = (link ?: "/${FrontendRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive}
     return renderAvatar(
         userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
@@ -73,7 +74,7 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(userInfo, classes, link, styleBuilder)
+        renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
         +" ${userInfo.name}"
     }
     return if (userInfo.status != UserStatus.DELETED) {

@@ -205,7 +205,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: ORGANIZATION_AVATAR_PLACEHOLDER
             }
             urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
@@ -242,32 +242,33 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     private fun ChildrenBuilder.renderInfo() {
-        // ================= Title for TOP projects ===============
-        div {
-            className = ClassName("row justify-content-center mb-2")
-            h4 {
-                +"Top Tools"
-            }
-        }
-
         // ================= Rows for TOP projects ================
         val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
 
-        div {
-            className = ClassName("row justify-content-center")
+        if (topProjects.isNotEmpty()) {
+            // ================= Title for TOP projects ===============
+            div {
+                className = ClassName("row justify-content-center mb-2")
+                h4 {
+                    +"Top Tools"
+                }
 
-            renderTopProject(topProjects.getOrNull(0))
-            renderTopProject(topProjects.getOrNull(1))
+            }
+            div {
+                className = ClassName("row justify-content-center")
+
+                renderTopProject(topProjects.getOrNull(0))
+                renderTopProject(topProjects.getOrNull(1))
+            }
+
+            @Suppress("MAGIC_NUMBER")
+            div {
+                className = ClassName("row justify-content-center")
+
+                renderTopProject(topProjects.getOrNull(2))
+                renderTopProject(topProjects.getOrNull(3))
+            }
         }
-
-        @Suppress("MAGIC_NUMBER")
-        div {
-            className = ClassName("row justify-content-center")
-
-            renderTopProject(topProjects.getOrNull(2))
-            renderTopProject(topProjects.getOrNull(3))
-        }
-
         div {
             className = ClassName("row justify-content-center")
 

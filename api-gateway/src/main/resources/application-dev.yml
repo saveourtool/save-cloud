@@ -99,3 +99,13 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     com.nimbusds: TRACE
+
+---
+spring:
+  error:
+    whitelabel:
+      enabled: false
+
+server:
+  error:
+    path: /error
