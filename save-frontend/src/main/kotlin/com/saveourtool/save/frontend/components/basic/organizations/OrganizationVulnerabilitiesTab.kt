@@ -16,12 +16,11 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
-import react.FC
-import react.Fragment
-import react.Props
-import react.create
+import react.*
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
+import web.cssom.ClassName
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
@@ -66,20 +65,32 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
-    vulnerabilityTable {
-        getData = { _, _ ->
-            get(
-                url = "$apiUrl/vulnerabilities/by-organization-and-status",
-                params = jso<dynamic> {
-                    organizationName = props.organizationName
-                    status = VulnerabilityStatus.APPROVED
-                },
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            ).unsafeMap {
-                it.decodeFromJsonString()
+    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
+    useRequest {
+        val fetchedVulnerabilities: Array<VulnerabilityDto> = get(
+            url = "$apiUrl/vulnerabilities/by-organization-and-status",
+            params = jso<dynamic> {
+                organizationName = props.organizationName
+                status = VulnerabilityStatus.APPROVED
+            },
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        ).unsafeMap {
+            it.decodeFromJsonString()
+        }
+        setVulnerabilities(fetchedVulnerabilities)
+    }
+    div {
+        className = ClassName("col-8 mx-auto mt-1 mb-3")
+        if (vulnerabilities.isNotEmpty()) {
+            vulnerabilityTable {
+                getData = { _, _ ->
+                    vulnerabilities
+                }
             }
+        } else {
+            renderTablePlaceholder("text-center p-4 bg-white") { +"No vulnerabilities were found for this organization." }
         }
     }
 }

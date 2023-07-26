@@ -8,13 +8,17 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import js.core.jso
 
 import react.ChildrenBuilder
 import react.dom.events.ChangeEventHandler
 import react.dom.events.MouseEventHandler
 import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.option
 import react.dom.html.ReactHTML.select
+import web.cssom.BorderStyle
+import web.cssom.BorderWidth
 import web.cssom.ClassName
 import web.html.ButtonType
 import web.html.HTMLButtonElement
@@ -110,6 +114,30 @@ fun ChildrenBuilder.selectorBuilder(
                 +currentOption
             }
         }
+    }
+}
+
+/**
+ * Render nice placeholder for an empty table
+ *
+ * @param classes string [ClassName] value that should be applied to higher [div]
+ * @param borderStyleString [BorderStyle] attribute as string, `dashed` by default
+ * @param borderWidthString [BorderWidth] attribute as string, `thin` by default
+ * @param noInformationLabelBuilder placeholder children builder - usually used for "No info" rendering text
+ */
+fun ChildrenBuilder.renderTablePlaceholder(
+    classes: String = "text-center p-5",
+    borderStyleString: String = "solid",
+    borderWidthString: String = "thin",
+    noInformationLabelBuilder: ChildrenBuilder.() -> Unit,
+) {
+    div {
+        className = ClassName(classes)
+        style = jso {
+            borderStyle = borderStyleString.unsafeCast<BorderStyle>()
+            borderWidth = borderWidthString.unsafeCast<BorderWidth>()
+        }
+        noInformationLabelBuilder()
     }
 }
 
