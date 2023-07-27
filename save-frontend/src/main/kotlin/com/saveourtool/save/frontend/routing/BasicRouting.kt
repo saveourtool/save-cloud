@@ -177,57 +177,62 @@ val basicRouting: FC<AppProps> = FC { props ->
     Routes {
         listOf(
             indexView.create { userInfo = props.userInfo } to "/",
-            saveWelcomeView.create { userInfo = props.userInfo } to "/$SAVE",
-            vulnWelcomeView.create { userInfo = props.userInfo } to "/$VULN",
-            sandboxView.create() to "/$SANDBOX",
-            AboutUsView::class.react.create() to "/$ABOUT_US",
-            CreationView::class.react.create() to "/$CREATE_PROJECT",
-            CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
-            registrationView.create { userInfo = props.userInfo } to "/$REGISTRATION",
-            CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
-            contestListView.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+            saveWelcomeView.create { userInfo = props.userInfo } to SAVE,
+            vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
+            sandboxView.create() to SANDBOX,
+            AboutUsView::class.react.create() to ABOUT_US,
+            CreationView::class.react.create() to CREATE_PROJECT,
+            CreateOrganizationView::class.react.create() to CREATE_ORGANIZATION,
+            registrationView.create { userInfo = props.userInfo } to REGISTRATION,
+            CollectionView::class.react.create { currentUserInfo = props.userInfo } to PROJECTS,
+            contestListView.create { currentUserInfo = props.userInfo } to CONTESTS,
 
-            contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
-            contestView.create() to "/$CONTESTS/:contestName",
-            createContestTemplateView.create() to "/$CREATE_CONTESTS_TEMPLATE",
-            contestTemplateView.create() to "/$CONTESTS_TEMPLATE/:id",
-            contestExecutionView.create() to "/$CONTESTS/:contestName/:organizationName/:projectName",
-            awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
-            creationView.create() to "/$CREATE_PROJECT/:owner",
-            organizationView.create() to "/:owner",
-            organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
-            historyView.create() to "/:owner/:name/history",
-            projectView.create() to "/:owner/:name",
+            FallbackView::class.react.create {
+                bigText = "404"
+                smallText = "Page not found"
+                withRouterLink = true
+            } to ERROR_404,
+
+            contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
+            contestView.create() to "$CONTESTS/:contestName",
+            createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
+            contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
+            contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
+            awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
+            creationView.create() to "$CREATE_PROJECT/:owner",
+            organizationView.create() to ":owner",
+            organizationView.create() to "${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
+            historyView.create() to ":owner/:name/history",
+            projectView.create() to ":owner/:name",
             createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
             projectProblemView.create() to "project/:owner/:name/security/problems/:id",
-            executionView.create() to "/:owner/:name/history/execution/:executionId",
-            demoView.create() to "/$DEMO/:organizationName/:projectName",
-            cpgView.create() to "/$DEMO/cpg",
+            executionView.create() to ":owner/:name/history/execution/:executionId",
+            demoView.create() to "$DEMO/:organizationName/:projectName",
+            cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             vulnerabilityCollectionView.create() to "$VULN/list",
-            createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
-            vulnerabilityView.create() to "/$VULN/:vulnerabilityName",
-            demoCollectionView.create() to "/$DEMO",
-            userProfileView.create() to "/$PROFILE/:name",
-            topRatingView.create() to "/$TOP_RATING",
-
-            termsOfUsageView.create() to "/$TERMS_OF_USE",
+            createVulnerabilityView.create() to CREATE_VULNERABILITY,
+            vulnerabilityView.create() to "$VULN/:vulnerabilityName",
+            demoCollectionView.create() to DEMO,
+            userProfileView.create() to "$PROFILE/:name",
+            topRatingView.create() to TOP_RATING,
+            termsOfUsageView.create() to TERMS_OF_USE,
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_PROFILE",
+            ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
 
             props.viewWithFallBack(
                 UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_EMAIL",
+            ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
 
             props.viewWithFallBack(
                 UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_TOKEN",
+            ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
 
             props.viewWithFallBack(
                 UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
+            ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
         ).forEach {
             PathRoute {

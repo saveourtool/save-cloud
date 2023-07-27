@@ -120,3 +120,12 @@ spring:
             authorization-grant-type: authorization_code
             scope:
               - user_info
+---
+spring:
+  error:
+    whitelabel:
+      enabled: false
+
+server:
+  error:
+    path: /error

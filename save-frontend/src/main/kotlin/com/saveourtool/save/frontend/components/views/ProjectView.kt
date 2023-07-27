@@ -219,7 +219,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
             ProjectMenuBar.SETTINGS -> renderSettings()
             ProjectMenuBar.INFO -> renderInfo()
             ProjectMenuBar.DEMO -> renderDemo()
-            ProjectMenuBar.SECURITY -> renderSecurity()
             ProjectMenuBar.FILES -> renderFiles()
         }
     }

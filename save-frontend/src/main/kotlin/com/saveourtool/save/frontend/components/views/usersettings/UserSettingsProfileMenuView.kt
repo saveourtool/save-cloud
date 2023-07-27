@@ -31,7 +31,7 @@ class UserSettingsProfileMenuView : UserSettingsView() {
                 deleteUser()
                 deleteUserWindowOpenness.closeWindow()
             }
-            buttonBuilder("Cansel", "secondary") {
+            buttonBuilder("Cancel", "secondary") {
                 deleteUserWindowOpenness.closeWindow()
             }
         }

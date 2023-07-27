@@ -13,7 +13,6 @@ enum class ProjectMenuBar {
     FILES,
     STATISTICS,
     DEMO,
-    SECURITY,
     SETTINGS,
     ;
 
