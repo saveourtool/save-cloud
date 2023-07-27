@@ -211,7 +211,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
         val errorCloseCallback = {
             setState {
@@ -412,6 +411,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderVulnerabilities() {
         organizationVulnerabilitiesTab {
             organizationName = props.organizationName
+            isMember = state.usersInOrganization?.let { usersInOrg ->
+                props.currentUserInfo in usersInOrg || props.currentUserInfo.isSuperAdmin()
+            } ?: false
         }
     }
 
@@ -479,14 +481,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getUsers(): List<UserInfo> = get(
         url = "$apiUrl/organizations/${props.organizationName}/users",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
+        headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap {
-            it.decodeFromJsonString()
-        }
+        .unsafeMap { it.decodeFromJsonString() }
 
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
