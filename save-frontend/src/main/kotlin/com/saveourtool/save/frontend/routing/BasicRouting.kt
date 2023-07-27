@@ -198,7 +198,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
             contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
             contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
-            awesomeBenchmarksView.create() to "$AWESOME_BENCHMARKS",
+            awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
             creationView.create() to "$CREATE_PROJECT/:owner",
             organizationView.create() to ":owner",
             organizationView.create() to "${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
@@ -211,12 +211,12 @@ val basicRouting: FC<AppProps> = FC { props ->
             cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             vulnerabilityCollectionView.create() to "$VULN/list",
-            createVulnerabilityView.create() to "$CREATE_VULNERABILITY",
+            createVulnerabilityView.create() to CREATE_VULNERABILITY,
             vulnerabilityView.create() to "$VULN/:vulnerabilityName",
-            demoCollectionView.create() to "$DEMO",
+            demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
-            topRatingView.create() to "$TOP_RATING",
-            termsOfUsageView.create() to "$TERMS_OF_USE",
+            topRatingView.create() to TOP_RATING,
+            termsOfUsageView.create() to TERMS_OF_USE,
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

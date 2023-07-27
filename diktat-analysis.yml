@@ -133,3 +133,7 @@
     - GetMapping
     - PostMapping
     - Repository
+  # reduces speed of development on the FE
+  # will remove it by for now
+- name: MAGIC_NUMBER
+  enabled: false

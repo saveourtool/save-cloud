@@ -6,19 +6,18 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import js.core.jso
-import kotlinx.browser.document
 
+import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.router.dom.Link
-
-import kotlinx.browser.window
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.h4
 import web.cssom.*
+
+import kotlinx.browser.document
+import kotlinx.browser.window
 
 /**
  * Props of fallback component
@@ -98,7 +97,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
                     a {
                         className = ClassName("mt-3")
                         href = "https://github.com/saveourtool/save-cloud"
-                        ReactHTML.img {
+                        img {
                             src = "img/github.svg"
                             style = jso {
                                 width = 5.rem

@@ -252,7 +252,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 h4 {
                     +"Top Tools"
                 }
-
             }
             div {
                 className = ClassName("row justify-content-center")

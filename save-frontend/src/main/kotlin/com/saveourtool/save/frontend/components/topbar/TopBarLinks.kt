@@ -108,8 +108,8 @@ private fun textColor(
     hrefAnchor: String,
     location: Location,
 ) =
-    if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
-        "text-warning"
-    } else {
-        "text-light"
-    }
+        if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
+            "text-warning"
+        } else {
+            "text-light"
+        }

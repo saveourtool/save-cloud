@@ -240,7 +240,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
         div {
             className = ClassName("row")
             organizations.forEach { organization ->
-                renderAvatar(organization, ) {
+                renderAvatar(organization) {
                     width = 4.rem
                     height = 4.rem
                 }
