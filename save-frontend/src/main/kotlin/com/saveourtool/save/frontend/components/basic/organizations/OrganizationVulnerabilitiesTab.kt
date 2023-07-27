@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
@@ -63,7 +64,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
     useServerPaging = false,
 )
 
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
     val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
     useRequest {
@@ -90,7 +91,16 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
                 }
             }
         } else {
-            renderTablePlaceholder("text-center p-4 bg-white") { +"No vulnerabilities were found for this organization." }
+            renderTablePlaceholder("text-center p-4 bg-white", "dashed") {
+                +"No vulnerabilities were found for this organization."
+                if (props.isMember) {
+                    br { }
+                    Link {
+                        to = "/vuln/create-vulnerability"
+                        +"You can be the first one to create vulnerability."
+                    }
+                }
+            }
         }
     }
 }
@@ -103,4 +113,9 @@ external interface OrganizationVulnerabilitiesMenuProps : Props {
      * Current organization name
      */
     var organizationName: String
+
+    /**
+     * Flag that defines if current user can change anything in this organization
+     */
+    var isMember: Boolean
 }
