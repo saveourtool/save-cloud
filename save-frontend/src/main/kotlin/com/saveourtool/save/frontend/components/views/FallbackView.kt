@@ -51,7 +51,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
         // FixMe: not able to use "remove()" here due to some internal problem
         // FixMe: or fix links
         // so removing top bar for fallback view with a small hack
-        val topBar = document.getElementById("navigation-top-bar")
+        document.getElementById("navigation-top-bar")
             ?.setAttribute("style", "opacity: 0; cursor: default")
 
         div {
