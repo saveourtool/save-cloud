@@ -9563,7 +9563,7 @@
           },
           {
             "in": "query",
-            "name": "tag",
+            "name": "tagName",
             "required": true,
             "schema": {
               "type": "string"
@@ -10025,7 +10025,7 @@
           },
           {
             "in": "query",
-            "name": "tag",
+            "name": "tagName",
             "required": true,
             "schema": {
               "type": "string"
@@ -12287,6 +12287,7 @@
             ]
           },
           "tags": {
+            "uniqueItems": true,
             "type": "array",
             "items": {
               "type": "string"
