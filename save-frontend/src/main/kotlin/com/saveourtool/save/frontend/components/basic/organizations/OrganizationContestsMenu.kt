@@ -75,6 +75,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
                 Fragment.create {
                     td {
                         input {
+                            className = ClassName("mx-auto")
                             type = InputType.checkbox
                             id = "checkbox"
                             defaultChecked = props.selectedContestDtos.contains(cellContext.row.original)
@@ -240,32 +241,40 @@ private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { pro
     }
 
     div {
-        className = ClassName("d-flex justify-content-end")
-        buttonBuilder(
-            classes = "mb-4 mr-2",
-            label = "Delete selected contests",
-            style = "danger",
-        ) {
-            windowOpenness.openWindow()
-        }
-        buttonBuilder(
-            classes = "mb-4",
-            label = "Create contest",
-            isDisabled = !props.selfRole.hasDeletePermission(),
-        ) {
-            setIsContestCreationModalOpen(true)
-        }
-    }
-    div {
-        className = ClassName("mb-2")
-        contestsTable {
-            getData = { _, _ ->
-                contests.toTypedArray()
+        className = ClassName("col-8 mx-auto")
+        div {
+            className = ClassName("d-flex justify-content-end mb-1")
+            buttonBuilder(
+                classes = "mr-2",
+                label = "Delete selected contests",
+                style = "danger",
+            ) {
+                windowOpenness.openWindow()
             }
-            isContestCreated = isToUpdateTable
-            addSelectedContests = addSelectedContestsFun
-            removeSelectedContests = removeSelectedContestsFun
-            selectedContestDtos = selectedContests
+            buttonBuilder(
+                label = "Create contest",
+                isDisabled = !props.selfRole.hasDeletePermission(),
+            ) {
+                setIsContestCreationModalOpen(true)
+            }
+        }
+        div {
+            className = ClassName("my-3")
+            if (contests.isNotEmpty()) {
+                contestsTable {
+                    getData = { _, _ ->
+                        contests.toTypedArray()
+                    }
+                    isContestCreated = isToUpdateTable
+                    addSelectedContests = addSelectedContestsFun
+                    removeSelectedContests = removeSelectedContestsFun
+                    selectedContestDtos = selectedContests
+                }
+            } else {
+                renderTablePlaceholder("text-center p-4 bg-white") {
+                    +"This organization has not participated in any contest yet."
+                }
+            }
         }
     }
 }
