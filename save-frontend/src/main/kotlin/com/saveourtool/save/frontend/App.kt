@@ -28,6 +28,7 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
+import react.router.dom.BrowserRouter
 
 /**
  * Main component for the whole App
