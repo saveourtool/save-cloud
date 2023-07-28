@@ -48,9 +48,3 @@ config.devServer = Object.assign(
     historyApiFallback: true
   }
 );
-
-// config.output = Object.assign(
-//     {},
-//     config.output || {},
-//     { publicPath: '/' }
-// );
