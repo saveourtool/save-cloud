@@ -87,14 +87,9 @@ fun ChildrenBuilder.showContestCreationModal(
             onSaveError = onFailure
         }
         div {
-            className = ClassName("d-flex justify-content-center")
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mt-4")
-                +"Cancel"
-                onClick = {
-                    onClose()
-                }
+            className = ClassName("d-flex justify-content-center mt-4")
+            buttonBuilder("Cancel", "secondary", isOutline = true) {
+                onClose()
             }
         }
     }

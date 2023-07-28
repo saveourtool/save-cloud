@@ -182,7 +182,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                         }
                     }
                     div {
-                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end pr-0")
                         select {
                             className = ClassName("custom-select col-9")
                             onChange = { event ->
