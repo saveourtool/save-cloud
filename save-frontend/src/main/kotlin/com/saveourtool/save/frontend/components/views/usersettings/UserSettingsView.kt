@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -45,7 +44,7 @@ external interface UserSettingsProps : PropsWithChildren {
     /**
      * Currently logged in user or null
      */
-    var userName: String?
+    var userInfo: UserInfo?
 }
 
 /**
@@ -113,17 +112,16 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
                     .thenBy { it.organization.name }
 
-        scope.launch {
-            val user = props.userName
-                ?.let { getUser(it) }
-            val organizationDtos = getOrganizationWithUsersList()
-            setState {
-                userInfo = user
-                userInfo?.let { updateFieldsMap(it) }
-                selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
-                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
-            }
-        }
+           scope.launch {
+               val user = props.userInfo
+               val organizationDtos = getOrganizationWithUsersList()
+               setState {
+                   userInfo = props.userInfo
+                   userInfo?.let { updateFieldsMap(it) }
+                   selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
+                   avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+               }
+           }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
@@ -153,7 +151,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
             imageUpload = { file ->
                 scope.launch {
-                    postImageUpload(file, props.userName!!, AvatarType.USER, ::noopLoadingHandler)
+                    postImageUpload(file, props.userInfo!!, AvatarType.USER, ::noopLoadingHandler)
                 }
             }
         }
@@ -206,7 +204,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                         }
                                         h1 {
                                             className = ClassName("h5 mb-0 text-gray-800")
-                                            +"${props.userName}"
+                                            +"${props.userInfo}"
                                         }
                                     }
                                 }
@@ -232,7 +230,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 Link {
                                                     className = ClassName("item")
-                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_PROFILE}"
+                                                    to = "/${props.userInfo}/${FrontendRoutes.SETTINGS_PROFILE}"
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -243,7 +241,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 Link {
                                                     className = ClassName("item")
-                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_EMAIL}"
+                                                    to = "/${props.userInfo}/${FrontendRoutes.SETTINGS_EMAIL}"
                                                     fontAwesomeIcon(icon = faEnvelope) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -254,7 +252,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 Link {
                                                     className = ClassName("item")
-                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
+                                                    to = "/${props.userInfo}/${FrontendRoutes.SETTINGS_ORGANIZATIONS}"
                                                     fontAwesomeIcon(icon = faCity) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -277,7 +275,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                 className = ClassName("mt-2")
                                                 Link {
                                                     className = ClassName("item")
-                                                    to = "/${props.userName}/${FrontendRoutes.SETTINGS_TOKEN}"
+                                                    to = "/${props.userInfo}/${FrontendRoutes.SETTINGS_TOKEN}"
                                                     fontAwesomeIcon(icon = faKey) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
@@ -297,7 +295,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             div {
                 className = ClassName("col-6")
                 renderMenu {
-                    userName = props.userName
+                    userInfo = props.userInfo
                 }
             }
         }

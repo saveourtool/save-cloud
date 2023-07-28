@@ -70,12 +70,12 @@ suspend fun ComponentWithScope<*, *>.getContest(name: String) = get(
  * @param name username
  * @return info about user
  */
-suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
+suspend fun WithRequestStatusContext.getUser(name: String) = get(
     "$apiUrl/users/$name",
     Headers().apply {
         set("Accept", "application/json")
     },
-    loadingHandler = ::classLoadingHandler,
+    loadingHandler = ::loadingHandler,
 )
     .decodeFromJsonString<UserInfo>()
 

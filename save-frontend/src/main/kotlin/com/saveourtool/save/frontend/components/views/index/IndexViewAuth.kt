@@ -25,7 +25,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
         val availableProviders: List<OauthProviderInfo> = get(
             "${window.location.origin}/sec/oauth-providers",
             Headers(),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         ).run {
             if (ok) decodeFromJsonString() else emptyList()

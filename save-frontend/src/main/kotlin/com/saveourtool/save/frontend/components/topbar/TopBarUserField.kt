@@ -46,11 +46,12 @@ val logoSize: CSSProperties = jso {
     "LOCAL_VARIABLE_EARLY_DECLARATION"
 )
 val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
+    console.log(props.userInfo?.avatar)
     val scope = CoroutineScope(Dispatchers.Default)
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
+    val (avatarNew, setAvatarNew) = useStateFromProps(props.userInfo?.avatar?.let {"/api/$v1/avatar/$it"} ?: AVATAR_PROFILE_PLACEHOLDER)
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -97,13 +98,16 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         }
                     }
                     props.userInfo?.let { userInfo ->
+                        console.log(props.userInfo?.avatar)
+                        console.log(avatarNew)
+
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = avatarNew
                             style = logoSize
                             onError = {
-                                setAvatar { AVATAR_PLACEHOLDER }
+                                setAvatarNew { AVATAR_PLACEHOLDER }
                             }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {

@@ -9,12 +9,11 @@ import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 
-val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { props ->
+val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProps> = FC { props ->
 
     @Suppress(
         "TYPE_ALIAS",
@@ -70,17 +69,7 @@ val renderVulnerabilityTable: FC<UserProfileVulnerabilitiesTabProps> = FC { prop
 
     vulnerabilityTable {
         getData = { _, _ ->
-            get(
-                url = "$apiUrl/vulnerabilities/by-user",
-                params = jso<dynamic> {
-                    userName = props.userName
-                },
-                headers = jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler,
-            ).unsafeMap {
-                it.decodeFromJsonString()
-            }
+            props.vulnerabilities
         }
     }
 }
@@ -93,4 +82,6 @@ external interface UserProfileVulnerabilitiesTabProps : Props {
      * User name
      */
     var userName: String
+
+    var vulnerabilities: Array<VulnerabilityDto>
 }

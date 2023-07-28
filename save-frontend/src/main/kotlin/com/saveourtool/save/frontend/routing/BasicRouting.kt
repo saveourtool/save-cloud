@@ -219,19 +219,19 @@ val basicRouting: FC<AppProps> = FC { props ->
             termsOfUsageView.create() to TERMS_OF_USE,
 
             props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
+                UserSettingsProfileMenuView::class.react.create { userInfo = props.userInfo?.name }
             ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
 
             props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
+                UserSettingsEmailMenuView::class.react.create { userInfo = props.userInfo?.name }
             ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
 
             props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
+                UserSettingsTokenMenuView::class.react.create { userInfo = props.userInfo?.name }
             ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
 
             props.viewWithFallBack(
-                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
+                UserSettingsOrganizationsMenuView::class.react.create { userInfo = props.userInfo }
             ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
         ).forEach {

@@ -80,18 +80,3 @@ val vulnerabilitiesFiltersRow: FC<NameFilterRowProps> = FC { props ->
         }
     }
 }
-
-/**
- * [Props] for filters name
- */
-external interface VulnerabilitiesFiltersProps : Props {
-    /**
-     * All filters in one class property [name]
-     */
-    var name: String?
-
-    /**
-     * lambda to change [name]
-     */
-    var onChangeFilters: (String?) -> Unit
-}
