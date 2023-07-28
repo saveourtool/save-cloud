@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.displayModal
@@ -135,7 +136,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                 }
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mb-4")
-                                    src = "img/company.svg"
+                                    src = AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         width = 8.rem
                                     }

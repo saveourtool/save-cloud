@@ -32,14 +32,14 @@ val logoButtons = VFC {
             "SAVE",
             "/${FrontendRoutes.SAVE}",
             "Cloud Platform for CI and Benchmarking of Code Analyzers",
-            "img/save-logo-bg.jpg"
+            "/img/save-logo-bg.jpg"
         )
 
         logo(
             "VULN",
             "/${FrontendRoutes.VULN}",
             "Archive of 1-Day Vulnerabilities Aggregated from Various Sources",
-            "img/vuln-logo-bg.png",
+            "/img/vuln-logo-bg.png",
 
         )
 

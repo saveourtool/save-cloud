@@ -58,7 +58,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         val newComments = post(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.hash,
+            body = window.location.pathname,
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()
@@ -71,7 +71,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         val newComments = post(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.hash,
+            body = window.location.pathname,
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()

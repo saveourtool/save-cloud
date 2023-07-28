@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.validation.FrontendRoutes
 
 /**
@@ -27,8 +26,8 @@ class TopBarUrl(val href: String) {
      */
     fun changeUrlBeforeButton(pathPart: String) {
         currentPath = when (circumstance) {
-            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION -> "#/${FrontendRoutes.PROJECTS}"
-            SituationUrlClassification.ARCHIVE -> "#/${FrontendRoutes.AWESOME_BENCHMARKS}"
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION -> "/${FrontendRoutes.PROJECTS}"
+            SituationUrlClassification.ARCHIVE -> "/${FrontendRoutes.AWESOME_BENCHMARKS}"
             SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") currentPath else mergeUrls(pathPart)
             else -> mergeUrls(pathPart)
         }
@@ -74,7 +73,7 @@ class TopBarUrl(val href: String) {
      */
     private fun fixCurrentPathAfter(pathPart: String) {
         currentPath = when (circumstance) {
-            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION, SituationUrlClassification.ARCHIVE -> "#"
+            SituationUrlClassification.PROJECT, SituationUrlClassification.ORGANIZATION, SituationUrlClassification.ARCHIVE -> ""
             SituationUrlClassification.DETAILS, SituationUrlClassification.EXECUTION -> if (pathPart == "execution") mergeUrls(pathPart) else currentPath
             else -> currentPath
         }
@@ -108,7 +107,7 @@ class TopBarUrl(val href: String) {
         /**
          * Situation with the processing of the "archive" in the url address - need for tabs in AwesomeBenchmarksView
          */
-        ARCHIVE(BenchmarkCategoryEnum.regexForUrlClassification),
+        ARCHIVE,
 
         /**
          * Situation with the processing of the "details" in the url address - need for deleted multi-segment urls, starting with the word "details"
@@ -138,12 +137,12 @@ class TopBarUrl(val href: String) {
         /**
          * Situation with the processing of the "organization" in the url address - need for tabs in OrganizationView
          */
-        ORGANIZATION(OrganizationMenuBar.regexForUrlClassification),
+        ORGANIZATION,
 
         /**
          * Situation with the processing of the "project" in the url address - need for tabs in ProjectView
          */
-        PROJECT(ProjectMenuBar.regexForUrlClassification),
+        PROJECT,
         ;
     }
 }

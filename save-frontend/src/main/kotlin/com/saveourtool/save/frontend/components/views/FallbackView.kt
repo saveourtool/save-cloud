@@ -98,7 +98,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
                         className = ClassName("mt-3")
                         href = "https://github.com/saveourtool/save-cloud"
                         img {
-                            src = "img/github.svg"
+                            src = "/img/github.svg"
                             style = jso {
                                 width = 5.rem
                                 height = 5.rem

@@ -13,9 +13,7 @@ import kotlin.test.Test
 class AppTest {
     @Test
     fun appShouldRender(): Promise<Unit> {
-        render(
-            App::class.react.create()
-        )
+        render(App.create())
 
         screen.findByTextAndCast<HTMLHeadingElement>(
             "Cloud Platform for CI and Benchmarking of Code Analyzers"

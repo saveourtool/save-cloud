@@ -21,7 +21,7 @@ private val saveDemoIntroMd = """
 
 private val saveDemoHowToMd = """
     |### How to create demo?
-    |1. Create saveourtool [organization](#/create-organization) and [project](#/create-project);
+    |1. Create saveourtool [organization](/create-organization) and [project](/create-project);
     |2. Go to your project's demo tab;
     |3. Upload your tool, select sdk and set run commands;
     |4. Make sure all the inputted filenames match filenames in run commands; 
@@ -50,7 +50,7 @@ internal val introductionSection = VFC {
                 className = ClassName("card-img-right flex-column d-none d-md-block")
                 img {
                     className = ClassName("img-fluid")
-                    src = "img/undraw_happy_announcement_re_tsm0.svg"
+                    src = "/img/undraw_happy_announcement_re_tsm0.svg"
                 }
             }
         }
