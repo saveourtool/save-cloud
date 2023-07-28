@@ -27,6 +27,29 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: sandbox-api_route
+          uri: ${gateway.sandbox.url}
+          predicates:
+            - Path=/api/sandbox/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: demo-api_route
+          uri: ${gateway.demo.url}
+          predicates:
+            - Path=/api/demo/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - ConvertAuthorizationHeader=
+        - id: demo-cpg-api_route
+          uri: ${gateway.demo-cpg.url}
+          predicates:
+            - Path=/api/cpg/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
         - id: api_route
           uri: ${gateway.backend.url}
           predicates:
@@ -50,29 +73,6 @@ spring:
           uri: ${gateway.frontend.url}
           predicates:
             - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-        - id: sandbox-api_route
-          uri: ${gateway.sandbox.url}
-          predicates:
-            - Path=/sandbox/api/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: demo-api_route
-          uri: ${gateway.demo.url}
-          predicates:
-            - Path=/demo/api/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: demo-cpg-api_route
-          uri: ${gateway.demo-cpg.url}
-          predicates:
-            - Path=/cpg/api/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie

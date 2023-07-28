@@ -32,7 +32,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "demo"),
 )
 @RestController
-@RequestMapping("/demo/api")
+@RequestMapping("/api/demo")
 class DemoController(
     private val demoService: DemoService,
     private val demoRunnerFactory: RunnerFactory,

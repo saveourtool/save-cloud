@@ -26,7 +26,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * Internal controller that allows to upload files to save-demo
  */
 @RestController
-@RequestMapping("/demo/internal/files")
+@RequestMapping("/internal/demo/files")
 class DependencyController(
     private val demoService: DemoService,
     private val downloadToolService: DownloadToolService,

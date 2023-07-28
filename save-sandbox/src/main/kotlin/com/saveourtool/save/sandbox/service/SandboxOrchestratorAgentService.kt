@@ -44,7 +44,7 @@ class SandboxOrchestratorAgentService(
     private val internalFileStorage: SandboxInternalFileStorage,
     configProperties: ConfigProperties,
 ) : OrchestratorAgentService {
-    private val sandboxUrlForAgent = "${configProperties.agentSettings.sandboxUrl}/sandbox/internal"
+    private val sandboxUrlForAgent = "${configProperties.agentSettings.sandboxUrl}/internal/sandbox"
 
     override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = getExecutionAsMonoByContainerId(containerId)
         .zipWhen { execution ->
