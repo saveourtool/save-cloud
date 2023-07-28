@@ -40,7 +40,7 @@ const val FILE_NAME_SEPARATOR = "==="
     Tag(name = "cpg-demo"),
 )
 @RestController
-@RequestMapping("/cpg/api")
+@RequestMapping("/api/cpg")
 @ExperimentalSerializationApi
 class CpgController(
     val configProperties: ConfigProperties,

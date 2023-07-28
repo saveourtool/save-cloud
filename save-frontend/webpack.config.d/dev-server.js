@@ -13,7 +13,7 @@ config.devServer = Object.assign(
           }
         },
         {
-          context: ["/sandbox/api/**"],
+          context: ["/api/sandbox/**"],
           target: 'http://localhost:5400',
           logLevel: 'debug',
           onProxyReq: function (proxyReq, req, res) {
@@ -22,12 +22,12 @@ config.devServer = Object.assign(
           }
         },
         {
-          context: ["/demo/api/**"],
+          context: ["/api/demo/**"],
           target: 'http://localhost:5421',
           logLevel: 'debug',
         },
         {
-          context: ["/cpg/api/**"],
+          context: ["/api/cpg/**"],
           target: 'http://localhost:5500',
           logLevel: 'debug',
         },

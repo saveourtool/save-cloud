@@ -64,7 +64,7 @@ private fun executeSetupSh(setupShTimeoutMillis: Long, setupShName: String = "se
     }
 
 private suspend fun downloadDemoFiles(demoUrl: String, demoConfiguration: DemoConfiguration): Path {
-    val url = with(demoConfiguration) { "$demoUrl/demo/internal/files/$organizationName/$projectName/download-as-zip?version=$version" }
+    val url = with(demoConfiguration) { "$demoUrl/internal/demo/files/$organizationName/$projectName/download-as-zip?version=$version" }
     return downloadDemoFiles(url)
 }
 

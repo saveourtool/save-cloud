@@ -51,6 +51,7 @@ fun String.isValidEmail() = ValidationRegularExpressions.EMAIL_VALIDATOR.value.m
 
 private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 
-private fun String.containsForbiddenWords() = FrontendRoutes.getForbiddenWords().any { this == it }
+private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
+    .any { this == it }
 
 private fun String.isLengthOk(allowedLength: Int) = length < allowedLength
