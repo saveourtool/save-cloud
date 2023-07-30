@@ -174,7 +174,7 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     Routes {
         listOf(
-            indexView.create { userInfo = props.userInfo } to "",
+            indexView.create { userInfo = props.userInfo } to "/",
             saveWelcomeView.create { userInfo = props.userInfo } to SAVE,
             vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
             sandboxView.create() to SANDBOX,

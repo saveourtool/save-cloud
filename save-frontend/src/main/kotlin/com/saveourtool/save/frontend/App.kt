@@ -35,7 +35,7 @@ import kotlinx.serialization.json.Json
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE")
-val App: FC<PropsWithChildren> = FC {
+val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
 
     useRequest {
