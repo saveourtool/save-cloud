@@ -102,9 +102,9 @@ fun mapKnownFontAwesomeIcons(registrationId: String) =
  */
 fun mapKnownUploadedIcons(registrationId: String) =
         when (registrationId) {
-            "huawei" -> "img/huawei.svg"
-            "gitee" -> "img/gitee.svg"
-            "github" -> "img/github.svg"
-            "google" -> "img/google.svg"
+            "huawei" -> "/img/huawei.svg"
+            "gitee" -> "/img/gitee.svg"
+            "github" -> "/img/github.svg"
+            "google" -> "/img/google.svg"
             else -> ""
         }

@@ -3,6 +3,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
@@ -81,7 +82,7 @@ class UserSettingsOrganizationsMenuView : UserSettingsView() {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                                     src = organizationDto.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
+                                    } ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     height = 60.0
                                     width = 60.0
                                 }

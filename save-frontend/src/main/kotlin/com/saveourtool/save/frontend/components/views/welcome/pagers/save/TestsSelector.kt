@@ -24,7 +24,7 @@ object TestsSelector : WelcomePager {
                 width = 40.rem
                 height = "auto".unsafeCast<Height>()
             }
-            src = "img/tests_selector.png"
+            src = "/img/tests_selector.png"
         }
     }
 }

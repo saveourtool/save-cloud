@@ -462,7 +462,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilter) =
             // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
-            "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
+            "${window.location.pathname}${filterValue.toQueryParams()}"
 
     /**
      * @param maxLength the maximum desired length of a text label.

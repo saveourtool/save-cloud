@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
@@ -31,7 +30,6 @@ import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollecti
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
-import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
@@ -201,7 +199,6 @@ val basicRouting: FC<AppProps> = FC { props ->
             awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
             creationView.create() to "$CREATE_PROJECT/:owner",
             organizationView.create() to ":owner",
-            organizationView.create() to "${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to ":owner/:name/history",
             projectView.create() to ":owner/:name",
             createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
@@ -234,19 +231,17 @@ val basicRouting: FC<AppProps> = FC { props ->
                 UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
             ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
-        ).forEach {
+        ).forEach { (view, route) ->
             PathRoute {
-                this.element = it.first
-                this.path = "/${it.second}"
+                this.element = view
+                this.path = "/$route"
             }
         }
 
-        props.userInfo?.name.run {
+        props.userInfo?.name?.run {
             PathRoute {
                 path = "/$this"
-                element = Navigate.create {
-                    to = "/$this/$SETTINGS_PROFILE"
-                }
+                element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
             }
         }
 
@@ -257,31 +252,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 else -> fallbackNode
             }
         }
-
-        createRoutersWithPathAndEachListItem<ProjectMenuBar>(
-            "/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name",
-            projectView
-        )
-
-        createRoutersWithPathAndEachListItem<OrganizationMenuBar>(
-            "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
-            organizationView
-        )
-
-        createRoutersWithPathAndEachListItem<ContestMenuBar>(
-            "/$CONTESTS/:contestName",
-            contestView
-        )
-
-        createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
-            "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/$AWESOME_BENCHMARKS",
-            awesomeBenchmarksView
-        )
-
-        createRoutersWithPathAndEachListItem<UserRatingTab>(
-            "/$CONTESTS_GLOBAL_RATING",
-            contestGlobalRatingView
-        )
 
         PathRoute {
             path = "*"

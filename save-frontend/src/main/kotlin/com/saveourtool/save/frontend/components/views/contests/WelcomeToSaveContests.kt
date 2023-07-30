@@ -58,7 +58,7 @@ internal val welcomeToSaveContests = VFC {
 private fun ChildrenBuilder.stayTunedImage() {
     img {
         className = ClassName("card-img-right flex-auto d-none d-md-block")
-        src = "img/undraw_certificate_re_yadi.svg"
+        src = "/img/undraw_certificate_re_yadi.svg"
         style = jso {
             @Suppress("MAGIC_NUMBER")
             width = 12.rem
