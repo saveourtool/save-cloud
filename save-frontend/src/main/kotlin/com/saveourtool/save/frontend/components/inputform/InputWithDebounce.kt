@@ -172,7 +172,6 @@ private fun <T> inputWithDebounce(
                 top = "100%".unsafeCast<Top>()
                 width = "100%".unsafeCast<Width>()
                 zIndex = "3".unsafeCast<ZIndex>()
-                overflow = "scroll".unsafeCast<Overflow>()
             }
             options.let { optionList ->
                 props.maxOptions?.let {
