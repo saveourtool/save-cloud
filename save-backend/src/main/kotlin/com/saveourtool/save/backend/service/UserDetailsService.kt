@@ -2,6 +2,8 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
@@ -26,6 +28,8 @@ import java.util.*
 class UserDetailsService(
     private val userRepository: UserRepository,
     private val originalLoginRepository: OriginalLoginRepository,
+    private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
+    private val lnkUserProjectRepository: LnkUserProjectRepository,
 ) {
     /**
      * @param username
@@ -147,12 +151,20 @@ class UserDetailsService(
                 this.name = newName
                 this.status = UserStatus.DELETED
                 this.avatar = null
+                this.company = null
+                this.twitter = null
+                this.email = null
+                this.gitHub = null
+                this.linkedin = null
+                this.location = null
             })
         } else {
             return UserSaveStatus.CONFLICT
         }
 
         originalLoginRepository.deleteByUserId(user.requiredId())
+        lnkUserProjectRepository.deleteByUserId(user.requiredId())
+        lnkUserOrganizationRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
     }
