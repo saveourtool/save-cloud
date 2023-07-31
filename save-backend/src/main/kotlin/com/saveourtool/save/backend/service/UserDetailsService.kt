@@ -6,6 +6,8 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.storage.AvatarKey
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
@@ -30,6 +32,7 @@ class UserDetailsService(
     private val originalLoginRepository: OriginalLoginRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val lnkUserProjectRepository: LnkUserProjectRepository,
+    private val avatarStorage: AvatarStorage,
 ) {
     /**
      * @param username
@@ -161,6 +164,12 @@ class UserDetailsService(
         } else {
             return UserSaveStatus.CONFLICT
         }
+
+        val avatarKey = AvatarKey(
+            AvatarType.USER,
+            name,
+        )
+        avatarStorage.delete(avatarKey)
 
         originalLoginRepository.deleteByUserId(user.requiredId())
         lnkUserProjectRepository.deleteByUserId(user.requiredId())
