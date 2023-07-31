@@ -126,10 +126,14 @@ Usually, not the whole stack is required for development. Application logic is p
              target: 'http://localhost:5300',
              logLevel: 'debug',
            }
-         ]
+         ],
+         historyApiFallback: true
        }
    )
    ```
+   
+    Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
+
  * Avoid potential name conflicts between local users (those authenticated using
    _HTTP Basic Auth_) and users created via an external _OAuth_ provider. For
    example, if you have a local user named `torvalds`, don't try to authenticate

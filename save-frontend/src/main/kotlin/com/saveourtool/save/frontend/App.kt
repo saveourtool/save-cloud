@@ -20,7 +20,7 @@ import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
 import react.router.*
-import react.router.dom.HashRouter
+import react.router.dom.BrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
@@ -35,7 +35,7 @@ import kotlinx.serialization.json.Json
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE")
-val App: FC<PropsWithChildren> = FC {
+val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
 
     useRequest {
@@ -70,7 +70,8 @@ val App: FC<PropsWithChildren> = FC {
         userInfoNew?.let { setUserInfo(userInfoNew) }
     }
 
-    HashRouter {
+    BrowserRouter {
+        basename = "/"
         requestModalHandler {
             this.userInfo = userInfo
 
@@ -97,28 +98,6 @@ val App: FC<PropsWithChildren> = FC {
             }
         }
         scrollToTopButton()
-    }
-}
-
-/**
- * The function creates routers with the given [basePath] and ending of string with all the elements given Enum<T>
- *
- * @param basePath
- * @param routeElement
- */
-inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachListItem(
-    basePath: String,
-    routeElement: FC<Props>
-) {
-    enumValues<T>().map { it.name.lowercase() }.forEach { item ->
-        PathRoute {
-            path = "$basePath/$item"
-            element = routeElement.create()
-        }
-    }
-    PathRoute {
-        path = basePath
-        element = routeElement.create()
     }
 }
 

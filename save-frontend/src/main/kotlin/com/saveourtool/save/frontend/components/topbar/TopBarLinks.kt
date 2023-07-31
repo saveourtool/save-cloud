@@ -18,7 +18,7 @@ import web.cssom.rem
 
 /**
  * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],
- * there is no need to highlight topbar element as we have `/#/demo` and `/#/project/.../demo`
+ * there is no need to highlight topbar element as we have `/demo` and `/project/.../demo`
  */
 private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 

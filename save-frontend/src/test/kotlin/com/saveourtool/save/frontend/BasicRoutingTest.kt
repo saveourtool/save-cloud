@@ -3,18 +3,22 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.frontend.externals.findByTextAndCast
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
+import com.saveourtool.save.frontend.routing.basicRouting
 import web.html.HTMLHeadingElement
 import react.create
-import react.react
+import react.router.MemoryRouter
 import kotlin.js.Promise
 import kotlin.test.*
 import kotlin.test.Test
 
-class AppTest {
+class BasicRoutingTest {
     @Test
-    fun appShouldRender(): Promise<Unit> {
+    fun basicRoutingShouldRenderIndexViewTest(): Promise<Unit> {
+        // App uses `BrowserRouter`, while `MemoryRouter` should be used for tests. Thus, app cannot be rendered
         render(
-            App::class.react.create()
+            MemoryRouter.create {
+                basicRouting()
+            }
         )
 
         screen.findByTextAndCast<HTMLHeadingElement>(

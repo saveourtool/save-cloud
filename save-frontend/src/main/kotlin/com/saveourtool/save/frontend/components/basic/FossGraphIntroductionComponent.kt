@@ -15,13 +15,13 @@ private const val SAVE_FOSS_GRAPH_INTRO_MD = """
 
 private const val SAVE_FOSS_GRAPH_ADD_NEW_MD = """
     |### New vulnerability
-    |You can propose your own [new vulnerability](#/vuln/create-vulnerability), if you didn't find it one in our list.
+    |You can propose your own [new vulnerability](/vuln/create-vulnerability), if you didn't find it one in our list.
     |After the review and approval, it will appear in the database under a special identifier.
 """
 
 private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
     |### How to add vulnerability in project?
-    |1. Create saveourtool [organization](#/create-organization) and [project](#/create-project);
+    |1. Create saveourtool [organization](/create-organization) and [project](/create-project);
     |2. Go to your project's security tab;
     |3. Create new problem and add vulnerability number;
     |
@@ -30,7 +30,7 @@ private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
 
 private const val SAVE_FOSS_GRAPH_TOP_RATING_MD = """
     |### Top rating
-    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](#/top-rating) of users and organizations.
+    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](/top-rating) of users and organizations.
 """
 
 @Suppress(
@@ -53,7 +53,7 @@ fun ChildrenBuilder.fossGraphIntroductionComponent() {
                 className = ClassName("card-img-right flex-column d-none d-md-block")
                 img {
                     className = ClassName("img-fluid")
-                    src = "img/undraw_happy_announcement_re_tsm0.svg"
+                    src = "/img/undraw_happy_announcement_re_tsm0.svg"
                 }
             }
         }

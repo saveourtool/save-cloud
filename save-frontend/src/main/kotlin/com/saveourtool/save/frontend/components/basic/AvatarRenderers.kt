@@ -21,7 +21,7 @@ import web.cssom.ClassName
 /**
  * Placeholder for organization avatar
  */
-const val ORGANIZATION_AVATAR_PLACEHOLDER = "img/company.svg"
+const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.svg"
 
 /**
  * Render organization avatar or placeholder
@@ -37,7 +37,7 @@ fun ChildrenBuilder.renderAvatar(
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) = renderAvatar(
-    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: ORGANIZATION_AVATAR_PLACEHOLDER,
+    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER,
     classes,
     link ?: "/${organizationDto.name}",
     styleBuilder

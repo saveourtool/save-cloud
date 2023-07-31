@@ -75,7 +75,7 @@ private fun ChildrenBuilder.notSupportedMobileYet() {
     div {
         className = ClassName("row d-flex justify-content-center mx-auto")
         img {
-            src = "img/sad_cat.png"
+            src = "/img/sad_cat.png"
             @Suppress("MAGIC_NUMBER")
             style = jso {
                 width = 5.rem

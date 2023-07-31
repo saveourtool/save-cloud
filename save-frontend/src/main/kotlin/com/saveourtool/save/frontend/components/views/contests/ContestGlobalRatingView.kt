@@ -4,11 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.filters.ProjectFilter
+import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -21,7 +21,6 @@ import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
@@ -64,7 +63,7 @@ external interface ContestGlobalRatingProps : Props {
 /**
  * [State] of Contest Global Rating view component
  */
-external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRatingTab> {
+external interface ContestGlobalRatingViewState : State {
     /**
      * All organizations
      */
@@ -86,9 +85,9 @@ external interface ContestGlobalRatingViewState : State, HasSelectedMenu<UserRat
     var organizationFilter: OrganizationFilter
 
     /**
-     * Contains the paths of default and other tabs
+     * Currently selected [UserRatingTab] tab
      */
-    var paths: PathsForTabs
+    var selectedMenu: UserRatingTab
 }
 
 /**
@@ -121,7 +120,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = cellContext.row.original.organization.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
+                                    } ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         height = 2.rem
                                         width = 2.rem
@@ -278,43 +277,14 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         }
     }
 
-    override fun componentDidUpdate(prevProps: ContestGlobalRatingProps, prevState: ContestGlobalRatingViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, UserRatingTab, state.paths)
-            val href = window.location.href.substringBeforeLast("?")
-            window.location.href = when (state.selectedMenu) {
-                UserRatingTab.ORGS -> state.organizationFilter.prefix.let {
-                    buildString {
-                        append(href)
-                        if (it.isNotBlank()) {
-                            append("?organizationName=$it")
-                        }
-                    }
-                }
-                UserRatingTab.TOOLS -> state.projectFilter.name.let {
-                    buildString {
-                        append(href)
-                        if (it.isNotBlank()) {
-                            append("?projectName=$it")
-                        }
-                    }
-                }
-            }
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(UserRatingTab, Role.NONE, false)
-        }
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
         val projectFilter = ProjectFilter(props.projectName ?: "")
         val organizationFilter = OrganizationFilter(props.organizationName.orEmpty())
         setState {
-            paths = PathsForTabs("/${FrontendRoutes.CONTESTS_GLOBAL_RATING}", "#/${FrontendRoutes.CONTESTS_GLOBAL_RATING}")
             this.projectFilter = projectFilter
             this.organizationFilter = organizationFilter
         }
-        urlAnalysis(UserRatingTab, Role.NONE, false)
         getOrganization(organizationFilter)
         getProject(projectFilter)
     }

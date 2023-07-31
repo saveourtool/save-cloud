@@ -79,7 +79,7 @@ external interface OrganizationProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
+external interface OrganizationViewState : StateWithRole, State {
     /**
      * Organization
      */
@@ -136,9 +136,9 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     var draftOrganizationDescription: String
 
     /**
-     * Contains the paths of default and other tabs
+     * Currently selected [OrganizationMenuBar] tab
      */
-    var paths: PathsForTabs
+    var selectedMenu: OrganizationMenuBar
 
     /**
      * Flag to handle avatar Window
@@ -177,14 +177,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, OrganizationMenuBar, state.paths)
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
-        }
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<ProjectDto> =
@@ -198,16 +190,14 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
-                paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: ORGANIZATION_AVATAR_PLACEHOLDER
+                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER
             }
-            urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
     }
 
@@ -541,7 +531,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                         onError = {
                             setState {
-                                avatar = ORGANIZATION_AVATAR_PLACEHOLDER
+                                avatar = AVATAR_ORGANIZATION_PLACEHOLDER
                             }
                         }
                     }

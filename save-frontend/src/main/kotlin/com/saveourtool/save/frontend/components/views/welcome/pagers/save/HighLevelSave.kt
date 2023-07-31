@@ -16,7 +16,7 @@ object HighLevelSave : WelcomePager {
 
     private fun ChildrenBuilder.renderAnimatedPage() {
         img {
-            src = "img/save_hl.png"
+            src = "/img/save_hl.png"
         }
     }
 }

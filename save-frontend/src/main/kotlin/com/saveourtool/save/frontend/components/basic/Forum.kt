@@ -44,7 +44,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
     val (comment, setComment) = useState(CommentDto.empty)
 
     val enrollRequest = useDeferredRequest {
-        val commentNew = comment.copy(section = window.location.hash)
+        val commentNew = comment.copy(section = window.location.pathname)
         val response = post(
             url = "$apiUrl/comments/save",
             headers = jsonHeaders,

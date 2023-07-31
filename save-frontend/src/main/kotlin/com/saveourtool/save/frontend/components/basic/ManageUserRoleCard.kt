@@ -169,7 +169,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                             img {
                                 className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
                                 src = user.avatar?.let { "/api/$v1/avatar$it" }
-                                    ?: "img/undraw_profile.svg"
+                                    ?: "/img/undraw_profile.svg"
                                 style = jso {
                                     width = "2rem".unsafeCast<Width>()
                                     height = "2rem".unsafeCast<Height>()

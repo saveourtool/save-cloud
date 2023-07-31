@@ -6,15 +6,11 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.utils.AwesomeBenchmarks
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
@@ -56,7 +52,7 @@ import kotlinx.coroutines.launch
 const val ALL_LANGS = "all"
 
 /**
- * `Props` retrieved from router
+ * [PropsWithChildren] of [AwesomeBenchmarksView]
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface AwesomeBenchmarksProps : PropsWithChildren {
@@ -64,10 +60,10 @@ external interface AwesomeBenchmarksProps : PropsWithChildren {
 }
 
 /**
- * [RState] of project creation view component
+ * [State] of [AwesomeBenchmarksView]
  *
  */
-external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCategoryEnum> {
+external interface AwesomeBenchmarksState : State {
     /**
      * list of benchmarks from DB
      */
@@ -86,7 +82,7 @@ external interface AwesomeBenchmarksState : State, HasSelectedMenu<BenchmarkCate
     /**
      * Contains the paths of default and other tabs
      */
-    var paths: PathsForTabs
+    var selectedMenu: BenchmarkCategoryEnum
 }
 
 /**
@@ -106,21 +102,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
     override fun componentDidMount() {
         super.componentDidMount()
 
-        urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
-        scope.launch {
-            getBenchmarks()
-            setState {
-                paths = PathsForTabs("/${FrontendRoutes.AWESOME_BENCHMARKS}", "#/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/${FrontendRoutes.AWESOME_BENCHMARKS}")
-            }
-        }
-    }
-
-    override fun componentDidUpdate(prevProps: AwesomeBenchmarksProps, prevState: AwesomeBenchmarksState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, BenchmarkCategoryEnum, state.paths)
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(BenchmarkCategoryEnum, Role.NONE, false)
-        }
+        scope.launch { getBenchmarks() }
     }
 
     @Suppress("TOO_LONG_FUNCTION", "EMPTY_BLOCK_STRUCTURE_ERROR", "LongMethod")
@@ -169,7 +151,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     }
                                     img {
                                         className = ClassName("card-img-right flex-auto d-none d-md-block")
-                                        src = "img/undraw_result_re_uj08.svg"
+                                        src = "/img/undraw_result_re_uj08.svg"
                                         style = jso {
                                             width = 12.rem
                                         }
@@ -213,7 +195,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                     }
                                     img {
                                         className = ClassName("card-img-right flex-auto d-none d-md-block")
-                                        src = "img/undraw_happy_news_re_tsbd.svg"
+                                        src = "/img/undraw_happy_news_re_tsbd.svg"
                                         style = jso {
                                             width = 12.rem
                                         }
@@ -299,7 +281,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                                     className = ClassName("media text-muted pb-3")
                                                     img {
                                                         className = ClassName("rounded")
-                                                        src = "img/undraw_code_inspection_bdl7.svg"
+                                                        src = "/img/undraw_code_inspection_bdl7.svg"
                                                         asDynamic()["data-holder-rendered"] = "true"
                                                         style = jso {
                                                             width = 4.2.rem
@@ -445,7 +427,7 @@ class AwesomeBenchmarksView : AbstractView<AwesomeBenchmarksProps, AwesomeBenchm
                                         style = jso {
                                             width = 20.rem
                                         }
-                                        src = "img/undraw_programming_re_kg9v.svg"
+                                        src = "/img/undraw_programming_re_kg9v.svg"
                                         alt = "..."
                                     }
                                 }

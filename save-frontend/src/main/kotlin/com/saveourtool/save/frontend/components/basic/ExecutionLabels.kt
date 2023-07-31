@@ -249,7 +249,7 @@ fun ChildrenBuilder.displayTestNotFound(executionDto: ExecutionDto?) {
         div {
             className = ClassName("d-flex justify-content-center")
             img {
-                src = "img/sad_cat.png"
+                src = "/img/sad_cat.png"
                 @Suppress("MAGIC_NUMBER")
                 style = jso {
                     width = 7.rem
