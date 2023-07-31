@@ -51,6 +51,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.img
+import web.cssom.rem
 
 /**
  * [Props] of a data table
@@ -278,10 +281,23 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
                 if (data.isEmpty()) {
                     div {
-                        className = ClassName("align-items-center justify-content-center mb-4")
-                        h6 {
-                            className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
-                            +"No results found"
+                        className = ClassName("col mt-4 mb-4")
+                        div {
+                            className = ClassName("row justify-content-center")
+                            h6 {
+                                className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
+                                +"No results found"
+                            }
+                        }
+                        div {
+                            className = ClassName("row justify-content-center")
+                            img {
+                                src = "/img/sad_cat.png"
+                                @Suppress("MAGIC_NUMBER")
+                                style = jso {
+                                    width = 14.rem
+                                }
+                            }
                         }
                     }
                 }

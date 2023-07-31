@@ -49,9 +49,9 @@ val leftColumn = FC<SettingsProps> { props ->
     }
 
     div {
-        className = ClassName("card card-body mt-0 pt-0 pr-0 pl-0")
+        className = ClassName("card card-body mt-0 pt-0 px-0")
         div {
-            className = ClassName("col mr-2 pr-0 pl-0")
+            className = ClassName("col mr-2 px-0")
             style = jso {
                 background = "#e1e9ed".unsafeCast<Background>()
             }
@@ -105,7 +105,7 @@ val leftColumn = FC<SettingsProps> { props ->
 
 val settingsTabs = VFC {
     div {
-        className = ClassName("col mr-2 pr-0 pl-0")
+        className = ClassName("col mr-2 px-0")
         nav {
             div {
                 className = ClassName("px-3 mt-3 ui vertical menu profile-setting")

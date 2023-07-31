@@ -211,7 +211,26 @@ val basicRouting: FC<AppProps> = FC { props ->
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
-            userSettingsView.create { userInfo = props.userInfo } to SETTINGS,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }

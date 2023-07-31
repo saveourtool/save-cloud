@@ -49,6 +49,11 @@ external interface SettingsProps : PropsWithChildren {
      * Currently logged in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * just a flag for a factory
+     */
+    var type: FrontendRoutes
 }
 
 val userSettingsView = FC<SettingsProps> { props ->
@@ -65,7 +70,10 @@ val userSettingsView = FC<SettingsProps> { props ->
                 div {
                     className = ClassName("col-7")
                     if (props.userInfo != null) {
-                        //
+                        rightColumn {
+                            this.userInfo = props.userInfo
+                            this.type = props.type
+                        }
                     } else {
                         main {
                             +"404"

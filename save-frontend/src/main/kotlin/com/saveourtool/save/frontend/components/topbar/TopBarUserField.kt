@@ -123,7 +123,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
                         }
                     }
                     dropdownEntry(
