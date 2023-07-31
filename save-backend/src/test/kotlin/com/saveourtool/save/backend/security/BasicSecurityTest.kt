@@ -7,6 +7,9 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.backend.repository.LnkUserProjectRepository
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.entities.User
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -35,6 +38,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
     MockBean(UserRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
+    MockBean(LnkUserProjectRepository::class),
+    MockBean(LnkUserOrganizationRepository::class),
+    MockBean(AvatarStorage::class),
 )
 class BasicSecurityTest {
     @Autowired

@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.S11nTestConfig
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
@@ -80,10 +81,12 @@ import java.util.concurrent.TimeUnit
     MockBean(AgentRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(LnkUserProjectRepository::class),
+    MockBean(LnkUserOrganizationRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(LnkContestProjectService::class),
     MockBean(LnkOrganizationTestSuiteService::class),
     MockBean(LnkExecutionTestSuiteService::class),
+    MockBean(AvatarStorage::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
