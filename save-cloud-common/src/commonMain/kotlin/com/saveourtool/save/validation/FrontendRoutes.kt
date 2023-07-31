@@ -32,6 +32,7 @@ enum class FrontendRoutes(val path: String) {
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
     SAVE("save"),
+    SETTINGS("settings"),
     SETTINGS_EMAIL("settings/email"),
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),
