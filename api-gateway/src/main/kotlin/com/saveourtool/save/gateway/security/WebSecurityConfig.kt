@@ -88,8 +88,9 @@ class WebSecurityConfig(
         }
         .run {
             authorizeExchange()
+                // api-gateway forwards everything to save-frontend now
                 .pathMatchers("/**")
-                .authenticated()
+                .permitAll()
         }
         .and()
         .run {
