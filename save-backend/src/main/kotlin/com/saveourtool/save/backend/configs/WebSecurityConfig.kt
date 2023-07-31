@@ -18,9 +18,9 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 @Profile("secure")
 @Import(
     WebSecurityConfig::class,
-    ConvertingAuthenticationManager::class,
-    AuthenticationUserDetailsService::class,
-    AuthenticationUserRepository::class,
+//    ConvertingAuthenticationManager::class,
+//    AuthenticationUserDetailsService::class,
+//    AuthenticationUserRepository::class,
 )
 @Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
 class BackendWebSecurityConfig

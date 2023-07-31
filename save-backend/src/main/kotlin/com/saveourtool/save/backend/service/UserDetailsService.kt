@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository

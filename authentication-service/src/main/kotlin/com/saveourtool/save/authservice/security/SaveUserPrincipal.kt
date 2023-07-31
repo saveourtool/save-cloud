@@ -1,6 +1,5 @@
 package com.saveourtool.save.authservice.security
 
-import com.saveourtool.save.authservice.security.SaveUserPrincipal.Companion.getSingleHeader
 import com.saveourtool.save.utils.*
 import org.springframework.security.core.AuthenticatedPrincipal
 import org.springframework.security.core.GrantedAuthority
@@ -10,15 +9,15 @@ import org.springframework.web.server.ServerWebExchange
 
 /**
  * @param id
- * @param name
+ * @param _name
  * @param authorities
  */
 data class SaveUserPrincipal(
     val id: Long,
-    val name: String,
+    private val _name: String,
     val authorities: Collection<GrantedAuthority>,
 ) : AuthenticatedPrincipal {
-    override fun getName(): String = this.name
+    override fun getName(): String = this._name
 
     /**
      * @return [PreAuthenticatedAuthenticationToken]
@@ -34,7 +33,7 @@ data class SaveUserPrincipal(
         fun ServerWebExchange.toSaveUserPrincipal(): SaveUserPrincipal? {
             return SaveUserPrincipal(
                 id = getSingleHeader(AUTHORIZATION_ID)?.toLong() ?: return logWarnAndReturnEmpty(AUTHORIZATION_ID),
-                name = getSingleHeader(AUTHORIZATION_NAME) ?: return logWarnAndReturnEmpty(AUTHORIZATION_NAME),
+                _name = getSingleHeader(AUTHORIZATION_NAME) ?: return logWarnAndReturnEmpty(AUTHORIZATION_NAME),
                 authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(
                     getSingleHeader(AUTHORIZATION_ROLES) ?: return logWarnAndReturnEmpty(AUTHORIZATION_ROLES),
                 ),
