@@ -2,7 +2,7 @@
 ## Components
 SAVE Cloud contains the following microservices:
 * backend: REST API for DB
-* test-preprocessor: clones projects for test and discovers tests
+* preprocessor: clones projects for test and discovers tests
 * orchestrator: moderates distributed execution of tests, feeds new batches of tests to a set of agents
 save-cloud uses MySQL as a database. Liquibase (via gradle plugin) is used for schema initialization and migration.
 
@@ -126,10 +126,14 @@ Usually, not the whole stack is required for development. Application logic is p
              target: 'http://localhost:5300',
              logLevel: 'debug',
            }
-         ]
+         ],
+         historyApiFallback: true
        }
    )
    ```
+   
+    Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
+
  * Avoid potential name conflicts between local users (those authenticated using
    _HTTP Basic Auth_) and users created via an external _OAuth_ provider. For
    example, if you have a local user named `torvalds`, don't try to authenticate

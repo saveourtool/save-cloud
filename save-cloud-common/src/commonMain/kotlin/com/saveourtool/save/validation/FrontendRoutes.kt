@@ -23,6 +23,7 @@ enum class FrontendRoutes(val path: String) {
     CREATE_PROJECT("create-project"),
     CREATE_VULNERABILITY("vuln/create-vulnerability"),
     DEMO("demo"),
+    ERROR_404("404"),
     INDEX(""),
     MANAGE_ORGANIZATIONS("organizations"),
     NOT_FOUND("not-found"),

@@ -69,9 +69,9 @@ spring:
             scope:
               - openid
           github:
-            # IMPORTANT! When you create a github application on the GITHUB you need to provide a callback API.
+            # IMPORTANT! When you create a GitHub application on the GITHUB you need to provide a callback API.
             # If you will only provide a domain name: 'saveourtool.com' in CALLBACK URL field, everything will go well.
-            # Github will automatically add all the remaining endpoint information (after the domain name): /login/oauth2/code/github
+            # GitHub will automatically add all the remaining endpoint information (after the domain name): /login/oauth2/code/github
             #
             # We don't set any redirect-uri here, because it's managed by GitHub
             # (the field is called "Authorization callback URL" and, for a local
@@ -99,3 +99,13 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     com.nimbusds: TRACE
+
+---
+spring:
+  error:
+    whitelabel:
+      enabled: false
+
+server:
+  error:
+    path: /error

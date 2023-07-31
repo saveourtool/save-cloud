@@ -25,7 +25,7 @@ object AwesomeBenchmarks : WelcomePager {
                 width = 80.rem
                 height = "auto".unsafeCast<Height>()
             }
-            src = "img/awesome_view.png"
+            src = "/img/awesome_view.png"
         }
     }
 }

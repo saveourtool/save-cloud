@@ -29,7 +29,7 @@ fun logoutModal(
         )
         if (replyToLogout.ok) {
             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
-            window.location.href = "${window.location.origin}/#"
+            window.location.href = "${window.location.origin}/"
             window.location.reload()
         } else {
             // close this modal to allow user to see modal with error description

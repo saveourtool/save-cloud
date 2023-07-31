@@ -67,7 +67,7 @@ class WebSecurityConfig(
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**", "/sandbox/api/**", "/demo/api/**")
+                .pathMatchers("/api/**")
                 .access { authentication, authorizationContext ->
                     AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                         authentication, authorizationContext
@@ -98,7 +98,7 @@ class WebSecurityConfig(
         }
         .exceptionHandling {
             it.authenticationEntryPoint(
-                // return 401 for unauthorized requests instead of redirect to login
+                // return 401 for unauthorized requests instead of redirect to log-in
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
@@ -106,7 +106,7 @@ class WebSecurityConfig(
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
                     StoringServerAuthenticationSuccessHandler(backendService),
-                    RedirectServerAuthenticationSuccessHandler("/#"),
+                    RedirectServerAuthenticationSuccessHandler("/"),
                 )
             )
             it.authenticationFailureHandler(

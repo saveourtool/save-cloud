@@ -169,7 +169,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                             img {
                                 className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
                                 src = user.avatar?.let { "/api/$v1/avatar$it" }
-                                    ?: "img/undraw_profile.svg"
+                                    ?: "/img/undraw_profile.svg"
                                 style = jso {
                                     width = "2rem".unsafeCast<Width>()
                                     height = "2rem".unsafeCast<Height>()
@@ -182,7 +182,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                         }
                     }
                     div {
-                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end pr-0")
                         select {
                             className = ClassName("custom-select col-9")
                             onChange = { event ->

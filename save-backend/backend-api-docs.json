@@ -9548,6 +9548,81 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/delete-tag": {
+      "delete": {
+        "description": "Delete a tag.",
+        "operationId": "deleteTag",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tagName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted a tag in vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permissions for managing vulnerability"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Requested vulnerability is not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete a tag.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/delete-user": {
       "delete": {
         "description": "Delete user.",
@@ -9930,6 +10005,81 @@
           }
         ],
         "summary": "Save new projects.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/save-tag": {
+      "post": {
+        "description": "Save a new tag.",
+        "operationId": "saveTag",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "vulnerabilityName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tagName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully added a new tag to vulnerability"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Not enough permissions for managing vulnerability"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Requested vulnerability is not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Save a new tag.",
         "tags": [
           "vulnerabilities"
         ]
@@ -11821,7 +11971,6 @@
         "required": [
           "name",
           "rating",
-          "source",
           "status"
         ],
         "type": "object",
@@ -11861,9 +12010,6 @@
           "role": {
             "type": "string"
           },
-          "source": {
-            "type": "string"
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -11884,7 +12030,6 @@
           "originalLogins",
           "projects",
           "rating",
-          "source",
           "status"
         ],
         "type": "object",
@@ -11963,9 +12108,6 @@
             "type": "integer",
             "format": "int64"
           },
-          "source": {
-            "type": "string"
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -12018,6 +12160,7 @@
           "projects",
           "shortDescription",
           "status",
+          "tags",
           "userInfo"
         ],
         "type": "object",
@@ -12104,6 +12247,13 @@
               "REOPENED"
             ]
           },
+          "tags": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "userInfo": {
             "$ref": "#/components/schemas/UserInfo"
           },
@@ -12116,7 +12266,8 @@
         "required": [
           "isOwner",
           "prefixName",
-          "status"
+          "status",
+          "tags"
         ],
         "type": "object",
         "properties": {
@@ -12134,6 +12285,13 @@
               "REJECTED",
               "REOPENED"
             ]
+          },
+          "tags": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },

@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.utils.isIndex
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -19,7 +18,7 @@ import web.cssom.rem
 
 /**
  * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],
- * there is no need to highlight topbar element as we have `/#/demo` and `/#/project/.../demo`
+ * there is no need to highlight topbar element as we have `/demo` and `/project/.../demo`
  */
 private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 
@@ -38,6 +37,7 @@ private val saveTopbarLinks = sequenceOf(
 private val vulnTopbarLinks = sequenceOf(
     TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, width = 13.rem, text = "Propose vulnerability"),
     TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 8.rem, text = "Vulnerabilities"),
+    TopBarLink(hrefAnchor = FrontendRoutes.TOP_RATING.path, width = 7.rem, text = "Top Rating"),
 )
 
 /**
@@ -49,7 +49,6 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         className = ClassName("navbar-nav mx-auto")
         when {
             props.location.isVuln() -> vulnTopbarLinks
-            props.location.isIndex() -> vulnTopbarLinks
             else -> saveTopbarLinks
         }
             .forEach { elem ->
@@ -64,7 +63,14 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                         }
                     } else {
                         Link {
-                            className = ClassName("nav-link d-flex align-items-center me-2 ${textColor(elem.hrefAnchor, props.location)} active")
+                            className = ClassName(
+                                "nav-link d-flex align-items-center me-2 ${
+                                    textColor(
+                                        elem.hrefAnchor,
+                                        props.location
+                                    )
+                                } active"
+                            )
                             style = jso { width = elem.width }
                             to = elem.hrefAnchor
                             +elem.text
@@ -101,8 +107,9 @@ data class TopBarLink(
 private fun textColor(
     hrefAnchor: String,
     location: Location,
-) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
-    "text-warning"
-} else {
-    "text-light"
-}
+) =
+        if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
+            "text-warning"
+        } else {
+            "text-light"
+        }

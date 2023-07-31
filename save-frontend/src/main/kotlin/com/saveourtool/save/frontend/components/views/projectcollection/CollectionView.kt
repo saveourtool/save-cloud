@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.views.projectcollection
 
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.components.tables.TableProps
@@ -16,7 +15,6 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.classLoadingHandler
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
 import react.dom.html.ReactHTML.div
@@ -36,14 +34,8 @@ enum class ProjectListTab {
     PRIVATE,
     ;
 
-    companion object : TabMenuBar<ProjectListTab> {
-        // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
-        override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: ProjectListTab = PUBLIC
-        override val regexForUrlClassification = "/${FrontendRoutes.PROJECTS}/($postfixInRegex)"
-        override fun valueOf(elem: String): ProjectListTab = ProjectListTab.valueOf(elem)
-        override fun values(): Array<ProjectListTab> = ProjectListTab.values()
+    companion object {
+        val defaultTab: ProjectListTab = PUBLIC
     }
 }
 
@@ -58,11 +50,16 @@ external interface CollectionViewProps : Props {
 /**
  * [State] of Collection view component
  */
-external interface CollectionViewState : State, HasSelectedMenu<ProjectListTab> {
+external interface CollectionViewState : State {
     /**
      * All filters in one value [filters]
      */
     var filters: ProjectFilter
+
+    /**
+     * Currently selected [ProjectListTab] tab
+     */
+    var selectedMenu: ProjectListTab
 }
 
 /**

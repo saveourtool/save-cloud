@@ -25,7 +25,7 @@ internal val createNewContestTemplate = VFC {
             div {
                 className = ClassName("row mb-auto")
                 img {
-                    src = "img/undraw_create_new.svg"
+                    src = "/img/undraw_create_new.svg"
                     @Suppress("MAGIC_NUMBER")
                     style = jso {
                         width = 10.rem

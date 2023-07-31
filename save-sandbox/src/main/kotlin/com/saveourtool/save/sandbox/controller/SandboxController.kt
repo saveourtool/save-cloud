@@ -59,7 +59,7 @@ import javax.transaction.Transactional
     Tag(name = "sandbox"),
 )
 @RestController
-@RequestMapping("/sandbox/api")
+@RequestMapping("/api/sandbox")
 @SuppressWarnings("LongParameterList")
 class SandboxController(
     val configProperties: ConfigProperties,

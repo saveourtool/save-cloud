@@ -37,8 +37,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 val apiUrl = "${window.location.origin}/api/$v1"
-val demoApiUrl = "${window.location.origin}/demo/api"
-val cpgDemoApiUrl = "${window.location.origin}/cpg/api"
+val demoApiUrl = "${window.location.origin}/api/demo"
+val cpgDemoApiUrl = "${window.location.origin}/api/cpg"
 
 val jsonHeaders = Headers().apply {
     set("Accept", "application/json")
@@ -169,13 +169,12 @@ suspend fun ComponentWithScope<*, *>.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        get<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = get<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `GET` request from a class component. See [request] for parameter
@@ -200,14 +199,13 @@ suspend fun <T : Any> ComponentWithScope<*, *>.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "GET",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "GET",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform POST request from a class component. See [request] for parameter description.
@@ -221,14 +219,13 @@ suspend fun ComponentWithScope<*, *>.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        post<dynamic>(
-            url = url,
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = post<dynamic>(
+    url = url,
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `POST` request from a class component.
@@ -261,15 +258,14 @@ suspend fun <T : Any> ComponentWithScope<*, *>.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "POST",
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "POST",
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform DELETE request from a class component. See [request] for parameter description.
@@ -282,13 +278,12 @@ suspend fun ComponentWithScope<*, *>.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        delete<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = delete<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `DELETE` request from a class component.
@@ -318,14 +313,13 @@ suspend fun <T : Any> ComponentWithScope<*, *>.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "DELETE",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "DELETE",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform GET request from a functional component
@@ -341,13 +335,12 @@ suspend fun WithRequestStatusContext.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        get<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = get<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `GET` request from a functional component. See [request] for
@@ -373,14 +366,13 @@ suspend fun <T : Any> WithRequestStatusContext.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "GET",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "GET",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform POST request from a functional component
@@ -397,14 +389,13 @@ suspend fun WithRequestStatusContext.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        post<dynamic>(
-            url = url,
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = post<dynamic>(
+    url = url,
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `POST` request from a functional component.
@@ -440,15 +431,14 @@ suspend fun <T : Any> WithRequestStatusContext.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "POST",
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "POST",
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform a `DELETE` request from a functional component.
@@ -479,13 +469,12 @@ suspend fun WithRequestStatusContext.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        delete<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = delete<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `DELETE` request from a functional component.
@@ -518,14 +507,13 @@ suspend fun <T : Any> WithRequestStatusContext.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "DELETE",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "DELETE",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Handler that allows to show loading modal
@@ -561,8 +549,7 @@ fun Response.isUnauthorized(): Boolean = this.status == 401.toShort()
  * @return the string  flow produced from the body of this HTTP response.
  * @see Response.inputStream
  */
-suspend fun Response.readLines(): Flow<String> =
-        inputStream().decodeToString()
+suspend fun Response.readLines(): Flow<String> = inputStream().decodeToString()
 
 /**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
@@ -741,13 +728,12 @@ private suspend fun Response.inputStream(): Flow<Byte> {
  * @return the converted instance.
  */
 @Suppress("UnsafeCastFromDynamic")
-private fun Uint8Array.asByteArray(): ByteArray =
-        Int8Array(
-            buffer = buffer.unsafeCast<ArrayBuffer>(),
-            byteOffset = byteOffset,
-            length = length,
-        )
-            .asDynamic()
+private fun Uint8Array.asByteArray(): ByteArray = Int8Array(
+    buffer = buffer.unsafeCast<ArrayBuffer>(),
+    byteOffset = byteOffset,
+    length = length,
+)
+    .asDynamic()
 
 /**
  * Appends the [parameters][params] to this URL.
@@ -798,21 +784,20 @@ private suspend fun request(
     credentials: RequestCredentials? = undefined,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = ::noopResponseHandler,
-): Response =
-        loadingHandler {
-            window.fetch(
-                input = url,
-                RequestInit(
-                    method = method,
-                    headers = headers,
-                    body = body,
-                    credentials = credentials,
-                )
-            )
-                .await()
+): Response = loadingHandler {
+    window.fetch(
+        input = url,
+        RequestInit(
+            method = method,
+            headers = headers,
+            body = body,
+            credentials = credentials,
+        )
+    )
+        .await()
+}
+    .also { response ->
+        if (responseHandler != undefined) {
+            responseHandler(response)
         }
-            .also { response ->
-                if (responseHandler != undefined) {
-                    responseHandler(response)
-                }
-            }
+    }

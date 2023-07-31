@@ -20,8 +20,8 @@ import web.cssom.*
  * Buttons for creation and deletion of new projects and organizations
  */
 internal fun ChildrenBuilder.topRightCard() {
-    creationCard("img/undraw_for_review_eqxk.svg", "organization", "/${FrontendRoutes.CREATE_ORGANIZATION}/")
-    creationCard("img/undraw_selecting_team_re_ndkb.svg", "project", "/${FrontendRoutes.CREATE_PROJECT}/")
+    creationCard("/img/undraw_for_review_eqxk.svg", "organization", "/${FrontendRoutes.CREATE_ORGANIZATION}/")
+    creationCard("/img/undraw_selecting_team_re_ndkb.svg", "project", "/${FrontendRoutes.CREATE_PROJECT}/")
 }
 
 /**
@@ -44,7 +44,7 @@ internal fun ChildrenBuilder.topLeftCard() {
                     className = ClassName("col-3 mt-3")
 
                     img {
-                        src = "img/save-logo-no-bg.png"
+                        src = "/img/save-logo-no-bg.png"
                         @Suppress("MAGIC_NUMBER")
                         style = jso {
                             width = 8.rem

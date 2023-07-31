@@ -97,7 +97,6 @@ class WebSecurityConfig(
             // they are not proxied from gateway.
             "/actuator/**",
             "/internal/**",
-            "/sandbox/internal/**",
             // Agents should communicate with sandbox without authorization
             "/heartbeat",
             // `CollectionView` is a public page
@@ -115,7 +114,7 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/public-test",
             "/api/$v1/contests/*/scores",
             "/api/$v1/contests/*/*/best",
-            "/demo/api/*/run",
+            "/api/demo/*/run",
             "/api/$v1/vulnerabilities/get-all-public",
             // `fossGraphView` is public page
             "/api/$v1/vulnerabilities/by-name-with-description",

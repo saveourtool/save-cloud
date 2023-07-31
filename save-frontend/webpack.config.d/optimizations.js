@@ -2,7 +2,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 config.plugins.push(
     new HtmlWebpackPlugin({
-        template: 'index.html'
+        template: 'index.html',
+        publicPath: '/',
     })
 );
 
