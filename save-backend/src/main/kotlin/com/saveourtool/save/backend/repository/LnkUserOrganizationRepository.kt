@@ -80,4 +80,9 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
      * @return List of [LnkUserOrganization] in which user with [userName] participates
      */
     fun findByUserName(userName: String): List<LnkUserOrganization>
+
+    /**
+     * @param userId id of user
+     */
+    fun deleteByUserId(userId: Long)
 }
