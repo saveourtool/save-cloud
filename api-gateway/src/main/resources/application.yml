@@ -58,17 +58,16 @@ spring:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
             - ConvertAuthorizationHeader=
-        - id: index_route
-          uri: ${gateway.frontend.url}/index.html
-          predicates:
-            - Path=/
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
         - id: error_route
           uri: ${gateway.backend.url}/error
           predicates:
             - Path=/error
+        - id: neo4j_route
+          uri: ${gateway.neo4j-browser.url}
+          predicates:
+            - Path=/neo4j/browser/**
+          filters:
+            - StripPrefix=1
         - id: resource_route
           uri: ${gateway.frontend.url}
           predicates:
@@ -76,12 +75,13 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-        - id: neo4j_route
-          uri: ${gateway.neo4j-browser.url}
+        - id: index_route
+          uri: ${gateway.frontend.url}/index.html
           predicates:
-            - Path=/neo4j/browser/**
+            - Path=/**
           filters:
-            - StripPrefix=1
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
 
 ---
 spring:
