@@ -68,13 +68,13 @@ enum class InputTypes(
     ),
 
     // ==== user setting view
-    USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("user name", NAME_ERROR_MESSAGE, "name"),
-    COMPANY("company"),
-    LOCATION("location"),
-    GIT_HUB("git hub"),
-    LINKEDIN("linkedin"),
-    TWITTER("twitter"),
+    USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    USER_NAME("User name", NAME_ERROR_MESSAGE, "name"),
+    COMPANY("Company/Affiliation"),
+    LOCATION("Location"),
+    GITHUB("GitHub"),
+    LINKEDIN("Linkedin"),
+    TWITTER("Twitter/X"),
 
     // ==== contest creation component
     CONTEST_NAME(

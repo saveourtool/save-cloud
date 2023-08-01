@@ -18,12 +18,10 @@ import react.useState
 import web.cssom.ClassName
 import web.html.InputType
 
-val profile = FC<SettingsProps> { props ->
+val email = FC<SettingsProps> { props ->
     val (fieldsMap, setFieldsMap) =
         useState<MutableMap<InputTypes, String>>(mutableMapOf())
-    val (validationToolTips, setValidationToolTips) =
-        useState<MutableMap<InputTypes, String>>(mutableMapOf())
-
+    val (validationToolTips, setValidationToolTips) = useState<MutableMap<InputTypes, String>>(mutableMapOf())
 
     val saveUser = useDeferredRequest {
         val response = post(
@@ -36,8 +34,7 @@ val profile = FC<SettingsProps> { props ->
             loadingHandler = ::loadingHandler
         )
 
-        /*
-                if (response.isConflict()) {
+        /*        if (response.isConflict()) {
                     val responseText = response.unpackMessage()
                     setState {
                         conflictErrorMessage = responseText
@@ -51,12 +48,8 @@ val profile = FC<SettingsProps> { props ->
 
     div {
         className = ClassName("col mt-2 px-4")
-        // inputForm(props.userInfo?.name, InputTypes.USER_NAME, fieldsMap, setFieldsMap)
-        inputForm(props.userInfo?.company, InputTypes.COMPANY, fieldsMap, validationToolTips, setFieldsMap)
-        inputForm(props.userInfo?.location, InputTypes.LOCATION, fieldsMap, validationToolTips, setFieldsMap)
-        inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, fieldsMap, validationToolTips, setFieldsMap)
-        inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, fieldsMap, validationToolTips, setFieldsMap)
-        inputForm(props.userInfo?.twitter, InputTypes.TWITTER, fieldsMap, validationToolTips, setFieldsMap)
+        inputForm(props.userInfo?.location, InputTypes.USER_NAME, fieldsMap, validationToolTips, setFieldsMap)
+        inputForm(props.userInfo?.company, InputTypes.USER_EMAIL, fieldsMap, validationToolTips, setFieldsMap)
 
         /* state.conflictErrorMessage?.let {
             div {

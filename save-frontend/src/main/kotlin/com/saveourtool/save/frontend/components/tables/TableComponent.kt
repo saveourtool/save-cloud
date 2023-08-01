@@ -19,6 +19,7 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
@@ -44,6 +45,7 @@ import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
 import web.cssom.ClassName
 import web.cssom.Cursor
+import web.cssom.rem
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -51,9 +53,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.img
-import web.cssom.rem
 
 /**
  * [Props] of a data table

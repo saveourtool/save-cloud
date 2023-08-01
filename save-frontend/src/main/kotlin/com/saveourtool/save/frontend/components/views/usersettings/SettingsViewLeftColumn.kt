@@ -15,9 +15,7 @@ import react.FC
 import react.VFC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
-import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.nav
@@ -49,7 +47,8 @@ val leftColumn = FC<SettingsProps> { props ->
     }
 
     div {
-        className = ClassName("card card-body mt-0 pt-0 px-0")
+        className = ClassName("card card-body pt-0 px-0")
+        style = cardHeight
         div {
             className = ClassName("col mr-2 px-0")
             style = jso {
@@ -72,10 +71,10 @@ val leftColumn = FC<SettingsProps> { props ->
                                     }
                                     img {
                                         className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                         src = avatarImgLink
                                             ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
-                                                    ?: AVATAR_PROFILE_PLACEHOLDER
+                                            ?: AVATAR_PROFILE_PLACEHOLDER
                                         style = jso {
                                             height = 10.rem
                                             width = 10.rem
@@ -95,7 +94,6 @@ val leftColumn = FC<SettingsProps> { props ->
                             }
                         }
                     }
-
                 }
             }
         }
@@ -148,7 +146,7 @@ val settingsTabs = VFC {
 private fun ChildrenBuilder.settingMenuHeader(header: String, imgIcon: String) {
     div {
         className = ClassName("header")
-/*        img {
+        /* img {
             src = imgIcon
             style = jso {
                 width = 1.rem
@@ -159,7 +157,12 @@ private fun ChildrenBuilder.settingMenuHeader(header: String, imgIcon: String) {
     }
 }
 
-private fun ChildrenBuilder.settingsMenuTab(link: FrontendRoutes, text: String, icon: FontAwesomeIconModule, style: String = "btn-outline-dark") {
+private fun ChildrenBuilder.settingsMenuTab(
+    link: FrontendRoutes,
+    text: String,
+    icon: FontAwesomeIconModule,
+    style: String = "btn-outline-dark"
+) {
     div {
         className = ClassName("mt-2")
         Link {
