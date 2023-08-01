@@ -54,12 +54,6 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
- * `X-Authorization-Source`, used to specify an _OAuth_ provider (`basic`,
- * `github`, `dex`, etc.).
- */
-const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
-
-/**
  * `X-Authorization-Roles` used to specify save's user id
  */
 const val AUTHORIZATION_ID = "X-Authorization-Id"
