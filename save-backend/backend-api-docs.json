@@ -12266,7 +12266,6 @@
         "required": [
           "isOwner",
           "prefixName",
-          "status",
           "tags"
         ],
         "type": "object",
