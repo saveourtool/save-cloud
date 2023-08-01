@@ -9,7 +9,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
-import org.springframework.web.server.ServerWebExchange
 
 /**
  * @property id [com.saveourtool.save.entities.User.id]
@@ -68,7 +67,7 @@ data class AuthenticationUserDetails(
         /**
          * @return [AuthenticationUserDetails] created from values in headers
          */
-        fun ServerWebExchange.toAuthenticationUserDetails(): AuthenticationUserDetails? {
+        fun HttpHeaders.toAuthenticationUserDetails(): AuthenticationUserDetails? {
             return AuthenticationUserDetails(
                 id = getSingleHeader(AUTHORIZATION_ID)?.toLong() ?: return logWarnAndReturnEmpty(AUTHORIZATION_ID),
                 name = getSingleHeader(AUTHORIZATION_NAME) ?: return logWarnAndReturnEmpty(AUTHORIZATION_NAME),
@@ -76,7 +75,7 @@ data class AuthenticationUserDetails(
             )
         }
 
-        private fun ServerWebExchange.getSingleHeader(headerName: String) = request.headers[headerName]?.singleOrNull()
+        private fun HttpHeaders.getSingleHeader(headerName: String) = get(headerName)?.singleOrNull()
 
         private fun <T> logWarnAndReturnEmpty(missedHeaderName: String): T? {
             log.debug {

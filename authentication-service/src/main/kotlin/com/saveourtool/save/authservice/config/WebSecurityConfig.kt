@@ -40,7 +40,7 @@ class WebSecurityConfig(
         return AuthenticationWebFilter(authenticationManager)
             .also { authenticationWebFilter ->
                 authenticationWebFilter.setServerAuthenticationConverter { exchange ->
-                    exchange.toAuthenticationUserDetails()?.toAuthenticationToken().toMono()
+                    exchange.request.headers.toAuthenticationUserDetails()?.toAuthenticationToken().toMono()
                 }
             }
     }
