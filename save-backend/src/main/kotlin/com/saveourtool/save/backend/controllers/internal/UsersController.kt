@@ -1,16 +1,12 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.Role
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.userdetails.User as SpringUser
-import org.springframework.security.jackson2.CoreJackson2Module
-import org.springframework.security.jackson2.SecurityJackson2Modules
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,11 +27,6 @@ class UsersController(
     private val originalLoginRepository: OriginalLoginRepository,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val springUserDetailsWriter = ObjectMapper()
-        .findAndRegisterModules()
-        .registerModule(CoreJackson2Module())
-        .registerModules(SecurityJackson2Modules.getModules(javaClass.classLoader))
-        .writerFor(SpringUser::class.java)
 
     /**
      * Stores user in the DB with provided [name] with [roleForNewUser] as role.

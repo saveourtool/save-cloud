@@ -1,8 +1,9 @@
 package com.saveourtool.save.authservice.utils
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.*
+
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.UserDetails
@@ -48,8 +49,8 @@ data class AuthenticationUserDetails(
     override fun isEnabled(): Boolean = true
 
     companion object {
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<AuthenticationUserDetails>()
-
         private const val NO_CREDENTIALS = "N/A"
 
         /**

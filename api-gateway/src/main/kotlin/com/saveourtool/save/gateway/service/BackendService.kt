@@ -1,10 +1,10 @@
 package com.saveourtool.save.gateway.service
 
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
-
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import com.saveourtool.save.utils.orNotFound
+
 import org.springframework.http.MediaType
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Service
@@ -48,8 +48,8 @@ class BackendService(
             Mono.error(ResponseStatusException(it.statusCode()))
         }
         .toEntity<AuthenticationUserDetails>()
-        .flatMap {
-            it.body.toMono().orNotFound { "Body is empty" }
+        .flatMap { responseEntity ->
+            responseEntity.body.toMono().orNotFound { "Body is empty" }
         }
 
     /**

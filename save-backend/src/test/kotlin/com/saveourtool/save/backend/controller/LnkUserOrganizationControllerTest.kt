@@ -30,9 +30,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @Import(
     WebSecurityConfig::class,
     OrganizationService::class,
-    ConvertingAuthenticationManager::class,
-    AuthenticationUserDetailsService::class,
-    AuthenticationUserRepository::class,
 )
 @MockBeans(
     MockBean(OriginalLoginRepository::class),

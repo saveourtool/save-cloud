@@ -37,9 +37,6 @@ import reactor.util.function.Tuples
     OrganizationService::class,
     LnkUserProjectService::class,
     LnkUserOrganizationService::class,
-    ConvertingAuthenticationManager::class,
-    AuthenticationUserDetailsService::class,
-    AuthenticationUserRepository::class,
 )
 @MockBeans(
     MockBean(LnkUserProjectService::class),
