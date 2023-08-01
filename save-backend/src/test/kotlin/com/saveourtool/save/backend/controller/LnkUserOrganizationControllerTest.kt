@@ -55,9 +55,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should allow changing roles for organization owners`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(userRepository.findByName(any())).willReturn(
             User("user", null, null, "").apply { id = 99 }
         )
@@ -79,9 +77,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should forbid changing roles unless user is an organization owner`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
@@ -100,9 +96,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should get 403 when deleting users from organization without permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
@@ -119,9 +113,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should permit deleting users from organization if user is admin or higher`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(99),
@@ -139,9 +131,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should forbid removing people from organization if user has less permissions than admin`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),

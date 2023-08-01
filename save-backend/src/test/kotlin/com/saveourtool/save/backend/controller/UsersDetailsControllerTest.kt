@@ -26,9 +26,7 @@ class UsersDetailsControllerTest {
     @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `update user`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val newUserInfo = UserInfo(
             name = "admin",
@@ -48,9 +46,7 @@ class UsersDetailsControllerTest {
     @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `update user invalid name`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val newUserInfo = UserInfo(
             name = "JohnDoe",

@@ -307,9 +307,7 @@ class OrganizationControllerTest {
             gitDto.url == url && gitDto.username == password && gitDto.password == password
 
     private fun mutateMockedUserAndLink(organization: Organization, user: User, userRole: Role) {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = user.requiredId())
-        }
+        mutateMockedUser(id = user.requiredId())
         prepareLink(organization, user, userRole)
     }
 

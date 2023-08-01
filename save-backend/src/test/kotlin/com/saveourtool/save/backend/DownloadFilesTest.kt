@@ -121,9 +121,7 @@ class DownloadFilesTest {
     @Suppress("TOO_LONG_FUNCTION")
     @WithMockUser(roles = ["USER"])
     fun `should download a file`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val fileContent = "Lorem ipsum"
         whenever(fileStorage.doesExist(file1.toDto()))
@@ -178,9 +176,7 @@ class DownloadFilesTest {
     @Test
     @WithMockUser(roles = ["ADMIN"])
     fun checkUpload(@TempDir tmpDir: Path) {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val fileContent = "Some content"
         val file = (tmpDir / file2.name).createFile()

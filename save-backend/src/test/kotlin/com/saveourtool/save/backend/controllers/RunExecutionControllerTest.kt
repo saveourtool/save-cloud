@@ -57,9 +57,7 @@ class RunExecutionControllerTest(
     @WithMockUser("admin")
     @Test
     fun trigger() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
         val project = projectRepository.findById(PROJECT_ID).get()
         val testSuiteIds = listOf(2L, 3L)
         val request = CreateExecutionRequest(
@@ -135,9 +133,7 @@ class RunExecutionControllerTest(
     @WithMockUser("admin")
     @Test
     fun reTrigger() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         // /initializeAgents
         mockServerOrchestrator.enqueue(

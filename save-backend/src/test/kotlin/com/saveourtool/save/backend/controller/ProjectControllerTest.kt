@@ -45,9 +45,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser
     fun `should return all public projects`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         webClient
             .post()
@@ -68,9 +66,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `should return project based on name and owner`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus()
@@ -86,9 +82,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus().isOk
@@ -98,9 +92,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
@@ -110,9 +102,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `delete project with owner permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
-        }
+        mutateMockedUser(id = 2)
         val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project(
             "ToDelete",
@@ -139,9 +129,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
     fun `ban project with super admin permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
-        }
+        mutateMockedUser(id = 2)
         val organization: Organization = organizationRepository.getOrganizationById(1)
         val project = Project(
             "ToDelete1",
@@ -168,9 +156,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
     fun `delete project without owner permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 3)
-        }
+        mutateMockedUser(id = 3)
         val organization: Organization = organizationRepository.getOrganizationById(2)
         val project = Project(
             "ToDelete1",
@@ -197,9 +183,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "JohnDoe", roles = ["VIEWER"])
     fun `check save new project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 2)
-        }
+        mutateMockedUser(id = 2)
 
         // `project` references an existing user from test data
         val organization: Organization = organizationRepository.getOrganizationById(1)
@@ -231,9 +215,7 @@ class ProjectControllerTest {
             organization = organizationRepository.findById(1).get()
         }
         projectRepository.save(project)
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 3)
-        }
+        mutateMockedUser(id = 3)
 
         webClient.post()
             .uri("/api/$v1/projects/update")
