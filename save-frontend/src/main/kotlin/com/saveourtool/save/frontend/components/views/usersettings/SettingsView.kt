@@ -32,7 +32,7 @@ val userSettingsView = FC<SettingsProps> { props ->
         div {
             className = ClassName("page-header align-items-start min-vh-100")
             div {
-                className = ClassName("row justify-content-center mt-5")
+                className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
                     leftColumn { this.userInfo = props.userInfo }

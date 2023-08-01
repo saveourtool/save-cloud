@@ -131,7 +131,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         "Manage organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") { attrs ->
