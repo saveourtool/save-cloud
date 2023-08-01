@@ -112,7 +112,7 @@ val settingsTabs = VFC {
                     div {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_PROFILE, "Profile settings", faUser)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_EMAIL, "Email management", faEnvelope)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_EMAIL, "Login and email", faEnvelope)
                         settingsMenuTab(FrontendRoutes.SETTINGS_ORGANIZATIONS, "Organizations", faCity)
                     }
                 }
@@ -146,13 +146,6 @@ val settingsTabs = VFC {
 private fun ChildrenBuilder.settingMenuHeader(header: String, imgIcon: String) {
     div {
         className = ClassName("header")
-        /* img {
-            src = imgIcon
-            style = jso {
-                width = 1.rem
-                height = 1.rem
-            }
-        }*/
         +header
     }
 }
@@ -167,7 +160,7 @@ private fun ChildrenBuilder.settingsMenuTab(
         className = ClassName("mt-2")
         Link {
             className = ClassName("btn $style btn-block text-left")
-            to = link.path
+            to = "/${link.path}"
             fontAwesomeIcon(icon = icon) {
                 it.className = "fas fa-sm fa-fw mr-2"
             }

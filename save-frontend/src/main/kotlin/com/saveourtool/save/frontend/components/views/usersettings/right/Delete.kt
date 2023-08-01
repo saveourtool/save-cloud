@@ -19,7 +19,7 @@ import react.useState
 import web.cssom.ClassName
 import web.html.InputType
 
-val email = FC<SettingsProps> { props ->
+val delete = FC<SettingsProps> { props ->
     val (fieldsMap, setFieldsMap) =
         useState<MutableMap<InputTypes, String>>(mutableMapOf())
     val (validationToolTips, setValidationToolTips) =
@@ -27,17 +27,4 @@ val email = FC<SettingsProps> { props ->
 
     val saveUser = saveUser(fieldsMap, props, validationToolTips, setValidationToolTips)
 
-    div {
-        className = ClassName("col mt-2 px-4")
-        inputForm(props.userInfo?.name, InputTypes.USER_NAME, fieldsMap, validationToolTips, setFieldsMap)
-        inputForm(props.userInfo?.email, InputTypes.USER_EMAIL, fieldsMap, validationToolTips, setFieldsMap)
-
-        hr { }
-        div {
-            className = ClassName("row justify-content-center")
-            buttonBuilder("Save changes", style = "primary") {
-                saveUser()
-            }
-        }
-    }
 }

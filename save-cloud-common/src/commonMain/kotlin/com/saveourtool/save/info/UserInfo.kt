@@ -46,7 +46,10 @@ data class UserInfo(
     val globalRole: Role? = null,
     val status: UserStatus = UserStatus.CREATED,
     val rating: Long = 0,
-) : Validatable {
+    val website: String? = null,
+    val freeText: String? = null,
+    val realName: String? = null,
+    ) : Validatable {
     /**
      * Validation of organization name
      *

@@ -71,10 +71,12 @@ enum class InputTypes(
     USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
     USER_NAME("User name", NAME_ERROR_MESSAGE, "name"),
     COMPANY("Company/Affiliation"),
+    REAL_NAME("Your name"),
     LOCATION("Location"),
     GITHUB("GitHub"),
     LINKEDIN("Linkedin"),
     TWITTER("Twitter/X"),
+    WEBSITE("Website"),
 
     // ==== contest creation component
     CONTEST_NAME(

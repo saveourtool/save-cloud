@@ -11,6 +11,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
+import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.w3c.fetch.Headers
 
 import react.*
 import react.dom.html.ReactHTML
@@ -74,49 +78,28 @@ fun createNewUser(fieldsMap: MutableMap<InputTypes, String>, userInfo: UserInfo)
     val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
     return userInfo.copy(
         name = newName ?: userInfo.name,
-        oldName = if (newName != userInfo.name) userInfo.name else null,
-        email = fieldsMap[InputTypes.USER_EMAIL]?.trim(),
-        company = fieldsMap[InputTypes.COMPANY]?.trim(),
-        location = fieldsMap[InputTypes.LOCATION]?.trim(),
-        linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
-        gitHub = fieldsMap[InputTypes.GITHUB]?.trim(),
-        twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
+        // `oldName` is not saved into database, basically it's just a flag for
+        // backend to understand that name was or wasn't changed on the frontend
+        // need to pass `null` to backend if the field
+        oldName = newName?.let { userInfo.name },
+        email = fieldsMap[InputTypes.USER_EMAIL]?.trim() ?: userInfo.email,
+        company = fieldsMap[InputTypes.COMPANY]?.trim() ?: userInfo.company,
+        location = fieldsMap[InputTypes.LOCATION]?.trim() ?: userInfo.location,
+        linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim() ?: userInfo.linkedin,
+        gitHub = fieldsMap[InputTypes.GITHUB]?.trim() ?: userInfo.gitHub,
+        twitter = fieldsMap[InputTypes.TWITTER]?.trim() ?: userInfo.twitter,
+        website = fieldsMap[InputTypes.WEBSITE]?.trim() ?: userInfo.twitter,
     )
-
-/*
-    useRequest {
-        val headers = Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        }
-
-        val response = post(
-            "$apiUrl/users/save",
-            headers,
-            Json.encodeToString(newUserInfo),
-            loadingHandler = ::loadingHandler,
-        )
-        if (response.isConflict()) {
-            val responseText = response.unpackMessage()
-            setState {
-                conflictErrorMessage = responseText
-            }
-        } else {
-            setState {
-                conflictErrorMessage = null
-            }
-        }
-    }
-*/
 }
 
 fun ChildrenBuilder.inputForm(
     previousValue: String?,
     inputTypes: InputTypes,
     fieldsMap: MutableMap<InputTypes, String>,
-    validationToolTips: MutableMap<InputTypes, String>,
+    validationToolTips: MutableMap<InputTypes, String?>,
     setFieldsMap: StateSetter<MutableMap<InputTypes, String>>,
-) {
+    placeholderText: String = "",
+    ) {
     div {
         className = ClassName("row")
         div {
@@ -126,6 +109,7 @@ fun ChildrenBuilder.inputForm(
         div {
             className = ClassName("col-7 mt-2 input-group pl-0")
             ReactHTML.input {
+                placeholder = placeholderText
                 type = InputType.text
                 className = ClassName("form-control")
                 previousValue.let {
@@ -136,9 +120,40 @@ fun ChildrenBuilder.inputForm(
                     setFieldsMap(fieldsMap)
                 }
             }
-            p {
-                +validationToolTips[inputTypes]
+            validationToolTips[inputTypes]?.let {
+                div {
+                    className = ClassName("invalid-feedback d-block")
+                    +it
+                }
             }
         }
+    }
+}
+
+fun saveUser(
+    fieldsMap: MutableMap<InputTypes, String>,
+    props: SettingsProps,
+    validationToolTips: MutableMap<InputTypes, String?>,
+    setValidationToolTips: StateSetter<MutableMap<InputTypes, String?>>
+) = useDeferredRequest {
+    val response = post(
+        "$apiUrl/users/save",
+        Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        },
+        Json.encodeToString(createNewUser(fieldsMap, props.userInfo!!)),
+        loadingHandler = ::loadingHandler,
+        responseHandler = ::noopResponseHandler
+    )
+
+    if (response.isConflict()) {
+        val responseText = response.unpackMessage()
+        validationToolTips[InputTypes.USER_NAME] = responseText
+        setValidationToolTips(validationToolTips)
+    } else {
+        validationToolTips[InputTypes.USER_NAME] = null
+        setValidationToolTips(validationToolTips)
+        window.location.reload()
     }
 }

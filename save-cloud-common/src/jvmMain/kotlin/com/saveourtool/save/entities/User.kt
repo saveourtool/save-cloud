@@ -47,7 +47,10 @@ class User(
     @JsonIgnore
     var originalLogins: List<OriginalLogin> = emptyList(),
     var rating: Long = 0,
-) : BaseEntity() {
+    var website: String? = null,
+    var freeText: String? = null,
+    var realName: String? = null,
+    ) : BaseEntity() {
     /**
      * @param projects roles in projects
      * @param organizations roles in organizations
@@ -68,5 +71,8 @@ class User(
         location = location,
         status = status,
         rating = rating,
+        website = website,
+        freeText = freeText,
+        realName = realName,
     )
 }

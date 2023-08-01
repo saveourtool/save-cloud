@@ -93,4 +93,13 @@
         <dropColumn tableName="user" columnName="source"/>
     </changeSet>
 
+    <changeSet id="user-add-site" author="kuleshov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="website" type="varchar(64)"/>
+            <column name="free_text" type="varchar(1500)"/>
+            <column name="real_name" type="varchar(128)"/>
+        </addColumn>
+    </changeSet>
+
+
 </databaseChangeLog>
