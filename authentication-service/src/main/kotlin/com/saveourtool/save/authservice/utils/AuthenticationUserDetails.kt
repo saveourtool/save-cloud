@@ -67,7 +67,7 @@ data class AuthenticationUserDetails(
         private fun ServerWebExchange.getSingleHeader(headerName: String) = request.headers[headerName]?.singleOrNull()
 
         private fun <T> logWarnAndReturnEmpty(missedHeaderName: String): T? {
-            log.warn {
+            log.debug {
                 "Header $missedHeaderName is not provided: skipping pre-authenticated save-user authentication"
             }
             return null
