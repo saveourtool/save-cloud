@@ -112,7 +112,6 @@ spring-web = { module = "org.springframework:spring-web" }
 spring-webflux = { module = "org.springframework:spring-webflux" }
 spring-jdbc-starter = { module = "org.springframework.boot:spring-boot-starter-data-jdbc" }
 jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
-javax-servlet-api = { module = "javax.servlet:javax.servlet-api" }
 
 kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka-client" }
 kafka212 = { module = "org.apache.kafka:kafka_2.12", version.ref = "kafka-client" }

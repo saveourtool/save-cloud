@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 /**
  * A service to backend to lookup users in DB
@@ -32,8 +33,8 @@ class BackendService(
             Mono.error(ResponseStatusException(it.statusCode()))
         }
         .toEntity<AuthenticationUserDetails>()
-        .mapNotNull {
-            it.body?.toSpringUserDetails()
+        .flatMap {
+            it.body?.toSpringUserDetails().toMono()
         }
 
     /**
@@ -48,8 +49,8 @@ class BackendService(
             Mono.error(ResponseStatusException(it.statusCode()))
         }
         .toEntity<AuthenticationUserDetails>()
-        .mapNotNull {
-            it.body
+        .flatMap {
+            it.body.toMono()
         }
 
     /**
