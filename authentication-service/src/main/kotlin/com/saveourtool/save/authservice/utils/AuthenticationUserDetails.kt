@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import org.springframework.http.HttpHeaders
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.UserDetails
@@ -26,6 +27,17 @@ data class AuthenticationUserDetails(
      * @return [PreAuthenticatedAuthenticationToken]
      */
     fun toAuthenticationToken() = PreAuthenticatedAuthenticationToken(this, NO_CREDENTIALS, authorities)
+
+    /**
+     * Populates `X-Authorization-*` headers
+     *
+     * @param httpHeaders
+     */
+    fun populateHeaders(httpHeaders: HttpHeaders) {
+        httpHeaders.set(AUTHORIZATION_ID, id.toString())
+        httpHeaders.set(AUTHORIZATION_NAME, name)
+        httpHeaders.set(AUTHORIZATION_ROLES, role)
+    }
 
     @JsonIgnore
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(role)
