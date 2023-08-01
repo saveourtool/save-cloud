@@ -9,13 +9,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder
 
 /**
- * @param action mutation for a mocked user in test security context
+ * @param id user.id for a mocked user in test security context
  */
-internal fun mutateMockedUser(id: Long, name: String = "N/A") {
+internal fun mutateMockedUser(id: Long) {
     SecurityContextHolder.getContext().apply {
         authentication = AuthenticationUserDetails(
             id,
-            name,
+            authentication.name,
             (authentication as UsernamePasswordAuthenticationToken).authorities.joinToString(",") { it.authority }
         ).toAuthenticationToken()
     }
