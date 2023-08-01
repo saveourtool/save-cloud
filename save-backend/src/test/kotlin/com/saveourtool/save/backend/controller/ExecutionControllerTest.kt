@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.LnkContestExecutionService
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto

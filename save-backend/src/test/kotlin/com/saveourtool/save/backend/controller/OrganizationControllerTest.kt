@@ -7,7 +7,6 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.S11nTestConfig
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage

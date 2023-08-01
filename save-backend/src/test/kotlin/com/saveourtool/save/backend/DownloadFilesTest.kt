@@ -2,7 +2,6 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.controllers.FileController

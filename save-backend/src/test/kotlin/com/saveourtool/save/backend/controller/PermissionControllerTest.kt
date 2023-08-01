@@ -8,7 +8,6 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*

@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser

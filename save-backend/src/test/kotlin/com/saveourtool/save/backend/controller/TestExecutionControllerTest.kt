@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
