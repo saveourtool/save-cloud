@@ -60,4 +60,9 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
         @Param("user_id") userId: Long,
         @Param("role") role: String
     )
+
+    /**
+     * @param userId id of user
+     */
+    fun deleteByUserId(userId: Long)
 }
