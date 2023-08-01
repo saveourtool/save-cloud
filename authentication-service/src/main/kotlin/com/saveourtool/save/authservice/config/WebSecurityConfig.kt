@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.authservice.config
 
-import com.saveourtool.save.authservice.security.SaveUserPrincipal.Companion.toSaveUserPrincipal
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails.Companion.toAuthenticationUserDetails
 import com.saveourtool.save.authservice.utils.roleHierarchy
 import com.saveourtool.save.v1
 
@@ -40,7 +40,7 @@ class WebSecurityConfig(
         return AuthenticationWebFilter(authenticationManager)
             .also { authenticationWebFilter ->
                 authenticationWebFilter.setServerAuthenticationConverter { exchange ->
-                    exchange.toSaveUserPrincipal()?.toAuthenticationToken().toMono()
+                    exchange.toAuthenticationUserDetails()?.toAuthenticationToken().toMono()
                 }
             }
     }
