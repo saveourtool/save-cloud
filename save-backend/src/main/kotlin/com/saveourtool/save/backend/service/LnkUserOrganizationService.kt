@@ -163,7 +163,7 @@ class LnkUserOrganizationService(
      * @param userName name of User
      * @return list of lnkUserOrganization
      */
-    fun findAllByUserName(userName: String) = lnkUserOrganizationRepository.findByUserName(userName)
+    fun getOrganizationsByUserNameAndCreatedStatus(userName: String) = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatus(userName, OrganizationStatus.CREATED)
 
     /**
      * @param authentication
