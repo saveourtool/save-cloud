@@ -1,21 +1,17 @@
-package com.saveourtool.save.vulnerability.storage
+package com.saveourtool.save.osv.storage
 
-import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.entities.vulnerabilities.Vulnerability
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto as SaveVulnerabilityDto
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
 import com.saveourtool.save.storage.concatS3Key
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import com.saveourtool.save.utils.upload
-import kotlinx.serialization.decodeFromString
+
+import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 /**
  * Storage for Vulnerabilities.
@@ -24,7 +20,7 @@ import reactor.core.publisher.Mono
  * We can migrate to NoSql database in the future.
  */
 @Service
-class VulnerabilityStorage(
+class OsvStorage(
     configProperties: ConfigProperties,
     s3Operations: S3Operations,
 ) : AbstractSimpleReactiveStorage<String>(
@@ -35,10 +31,13 @@ class VulnerabilityStorage(
         prettyPrint = false
     }
 
-    override fun doBuildKeyFromSuffix(s3KeySuffix: String): String  = s3KeySuffix
+    override fun doBuildKeyFromSuffix(s3KeySuffix: String): String = s3KeySuffix
 
     override fun doBuildS3KeySuffix(key: String): String = key
 
+    /**
+     * @param vulnerability
+     */
     fun upload(vulnerability: RawOsvSchema): Mono<String> = upload(
         vulnerability.id,
         json.encodeToString(vulnerability).encodeToByteArray(),

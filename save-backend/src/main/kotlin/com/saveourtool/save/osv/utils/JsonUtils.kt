@@ -2,11 +2,12 @@
  * File contains util methods for Json
  */
 
-package com.saveourtool.save.vulnerability.utils
+package com.saveourtool.save.osv.utils
+
+import java.io.InputStream
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
-import java.io.InputStream
 
 /**
  * @param content
@@ -34,4 +35,3 @@ inline fun <reified T : Any> Json.decodeSingleOrArrayFromStream(inputStream: Inp
         listOf(decodeFromJsonElement(jsonElement))
     }
 }
-

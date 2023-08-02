@@ -1,8 +1,9 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.osv.OsvConfiguration
 import com.saveourtool.save.s3.DefaultS3Configuration
-import com.saveourtool.save.vulnerability.VulnerabilityConfiguration
+
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.ResponseEntity
 import reactor.core.publisher.Flux
 import reactor.core.publisher.ParallelFlux
+
 import java.nio.ByteBuffer
 
 internal typealias FluxResponse<T> = ResponseEntity<Flux<T>>
@@ -23,7 +25,7 @@ internal typealias ByteBufferFluxResponse = FluxResponse<ByteBuffer>
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
     DefaultS3Configuration::class,
-    VulnerabilityConfiguration::class,
+    OsvConfiguration::class,
 )
 class SaveApplication
 

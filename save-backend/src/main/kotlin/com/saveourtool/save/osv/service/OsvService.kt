@@ -1,29 +1,32 @@
-package com.saveourtool.save.vulnerability.service
+package com.saveourtool.save.osv.service
 
-import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.backend.service.vulnerability.VulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.osv.storage.OsvStorage
+import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromStream
+import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromString
 import com.saveourtool.save.utils.blockingMap
-import com.saveourtool.save.vulnerability.storage.VulnerabilityStorage
-import com.saveourtool.save.vulnerability.utils.decodeSingleOrArrayFromStream
-import com.saveourtool.save.vulnerability.utils.decodeSingleOrArrayFromString
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.json.Json
+
+import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+
 import java.io.InputStream
-import com.saveourtool.save.backend.service.vulnerability.VulnerabilityService as SaveVulnerabilityService
+
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
 
 /**
  * Service for vulnerabilities
  */
 @Service
-class VulnerabilityService(
-    private val vulnerabilityStorage: VulnerabilityStorage,
-    private val saveVulnerabilityService: SaveVulnerabilityService,
+class OsvService(
+    private val osvStorage: OsvStorage,
+    private val vulnerabilityService: VulnerabilityService,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -73,14 +76,13 @@ class VulnerabilityService(
     fun save(
         vulnerability: RawOsvSchema,
         authentication: Authentication,
-    ): Mono<String> = vulnerabilityStorage.upload(vulnerability).blockingMap {
-        saveVulnerabilityService.save(vulnerability.toSaveVulnerabilityDto(), authentication).name
+    ): Mono<String> = osvStorage.upload(vulnerability).blockingMap {
+        vulnerabilityService.save(vulnerability.toSaveVulnerabilityDto(), authentication).name
     }
-
 
     companion object {
         private fun RawOsvSchema.toSaveVulnerabilityDto(): VulnerabilityDto = VulnerabilityDto(
-            name = "TO_GENERATE", // will be generated on saving to database
+            name = "TO_GENERATE",  // will be generated on saving to database
             vulnerabilityIdentifier = id,
             progress = 0,
             projects = emptyList(),
@@ -88,7 +90,7 @@ class VulnerabilityService(
             shortDescription = summary.orEmpty(),
             relatedLink = null,
             language = VulnerabilityLanguage.OTHER,
-            userInfo = UserInfo(name = ""), // will be set on saving to database
+            userInfo = UserInfo(name = ""),  // will be set on saving to database
             organization = null,
             dates = buildList {
                 add(modified.asVulnerabilityDateDto(VulnerabilityDateType.CVE_UPDATED))
