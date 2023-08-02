@@ -153,10 +153,10 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    fun getOrganizationsByUserName(
+    fun getOrganizationsByUserNameAndCreatedStatus(
         @RequestParam userName: String,
     ): Flux<OrganizationDto> = blockingToFlux {
-        lnkUserOrganizationService.findAllByUserName(userName).map { it.organization.toDto() }
+        lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(userName).map { it.organization.toDto() }
     }
 
     @GetMapping("/get/by-prefix")
@@ -265,7 +265,7 @@ internal class OrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
         @PathVariable organizationName: String,
-        @RequestBody organization: Organization,
+        @RequestBody organization: OrganizationDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
@@ -290,7 +290,10 @@ internal class OrganizationController(
         }
         .map { organizationFromDb ->
             organizationService.updateOrganization(
-                organization.copy(canCreateContests = organizationFromDb.canCreateContests).apply { id = organizationFromDb.id }
+                organizationFromDb.apply {
+                    description = organization.description
+                    rating = organization.rating
+                }
             )
             ResponseEntity.ok("Organization updated")
         }
