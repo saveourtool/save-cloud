@@ -1,3 +1,9 @@
+/**
+ * rendering for Profile management card
+ */
+
+@file:Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+
 package com.saveourtool.save.frontend.components.views.usersettings.right
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
@@ -10,13 +16,10 @@ import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
 import react.StateSetter
-import react.dom.aria.ariaDescribedBy
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
@@ -30,15 +33,15 @@ import web.cssom.rem
 
 const val AVATARS_PACKAGE_COUNT = 9
 
-val profile = FC<SettingsProps> { props ->
+val profile: FC<SettingsProps> = FC { props ->
     // === states ===
     val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
     val (fieldsMap, setFieldsMap) =
-        useState<MutableMap<InputTypes, String>>(mutableMapOf())
-    val (validationToolTips, setValidationToolTips) =
-        useState<MutableMap<InputTypes, String?>>(mutableMapOf())
-    val saveUser = saveUser(fieldsMap, props, validationToolTips, setValidationToolTips)
+            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
+    val (fieldsValidationMap, setfieldsValidationMap) =
+            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
+    val saveUser = saveUser(fieldsMap, props, fieldsValidationMap, setfieldsValidationMap)
 
     // === image editor ===
     avatarForm {
@@ -119,10 +122,10 @@ val profile = FC<SettingsProps> { props ->
                     className = ClassName("col-8")
                     // render prepared preselected avatars 3 in row
                     var lowerBound = 1
-                    for(i in 1..AVATARS_PACKAGE_COUNT) {
+                    for (i in 1..AVATARS_PACKAGE_COUNT) {
                         if (i % 3 == 0) {
                             div {
-                                className =  ClassName("row")
+                                className = ClassName("row")
                                 renderPreparedAvatars(lowerBound..i)
                                 lowerBound = i + 1
                             }
@@ -138,7 +141,7 @@ val profile = FC<SettingsProps> { props ->
 
         div {
             className = ClassName("col mt-2 px-5")
-            extraInformation(props, fieldsMap, validationToolTips, setFieldsMap)
+            extraInformation(props, fieldsMap, fieldsValidationMap, setFieldsMap)
 
             div {
                 className = ClassName("row justify-content-center")
@@ -150,53 +153,15 @@ val profile = FC<SettingsProps> { props ->
     }
 }
 
-private fun ChildrenBuilder.extraInformation(
-    props: SettingsProps,
-    fieldsMap: MutableMap<InputTypes, String>,
-    validationToolTips: MutableMap<InputTypes, String?>,
-    setFieldsMap: StateSetter<MutableMap<InputTypes, String>>
-) {
-    hr { }
+typealias FieldsStateSetter = StateSetter<MutableMap<InputTypes, String?>>
 
-    inputForm(
-        props.userInfo?.realName,
-        InputTypes.REAL_NAME,
-        fieldsMap,
-        validationToolTips,
-        setFieldsMap,
-        "e.g. John Smith"
-    )
-    inputForm(
-        props.userInfo?.company,
-        InputTypes.COMPANY,
-        fieldsMap,
-        validationToolTips,
-        setFieldsMap,
-        "e.g. FutureWay Inc."
-    )
-    inputForm(
-        props.userInfo?.location,
-        InputTypes.LOCATION,
-        fieldsMap,
-        validationToolTips,
-        setFieldsMap,
-        "Beijing, China"
-    )
-    inputForm(
-        props.userInfo?.website,
-        InputTypes.WEBSITE,
-        fieldsMap,
-        validationToolTips,
-        setFieldsMap,
-        "https://saveourtool.com"
-    )
-    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, fieldsMap, validationToolTips, setFieldsMap)
-    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, fieldsMap, validationToolTips, setFieldsMap)
-    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, fieldsMap, validationToolTips, setFieldsMap)
-
-    hr { }
-}
-
+/**
+ * @param props
+ * @param avatarImgLink
+ * @param setIsAvatarWindowOpen
+ * @param setAvatarImgLink
+ * @param placeholder
+ */
 internal fun ChildrenBuilder.avatarEditor(
     props: SettingsProps,
     avatarImgLink: String?,
@@ -214,7 +179,7 @@ internal fun ChildrenBuilder.avatarEditor(
             className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
             src = avatarImgLink
                 ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
-                        ?: placeholder
+                ?: placeholder
             style = jso {
                 height = 8.rem
                 width = 8.rem
@@ -226,11 +191,58 @@ internal fun ChildrenBuilder.avatarEditor(
     }
 }
 
+private fun ChildrenBuilder.extraInformation(
+    props: SettingsProps,
+    fieldsMap: MutableMap<InputTypes, String?>,
+    fieldsValidationMap: MutableMap<InputTypes, String?>,
+    setFieldsMap: FieldsStateSetter
+) {
+    hr { }
+
+    inputForm(
+        props.userInfo?.realName,
+        InputTypes.REAL_NAME,
+        fieldsMap,
+        fieldsValidationMap,
+        setFieldsMap,
+        "e.g. John Smith"
+    )
+    inputForm(
+        props.userInfo?.company,
+        InputTypes.COMPANY,
+        fieldsMap,
+        fieldsValidationMap,
+        setFieldsMap,
+        "e.g. FutureWay Inc."
+    )
+    inputForm(
+        props.userInfo?.location,
+        InputTypes.LOCATION,
+        fieldsMap,
+        fieldsValidationMap,
+        setFieldsMap,
+        "Beijing, China"
+    )
+    inputForm(
+        props.userInfo?.website,
+        InputTypes.WEBSITE,
+        fieldsMap,
+        fieldsValidationMap,
+        setFieldsMap,
+        "https://saveourtool.com"
+    )
+    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, fieldsMap, fieldsValidationMap, setFieldsMap)
+    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, fieldsMap, fieldsValidationMap, setFieldsMap)
+    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, fieldsMap, fieldsValidationMap, setFieldsMap)
+
+    hr { }
+}
+
 private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange) {
     for (i in avatarsRange) {
         img {
             className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-            src = "/img/avatar_packs/avatar${i}.png"
+            src = "/img/avatar_packs/avatar$i.png"
             style = jso {
                 height = 5.1.rem
                 width = 5.1.rem

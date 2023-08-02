@@ -1,3 +1,7 @@
+/**
+ * In settings view we have two columns: this one is the right one
+ */
+
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.views.usersettings.right.email
@@ -9,8 +13,7 @@ import react.FC
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 
-val rightColumn = FC<SettingsProps> { props ->
-    // val deleteUserWindowOpenness = useWindowOpenness()
+val rightColumn: FC<SettingsProps> = FC { props ->
     div {
         className = ClassName("card card-body mt-0 pt-0 px-0 text-gray-800")
         style = cardHeight
@@ -30,7 +33,7 @@ val rightColumn = FC<SettingsProps> { props ->
             }
 
             else -> {
-
+                // FixMe: finish stub here
             }
         }
     }

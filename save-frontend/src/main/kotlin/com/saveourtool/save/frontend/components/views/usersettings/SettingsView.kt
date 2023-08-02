@@ -2,35 +2,36 @@
  * A view with settings user
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.index.*
+import com.saveourtool.save.frontend.components.views.usersettings.right.FieldsStateSetter
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
-import kotlinx.browser.window
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
 
+import js.core.jso
+import org.w3c.fetch.Headers
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
-import react.dom.html.ReactHTML.p
 import web.cssom.*
 import web.html.InputType
 
+import kotlinx.browser.window
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val cardHeight: CSSProperties = jso {
     height = 50.rem
 }
 
-val userSettingsView = FC<SettingsProps> { props ->
+val userSettingsView: FC<SettingsProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
     main {
         className = ClassName("main-content")
@@ -50,7 +51,7 @@ val userSettingsView = FC<SettingsProps> { props ->
                             this.type = props.type
                         }
                     } ?: main {
-                        +"404"
+                        // FixMe: some light 404
                     }
                 }
             }
@@ -74,8 +75,91 @@ external interface SettingsProps : PropsWithChildren {
     var type: FrontendRoutes
 }
 
-@Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
-fun createNewUser(fieldsMap: MutableMap<InputTypes, String>, userInfo: UserInfo): UserInfo {
+/**
+ * Drawing an input for profile settings (one-liner)
+ *
+ * @param previousValue
+ * @param inputType
+ * @param fieldsMap
+ * @param fieldsValidationMap
+ * @param setFieldsMap
+ * @param placeholderText
+ */
+@Suppress("TOO_MANY_PARAMETERS")
+fun ChildrenBuilder.inputForm(
+    previousValue: String?,
+    inputType: InputTypes,
+    fieldsMap: MutableMap<InputTypes, String?>,
+    fieldsValidationMap: MutableMap<InputTypes, String?>,
+    setFieldsMap: FieldsStateSetter,
+    placeholderText: String = "",
+) {
+    div {
+        className = ClassName("row")
+        div {
+            className = ClassName("col-4 mt-2 text-left align-self-center")
+            +"${inputType.str}:"
+        }
+        div {
+            className = ClassName("col-8 mt-2 input-group pl-0")
+            input {
+                placeholder = placeholderText
+                type = InputType.text
+                className = ClassName("form-control")
+                previousValue.let {
+                    defaultValue = it
+                }
+                onChange = {
+                    fieldsMap[inputType] = it.target.value
+                    setFieldsMap(fieldsMap)
+                }
+            }
+            fieldsValidationMap[inputType]?.let {
+                div {
+                    className = ClassName("invalid-feedback d-block")
+                    +it
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @param fieldsMap
+ * @param props
+ * @param fieldsValidationMap
+ * @param setFieldsValidationMap
+ * @return callback to a post request that will be executed
+ */
+fun saveUser(
+    fieldsMap: MutableMap<InputTypes, String?>,
+    props: SettingsProps,
+    fieldsValidationMap: MutableMap<InputTypes, String?>,
+    setFieldsValidationMap: FieldsStateSetter,
+) = useDeferredRequest {
+    val response = post(
+        "$apiUrl/users/save",
+        Headers().also {
+            it.set("Accept", "application/json")
+            it.set("Content-Type", "application/json")
+        },
+        Json.encodeToString(createNewUser(fieldsMap, props.userInfo!!)),
+        loadingHandler = ::loadingHandler,
+        responseHandler = ::noopResponseHandler
+    )
+
+    if (response.isConflict()) {
+        val responseText = response.unpackMessage()
+        fieldsValidationMap[InputTypes.USER_NAME] = responseText
+        setFieldsValidationMap(fieldsValidationMap)
+    } else {
+        fieldsValidationMap[InputTypes.USER_NAME] = null
+        setFieldsValidationMap(fieldsValidationMap)
+        window.location.reload()
+    }
+}
+
+private fun createNewUser(fieldsMap: MutableMap<InputTypes, String?>, userInfo: UserInfo): UserInfo {
     val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
     return userInfo.copy(
         name = newName ?: userInfo.name,
@@ -93,70 +177,4 @@ fun createNewUser(fieldsMap: MutableMap<InputTypes, String>, userInfo: UserInfo)
         realName = fieldsMap[InputTypes.REAL_NAME]?.trim() ?: userInfo.realName,
         freeText = fieldsMap[InputTypes.FREE_TEXT]?.trim() ?: userInfo.freeText,
     )
-}
-
-fun ChildrenBuilder.inputForm(
-    previousValue: String?,
-    inputTypes: InputTypes,
-    fieldsMap: MutableMap<InputTypes, String>,
-    validationToolTips: MutableMap<InputTypes, String?>,
-    setFieldsMap: StateSetter<MutableMap<InputTypes, String>>,
-    placeholderText: String = "",
-    ) {
-    div {
-        className = ClassName("row")
-        div {
-            className = ClassName("col-4 mt-2 text-left align-self-center")
-            +"${inputTypes.str}:"
-        }
-        div {
-            className = ClassName("col-8 mt-2 input-group pl-0")
-           input {
-                placeholder = placeholderText
-                type = InputType.text
-                className = ClassName("form-control")
-                previousValue.let {
-                    defaultValue = it
-                }
-                onChange = {
-                    fieldsMap[inputTypes] = it.target.value
-                    setFieldsMap(fieldsMap)
-                }
-            }
-            validationToolTips[inputTypes]?.let {
-                div {
-                    className = ClassName("invalid-feedback d-block")
-                    +it
-                }
-            }
-        }
-    }
-}
-
-fun saveUser(
-    fieldsMap: MutableMap<InputTypes, String>,
-    props: SettingsProps,
-    validationToolTips: MutableMap<InputTypes, String?>,
-    setValidationToolTips: StateSetter<MutableMap<InputTypes, String?>>
-) = useDeferredRequest {
-    val response = post(
-        "$apiUrl/users/save",
-        Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        },
-        Json.encodeToString(createNewUser(fieldsMap, props.userInfo!!)),
-        loadingHandler = ::loadingHandler,
-        responseHandler = ::noopResponseHandler
-    )
-
-    if (response.isConflict()) {
-        val responseText = response.unpackMessage()
-        validationToolTips[InputTypes.USER_NAME] = responseText
-        setValidationToolTips(validationToolTips)
-    } else {
-        validationToolTips[InputTypes.USER_NAME] = null
-        setValidationToolTips(validationToolTips)
-        window.location.reload()
-    }
 }

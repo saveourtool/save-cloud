@@ -1,7 +1,10 @@
+/**
+ * In settings view we have two columns: this one is the left one
+ */
+
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
-import com.saveourtool.save.frontend.components.views.usersettings.right.avatarEditor
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
@@ -15,7 +18,6 @@ import react.VFC
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
-import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.nav
@@ -28,7 +30,7 @@ import web.cssom.rem
 
 internal const val AVATAR_TITLE = "Upload avatar"
 
-val leftColumn = FC<SettingsProps> { props ->
+val leftColumn: FC<SettingsProps> = FC { props ->
 
     val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
@@ -68,7 +70,7 @@ val leftColumn = FC<SettingsProps> { props ->
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = avatarImgLink
                                         ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
-                                                ?: AVATAR_PROFILE_PLACEHOLDER
+                                        ?: AVATAR_PROFILE_PLACEHOLDER
                                     style = jso {
                                         height = 12.rem
                                         width = 12.rem
@@ -102,6 +104,7 @@ val leftColumn = FC<SettingsProps> { props ->
                 }
             }
         }
+        @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
         settingsTabs {}
     }
 }

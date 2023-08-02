@@ -101,36 +101,36 @@ class UsersDetailsController(
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
-        Mono.just(newUserInfo)
-            .map {
-                val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-                if (user.id == authentication.userId()) {
-                    userDetailsService.saveUser(user.apply {
-                        name = newUserInfo.name
-                        email = newUserInfo.email
-                        company = newUserInfo.company
-                        location = newUserInfo.location
-                        gitHub = newUserInfo.gitHub
-                        linkedin = newUserInfo.linkedin
-                        twitter = newUserInfo.twitter
-                        status = newUserInfo.status
-                        website = newUserInfo.website
-                        realName = newUserInfo.realName
-                        freeText = newUserInfo.freeText
-                    }, newUserInfo.oldName)
-                } else {
-                    UserSaveStatus.CONFLICT
+            Mono.just(newUserInfo)
+                .map {
+                    val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+                    if (user.id == authentication.userId()) {
+                        userDetailsService.saveUser(user.apply {
+                            name = newUserInfo.name
+                            email = newUserInfo.email
+                            company = newUserInfo.company
+                            location = newUserInfo.location
+                            gitHub = newUserInfo.gitHub
+                            linkedin = newUserInfo.linkedin
+                            twitter = newUserInfo.twitter
+                            status = newUserInfo.status
+                            website = newUserInfo.website
+                            realName = newUserInfo.realName
+                            freeText = newUserInfo.freeText
+                        }, newUserInfo.oldName)
+                    } else {
+                        UserSaveStatus.CONFLICT
+                    }
                 }
-            }
-            .filter { status ->
-                status == UserSaveStatus.UPDATE
-            }
-            .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                UserSaveStatus.CONFLICT.message
-            }
-            .map { status ->
-                ResponseEntity.ok(status.message)
-            }
+                .filter { status ->
+                    status == UserSaveStatus.UPDATE
+                }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    UserSaveStatus.CONFLICT.message
+                }
+                .map { status ->
+                    ResponseEntity.ok(status.message)
+                }
 
     /**
      * @param userName
@@ -162,7 +162,7 @@ class UsersDetailsController(
     @GetMapping("/global-role")
     @PreAuthorize("isAuthenticated()")
     fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
-        Mono.just(userDetailsService.getGlobalRole(authentication))
+            Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
      * @param userName

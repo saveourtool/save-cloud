@@ -23,6 +23,9 @@ import javax.persistence.*
  * @property status
  * @property originalLogins
  * @property rating rating of user
+ * @property website
+ * @property freeText
+ * @property realName
  */
 @Entity
 @Suppress("LongParameterList")
@@ -50,7 +53,7 @@ class User(
     var website: String? = null,
     var freeText: String? = null,
     var realName: String? = null,
-    ) : BaseEntity() {
+) : BaseEntity() {
     /**
      * @param projects roles in projects
      * @param organizations roles in organizations

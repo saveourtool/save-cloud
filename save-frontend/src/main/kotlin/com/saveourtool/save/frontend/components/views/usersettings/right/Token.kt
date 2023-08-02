@@ -1,26 +1,29 @@
+/**
+ * rendering for Token management card
+ */
+
 package com.saveourtool.save.frontend.components.views.usersettings.right
 
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.info.UserInfo
+
 import js.core.jso
 import react.FC
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.p
 import react.useState
 import web.cssom.ClassName
-import web.html.ButtonType
-import web.cssom.rem
 import web.cssom.TextAlign
-import react.dom.html.ReactHTML.a
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import react.dom.html.ReactHTML.button
-import react.dom.html.ReactHTML.h2
-
+import web.cssom.rem
+import web.html.ButtonType
 
 // FixMe: add info about last created token
 
@@ -31,7 +34,7 @@ const val TOKEN_TEXT = """
     to upload benchmarks, get results, etc. Can be extremely useful for your automated CI and testing process.
 """
 
-val token = FC<SettingsProps> { props ->
+val token: FC<SettingsProps> = FC { props ->
     val (token, setToken) = useState<String>()
     div {
         className = ClassName("row justify-content-center mt-5")
@@ -46,7 +49,7 @@ val token = FC<SettingsProps> { props ->
 
     div {
         className = ClassName("row justify-content-center mt-4")
-       h2 {
+        h2 {
             className = ClassName("text-gray-800")
             +"Personal access token"
         }
@@ -63,7 +66,7 @@ val token = FC<SettingsProps> { props ->
                     style = "outline-secondary rounded-pill btn-sm",
                     isOutline = false
                 ) {
-                }
+                    }
             }
         }
 
@@ -77,7 +80,7 @@ val token = FC<SettingsProps> { props ->
                     isOutline = false
                 ) {
 
-                }
+                    }
             }
         }
     }
@@ -99,7 +102,7 @@ val token = FC<SettingsProps> { props ->
         className = ClassName("row justify-content-center mt-4")
         div {
             className = ClassName("col-6 text-center")
-           button {
+            button {
                 type = ButtonType.button
                 className = ClassName("btn btn-primary")
                 +"Generate new token"

@@ -94,7 +94,6 @@ class UserDetailsService(
         userRepository.save(user)
         UserSaveStatus.UPDATE
     } else {
-        println(oldName)
         UserSaveStatus.CONFLICT
     }
 
