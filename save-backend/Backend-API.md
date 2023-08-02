@@ -16,17 +16,13 @@ into variables in **command prompt**.
 Each request, performed to API, require credentials, which could be configured like below, where
 
 * `SAVE_CLOUD_URL` - SAVE Cloud url and port
-* `SAVE_CLOUD_AUTH_SOURCE` where the identity is coming from, e.g. "github"
-* `SAVE_CLOUD_AUTH` - basic authorization header in format `source@username:token`.\
-   `source` is the same like `SAVE_CLOUD_AUTH_SOURCE`, and `token` is unique token,\
-    which could be created in personal settings in SAVE Cloud system.
+* `SAVE_CLOUD_AUTH` - basic authorization header in default format `username:token`.\
+   `token` is unique token, which could be created in personal settings in SAVE Cloud system.
 
 Just open up a command prompt and enter the following commands:
 
 ```bash
 SAVE_CLOUD_URL=https://saveourtool.com:443
-
-SAVE_CLOUD_AUTH_SOURCE=github
 
 SAVE_CLOUD_AUTH='Basic Z2l0aHViQHVzZXJuYW1lOnRva2Vu'
 ```
@@ -86,7 +82,6 @@ following `post` request:
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/files/upload" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}" \
 -F "file=@your-file-name"
 ```
@@ -116,7 +111,6 @@ saved into variable `project` by following request:
 
 ```bash
 project=$(curl -X GET "${SAVE_CLOUD_URL}/api/v1/projects/get/organization-name?name=save&organizationName=${organizationName}" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}")
 ```
 Unifying all above, here the examples of how to submit execution via curl:
@@ -126,7 +120,6 @@ Unifying all above, here the examples of how to submit execution via curl:
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/run/trigger" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}" \
 -H "Content-Type: application/json" \
 -d "{
@@ -170,7 +163,6 @@ To get execution results, knowing the execution id, use the following request:
 executionId=42
 
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/executionDto?executionId=${executionId}" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
@@ -180,7 +172,6 @@ with the following `get` request:
 
 ```bash
 curl -X GET "${SAVE_CLOUD_URL}/api/v1/latestExecution?name=save&organizationName=${organizationName}" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
 
@@ -210,6 +201,5 @@ If you would like to rerun some of your executions, you can use `/run/re-trigger
 
 ```bash
 curl -X POST "${SAVE_CLOUD_URL}/api/v1/run/re-trigger?executionId=${executionId}" \
--H "X-Authorization-Source: ${SAVE_CLOUD_AUTH_SOURCE}" \
 -H "Authorization: ${SAVE_CLOUD_AUTH}"
 ```
