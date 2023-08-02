@@ -108,7 +108,7 @@ class WebSecurityConfig(
             "/api/$v1/vulnerabilities/by-name-with-description",
             "/api/$v1/comments/get-all",
             "/api/$v1/users/all",
-            "/api/$v1/avatar/*/*",
+            "/api/$v1/avatar/**",
         )
     }
 }
