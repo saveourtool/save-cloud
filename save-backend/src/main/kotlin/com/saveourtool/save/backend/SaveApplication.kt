@@ -2,6 +2,7 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.s3.DefaultS3Configuration
+import com.saveourtool.save.vulnerability.VulnerabilityConfiguration
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -20,7 +21,10 @@ internal typealias ByteBufferFluxResponse = FluxResponse<ByteBuffer>
  */
 @SpringBootApplication
 @EnableConfigurationProperties(ConfigProperties::class)
-@Import(DefaultS3Configuration::class)
+@Import(
+    DefaultS3Configuration::class,
+    VulnerabilityConfiguration::class,
+)
 class SaveApplication
 
 fun main(args: Array<String>) {
