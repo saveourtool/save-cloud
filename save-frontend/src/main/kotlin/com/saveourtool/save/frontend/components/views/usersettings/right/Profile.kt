@@ -22,7 +22,6 @@ import react.FC
 import react.StateSetter
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
