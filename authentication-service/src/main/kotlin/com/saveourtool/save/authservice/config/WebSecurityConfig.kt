@@ -67,8 +67,6 @@ class WebSecurityConfig(
             // FixMe: Properly support CSRF protection https://github.com/saveourtool/save-cloud/issues/34
             csrf().disable()
         }
-        .httpBasic()
-        .disable()
         .addFilterAt(saveUserPreAuthenticatedProcessingWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
         .exceptionHandling {
             it.authenticationEntryPoint(
