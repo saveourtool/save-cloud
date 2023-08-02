@@ -18,6 +18,8 @@ import web.cssom.rem
 import web.cssom.TextAlign
 import react.dom.html.ReactHTML.a
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.h2
 
 
 // FixMe: add info about last created token
@@ -44,16 +46,46 @@ val token = FC<SettingsProps> { props ->
 
     div {
         className = ClassName("row justify-content-center mt-4")
-        ReactHTML.h2 {
+       h2 {
             className = ClassName("text-gray-800")
             +"Personal access token"
         }
     }
 
     div {
+        className = ClassName("row justify-content-center")
+        div {
+            className = ClassName("col-2 text-right")
+            a {
+                href = "https://github.com/saveourtool/save-cloud/tree/master/save-api"
+                buttonBuilder(
+                    "API Readme",
+                    style = "outline-secondary rounded-pill btn-sm",
+                    isOutline = false
+                ) {
+                }
+            }
+        }
+
+        div {
+            className = ClassName("col-2 text-left")
+            a {
+                href = "https://github.com/saveourtool/save-cloud/tree/master/save-api-cli"
+                buttonBuilder(
+                    "Usage example",
+                    style = "outline-secondary rounded-pill btn-sm",
+                    isOutline = false
+                ) {
+
+                }
+            }
+        }
+    }
+
+    div {
         className = ClassName("row justify-content-center mt-4")
         div {
-            className = ClassName("col-6")
+            className = ClassName("col-5")
             p {
                 style = jso {
                     textAlign = TextAlign.justify
@@ -66,54 +98,15 @@ val token = FC<SettingsProps> { props ->
     div {
         className = ClassName("row justify-content-center mt-4")
         div {
-            className = ClassName("col-6")
-            ReactHTML.h4 {
-                className = ClassName("text-gray-800 text-center")
-                +"Read more:"
-            }
-        }
-    }
-
-    div {
-        className = ClassName("row justify-content-center mt-4")
-        div {
-            className = ClassName("col-1 text-center")
-            a {
-                href = "https://github.com/saveourtool/save-cloud/tree/master/save-api"
-                buttonBuilder(
-                    "Readme",
-                    style = "info rounded-pill",
-                    isOutline = false
-                ) {
-
+            className = ClassName("col-6 text-center")
+           button {
+                type = ButtonType.button
+                className = ClassName("btn btn-primary")
+                +"Generate new token"
+                onClick = {
+                    setToken(generateToken())
+                    postToken(props.userInfo!!, token)
                 }
-            }
-        }
-        div {
-            className = ClassName("col-1 text-center")
-            a {
-                href = "https://github.com/saveourtool/save-cloud/tree/master/save-api-cli"
-                buttonBuilder(
-                    "Example",
-                    style = "info rounded-pill",
-                    isOutline = false
-                ) {
-
-                }
-            }
-        }
-    }
-
-
-    div {
-        className = ClassName("row justify-content-center mt-4")
-        ReactHTML.button {
-            type = ButtonType.button
-            className = ClassName("btn btn-outline-primary")
-            +"Generate new token"
-            onClick = {
-                setToken(generateToken())
-                postToken(props.userInfo!!, token)
             }
         }
     }

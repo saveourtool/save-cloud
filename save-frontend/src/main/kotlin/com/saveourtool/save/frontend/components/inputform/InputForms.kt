@@ -77,6 +77,7 @@ enum class InputTypes(
     LINKEDIN("Linkedin"),
     TWITTER("Twitter/X"),
     WEBSITE("Website"),
+    FREE_TEXT("Info"),
 
     // ==== contest creation component
     CONTEST_NAME(

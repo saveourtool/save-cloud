@@ -19,6 +19,7 @@ import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.p
 import web.cssom.*
@@ -89,6 +90,8 @@ fun createNewUser(fieldsMap: MutableMap<InputTypes, String>, userInfo: UserInfo)
         gitHub = fieldsMap[InputTypes.GITHUB]?.trim() ?: userInfo.gitHub,
         twitter = fieldsMap[InputTypes.TWITTER]?.trim() ?: userInfo.twitter,
         website = fieldsMap[InputTypes.WEBSITE]?.trim() ?: userInfo.twitter,
+        realName = fieldsMap[InputTypes.REAL_NAME]?.trim() ?: userInfo.realName,
+        freeText = fieldsMap[InputTypes.FREE_TEXT]?.trim() ?: userInfo.freeText,
     )
 }
 
@@ -103,12 +106,12 @@ fun ChildrenBuilder.inputForm(
     div {
         className = ClassName("row")
         div {
-            className = ClassName("col-5 mt-2 text-left align-self-center")
+            className = ClassName("col-4 mt-2 text-left align-self-center")
             +"${inputTypes.str}:"
         }
         div {
-            className = ClassName("col-7 mt-2 input-group pl-0")
-            ReactHTML.input {
+            className = ClassName("col-8 mt-2 input-group pl-0")
+           input {
                 placeholder = placeholderText
                 type = InputType.text
                 className = ClassName("form-control")

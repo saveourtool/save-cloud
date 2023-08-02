@@ -115,6 +115,8 @@ class UsersDetailsController(
                         twitter = newUserInfo.twitter
                         status = newUserInfo.status
                         website = newUserInfo.website
+                        realName = newUserInfo.realName
+                        freeText = newUserInfo.freeText
                     }, newUserInfo.oldName)
                 } else {
                     UserSaveStatus.CONFLICT

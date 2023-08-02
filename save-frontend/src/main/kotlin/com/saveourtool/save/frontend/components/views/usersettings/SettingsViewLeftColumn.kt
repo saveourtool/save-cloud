@@ -1,11 +1,10 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
+import com.saveourtool.save.frontend.components.views.usersettings.right.avatarEditor
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
-import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
@@ -13,19 +12,21 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.FC
 import react.VFC
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
+import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.label
+import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.nav
 import react.router.dom.Link
 import react.useState
 import web.cssom.Background
 import web.cssom.ClassName
+import web.cssom.TextDecoration
 import web.cssom.rem
 
-private const val AVATAR_TITLE = "Update avatar"
+internal const val AVATAR_TITLE = "Upload avatar"
 
 val leftColumn = FC<SettingsProps> { props ->
 
@@ -63,33 +64,37 @@ val leftColumn = FC<SettingsProps> { props ->
                             className = ClassName("col")
                             div {
                                 className = ClassName("row justify-content-center")
-                                label {
-                                    className = ClassName("btn")
-                                    title = AVATAR_TITLE
-                                    onClick = {
-                                        setIsAvatarWindowOpen(true)
-                                    }
-                                    img {
-                                        className =
-                                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                        src = avatarImgLink
-                                            ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
-                                            ?: AVATAR_PROFILE_PLACEHOLDER
-                                        style = jso {
-                                            height = 10.rem
-                                            width = 10.rem
-                                        }
-                                        onError = {
-                                            setAvatarImgLink(AVATAR_PLACEHOLDER)
-                                        }
+                                ReactHTML.img {
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    src = avatarImgLink
+                                        ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
+                                                ?: AVATAR_PROFILE_PLACEHOLDER
+                                    style = jso {
+                                        height = 12.rem
+                                        width = 12.rem
                                     }
                                 }
                             }
                             div {
-                                className = ClassName("row justify-content-center")
-                                h4 {
-                                    className = ClassName("mb-0 text-gray-800")
-                                    +(props.userInfo?.name ?: "")
+                                className = ClassName("col text-center mt-2")
+                                div {
+                                    className = ClassName("row justify-content-center")
+                                    h4 {
+                                        className = ClassName("mb-0 text-gray-800")
+                                        +(props.userInfo?.name ?: "")
+                                    }
+                                }
+                                div {
+                                    className = ClassName("row justify-content-center")
+                                    h6 {
+                                        Link {
+                                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                            style = jso {
+                                                textDecoration = TextDecoration.underline
+                                            }
+                                            +"profile"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -135,7 +140,12 @@ val settingsTabs = VFC {
                     div {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics", faPlus)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Delete Profile", faWindowClose, "btn-outline-danger")
+                        settingsMenuTab(
+                            FrontendRoutes.SETTINGS_TOKEN,
+                            "Delete Profile",
+                            faWindowClose,
+                            "btn-outline-danger"
+                        )
                     }
                 }
             }

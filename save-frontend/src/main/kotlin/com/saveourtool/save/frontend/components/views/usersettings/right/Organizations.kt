@@ -1,4 +1,3 @@
-/*
 package com.saveourtool.save.frontend.components.views.usersettings.right
 
 import com.saveourtool.save.domain.Role
@@ -7,13 +6,9 @@ import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
-import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
 import com.saveourtool.save.frontend.components.views.actionIconClasses
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
-import com.saveourtool.save.frontend.components.views.usersettings.createNewUser
-import com.saveourtool.save.frontend.components.views.usersettings.inputForm
-import com.saveourtool.save.frontend.components.views.usersettings.saveUser
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
@@ -21,14 +16,10 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
-import react.ChildrenBuilder
 import react.FC
-import react.StateSetter
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.hr
-import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
@@ -37,17 +28,17 @@ import web.html.InputType
 val organizations = FC<SettingsProps> { props ->
     div {
         className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
-        ReactHTML.h1 {
+       h1 {
             className = ClassName("h3 mb-0 mt-2 text-gray-800")
             +"Organizations"
         }
     }
 
-    ReactHTML.ul {
+   ul {
         className = ClassName("list-group list-group-flush")
         state.selfOrganizationWithUserList.forEach { organizationWithUsers ->
             val organizationDto = organizationWithUsers.organization
-            ReactHTML.li {
+           li {
                 className = ClassName("list-group-item")
                 div {
                     className = ClassName("row justify-content-between align-items-center")
@@ -58,7 +49,7 @@ val organizations = FC<SettingsProps> { props ->
                             OrganizationStatus.BANNED -> "text-danger"
                         }
                         className = ClassName("align-items-center ml-3 $textClassName")
-                        ReactHTML.img {
+                       img {
                             className =
                                 ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                             src = organizationDto.avatar?.let {
@@ -208,4 +199,3 @@ private fun getOrganizationWithUsersList() =
         )
             .unsafeMap { it.decodeFromJsonString<List<OrganizationWithUsers>>() }
     }
-*/
