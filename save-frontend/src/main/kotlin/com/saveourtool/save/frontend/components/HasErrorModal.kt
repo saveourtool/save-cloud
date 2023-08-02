@@ -20,6 +20,7 @@ import web.cssom.ClassName
 import web.html.ButtonType
 
 import kotlinx.browser.window
+import react.router.useNavigate
 
 /**
  * Loader animation
@@ -56,6 +57,8 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val (loadingState, setLoadingState) = useState(LoadingModalState(
         false,
     ))
+
+    val navigate = useNavigate()
 
     useEffect(response) {
         val newModalState = when (response?.status) {
@@ -101,8 +104,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 onClick = {
                     if (response?.status == 401.toShort()) {
                         // if 401 - change current URL to the main page (with login screen)
-                        window.location.href = "${window.location.origin}/#"
-                        window.location.reload()
+                        navigate("/")
                     }
                     setResponse(null)
                     setModalState(modalState.copy(isErrorModalOpen = false))

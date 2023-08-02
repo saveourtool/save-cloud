@@ -18,6 +18,7 @@ import web.cssom.*
 
 import kotlinx.browser.document
 import kotlinx.browser.window
+import react.router.Navigate
 
 /**
  * Props of fallback component
@@ -74,7 +75,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
             }
 
             if (props.withRouterLink == true) {
-                Link {
+                Navigate {
                     to = "/"
                     buttonBuilder("Back to the main page", style = "info") { }
                 }
