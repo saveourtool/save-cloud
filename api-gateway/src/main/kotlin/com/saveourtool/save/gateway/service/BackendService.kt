@@ -49,7 +49,7 @@ class BackendService(
         }
         .toEntity<AuthenticationUserDetails>()
         .flatMap { responseEntity ->
-            responseEntity.body.toMono().orNotFound { "Body is empty" }
+            responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
         }
 
     /**
