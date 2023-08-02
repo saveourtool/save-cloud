@@ -13,12 +13,11 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
-import react.router.dom.Link
+import react.router.Navigate
 import web.cssom.*
 
 import kotlinx.browser.document
 import kotlinx.browser.window
-import react.router.Navigate
 
 /**
  * Props of fallback component
