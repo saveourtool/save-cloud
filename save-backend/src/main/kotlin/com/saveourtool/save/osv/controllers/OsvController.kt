@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 /**
  * Rest controller for OSVs
  */
@@ -24,6 +27,18 @@ import reactor.core.publisher.Mono
 class OsvController(
     private val osvService: OsvService,
 ) {
+    /**
+     * @param name vulnerability name in save db
+     * @return content of OSV
+     */
+    @GetMapping(path = ["/get-by-save-name/{name}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getBySaveName(
+        @PathVariable name: String,
+    ): Mono<StringResponse> = osvService.findBySaveName(name)
+        .map {
+            ResponseEntity.ok(Json.encodeToString(it))
+        }
+
     /**
      * @param content
      * @param authentication

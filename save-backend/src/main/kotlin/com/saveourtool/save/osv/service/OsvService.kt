@@ -6,7 +6,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.osv.storage.OsvStorage
 import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromStream
 import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromString
-import com.saveourtool.save.utils.blockingMap
+import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.security.core.Authentication
@@ -18,7 +18,9 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 
 /**
  * Service for vulnerabilities
@@ -73,12 +75,36 @@ class OsvService(
      * @param authentication who uploads [vulnerability]
      * @return save's vulnerability name
      */
-    fun save(
+    private fun save(
         vulnerability: RawOsvSchema,
         authentication: Authentication,
     ): Mono<String> = osvStorage.upload(vulnerability).blockingMap {
         vulnerabilityService.save(vulnerability.toSaveVulnerabilityDto(), authentication).name
     }
+
+    /**
+     * @param name [VulnerabilityDto.name]
+     * @return found OSV
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun findBySaveName(
+        name: String,
+    ): Mono<RawOsvSchema> = blockingToMono {
+        vulnerabilityService.findByName(name)
+    }
+        .switchIfEmptyToNotFound {
+            "Not found vulnerability $name"
+        }
+        .map { vulnerability ->
+            vulnerability.vulnerabilityIdentifier.orNotFound {
+                "Vulnerability $name doesn't have vulnerabilityIdentifier"
+            }
+        }
+        .flatMap { id ->
+            osvStorage.download(id)
+                .collectToInputStream()
+                .map { json.decodeFromStream<RawOsvSchema>(it) }
+        }
 
     companion object {
         private fun RawOsvSchema.toSaveVulnerabilityDto(): VulnerabilityDto = VulnerabilityDto(
