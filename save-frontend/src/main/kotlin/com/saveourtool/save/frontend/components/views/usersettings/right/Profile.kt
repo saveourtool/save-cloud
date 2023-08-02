@@ -111,12 +111,6 @@ val profile: FC<SettingsProps> = FC { props ->
                             "/img/upload_avatar.png"
                         )
                     }
-                    div {
-                        className = ClassName("row justify-content-center")
-                        h6 {
-                            +AVATAR_TITLE
-                        }
-                    }
                 }
                 div {
                     className = ClassName("col-8")

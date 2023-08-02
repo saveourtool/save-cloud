@@ -116,7 +116,7 @@ val settingsTabs = VFC {
             div {
                 className = ClassName("px-3 mt-3 ui vertical menu profile-setting")
                 form {
-                    settingMenuHeader("Basic Settings", "img/settings_icon1.png")
+                    settingMenuHeader("Basic Settings")
                     div {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_PROFILE, "Profile settings", faUser)
@@ -128,7 +128,7 @@ val settingsTabs = VFC {
                     div {
                         className = ClassName("separator mt-3 mb-3")
                     }
-                    settingMenuHeader("Security Settings", "img/settings_icon1.png")
+                    settingMenuHeader("Security Settings")
                     div {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal access tokens", faKey)
@@ -139,7 +139,7 @@ val settingsTabs = VFC {
                     div {
                         className = ClassName("separator mt-3 mb-3")
                     }
-                    settingMenuHeader("Other", "img/settings_icon1.png")
+                    settingMenuHeader("Other")
                     div {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics", faPlus)
@@ -156,7 +156,7 @@ val settingsTabs = VFC {
     }
 }
 
-private fun ChildrenBuilder.settingMenuHeader(header: String, imgIcon: String) {
+private fun ChildrenBuilder.settingMenuHeader(header: String) {
     div {
         className = ClassName("header")
         +header
