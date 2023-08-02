@@ -155,7 +155,6 @@ internal class OrganizationController(
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationsByUserNameAndCreatedStatus(
         @RequestParam userName: String,
-        @RequestParam status: OrganizationStatus,
     ): Flux<OrganizationDto> = blockingToFlux {
         lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(userName).map { it.organization.toDto() }
     }
