@@ -153,10 +153,10 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    fun getOrganizationsByUserName(
+    fun getOrganizationsByUserNameAndCreatedStatus(
         @RequestParam userName: String,
     ): Flux<OrganizationDto> = blockingToFlux {
-        lnkUserOrganizationService.findAllByUserName(userName).map { it.organization.toDto() }
+        lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(userName).map { it.organization.toDto() }
     }
 
     @GetMapping("/get/by-prefix")
