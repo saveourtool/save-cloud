@@ -1,7 +1,7 @@
 package com.saveourtool.save.osv.storage
 
-import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.upload
@@ -21,11 +21,11 @@ import kotlinx.serialization.json.Json
  */
 @Service
 class OsvStorage(
-    configProperties: ConfigProperties,
+    s3OperationsPropertiesProvider: S3OperationsProperties.Provider,
     s3Operations: S3Operations,
 ) : AbstractSimpleReactiveStorage<String>(
     s3Operations,
-    concatS3Key(configProperties.s3Storage.prefix, "vulnerabilities"),
+    concatS3Key(s3OperationsPropertiesProvider.s3Storage.prefix, "vulnerabilities"),
 ) {
     private val json = Json {
         prettyPrint = false

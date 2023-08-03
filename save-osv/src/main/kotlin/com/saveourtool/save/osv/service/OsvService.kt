@@ -1,6 +1,6 @@
 package com.saveourtool.save.osv.service
 
-import com.saveourtool.save.backend.service.vulnerability.VulnerabilityService
+import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.osv.storage.OsvStorage
@@ -28,7 +28,7 @@ import kotlinx.serialization.json.decodeFromStream
 @Service
 class OsvService(
     private val osvStorage: OsvStorage,
-    private val vulnerabilityService: VulnerabilityService,
+    private val vulnerabilityService: IVulnerabilityService,
 ) {
     private val json = Json {
         prettyPrint = false

@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.saveCloudCommon)
     implementation(projects.authenticationService)
     implementation(projects.testAnalysisCore)
+    implementation(projects.saveOsv)
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)
