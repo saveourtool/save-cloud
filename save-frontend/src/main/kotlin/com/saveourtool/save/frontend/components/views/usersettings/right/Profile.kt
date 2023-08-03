@@ -144,9 +144,9 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 /**
  * @param props
  * @param avatarImgLink
- * @param setIsAvatarWindowOpen
  * @param setAvatarImgLink
  * @param placeholder
+ * @param avatarWindowOpen
  */
 internal fun ChildrenBuilder.avatarEditor(
     props: SettingsProps,
