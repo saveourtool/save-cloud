@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-
 import com.saveourtool.save.frontend.components.views.usersettings.right.emailSettingsCard
 import com.saveourtool.save.frontend.components.views.usersettings.right.organizationsSettingsCard
 import com.saveourtool.save.frontend.components.views.usersettings.right.profileSettingsCard

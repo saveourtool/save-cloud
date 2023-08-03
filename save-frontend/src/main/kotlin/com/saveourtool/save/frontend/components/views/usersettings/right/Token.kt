@@ -7,7 +7,6 @@ package com.saveourtool.save.frontend.components.views.usersettings.right
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
 import react.FC
@@ -155,5 +154,3 @@ private fun generateToken(): String {
     }
     return token
 }
-
-
