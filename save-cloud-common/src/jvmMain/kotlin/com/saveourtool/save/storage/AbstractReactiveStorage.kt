@@ -46,6 +46,8 @@ abstract class AbstractReactiveStorage<K : Any>(
 
     override fun list(): Flux<K> = initializer.validateAndRun { storageProjectReactor.list() }
 
+    override fun list(prefix: String): Flux<K> = initializer.validateAndRun { storageProjectReactor.list(prefix) }
+
     override fun download(key: K): Flux<ByteBuffer> = initializer.validateAndRun { storageProjectReactor.download(key) }
 
     override fun upload(key: K, content: Flux<ByteBuffer>): Mono<K> = initializer.validateAndRun { storageProjectReactor.upload(key, content) }

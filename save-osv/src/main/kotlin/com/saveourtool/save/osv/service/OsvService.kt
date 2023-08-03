@@ -101,7 +101,7 @@ class OsvService(
             }
         }
         .flatMap { id ->
-            osvStorage.download(id)
+            osvStorage.downloadLatest(id)
                 .collectToInputStream()
                 .map { json.decodeFromStream<RawOsvSchema>(it) }
         }

@@ -32,11 +32,15 @@ class DefaultStorageProjectReactor<K : Any>(
 ) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
 
-    override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
+    override fun list(): Flux<K> = doList(s3KeyManager.commonPrefix)
+
+    override fun list(prefix: String): Flux<K> = doList(s3KeyManager.commonPrefix + prefix.removePrefix(PATH_DELIMITER))
+
+    private fun doList(prefix: String): Flux<K> = s3Operations.listObjectsV2(prefix)
         .toMonoAndPublishOn()
         .expand { lastResponse ->
             if (lastResponse.isTruncated) {
-                s3Operations.listObjectsV2(s3KeyManager.commonPrefix, lastResponse.nextContinuationToken())
+                s3Operations.listObjectsV2(prefix, lastResponse.nextContinuationToken())
                     .toMonoAndPublishOn()
             } else {
                 Mono.empty()
