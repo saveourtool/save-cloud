@@ -69,7 +69,7 @@ enum class InputTypes(
 
     // ==== user setting view
     USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("user name", NAME_ERROR_MESSAGE, "name"),
+    USER_NAME("user name", NAME_ERROR_MESSAGE, "name", tooltip = "Name must not be longer than 22 characters"),
     COMPANY("company"),
     LOCATION("location"),
     GIT_HUB("git hub"),

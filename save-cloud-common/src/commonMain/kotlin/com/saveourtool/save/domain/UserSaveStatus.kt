@@ -14,6 +14,11 @@ enum class UserSaveStatus(val message: String) {
     CONFLICT("This name is already taken"),
 
     /**
+     * User name longer than 22 characters
+     */
+    INVALID_NAME("Name must not be longer than 22 characters"),
+
+    /**
      * Deleted user
      */
     DELETED("User successfully deleted"),
