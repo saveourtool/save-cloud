@@ -136,10 +136,7 @@ fun saveUser(
 ) = useDeferredRequest {
     val response = post(
         "$apiUrl/users/save",
-        Headers().also {
-            it.set("Accept", "application/json")
-            it.set("Content-Type", "application/json")
-        },
+        jsonHeaders,
 
         Json.encodeToString(settingsInputFields.toUserInfo(props.userInfo!!)),
         loadingHandler = ::loadingHandler,

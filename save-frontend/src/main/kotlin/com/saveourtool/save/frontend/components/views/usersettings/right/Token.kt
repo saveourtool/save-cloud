@@ -36,6 +36,16 @@ const val TOKEN_TEXT = """
 
 val tokenSettingsCard: FC<SettingsProps> = FC { props ->
     val (token, setToken) = useState<String>()
+
+    val postToken = useDeferredRequest {
+        post(
+            "$apiUrl/users/${props.userInfo?.name}/save/token",
+            jsonHeaders,
+            token,
+            loadingHandler = ::loadingHandler,
+        )
+    }
+
     div {
         className = ClassName("row justify-content-center mt-5")
         img {
@@ -108,7 +118,7 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
                 +"Generate new token"
                 onClick = {
                     setToken(generateToken())
-                    postToken(props.userInfo!!, token)
+                    postToken()
                 }
             }
         }
@@ -146,13 +156,4 @@ private fun generateToken(): String {
     return token
 }
 
-private fun postToken(userInfo: UserInfo, token: String?) {
-    useDeferredRequest {
-        post(
-            "$apiUrl/users/${userInfo.name}/save/token",
-            jsonHeaders,
-            token,
-            loadingHandler = ::loadingHandler,
-        )
-    }
-}
+
