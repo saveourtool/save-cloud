@@ -30,7 +30,7 @@ import web.cssom.rem
 
 const val AVATARS_PACKAGE_COUNT = 9
 
-val profile: FC<SettingsProps> = FC { props ->
+val profileSettingsCard: FC<SettingsProps> = FC { props ->
     // === states ===
     val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)

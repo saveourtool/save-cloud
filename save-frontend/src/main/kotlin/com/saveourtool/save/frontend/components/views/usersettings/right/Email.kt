@@ -15,7 +15,7 @@ import react.dom.html.ReactHTML.hr
 import react.useState
 import web.cssom.ClassName
 
-val email: FC<SettingsProps> = FC { props ->
+val emailSettingsCard: FC<SettingsProps> = FC { props ->
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
     val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
 

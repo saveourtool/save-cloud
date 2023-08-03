@@ -7,6 +7,6 @@ package com.saveourtool.save.frontend.components.views.usersettings.right
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import react.FC
 
-val delete: FC<SettingsProps> = FC { props ->
+val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     // FixMe: will be finished later
 }

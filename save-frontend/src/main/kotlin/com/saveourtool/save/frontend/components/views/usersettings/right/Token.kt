@@ -34,7 +34,7 @@ const val TOKEN_TEXT = """
     to upload benchmarks, get results, etc. Can be extremely useful for your automated CI and testing process.
 """
 
-val token: FC<SettingsProps> = FC { props ->
+val tokenSettingsCard: FC<SettingsProps> = FC { props ->
     val (token, setToken) = useState<String>()
     div {
         className = ClassName("row justify-content-center mt-5")
