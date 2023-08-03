@@ -60,7 +60,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
         div {
             className = ClassName("col-6 text-center")
             div {
-                className = ClassName("row")
+                className = ClassName("row mb-2")
                 h4 {
                     +"Add bio and info:"
                 }
@@ -85,7 +85,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
         div {
             className = ClassName("col-6")
             div {
-                className = ClassName("row")
+                className = ClassName("row mb-2")
                 h4 {
                     +"Upload or select avatar:"
                 }
