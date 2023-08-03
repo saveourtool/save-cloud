@@ -92,7 +92,6 @@ class ProjectController(
                 .map { it.toDto() }
 
     @GetMapping("/get/organization-name")
-    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -109,7 +108,7 @@ class ProjectController(
     fun getProjectByNameAndOrganizationName(
         @RequestParam name: String,
         @RequestParam organizationName: String,
-        authentication: Authentication,
+        authentication: Authentication?,
     ): Mono<ProjectDto> {
         val project = Mono.fromCallable {
             projectService.findByNameAndOrganizationNameAndCreatedStatus(name, organizationName)

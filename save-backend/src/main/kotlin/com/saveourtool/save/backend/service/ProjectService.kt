@@ -101,7 +101,7 @@ class ProjectService(
     /**
      * @param name
      * @param organizationName
-     * @return project by [name], [organizationName] and [CREATED] status
+     * @return project by [name], [organizationName] and [ProjectStatus.CREATED] status
      */
     fun findByNameAndOrganizationNameAndCreatedStatus(name: String, organizationName: String) =
             findByNameAndOrganizationNameAndStatusIn(name, organizationName, EnumSet.of(ProjectStatus.CREATED))
