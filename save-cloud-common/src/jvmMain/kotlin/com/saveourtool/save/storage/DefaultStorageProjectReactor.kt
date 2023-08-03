@@ -32,6 +32,7 @@ class DefaultStorageProjectReactor<K : Any>(
 ) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
 
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     override fun list(): Flux<K> = doList(s3KeyManager.commonPrefix)
 
     override fun list(prefix: String): Flux<K> = doList(s3KeyManager.commonPrefix + prefix.removePrefix(PATH_DELIMITER))

@@ -44,6 +44,7 @@ abstract class AbstractReactiveStorage<K : Any>(
      */
     protected open fun doInit(underlying: DefaultStorageProjectReactor<K>): Mono<Unit> = Mono.empty()
 
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     override fun list(): Flux<K> = initializer.validateAndRun { storageProjectReactor.list() }
 
     override fun list(prefix: String): Flux<K> = initializer.validateAndRun { storageProjectReactor.list(prefix) }

@@ -14,6 +14,7 @@ interface StorageProjectReactor<K> {
     /**
      * @return list of keys in storage
      */
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     fun list(): Flux<K>
 
     /**

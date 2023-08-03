@@ -85,6 +85,7 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
      */
     protected abstract fun N.toOldKey(): O
 
+    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     override fun list(): Flux<O> = initializer.validateAndRun { newStorageProjectReactor.list().map { it.toOldKey() } }
 
     override fun list(prefix: String): Flux<O> = initializer.validateAndRun { newStorageProjectReactor.list(prefix).map { it.toOldKey() } }
