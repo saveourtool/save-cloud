@@ -130,7 +130,7 @@ class UserSettingsProfileMenuView : UserSettingsView() {
                             defaultValue = it
                         }
                         onChange = {
-                            changeFields(InputTypes.GIT_HUB, it)
+                            changeFields(InputTypes.GITHUB, it)
                         }
                     }
                 }
