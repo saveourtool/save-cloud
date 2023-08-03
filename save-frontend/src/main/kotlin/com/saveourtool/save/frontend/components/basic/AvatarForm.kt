@@ -45,7 +45,6 @@ external interface AvatarFormProps : Props {
 }
 
 private fun avatarForm() = FC<AvatarFormProps> { props ->
-
     modalAvatarBuilder(
         isOpen = props.isOpen,
         title = props.title,

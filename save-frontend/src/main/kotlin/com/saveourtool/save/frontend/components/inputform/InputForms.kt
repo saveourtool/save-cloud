@@ -68,13 +68,16 @@ enum class InputTypes(
     ),
 
     // ==== user setting view
-    USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("user name", NAME_ERROR_MESSAGE, "name", tooltip = "Name must not be longer than 22 characters"),
-    COMPANY("company"),
-    LOCATION("location"),
-    GIT_HUB("git hub"),
-    LINKEDIN("linkedin"),
-    TWITTER("twitter"),
+    USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    USER_NAME("User name", NAME_ERROR_MESSAGE, "name", tooltip = "Name must not be longer than 22 characters"),
+    COMPANY("Company/Affiliation"),
+    REAL_NAME("Your name"),
+    LOCATION("Location"),
+    GITHUB("GitHub"),
+    LINKEDIN("Linkedin"),
+    TWITTER("Twitter/X"),
+    WEBSITE("Website"),
+    FREE_TEXT("Info"),
 
     // ==== contest creation component
     CONTEST_NAME(
