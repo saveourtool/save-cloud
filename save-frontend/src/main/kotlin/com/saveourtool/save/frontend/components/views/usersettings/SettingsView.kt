@@ -40,12 +40,12 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
-                    leftColumn { this.userInfo = props.userInfo }
+                    leftSettingsColumn { this.userInfo = props.userInfo }
                 }
                 div {
                     className = ClassName("col-7")
                     props.userInfo?.let {
-                        rightColumn {
+                        rightSettingsColumn {
                             this.userInfo = props.userInfo
                             this.type = props.type
                         }

@@ -32,17 +32,17 @@ const val AVATARS_PACKAGE_COUNT = 9
 
 val profileSettingsCard: FC<SettingsProps> = FC { props ->
     // === states ===
-    val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
+    val avatarWindowOpen = useWindowOpenness()
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
     val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
 
     // === image editor ===
     avatarForm {
-        isOpen = isAvatarWindowOpen
+        isOpen = avatarWindowOpen.isOpen()
         title = AVATAR_TITLE
         onCloseWindow = {
-            setIsAvatarWindowOpen(false)
+            avatarWindowOpen.closeWindow()
         }
         imageUpload = { file ->
             useRequest {
@@ -100,7 +100,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                         avatarEditor(
                             props,
                             avatarImgLink,
-                            setIsAvatarWindowOpen,
+                            avatarWindowOpen,
                             setAvatarImgLink,
                             "/img/upload_avatar.png"
                         )
@@ -151,7 +151,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 internal fun ChildrenBuilder.avatarEditor(
     props: SettingsProps,
     avatarImgLink: String?,
-    setIsAvatarWindowOpen: StateSetter<Boolean>,
+    avatarWindowOpen: WindowOpenness,
     setAvatarImgLink: StateSetter<String?>,
     placeholder: String,
 ) {
@@ -159,7 +159,7 @@ internal fun ChildrenBuilder.avatarEditor(
         className = ClassName("btn animated-provider")
         title = AVATAR_TITLE
         onClick = {
-            setIsAvatarWindowOpen(true)
+            avatarWindowOpen.openWindow()
         }
         img {
             className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")

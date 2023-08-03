@@ -14,7 +14,7 @@ import react.FC
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 
-val rightColumn: FC<SettingsProps> = FC { props ->
+val rightSettingsColumn: FC<SettingsProps> = FC { props ->
     div {
         className = ClassName("card card-body mt-0 pt-0 px-0 text-gray-800")
         style = cardHeight

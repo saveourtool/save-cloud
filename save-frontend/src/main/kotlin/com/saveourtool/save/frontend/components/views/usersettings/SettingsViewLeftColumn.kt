@@ -4,11 +4,8 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
@@ -30,24 +27,8 @@ import web.cssom.rem
 
 internal const val AVATAR_TITLE = "Upload avatar"
 
-val leftColumn: FC<SettingsProps> = FC { props ->
-
-    val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
+val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
-
-    // avatar editor form
-    avatarForm {
-        isOpen = isAvatarWindowOpen
-        title = AVATAR_TITLE
-        onCloseWindow = {
-            setIsAvatarWindowOpen(false)
-        }
-        imageUpload = { file ->
-            useRequest {
-                postImageUpload(file, props.userInfo?.name, AvatarType.USER, ::loadingHandler)
-            }
-        }
-    }
 
     div {
         className = ClassName("card card-body pt-0 px-0")
@@ -173,7 +154,7 @@ private fun ChildrenBuilder.settingsMenuTab(
         className = ClassName("mt-2")
         Link {
             className = ClassName("btn $style btn-block text-left")
-            to = "/${link.path}"
+            to = "/$link"
             fontAwesomeIcon(icon = icon) {
                 it.className = "fas fa-sm fa-fw mr-2"
             }
