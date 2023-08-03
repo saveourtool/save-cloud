@@ -20,21 +20,20 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
 
 import react.FC
+import react.StateSetter
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.li
+import react.dom.html.ReactHTML.ul
+import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.StateSetter
-import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.ul
-import react.router.dom.Link
 
 val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
-
 
     val (organizations, setOrganizations) = useState<List<OrganizationWithUsers>>(emptyList())
 
@@ -77,7 +76,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                         className = ClassName("align-items-center ml-3 $textClassName")
                         img {
                             className =
-                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                             src = organizationDto.avatar?.let {
                                 "/api/$v1/avatar$it"
                             } ?: AVATAR_ORGANIZATION_PLACEHOLDER
@@ -110,7 +109,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                                     title = "WARNING: You are about to delete this organization"
                                     errorTitle = "You cannot delete the organization ${organizationDto.name}"
                                     message =
-                                        "Are you sure you want to delete the organization ${organizationDto.name}?"
+                                            "Are you sure you want to delete the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -159,7 +158,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                                     title = "WARNING: You are about to recover this organization"
                                     errorTitle = "You cannot recover the organization ${organizationDto.name}"
                                     message =
-                                        "Are you sure you want to recover the organization ${organizationDto.name}?"
+                                            "Are you sure you want to recover the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -218,6 +217,12 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
     }
 }
 
+private val comparator: Comparator<OrganizationWithUsers> =
+        compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+            .thenBy { it.organization.name }
+
+typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
+
 /**
  * Removes [oldOrganizationWithUsers] by [selfOrganizationWithUserList], adds [newOrganizationWithUsers] in [selfOrganizationWithUserList]
  * and sorts the resulting list by their status and then by name
@@ -229,20 +234,15 @@ private fun updateOrganizationWithUserInOrganizationWithUsersList(
     oldOrganizationWithUsers: OrganizationWithUsers,
     newOrganizationWithUsers: OrganizationWithUsers,
     organizations: List<OrganizationWithUsers>,
-    setOrganizations: StateSetter<List<OrganizationWithUsers>>
+    setOrganizations: OrganizationSetter
 ) = setOrganizations(
     organizations.minusElement(oldOrganizationWithUsers)
         .plusElement(newOrganizationWithUsers)
         .sortedWith(comparator)
 )
 
-
-private val comparator: Comparator<OrganizationWithUsers> =
-    compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
-        .thenBy { it.organization.name }
-
 /**
  * Returned the [organizationWithUsers] with the updated [OrganizationStatus] field to the [newStatus] in the organization field
  */
 private fun changeOrganizationWithUserStatus(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) =
-    organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
+        organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
