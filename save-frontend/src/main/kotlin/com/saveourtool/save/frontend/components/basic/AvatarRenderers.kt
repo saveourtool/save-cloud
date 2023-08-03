@@ -112,6 +112,7 @@ fun ChildrenBuilder.renderOrganizationWithName(
     }
     return if (organizationDto.status != OrganizationStatus.DELETED) {
         Link {
+            className = ClassName("col-6")
             to = link ?: "/${organizationDto.name}"
             renderImg()
         }
