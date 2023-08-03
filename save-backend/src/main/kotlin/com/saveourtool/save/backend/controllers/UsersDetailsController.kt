@@ -100,6 +100,7 @@ class UsersDetailsController(
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
+    @Suppress("MagicNumber")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
             Mono.just(newUserInfo)
                 .filter { newUserInfo.name.length <= 22 }
