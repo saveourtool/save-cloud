@@ -8,7 +8,7 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.index.*
-import com.saveourtool.save.frontend.components.views.usersettings.right.FieldsStateSetter
+import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -59,6 +59,8 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
     }
 }
 
+typealias FieldsStateSetter = StateSetter<SettingsInputFields>
+
 /**
  * `Props` retrieved from router
  */
@@ -80,18 +82,15 @@ external interface SettingsProps : PropsWithChildren {
  *
  * @param previousValue
  * @param inputType
- * @param fieldsMap
- * @param fieldsValidationMap
- * @param setFieldsMap
+ * @param setFields
  * @param placeholderText
+ * @param settingsInputFields
  */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
     previousValue: String?,
     inputType: InputTypes,
-    fieldsMap: MutableMap<InputTypes, String?>,
-    fieldsValidationMap: MutableMap<InputTypes, String?>,
-    setFieldsMap: FieldsStateSetter,
+    settingsInputFields: SettingsInputFields,
+    setFields: FieldsStateSetter,
     placeholderText: String = "",
 ) {
     div {
@@ -110,11 +109,11 @@ fun ChildrenBuilder.inputForm(
                     defaultValue = it
                 }
                 onChange = {
-                    fieldsMap[inputType] = it.target.value
-                    setFieldsMap(fieldsMap)
+                    val settingsInputFieldsNew = settingsInputFields.updateValue(inputType, it.target.value, null)
+                    setFields(settingsInputFieldsNew)
                 }
             }
-            fieldsValidationMap[inputType]?.let {
+            settingsInputFields.getValueByType(inputType).validation?.let {
                 div {
                     className = ClassName("invalid-feedback d-block")
                     +it
@@ -125,17 +124,15 @@ fun ChildrenBuilder.inputForm(
 }
 
 /**
- * @param fieldsMap
  * @param props
- * @param fieldsValidationMap
- * @param setFieldsValidationMap
+ * @param settingsInputFields
+ * @param setFieldsValidation
  * @return callback to a post request that will be executed
  */
 fun saveUser(
-    fieldsMap: MutableMap<InputTypes, String?>,
     props: SettingsProps,
-    fieldsValidationMap: MutableMap<InputTypes, String?>,
-    setFieldsValidationMap: FieldsStateSetter,
+    settingsInputFields: SettingsInputFields,
+    setFieldsValidation: FieldsStateSetter,
 ) = useDeferredRequest {
     val response = post(
         "$apiUrl/users/save",
@@ -143,38 +140,19 @@ fun saveUser(
             it.set("Accept", "application/json")
             it.set("Content-Type", "application/json")
         },
-        Json.encodeToString(createNewUser(fieldsMap, props.userInfo!!)),
+
+        Json.encodeToString(settingsInputFields.toUserInfo(props.userInfo!!)),
         loadingHandler = ::loadingHandler,
         responseHandler = ::noopResponseHandler
     )
 
     if (response.isConflict()) {
         val responseText = response.unpackMessage()
-        fieldsValidationMap[InputTypes.USER_NAME] = responseText
-        setFieldsValidationMap(fieldsValidationMap)
+        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, responseText)
+        setFieldsValidation(newSettingsInputFields)
     } else {
-        fieldsValidationMap[InputTypes.USER_NAME] = null
-        setFieldsValidationMap(fieldsValidationMap)
+        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, null)
+        setFieldsValidation(newSettingsInputFields)
         window.location.reload()
     }
-}
-
-private fun createNewUser(fieldsMap: MutableMap<InputTypes, String?>, userInfo: UserInfo): UserInfo {
-    val newName = fieldsMap[InputTypes.USER_NAME]?.trim()
-    return userInfo.copy(
-        name = newName ?: userInfo.name,
-        // `oldName` is not saved into database, basically it's just a flag for
-        // backend to understand that name was or wasn't changed on the frontend
-        // need to pass `null` to backend if the field
-        oldName = newName?.let { userInfo.name },
-        email = fieldsMap[InputTypes.USER_EMAIL]?.trim() ?: userInfo.email,
-        company = fieldsMap[InputTypes.COMPANY]?.trim() ?: userInfo.company,
-        location = fieldsMap[InputTypes.LOCATION]?.trim() ?: userInfo.location,
-        linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim() ?: userInfo.linkedin,
-        gitHub = fieldsMap[InputTypes.GITHUB]?.trim() ?: userInfo.gitHub,
-        twitter = fieldsMap[InputTypes.TWITTER]?.trim() ?: userInfo.twitter,
-        website = fieldsMap[InputTypes.WEBSITE]?.trim() ?: userInfo.twitter,
-        realName = fieldsMap[InputTypes.REAL_NAME]?.trim() ?: userInfo.realName,
-        freeText = fieldsMap[InputTypes.FREE_TEXT]?.trim() ?: userInfo.freeText,
-    )
 }

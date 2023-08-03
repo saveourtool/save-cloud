@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.views.usersettings.right.email
+import com.saveourtool.save.frontend.components.views.usersettings.right.organizations
 import com.saveourtool.save.frontend.components.views.usersettings.right.profile
 import com.saveourtool.save.frontend.components.views.usersettings.right.token
 import com.saveourtool.save.validation.FrontendRoutes.*
@@ -26,12 +27,14 @@ val rightColumn: FC<SettingsProps> = FC { props ->
                 this.userInfo = props.userInfo
                 this.type = props.type
             }
-
             SETTINGS_TOKEN -> token {
                 this.userInfo = props.userInfo
                 this.type = props.type
             }
-
+            SETTINGS_ORGANIZATIONS -> organizations {
+                this.userInfo = props.userInfo
+                this.type = props.type
+            }
             else -> {
                 // FixMe: finish stub here
             }

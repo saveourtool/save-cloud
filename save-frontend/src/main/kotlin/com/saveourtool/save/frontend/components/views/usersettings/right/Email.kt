@@ -16,17 +16,13 @@ import react.useState
 import web.cssom.ClassName
 
 val email: FC<SettingsProps> = FC { props ->
-    val (fieldsMap, setFieldsMap) =
-            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
-    val (fieldsValidationMap, setfieldsValidationMap) =
-            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
-
-    val saveUser = saveUser(fieldsMap, props, fieldsValidationMap, setfieldsValidationMap)
+    val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
+    val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
 
     div {
         className = ClassName("col mt-2 px-4")
-        inputForm(props.userInfo?.name, InputTypes.USER_NAME, fieldsMap, fieldsValidationMap, setFieldsMap)
-        inputForm(props.userInfo?.email, InputTypes.USER_EMAIL, fieldsMap, fieldsValidationMap, setFieldsMap)
+        inputForm(props.userInfo?.name, InputTypes.USER_NAME, settingsInputFields, setSettingsInputFields)
+        inputForm(props.userInfo?.email, InputTypes.USER_EMAIL, settingsInputFields, setSettingsInputFields)
 
         @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
         hr { }

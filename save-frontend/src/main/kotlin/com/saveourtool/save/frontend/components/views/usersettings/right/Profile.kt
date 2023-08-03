@@ -8,10 +8,8 @@ package com.saveourtool.save.frontend.components.views.usersettings.right
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
-import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
-import com.saveourtool.save.frontend.components.views.usersettings.inputForm
-import com.saveourtool.save.frontend.components.views.usersettings.saveUser
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.AvatarType
@@ -36,11 +34,8 @@ val profile: FC<SettingsProps> = FC { props ->
     // === states ===
     val (isAvatarWindowOpen, setIsAvatarWindowOpen) = useState(false)
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
-    val (fieldsMap, setFieldsMap) =
-            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
-    val (fieldsValidationMap, setfieldsValidationMap) =
-            useState<MutableMap<InputTypes, String?>>(mutableMapOf())
-    val saveUser = saveUser(fieldsMap, props, fieldsValidationMap, setfieldsValidationMap)
+    val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
+    val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
 
     // === image editor ===
     avatarForm {
@@ -77,8 +72,8 @@ val profile: FC<SettingsProps> = FC { props ->
                     textarea {
                         className = ClassName("form-control")
                         onChange = {
-                            fieldsMap[InputTypes.FREE_TEXT] = it.target.value
-                            setFieldsMap(fieldsMap)
+                            val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, null)
+                            setSettingsInputFields(newSettingsInputFields)
                         }
                         defaultValue = props.userInfo?.freeText
                         rows = 10
@@ -134,7 +129,7 @@ val profile: FC<SettingsProps> = FC { props ->
 
         div {
             className = ClassName("col mt-2 px-5")
-            extraInformation(props, fieldsMap, fieldsValidationMap, setFieldsMap)
+            extraInformation(props, settingsInputFields, setSettingsInputFields)
 
             div {
                 className = ClassName("row justify-content-center")
@@ -145,8 +140,6 @@ val profile: FC<SettingsProps> = FC { props ->
         }
     }
 }
-
-typealias FieldsStateSetter = StateSetter<MutableMap<InputTypes, String?>>
 
 /**
  * @param props
@@ -186,47 +179,18 @@ internal fun ChildrenBuilder.avatarEditor(
 
 private fun ChildrenBuilder.extraInformation(
     props: SettingsProps,
-    fieldsMap: MutableMap<InputTypes, String?>,
-    fieldsValidationMap: MutableMap<InputTypes, String?>,
-    setFieldsMap: FieldsStateSetter
+    settingsInputFields: SettingsInputFields,
+    setSettingsInputFields: FieldsStateSetter
 ) {
     hr { }
 
-    inputForm(
-        props.userInfo?.realName,
-        InputTypes.REAL_NAME,
-        fieldsMap,
-        fieldsValidationMap,
-        setFieldsMap,
-        "e.g. John Smith"
-    )
-    inputForm(
-        props.userInfo?.company,
-        InputTypes.COMPANY,
-        fieldsMap,
-        fieldsValidationMap,
-        setFieldsMap,
-        "e.g. FutureWay Inc."
-    )
-    inputForm(
-        props.userInfo?.location,
-        InputTypes.LOCATION,
-        fieldsMap,
-        fieldsValidationMap,
-        setFieldsMap,
-        "Beijing, China"
-    )
-    inputForm(
-        props.userInfo?.website,
-        InputTypes.WEBSITE,
-        fieldsMap,
-        fieldsValidationMap,
-        setFieldsMap,
-        "https://saveourtool.com"
-    )
-    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, fieldsMap, fieldsValidationMap, setFieldsMap)
-    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, fieldsMap, fieldsValidationMap, setFieldsMap)
-    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, fieldsMap, fieldsValidationMap, setFieldsMap)
+    inputForm(props.userInfo?.realName, InputTypes.REAL_NAME, settingsInputFields, setSettingsInputFields, "e.g. John Smith")
+    inputForm(props.userInfo?.company, InputTypes.COMPANY, settingsInputFields, setSettingsInputFields, "e.g. FutureWay Inc.")
+    inputForm(props.userInfo?.location, InputTypes.LOCATION, settingsInputFields, setSettingsInputFields, "Beijing, China")
+    inputForm(props.userInfo?.website, InputTypes.WEBSITE, settingsInputFields, setSettingsInputFields, "https://saveourtool.com")
+    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, settingsInputFields, setSettingsInputFields)
+    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, settingsInputFields, setSettingsInputFields)
+    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, settingsInputFields, setSettingsInputFields)
 
     hr { }
 }

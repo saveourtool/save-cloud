@@ -15,11 +15,11 @@ import js.core.jso
 import react.ChildrenBuilder
 import react.FC
 import react.VFC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.nav
 import react.router.dom.Link
 import react.useState
@@ -66,7 +66,7 @@ val leftColumn: FC<SettingsProps> = FC { props ->
                             className = ClassName("col")
                             div {
                                 className = ClassName("row justify-content-center")
-                                ReactHTML.img {
+                                img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = avatarImgLink
                                         ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
