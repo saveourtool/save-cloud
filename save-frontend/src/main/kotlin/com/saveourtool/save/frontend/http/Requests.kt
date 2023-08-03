@@ -106,7 +106,7 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
  */
 suspend fun WithRequestStatusContext.postImageUpload(
     file: File,
-    name: String,
+    name: String?,
     type: AvatarType,
     loadingHandler: suspend (suspend () -> Response) -> Response,
 ) {

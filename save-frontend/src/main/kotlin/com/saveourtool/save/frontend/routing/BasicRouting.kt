@@ -21,10 +21,7 @@ import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
@@ -214,6 +211,26 @@ val basicRouting: FC<AppProps> = FC { props ->
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
