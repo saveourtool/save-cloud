@@ -14,9 +14,11 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
 
 /**
  * Placeholder for organization avatar
@@ -81,8 +83,20 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
-        +" ${userInfo.name}"
+        div {
+            className = ClassName("col")
+            div {
+                className = ClassName("row justify-content-center")
+                renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+            }
+            div {
+                className = ClassName("row justify-content-center mt-2")
+                style = jso {
+                    fontSize = 0.8.rem
+                }
+                +" ${userInfo.name}"
+            }
+        }
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
@@ -107,8 +121,20 @@ fun ChildrenBuilder.renderOrganizationWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
-        +" ${organizationDto.name}"
+        div {
+            className = ClassName("col")
+            div {
+                className = ClassName("row justify-content-center")
+                renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
+            }
+            div {
+                className = ClassName("row justify-content-center mt-2")
+                style = jso {
+                    fontSize = 0.8.rem
+                }
+                +" ${organizationDto.name}"
+            }
+        }
     }
     return if (organizationDto.status != OrganizationStatus.DELETED) {
         Link {

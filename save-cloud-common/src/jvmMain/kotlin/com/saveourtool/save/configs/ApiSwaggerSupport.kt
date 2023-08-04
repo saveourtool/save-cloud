@@ -4,7 +4,9 @@
 
 package com.saveourtool.save.configs
 
-import com.saveourtool.save.utils.AUTHORIZATION_SOURCE
+import com.saveourtool.save.utils.AUTHORIZATION_ID
+import com.saveourtool.save.utils.AUTHORIZATION_NAME
+import com.saveourtool.save.utils.AUTHORIZATION_ROLES
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -27,12 +29,24 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme
 annotation class ApiSwaggerSupport
 
 /**
- * Indicates that an operation requires `X-Authorization-Source` header to be set
+ * Indicates that an operation requires `X-Authorization-*` headers to be set
  */
 @Parameter(
     `in` = ParameterIn.HEADER,
-    name = AUTHORIZATION_SOURCE,
+    name = AUTHORIZATION_ID,
     required = true,
-    example = "basic"
+    example = "123"
+)
+@Parameter(
+    `in` = ParameterIn.HEADER,
+    name = AUTHORIZATION_NAME,
+    required = true,
+    example = "user"
+)
+@Parameter(
+    `in` = ParameterIn.HEADER,
+    name = AUTHORIZATION_ROLES,
+    required = true,
+    example = "VIEWER"
 )
 annotation class RequiresAuthorizationSourceHeader

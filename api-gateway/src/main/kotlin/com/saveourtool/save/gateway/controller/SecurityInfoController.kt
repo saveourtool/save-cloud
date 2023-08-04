@@ -44,7 +44,7 @@ class SecurityInfoController(
         is OAuth2AuthenticationToken -> {
             val source = authentication.authorizedClientRegistrationId
             val nameInSource = authentication.name
-            backendService.findByOriginalLogin(source, nameInSource).map { it.username }
+            backendService.findByOriginalLogin(source, nameInSource).map { it.name }
         }
         else -> Mono.empty()
     }

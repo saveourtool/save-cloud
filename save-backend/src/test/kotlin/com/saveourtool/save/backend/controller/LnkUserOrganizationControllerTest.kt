@@ -1,15 +1,11 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
-import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
-import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -33,9 +29,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @Import(
     WebSecurityConfig::class,
     OrganizationService::class,
-    ConvertingAuthenticationManager::class,
-    AuthenticationUserDetailsService::class,
-    AuthenticationUserRepository::class,
 )
 @MockBeans(
     MockBean(OriginalLoginRepository::class),
@@ -62,9 +55,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should allow changing roles for organization owners`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(userRepository.findByName(any())).willReturn(
             User("user", null, null, "").apply { id = 99 }
         )
@@ -86,9 +77,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should forbid changing roles unless user is an organization owner`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
@@ -107,9 +96,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should get 403 when deleting users from organization without permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),
@@ -126,9 +113,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should permit deleting users from organization if user is admin or higher`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(99),
@@ -146,9 +131,7 @@ class LnkUserOrganizationControllerTest {
     @Test
     @WithMockUser
     fun `should forbid removing people from organization if user has less permissions than admin`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             organization = Organization.stub(id = 99),

@@ -34,7 +34,7 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
+            - AuthorizationHeaders=
         - id: demo-api_route
           uri: ${gateway.demo.url}
           predicates:
@@ -42,7 +42,7 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
+            - AuthorizationHeaders=
         - id: demo-cpg-api_route
           uri: ${gateway.demo-cpg.url}
           predicates:
@@ -57,11 +57,7 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: error_route
-          uri: ${gateway.backend.url}/error
-          predicates:
-            - Path=/error
+            - AuthorizationHeaders=
         - id: neo4j_route
           uri: ${gateway.neo4j-browser.url}
           predicates:
@@ -121,11 +117,3 @@ spring:
             scope:
               - user_info
 ---
-spring:
-  error:
-    whitelabel:
-      enabled: false
-
-server:
-  error:
-    path: /error

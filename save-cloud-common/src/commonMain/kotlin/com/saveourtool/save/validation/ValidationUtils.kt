@@ -8,6 +8,7 @@ package com.saveourtool.save.validation
  * Default amount of characters allowed for names
  */
 const val NAMING_ALLOWED_LENGTH = 64
+const val NAMING_MAX_LENGTH = 22
 private val namingAllowedSpecialSymbols = setOf('-', '_', '.')
 
 /**
@@ -48,6 +49,13 @@ fun String.isValidUrl() = ValidationRegularExpressions.URL_VALIDATOR.value.match
  * @return true if email is valid, false otherwise
  */
 fun String.isValidEmail() = ValidationRegularExpressions.EMAIL_VALIDATOR.value.matches(this)
+
+/**
+ * Check if length of name is valid.
+ *
+ * @return true if length name less than [NAMING_MAX_LENGTH], false otherwise
+ */
+fun String.isValidLengthName() = this.length <= NAMING_MAX_LENGTH
 
 private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 

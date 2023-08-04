@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
@@ -41,7 +40,6 @@ class UserDetailsService(
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .map { it.toSpringUserDetails() }
 
     /**
      * @param username
@@ -51,7 +49,6 @@ class UserDetailsService(
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .map { it.toSpringUserDetails() }
 
     /**
      * @param name
