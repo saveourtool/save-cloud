@@ -28,13 +28,13 @@ class OsvController(
     private val osvService: OsvService,
 ) {
     /**
-     * @param name vulnerability name in save db
+     * @param id vulnerability name in save db
      * @return content of OSV
      */
-    @GetMapping(path = ["/get-by-save-name/{name}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getBySaveName(
-        @PathVariable name: String,
-    ): Mono<StringResponse> = osvService.findBySaveName(name)
+    @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getById(
+        @PathVariable id: String,
+    ): Mono<StringResponse> = osvService.findById(id)
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }

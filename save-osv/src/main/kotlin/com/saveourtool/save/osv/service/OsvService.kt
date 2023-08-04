@@ -83,32 +83,29 @@ class OsvService(
     }
 
     /**
-     * @param name [VulnerabilityDto.name]
+     * Finds OSV with validating save database
+     *
+     * @param id [VulnerabilityDto.name]
      * @return found OSV
      */
     @OptIn(ExperimentalSerializationApi::class)
-    fun findBySaveName(
-        name: String,
+    fun findById(
+        id: String,
     ): Mono<RawOsvSchema> = blockingToMono {
-        vulnerabilityService.findByName(name)
+        vulnerabilityService.findByName(id)
     }
         .switchIfEmptyToNotFound {
-            "Not found vulnerability $name"
+            "Not found vulnerability $id in save database"
         }
-        .map { vulnerability ->
-            vulnerability.vulnerabilityIdentifier.orNotFound {
-                "Vulnerability $name doesn't have vulnerabilityIdentifier"
-            }
-        }
-        .flatMap { id ->
-            osvStorage.downloadLatest(id)
+        .flatMap { vulnerability ->
+            osvStorage.downloadLatest(vulnerability.name)
                 .collectToInputStream()
                 .map { json.decodeFromStream<RawOsvSchema>(it) }
         }
 
     companion object {
         private fun RawOsvSchema.toSaveVulnerabilityDto(): VulnerabilityDto = VulnerabilityDto(
-            name = "TO_GENERATE",  // will be generated on saving to database
+            name = id,
             vulnerabilityIdentifier = id,
             progress = 0,
             projects = emptyList(),
