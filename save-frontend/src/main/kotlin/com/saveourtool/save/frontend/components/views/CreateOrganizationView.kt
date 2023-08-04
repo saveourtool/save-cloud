@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.isValidLengthName
 
 import js.core.jso
 import react.*
@@ -149,7 +150,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                             conflictMessage = state.conflictErrorMessage
                                             textValue = state.organizationDto.name
                                             validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName() ||
-                                                    state.organizationDto.name.length <= 22) && state.conflictErrorMessage == null
+                                                    state.organizationDto.name.isValidLengthName()) && state.conflictErrorMessage == null
                                             classes = ""
                                             name = "Organization name"
                                             onChangeFun = {
