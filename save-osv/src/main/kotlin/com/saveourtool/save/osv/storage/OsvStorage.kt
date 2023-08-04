@@ -18,8 +18,9 @@ import java.nio.ByteBuffer
 import java.util.Comparator
 
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 /**
  * Storage for Vulnerabilities.
@@ -48,10 +49,21 @@ class OsvStorage(
 
     /**
      * @param vulnerability
+     * @return saved id
      */
-    fun upload(vulnerability: RawOsvSchema): Mono<String> = upload(
+    final inline fun <reified S : OsvSchema<*, *, *, *>> upload(vulnerability: S): Mono<String> = upload(vulnerability, serializer())
+
+    /**
+     * @param vulnerability
+     * @param serializationStrategy
+     * @return saved id
+     */
+    fun <S : OsvSchema<*, *, *, *>> upload(
+        vulnerability: S,
+        serializationStrategy: SerializationStrategy<S>,
+    ): Mono<String> = upload(
         vulnerability.toStorageKey(),
-        json.encodeToString(vulnerability).encodeToByteArray(),
+        json.encodeToString(serializationStrategy, vulnerability).encodeToByteArray(),
     ).map { vulnerability.id }
 
     /**

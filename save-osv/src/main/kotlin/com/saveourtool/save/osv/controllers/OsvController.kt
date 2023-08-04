@@ -1,5 +1,6 @@
 package com.saveourtool.save.osv.controllers
 
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.vulnerability.*
@@ -78,6 +79,19 @@ class OsvController(
                 }
         }
         .collectList()
+        .map { ResponseEntity.ok(it) }
+
+    /**
+     * @param request
+     * @param authentication
+     * @return saved save's vulnerability name
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/propose-new")
+    fun proposeNew(
+        @RequestBody request: ProposeSaveOsvRequest,
+        authentication: Authentication,
+    ) : Mono<StringResponse> = osvService.createNew(request, authentication.userId())
         .map { ResponseEntity.ok(it) }
 
     companion object {

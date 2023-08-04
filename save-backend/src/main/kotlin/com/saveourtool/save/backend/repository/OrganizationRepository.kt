@@ -2,19 +2,14 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.repository.query.QueryByExampleExecutor
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
  * The repository of organization entities
  */
 @Repository
-interface OrganizationRepository : JpaRepository<Organization, Long>,
-QueryByExampleExecutor<Organization>,
-JpaSpecificationExecutor<Organization>,
-ValidateRepository {
+interface OrganizationRepository : BaseEntityRepository<Organization>, ValidateRepository {
     /**
      * @param name
      * @return organization by [name]

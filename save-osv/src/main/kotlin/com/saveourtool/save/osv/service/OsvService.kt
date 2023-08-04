@@ -1,5 +1,6 @@
 package com.saveourtool.save.osv.service
 
+import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
@@ -9,6 +10,8 @@ import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromString
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.osv4k.Reference
+import com.saveourtool.osv4k.ReferenceType
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -18,6 +21,7 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -104,6 +108,25 @@ class OsvService(
             osvStorage.downloadLatest(id)
                 .collectToInputStream()
                 .map { json.decodeFromStream<RawOsvSchema>(it) }
+        }
+
+    fun createNew(
+        proposeSaveOsvRequest: ProposeSaveOsvRequest,
+        creatorUserId: Long,
+    ): Mono<String> = blockingToMono { vulnerabilityService.save(proposeSaveOsvRequest, creatorUserId) }
+        .flatMap { vulnerabilityMeta ->
+            val osv = OsvSchema<Unit, Unit, Unit, Unit>(
+                schemaVersion = "1.5.0",
+                id = vulnerabilityMeta.name,
+                modified = vulnerabilityMeta.createDate.orNotFound {
+                    "CreationDate is not provided on vulnerability meta ${vulnerabilityMeta.name}"
+                }.toKotlinLocalDateTime(),
+                summary = proposeSaveOsvRequest.shortDescription,
+                details = proposeSaveOsvRequest.description,
+                aliases = proposeSaveOsvRequest.vulnerabilityIdentifier?.let { listOf(it) },
+                references = proposeSaveOsvRequest.relatedLink?.let { listOf(Reference(ReferenceType.WEB, it)) }
+            )
+            osvStorage.upload(osv)
         }
 
     companion object {
