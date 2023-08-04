@@ -31,6 +31,7 @@ class OsvController(
      * @param id vulnerability name in save db
      * @return content of OSV
      */
+    @RequiresAuthorizationSourceHeader
     @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getById(
         @PathVariable id: String,
