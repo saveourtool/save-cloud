@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
+import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -21,8 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @ExtendWith(SpringExtension::class, MockitoExtension::class)
@@ -119,13 +117,11 @@ class OrganizationPermissionEvaluatorTest {
         }
     }
 
-    private fun mockAuth(principal: String, vararg roles: String, id: Long = 99) = UsernamePasswordAuthenticationToken(
-        principal,
-        "",
-        roles.map { SimpleGrantedAuthority(it) }
-    ).apply {
-        details = AuthenticationDetails(id = id)
-    }
+    private fun mockAuth(principal: String, vararg roles: String, id: Long = 99) = AuthenticationUserDetails(
+        id = id,
+        name = principal,
+        role = roles.joinToString(","),
+    ).toAuthenticationToken()
 
     private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }
