@@ -100,8 +100,13 @@ class UsersDetailsController(
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
+    @Suppress("MagicNumber")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
             Mono.just(newUserInfo)
+                .filter { newUserInfo.name.length <= 22 }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    UserSaveStatus.INVALID_NAME.message
+                }
                 .map {
                     val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
                     if (user.id == authentication.userId()) {

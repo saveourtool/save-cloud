@@ -223,8 +223,8 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() 
                                         inputTextFormRequired {
                                             form = InputTypes.PROJECT_NAME
                                             textValue = state.projectCreationRequest.name
-                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
-                                                    state.conflictErrorMessage == null
+                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName() ||
+                                                    state.projectCreationRequest.name.length <= 22) && state.conflictErrorMessage == null
                                             classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Tested tool name"
                                             conflictMessage = state.conflictErrorMessage

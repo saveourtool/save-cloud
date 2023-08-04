@@ -14,6 +14,10 @@ private const val EMAIL_PLACEHOLDER = "test@example.com"
 private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
+private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than 22 characters." +
+        "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+        "No dot, hyphen or underscore at the beginning and at the end of the line."
+
 /**
  * @property str
  * @property placeholder
@@ -54,7 +58,7 @@ enum class InputTypes(
         "project name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
     PROJECT_VERSION("project Url", placeholder = "0.0.1; 0.0.3-0.0.5; 1.0.1.RELEASE; etc."),
@@ -64,12 +68,17 @@ enum class InputTypes(
         "organization name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
 
     // ==== user setting view
     USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("User name", NAME_ERROR_MESSAGE, "name"),
+    USER_NAME(
+        "User name",
+        NAME_ERROR_MESSAGE,
+        "name",
+        tooltip = "Name must not be longer than 22 characters"
+    ),
     COMPANY("Company/Affiliation"),
     REAL_NAME("Your name"),
     LOCATION("Location"),
