@@ -19,6 +19,7 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
@@ -44,6 +45,7 @@ import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
 import web.cssom.ClassName
 import web.cssom.Cursor
+import web.cssom.rem
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -278,10 +280,23 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
                 if (data.isEmpty()) {
                     div {
-                        className = ClassName("align-items-center justify-content-center mb-4")
-                        h6 {
-                            className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
-                            +"No results found"
+                        className = ClassName("col mt-4 mb-4")
+                        div {
+                            className = ClassName("row justify-content-center")
+                            h6 {
+                                className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
+                                +"No results found"
+                            }
+                        }
+                        div {
+                            className = ClassName("row justify-content-center")
+                            img {
+                                src = "/img/sad_cat.png"
+                                @Suppress("MAGIC_NUMBER")
+                                style = jso {
+                                    width = 14.rem
+                                }
+                            }
                         }
                     }
                 }

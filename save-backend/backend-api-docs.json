@@ -4172,7 +4172,7 @@
     "/api/v1/organizations/get/list-by-user-name": {
       "get": {
         "description": "Get list of all organizations where current user is a participant.",
-        "operationId": "getOrganizationsByUserName",
+        "operationId": "getOrganizationsByUserNameAndCreatedStatus",
         "parameters": [
           {
             "in": "query",
@@ -5634,14 +5634,7 @@
       "get": {
         "description": "Get project by name and organization name.",
         "operationId": "getProjectByNameAndOrganizationName",
-        "parameters": [
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "content": {
@@ -11984,6 +11977,9 @@
           "email": {
             "type": "string"
           },
+          "freeText": {
+            "type": "string"
+          },
           "gitHub": {
             "type": "string"
           },
@@ -12007,6 +12003,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "realName": {
+            "type": "string"
+          },
           "role": {
             "type": "string"
           },
@@ -12019,6 +12018,9 @@
             ]
           },
           "twitter": {
+            "type": "string"
+          },
+          "website": {
             "type": "string"
           }
         }
@@ -12041,6 +12043,9 @@
             "type": "string"
           },
           "email": {
+            "type": "string"
+          },
+          "freeText": {
             "type": "string"
           },
           "gitHub": {
@@ -12108,6 +12113,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "realName": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -12117,6 +12125,9 @@
             ]
           },
           "twitter": {
+            "type": "string"
+          },
+          "website": {
             "type": "string"
           }
         }

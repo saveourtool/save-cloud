@@ -141,7 +141,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     inputTextFormRequired {
                                         form = InputTypes.USER_NAME
                                         textValue = userInfo.name
-                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName()
+                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName() || userInfo.name.length <= 22
                                         classes = ""
                                         name = "User name"
                                         conflictMessage = conflictErrorMessage
