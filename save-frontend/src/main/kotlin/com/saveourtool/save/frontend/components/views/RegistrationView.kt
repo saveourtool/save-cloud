@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
@@ -16,6 +15,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
@@ -141,7 +141,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     inputTextFormRequired {
                                         form = InputTypes.USER_NAME
                                         textValue = userInfo.name
-                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName() || userInfo.name.length <= 22
+                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName() || userInfo.name.isValidLengthName()
                                         classes = ""
                                         name = "User name"
                                         conflictMessage = conflictErrorMessage

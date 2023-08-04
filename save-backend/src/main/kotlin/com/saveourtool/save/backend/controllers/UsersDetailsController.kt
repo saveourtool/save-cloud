@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.isValidLengthName
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -103,7 +104,7 @@ class UsersDetailsController(
     @Suppress("MagicNumber")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
             Mono.just(newUserInfo)
-                .filter { newUserInfo.name.length <= 22 }
+                .filter { newUserInfo.name.isValidLengthName() }
                 .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
                     UserSaveStatus.INVALID_NAME.message
                 }

@@ -1,5 +1,6 @@
 package com.saveourtool.save.domain
 
+import com.saveourtool.save.validation.NAMING_MAX_LENGTH
 import kotlinx.serialization.Serializable
 
 /**
@@ -19,9 +20,9 @@ enum class UserSaveStatus(val message: String) {
     DELETED("User successfully deleted"),
 
     /**
-     * User name longer than 22 characters
+     * User name longer than [NAMING_MAX_LENGTH] characters
      */
-    INVALID_NAME("Name must not be longer than 22 characters"),
+    INVALID_NAME("Name must not be longer than $NAMING_MAX_LENGTH characters"),
 
     /**
      * New user

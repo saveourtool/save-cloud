@@ -14,7 +14,7 @@ private const val EMAIL_PLACEHOLDER = "test@example.com"
 private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
-private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than 22 characters." +
+private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMING_MAX_LENGTH characters." +
         "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
@@ -77,7 +77,7 @@ enum class InputTypes(
         "User name",
         NAME_ERROR_MESSAGE,
         "name",
-        tooltip = "Name must not be longer than 22 characters"
+        tooltip = "Name must not be longer than $NAMING_MAX_LENGTH characters"
     ),
     COMPANY("Company/Affiliation"),
     REAL_NAME("Your name"),
