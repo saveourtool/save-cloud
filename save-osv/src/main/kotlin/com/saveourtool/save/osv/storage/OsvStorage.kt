@@ -9,6 +9,7 @@ import com.saveourtool.save.utils.upload
 
 import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.osv.processor.AnyOsvSchema
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -18,8 +19,10 @@ import java.nio.ByteBuffer
 import java.util.Comparator
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 /**
  * Storage for Vulnerabilities.
@@ -49,34 +52,18 @@ class OsvStorage(
     /**
      * @param vulnerability
      */
-    fun upload(vulnerability: RawOsvSchema): Mono<String> = upload(
+    final inline fun <reified S : AnyOsvSchema> upload(vulnerability: S): Mono<String> =
+            upload(vulnerability, serializer())
+
+    /**
+     * @param vulnerability
+     * @param serializer
+     * @return ID
+     */
+    fun <S : AnyOsvSchema> upload(vulnerability: S, serializer: SerializationStrategy<S>): Mono<String> = upload(
         vulnerability.toStorageKey(),
-        json.encodeToString(vulnerability).encodeToByteArray(),
+        json.encodeToString(serializer, vulnerability).encodeToByteArray(),
     ).map { vulnerability.id }
-
-    /**
-     * @param content
-     * @return uploaded vulnerability.id
-     */
-    fun uploadSingle(content: String): Mono<String> {
-        val vulnerability: RawOsvSchema = Json.decodeFromString(content)
-        return upload(
-            vulnerability.toStorageKey(),
-            content.encodeToByteArray(),
-        ).map { vulnerability.id }
-    }
-
-    /**
-     * @param content
-     * @return uploaded content length
-     */
-    fun uploadBatch(content: String): Mono<Long> {
-        val vulnerability: RawOsvSchema = Json.decodeFromString(content)
-        return upload(
-            vulnerability.toStorageKey(),
-            content.encodeToByteArray(),
-        )
-    }
 
     /**
      * @param id [OsvKey.id]

@@ -2,14 +2,12 @@ package com.saveourtool.save.osv.service
 
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.osv.processor.AnyOsvSchema
-import com.saveourtool.save.osv.processor.OsvProcessor
 import com.saveourtool.save.osv.storage.OsvStorage
-import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromStream
-import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromString
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.osv.processor.OsvProcessorHolder
+import com.saveourtool.save.osv.utils.toJsonArrayOrSingle
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -19,8 +17,7 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.InputStream
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.json.*
 
 /**
  * Service for vulnerabilities
@@ -29,7 +26,7 @@ import kotlinx.serialization.json.decodeFromStream
 class OsvService(
     private val osvStorage: OsvStorage,
     private val vulnerabilityService: IVulnerabilityService,
-    private val osvProcessor: OsvProcessor<AnyOsvSchema>,
+    private val osvProcessorHolder: OsvProcessorHolder,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -42,15 +39,11 @@ class OsvService(
      * @param authentication who uploads [inputStream]
      * @return save's vulnerability names
      */
+    @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
         inputStream: InputStream,
         authentication: Authentication,
-    ): Flux<String> = { json.decodeSingleOrArrayFromStream<RawOsvSchema>(inputStream) }
-        .toMono()
-        .flatMapIterable { it }
-        .flatMap {
-            save(it, authentication)
-        }
+    ): Flux<String> = decodeAndSave(json.decodeFromStream<JsonElement>(inputStream), authentication)
 
     /**
      * Decodes [content] and saves the result
@@ -62,27 +55,24 @@ class OsvService(
     fun decodeAndSave(
         content: String,
         authentication: Authentication,
-    ): Flux<String> = { json.decodeSingleOrArrayFromString<RawOsvSchema>(content) }
-        .toMono()
-        .flatMapIterable { it }
-        .flatMap {
-            save(it, authentication)
-        }
+    ): Flux<String> = decodeAndSave(json.parseToJsonElement(content), authentication)
 
     /**
-     * Saves [vulnerability] in S3 storage and creates a new entity in save database
+     * Saves OSVs from [jsonElement] in S3 storage and creates entities in save database
      *
-     * @param vulnerability
-     * @param authentication who uploads [vulnerability]
-     * @return save's vulnerability name
+     * @param jsonElement
+     * @param authentication who uploads OSV
+     * @return save's vulnerability names
      */
-    private fun save(
-        vulnerability: RawOsvSchema,
+    private fun decodeAndSave(
+        jsonElement: JsonElement,
         authentication: Authentication,
-    ): Mono<String> = osvStorage.upload(vulnerability).blockingMap {
-        osvProcessor.apply(vulnerability)
-        vulnerabilityService.save(osvProcessor.apply(vulnerability), authentication).name
-    }
+    ): Flux<String> = jsonElement.toMono()
+        .flatMapIterable { it.toJsonArrayOrSingle() }
+        .flatMap { osvProcessorHolder.apply(it.jsonObject) }
+        .blockingMap {
+            vulnerabilityService.save(it, authentication).name
+        }
 
     /**
      * Finds OSV with validating save database
