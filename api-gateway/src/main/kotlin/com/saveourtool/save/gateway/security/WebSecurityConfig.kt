@@ -17,6 +17,7 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
@@ -31,6 +32,7 @@ import org.springframework.security.web.server.util.matcher.NegatedServerWebExch
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import reactor.kotlin.core.publisher.cast
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -118,7 +120,7 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
-                    backendService.findByName(username)
+                    backendService.findByName(username).cast<UserDetails>()
                 }
             )
         }
