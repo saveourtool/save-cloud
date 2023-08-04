@@ -58,10 +58,6 @@ spring:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
             - AuthorizationHeaders=
-        - id: error_route
-          uri: ${gateway.backend.url}/error
-          predicates:
-            - Path=/error
         - id: neo4j_route
           uri: ${gateway.neo4j-browser.url}
           predicates:
@@ -121,11 +117,3 @@ spring:
             scope:
               - user_info
 ---
-spring:
-  error:
-    whitelabel:
-      enabled: false
-
-server:
-  error:
-    path: /error
