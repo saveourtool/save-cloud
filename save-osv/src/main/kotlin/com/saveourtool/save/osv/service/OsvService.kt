@@ -2,7 +2,8 @@ package com.saveourtool.save.osv.service
 
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.osv.processor.AnyOsvSchema
+import com.saveourtool.save.osv.processor.OsvProcessor
 import com.saveourtool.save.osv.storage.OsvStorage
 import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromStream
 import com.saveourtool.save.osv.utils.decodeSingleOrArrayFromString
@@ -17,7 +18,6 @@ import reactor.kotlin.core.publisher.toMono
 
 import java.io.InputStream
 
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -29,6 +29,7 @@ import kotlinx.serialization.json.decodeFromStream
 class OsvService(
     private val osvStorage: OsvStorage,
     private val vulnerabilityService: IVulnerabilityService,
+    private val osvProcessor: OsvProcessor<AnyOsvSchema>,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -79,7 +80,8 @@ class OsvService(
         vulnerability: RawOsvSchema,
         authentication: Authentication,
     ): Mono<String> = osvStorage.upload(vulnerability).blockingMap {
-        vulnerabilityService.save(vulnerability.toSaveVulnerabilityDto(), authentication).name
+        osvProcessor.apply(vulnerability)
+        vulnerabilityService.save(osvProcessor.apply(vulnerability), authentication).name
     }
 
     /**
@@ -102,33 +104,4 @@ class OsvService(
                 .collectToInputStream()
                 .map { json.decodeFromStream<RawOsvSchema>(it) }
         }
-
-    companion object {
-        private fun RawOsvSchema.toSaveVulnerabilityDto(): VulnerabilityDto = VulnerabilityDto(
-            name = id,
-            vulnerabilityIdentifier = id,
-            progress = 0,
-            projects = emptyList(),
-            description = details,
-            shortDescription = summary.orEmpty(),
-            relatedLink = null,
-            language = VulnerabilityLanguage.OTHER,
-            userInfo = UserInfo(name = ""),  // will be set on saving to database
-            organization = null,
-            dates = buildList {
-                add(modified.asVulnerabilityDateDto(VulnerabilityDateType.CVE_UPDATED))
-                published?.asVulnerabilityDateDto(VulnerabilityDateType.INTRODUCED)?.run { add(this) }
-                withdrawn?.asVulnerabilityDateDto(VulnerabilityDateType.FIXED)?.run { add(this) }
-            },
-            participants = emptyList(),
-            status = VulnerabilityStatus.CREATED,
-            tags = setOf("osv-schema")
-        )
-
-        private fun LocalDateTime.asVulnerabilityDateDto(type: VulnerabilityDateType) = VulnerabilityDateDto(
-            date = this,
-            type = type,
-            vulnerabilityName = "NOT_USED_ON_SAVE",
-        )
-    }
 }
