@@ -233,15 +233,15 @@ val basicRouting: FC<AppProps> = FC { props ->
             } to SETTINGS_ORGANIZATIONS,
 
             props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userInfo = props.userInfo?.name }
+                UserSettingsProfileMenuView::class.react.create { userInfo = props.userInfo }
             ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
 
             props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userInfo = props.userInfo?.name }
+                UserSettingsEmailMenuView::class.react.create { userInfo = props.userInfo }
             ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
 
             props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userInfo = props.userInfo?.name }
+                UserSettingsTokenMenuView::class.react.create { userInfo = props.userInfo }
             ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
 
             props.viewWithFallBack(

@@ -62,7 +62,6 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
         setOrganizations(organizationsNew)
 
-
         val vulnerabilitiesNew: Array<VulnerabilityDto> = get(
             url = "$apiUrl/vulnerabilities/by-user?userName=$userName",
             Headers().apply {

@@ -83,5 +83,8 @@ external interface UserProfileVulnerabilitiesTabProps : Props {
      */
     var userName: String
 
+    /**
+     * Just a list of vulnerabilities
+     */
     var vulnerabilities: Array<VulnerabilityDto>
 }

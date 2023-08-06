@@ -7,7 +7,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.withNavigate
 import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.useEffect

@@ -112,16 +112,16 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                 compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
                     .thenBy { it.organization.name }
 
-           scope.launch {
-               val user = props.userInfo
-               val organizationDtos = getOrganizationWithUsersList()
-               setState {
-                   userInfo = props.userInfo
-                   userInfo?.let { updateFieldsMap(it) }
-                   selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
-                   avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
-               }
-           }
+        scope.launch {
+            val user = props.userInfo
+            val organizationDtos = getOrganizationWithUsersList()
+            setState {
+                userInfo = props.userInfo
+                userInfo?.let { updateFieldsMap(it) }
+                selfOrganizationWithUserList = organizationDtos.sortedWith(comparator)
+                avatar = user?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+            }
+        }
     }
 
     private fun updateFieldsMap(userInfo: UserInfo) {
@@ -151,7 +151,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             }
             imageUpload = { file ->
                 scope.launch {
-                    postImageUpload(file, props.userInfo!!, AvatarType.USER, ::noopLoadingHandler)
+                    postImageUpload(file, props.userInfo?.name!!, AvatarType.USER, ::noopLoadingHandler)
                 }
             }
         }
