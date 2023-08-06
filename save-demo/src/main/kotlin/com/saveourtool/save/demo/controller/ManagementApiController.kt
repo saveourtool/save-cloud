@@ -21,7 +21,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "management"),
 )
 @RestController
-@RequestMapping("/demo/api/manager")
+@RequestMapping("/api/demo/manager")
 class ManagementApiController(
     private val toolService: ToolService,
     private val demoService: DemoService,

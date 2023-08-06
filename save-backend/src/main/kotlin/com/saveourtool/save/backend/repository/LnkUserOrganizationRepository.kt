@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -77,7 +78,13 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
 
     /**
      * @param userName
+     * @param status status of organization
      * @return List of [LnkUserOrganization] in which user with [userName] participates
      */
-    fun findByUserName(userName: String): List<LnkUserOrganization>
+    fun findByUserNameAndOrganizationStatus(userName: String, status: OrganizationStatus): List<LnkUserOrganization>
+
+    /**
+     * @param userId id of user
+     */
+    fun deleteByUserId(userId: Long)
 }

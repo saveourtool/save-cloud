@@ -17,6 +17,7 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
@@ -31,6 +32,7 @@ import org.springframework.security.web.server.util.matcher.NegatedServerWebExch
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import reactor.kotlin.core.publisher.cast
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -67,7 +69,7 @@ class WebSecurityConfig(
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**", "/sandbox/api/**", "/demo/api/**")
+                .pathMatchers("/api/**")
                 .access { authentication, authorizationContext ->
                     AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
                         authentication, authorizationContext
@@ -88,8 +90,9 @@ class WebSecurityConfig(
         }
         .run {
             authorizeExchange()
+                // api-gateway forwards everything to save-frontend now
                 .pathMatchers("/**")
-                .authenticated()
+                .permitAll()
         }
         .and()
         .run {
@@ -98,7 +101,7 @@ class WebSecurityConfig(
         }
         .exceptionHandling {
             it.authenticationEntryPoint(
-                // return 401 for unauthorized requests instead of redirect to login
+                // return 401 for unauthorized requests instead of redirect to log-in
                 HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
             )
         }
@@ -106,7 +109,7 @@ class WebSecurityConfig(
             it.authenticationSuccessHandler(
                 DelegatingServerAuthenticationSuccessHandler(
                     StoringServerAuthenticationSuccessHandler(backendService),
-                    RedirectServerAuthenticationSuccessHandler("/#"),
+                    RedirectServerAuthenticationSuccessHandler("/"),
                 )
             )
             it.authenticationFailureHandler(
@@ -117,7 +120,7 @@ class WebSecurityConfig(
             // Authenticate by comparing received basic credentials with existing one from DB
             httpBasicSpec.authenticationManager(
                 UserDetailsRepositoryReactiveAuthenticationManager { username ->
-                    backendService.findByName(username)
+                    backendService.findByName(username).cast<UserDetails>()
                 }
             )
         }

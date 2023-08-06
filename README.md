@@ -19,10 +19,10 @@ Additionally, on our platform we host **contests** in the field of code analysis
 This provides an opportunity for you to submit your automated solutions for bug detection, and compete with other innovative projects.
 
 ## Links
-- Collection of Code Analyzers Demo: [Demo](https://saveourtool.com/#/demo)
-- Benchmarks Archive: [Benchmarks](https://saveourtool.com/#/awesome-benchmarks)
-- CI projects: [CI Projects](https://saveourtool.com/#/projects)
-- Vulnerabilities Collection: [1-day Vulnerabilities](https://saveourtool.com/#/vuln/list)
+- Collection of Code Analyzers Demo: [Demo](https://saveourtool.com/demo)
+- Benchmarks Archive: [Benchmarks](https://saveourtool.com/awesome-benchmarks)
+- CI projects: [CI Projects](https://saveourtool.com/projects)
+- Vulnerabilities Collection: [1-day Vulnerabilities](https://saveourtool.com/vuln/list)
 
 ## Motivation
 - [Motivation of **SAVE** and more details](info/SaveMotivation.md)

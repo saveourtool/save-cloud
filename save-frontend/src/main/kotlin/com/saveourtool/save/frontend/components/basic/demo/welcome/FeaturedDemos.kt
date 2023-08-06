@@ -57,7 +57,7 @@ internal val featuredDemos = VFC {
                 className = ClassName("img-fluid")
                 // FixMe: we need to have information about the programming language in demo in order to show label
                 src = avatars.getOrElse(demoDto.projectCoordinates.organizationName) {
-                    "img/undraw_join_re_w1lh.svg"
+                    "/img/undraw_join_re_w1lh.svg"
                 }
             }
         }

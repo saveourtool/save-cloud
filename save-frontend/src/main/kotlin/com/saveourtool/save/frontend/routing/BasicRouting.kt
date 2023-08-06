@@ -8,7 +8,6 @@ package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
@@ -22,16 +21,12 @@ import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
-import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
@@ -201,7 +196,6 @@ val basicRouting: FC<AppProps> = FC { props ->
             awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
             creationView.create() to "$CREATE_PROJECT/:owner",
             organizationView.create() to ":owner",
-            organizationView.create() to "${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
             historyView.create() to ":owner/:name/history",
             projectView.create() to ":owner/:name",
             createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
@@ -217,6 +211,26 @@ val basicRouting: FC<AppProps> = FC { props ->
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
 
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userInfo = props.userInfo?.name }
@@ -234,19 +248,17 @@ val basicRouting: FC<AppProps> = FC { props ->
                 UserSettingsOrganizationsMenuView::class.react.create { userInfo = props.userInfo }
             ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
 
-        ).forEach {
+        ).forEach { (view, route) ->
             PathRoute {
-                this.element = it.first
-                this.path = "/${it.second}"
+                this.element = view
+                this.path = "/$route"
             }
         }
 
-        props.userInfo?.name.run {
+        props.userInfo?.name?.run {
             PathRoute {
                 path = "/$this"
-                element = Navigate.create {
-                    to = "/$this/$SETTINGS_PROFILE"
-                }
+                element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
             }
         }
 
@@ -257,31 +269,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 else -> fallbackNode
             }
         }
-
-        createRoutersWithPathAndEachListItem<ProjectMenuBar>(
-            "/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name",
-            projectView
-        )
-
-        createRoutersWithPathAndEachListItem<OrganizationMenuBar>(
-            "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
-            organizationView
-        )
-
-        createRoutersWithPathAndEachListItem<ContestMenuBar>(
-            "/$CONTESTS/:contestName",
-            contestView
-        )
-
-        createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
-            "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/$AWESOME_BENCHMARKS",
-            awesomeBenchmarksView
-        )
-
-        createRoutersWithPathAndEachListItem<UserRatingTab>(
-            "/$CONTESTS_GLOBAL_RATING",
-            contestGlobalRatingView
-        )
 
         PathRoute {
             path = "*"

@@ -82,7 +82,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     div {
                         className = ClassName("d-flex flex-column")
                         span {
-                            className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
+                            className = ClassName("mr-2 text-white-400")
                             +(props.userInfo?.name.orEmpty())
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
@@ -127,7 +127,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
                         }
                     }
                     dropdownEntry(
@@ -135,7 +135,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         "Manage organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") { attrs ->

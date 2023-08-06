@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.views.toprating
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
@@ -78,7 +79,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = cellContext.row.original.avatar?.let {
                                         "/api/$v1/avatar$it"
-                                    } ?: "img/company.svg"
+                                    } ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         height = 2.rem
                                         width = 2.rem

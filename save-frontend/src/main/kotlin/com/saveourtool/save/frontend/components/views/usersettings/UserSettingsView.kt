@@ -130,7 +130,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
         userInfo.company?.let { fieldsMap[InputTypes.COMPANY] = it }
         userInfo.location?.let { fieldsMap[InputTypes.LOCATION] = it }
         userInfo.linkedin?.let { fieldsMap[InputTypes.LINKEDIN] = it }
-        userInfo.gitHub?.let { fieldsMap[InputTypes.GIT_HUB] = it }
+        userInfo.gitHub?.let { fieldsMap[InputTypes.GITHUB] = it }
         userInfo.twitter?.let { fieldsMap[InputTypes.TWITTER] = it }
     }
 
@@ -315,7 +315,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
             company = fieldsMap[InputTypes.COMPANY]?.trim(),
             location = fieldsMap[InputTypes.LOCATION]?.trim(),
             linkedin = fieldsMap[InputTypes.LINKEDIN]?.trim(),
-            gitHub = fieldsMap[InputTypes.GIT_HUB]?.trim(),
+            gitHub = fieldsMap[InputTypes.GITHUB]?.trim(),
             twitter = fieldsMap[InputTypes.TWITTER]?.trim(),
             avatar = state.userInfo!!.avatar,
             status = state.userInfo!!.status,

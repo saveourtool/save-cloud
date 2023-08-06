@@ -16,10 +16,7 @@ import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyl
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.getProject
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 
@@ -53,7 +50,7 @@ external interface ProjectViewProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenuBar> {
+external interface ProjectViewState : StateWithRole {
     /**
      * Currently loaded for display Project
      */
@@ -95,9 +92,9 @@ external interface ProjectViewState : StateWithRole, HasSelectedMenu<ProjectMenu
     var closeButtonLabel: String?
 
     /**
-     * Contains the paths of default and other tabs
+     * Currently selected [ProjectMenuBar] tab
      */
-    var paths: PathsForTabs
+    var selectedMenu: ProjectMenuBar
 }
 
 /**
@@ -118,14 +115,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
         state.selfRole = Role.NONE
     }
 
-    override fun componentDidUpdate(prevProps: ProjectViewProps, prevState: ProjectViewState, snapshot: Any) {
-        if (prevState.selectedMenu != state.selectedMenu) {
-            changeUrl(state.selectedMenu, ProjectMenuBar, state.paths)
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(ProjectMenuBar, state.selfRole, false)
-        }
-    }
-
     @Suppress("TOO_LONG_FUNCTION")
     override fun componentDidMount() {
         super.componentDidMount()
@@ -139,7 +128,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
             }
             setState {
                 this.project = project
-                paths = PathsForTabs("/${props.owner}/${props.name}", "#/${ProjectMenuBar.nameOfTheHeadUrlSection}/${props.owner}/${props.name}")
             }
             val currentUserRoleInProject: Role = get(
                 "$apiUrl/projects/${project.organizationName}/${project.name}/users/roles",
@@ -161,8 +149,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
                 projectRole = currentUserRoleInProject
                 organizationRole = currentUserRoleInOrganization
             }
-
-            urlAnalysis(ProjectMenuBar, role, false)
 
             fetchLatestExecutionId()
         }
@@ -289,7 +275,6 @@ class ProjectView : AbstractView<ProjectViewProps, ProjectViewState>(Style.SAVE_
             organizationName = props.owner
             projectName = props.name
             latestExecutionId = state.latestExecutionId
-            pathToView = state.paths.pathDefaultTab
             submitExecutionRequest = { context, executionRequest ->
                 context.submitRequest("/run/trigger", jsonHeaders, Json.encodeToString(executionRequest))
             }

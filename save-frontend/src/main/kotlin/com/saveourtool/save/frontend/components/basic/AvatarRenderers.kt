@@ -14,14 +14,16 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
 
 /**
  * Placeholder for organization avatar
  */
-const val ORGANIZATION_AVATAR_PLACEHOLDER = "img/company.svg"
+const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.svg"
 
 /**
  * Render organization avatar or placeholder
@@ -37,7 +39,7 @@ fun ChildrenBuilder.renderAvatar(
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) = renderAvatar(
-    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: ORGANIZATION_AVATAR_PLACEHOLDER,
+    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER,
     classes,
     link ?: "/${organizationDto.name}",
     styleBuilder
@@ -81,8 +83,20 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
-        +" ${userInfo.name}"
+        div {
+            className = ClassName("col")
+            div {
+                className = ClassName("row justify-content-center")
+                renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+            }
+            div {
+                className = ClassName("row justify-content-center mt-2")
+                style = jso {
+                    fontSize = 0.8.rem
+                }
+                +" ${userInfo.name}"
+            }
+        }
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
@@ -107,8 +121,20 @@ fun ChildrenBuilder.renderOrganizationWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
-        +" ${organizationDto.name}"
+        div {
+            className = ClassName("col")
+            div {
+                className = ClassName("row justify-content-center")
+                renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
+            }
+            div {
+                className = ClassName("row justify-content-center mt-2")
+                style = jso {
+                    fontSize = 0.8.rem
+                }
+                +" ${organizationDto.name}"
+            }
+        }
     }
     return if (organizationDto.status != OrganizationStatus.DELETED) {
         Link {

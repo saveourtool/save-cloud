@@ -54,14 +54,14 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo() {
 
         div {
             className = ClassName("row justify-content-center mt-5 mx-4")
-            textCard("What is vulnerability?", "img/undraw_question.svg", WHAT_IS_VULNERABILITY)
-            textCard("Why should we pay attention?", "img/undraw_warning.svg", WHY_VULNERABILITIES_DANGEROUS)
+            textCard("What is vulnerability?", "/img/undraw_question.svg", WHAT_IS_VULNERABILITY)
+            textCard("Why should we pay attention?", "/img/undraw_warning.svg", WHY_VULNERABILITIES_DANGEROUS)
         }
 
         div {
             className = ClassName("row justify-content-center mt-5 mx-4")
-            textCard("Why vulnerability archives important?", "img/undraw_important.svg", IMPORTANCE_OF_VULNERABILITY_ARCHIVES)
-            textCard("Unifying repositories", "img/undraw_share.svg", MANY_INDEPENDENT_REPOS)
+            textCard("Why vulnerability archives important?", "/img/undraw_important.svg", IMPORTANCE_OF_VULNERABILITY_ARCHIVES)
+            textCard("Unifying repositories", "/img/undraw_share.svg", MANY_INDEPENDENT_REPOS)
         }
     }
 }

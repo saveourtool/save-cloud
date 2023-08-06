@@ -13,7 +13,7 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
-import react.router.dom.Link
+import react.router.Navigate
 import web.cssom.*
 
 import kotlinx.browser.document
@@ -74,7 +74,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
             }
 
             if (props.withRouterLink == true) {
-                Link {
+                Navigate {
                     to = "/"
                     buttonBuilder("Back to the main page", style = "info") { }
                 }
@@ -98,7 +98,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
                         className = ClassName("mt-3")
                         href = "https://github.com/saveourtool/save-cloud"
                         img {
-                            src = "img/github.svg"
+                            src = "/img/github.svg"
                             style = jso {
                                 width = 5.rem
                                 height = 5.rem

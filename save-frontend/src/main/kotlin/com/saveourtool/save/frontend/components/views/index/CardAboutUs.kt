@@ -29,7 +29,7 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
         className = ClassName("col-3 mx-2 mt-2")
         div {
             className = ClassName("row d-flex justify-content-center")
-            cardImage("img/icon3.png")
+            cardImage("/img/icon3.png")
         }
 
         div {

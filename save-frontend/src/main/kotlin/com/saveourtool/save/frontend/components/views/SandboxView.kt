@@ -33,7 +33,7 @@ import web.html.ButtonType
 
 import kotlinx.browser.window
 
-val sandboxApiUrl = "${window.location.origin}/sandbox/api"
+val sandboxApiUrl = "${window.location.origin}/api/sandbox"
 
 /**
  * A view for testing config files
@@ -47,9 +47,7 @@ val sandboxView = VFC {
     val resultReload = useDeferredRequest {
         val response = get(
             "$sandboxApiUrl/get-debug-info",
-            Headers().apply {
-                set("Accept", "application/octet-stream")
-            },
+            Headers().apply { set("Accept", "application/octet-stream") },
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )

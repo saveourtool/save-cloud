@@ -8,12 +8,14 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.isValidLengthName
 
 import js.core.jso
 import react.*
@@ -135,7 +137,7 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                 }
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mb-4")
-                                    src = "img/company.svg"
+                                    src = AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         width = 8.rem
                                     }
@@ -147,7 +149,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                             form = InputTypes.ORGANIZATION_NAME
                                             conflictMessage = state.conflictErrorMessage
                                             textValue = state.organizationDto.name
-                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName()) && state.conflictErrorMessage == null
+                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName() ||
+                                                    state.organizationDto.name.isValidLengthName()) && state.conflictErrorMessage == null
                                             classes = ""
                                             name = "Organization name"
                                             onChangeFun = {

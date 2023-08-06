@@ -243,3 +243,7 @@ external val faPaperPlane: FontAwesomeIconModule
 @JsModule("@fortawesome/free-solid-svg-icons/faWindowClose")
 @JsNonModule
 external val faWindowClose: FontAwesomeIconModule
+
+@JsModule("@fortawesome/free-solid-svg-icons/faCamera")
+@JsNonModule
+external val faCamera: FontAwesomeIconModule

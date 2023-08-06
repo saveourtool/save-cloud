@@ -620,9 +620,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -719,9 +731,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1061,9 +1085,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1142,9 +1178,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1287,9 +1335,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1365,9 +1425,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1552,9 +1624,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1674,9 +1758,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -1941,9 +2037,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2010,9 +2118,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2111,9 +2231,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2204,9 +2336,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2340,9 +2484,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2435,9 +2591,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2538,9 +2706,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2621,9 +2801,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -2720,9 +2912,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -3865,9 +4069,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4001,9 +4217,21 @@
         "operationId": "getAllUsersOrganizationsThatCanCreateContests",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4172,7 +4400,7 @@
     "/api/v1/organizations/get/list-by-user-name": {
       "get": {
         "description": "Get list of all organizations where current user is a participant.",
-        "operationId": "getOrganizationsByUserName",
+        "operationId": "getOrganizationsByUserNameAndCreatedStatus",
         "parameters": [
           {
             "in": "query",
@@ -4228,9 +4456,21 @@
         "operationId": "saveOrganization",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4374,9 +4614,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4468,9 +4720,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4571,9 +4835,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4645,9 +4921,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4712,9 +5000,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4794,9 +5094,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4868,9 +5180,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -4878,7 +5202,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Organization"
+                "$ref": "#/components/schemas/OrganizationDto"
               }
             }
           },
@@ -4962,9 +5286,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5133,9 +5469,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5313,9 +5661,21 @@
             "required": true
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5407,9 +5767,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5473,9 +5845,21 @@
         "operationId": "getProjects",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5585,9 +5969,21 @@
         "operationId": "getProjectsOfCurrentUser",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -5634,14 +6030,7 @@
       "get": {
         "description": "Get project by name and organization name.",
         "operationId": "getProjectByNameAndOrganizationName",
-        "parameters": [
-          {
-            "example": "basic",
-            "in": "header",
-            "name": "X-Authorization-Source",
-            "required": true
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "content": {
@@ -5965,9 +6354,21 @@
         "operationId": "saveProject",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6040,9 +6441,21 @@
         "operationId": "updateProject",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6147,9 +6560,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6230,9 +6655,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6320,9 +6757,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6411,9 +6860,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6504,9 +6965,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6607,9 +7080,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6742,9 +7227,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6830,9 +7327,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6876,9 +7385,21 @@
         "operationId": "getOrganizationNamesWithPublicTestSuiteSources",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -6927,9 +7448,21 @@
         "operationId": "createTestSuitesSource",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7036,9 +7569,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7160,9 +7705,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7233,9 +7790,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7315,9 +7884,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7386,9 +7967,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7463,9 +8056,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7559,9 +8164,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7622,9 +8239,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7702,9 +8331,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -7844,9 +8485,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8037,9 +8690,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8149,9 +8814,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8234,9 +8911,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8324,9 +9013,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8420,9 +9121,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8535,9 +9248,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8635,9 +9360,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8713,9 +9450,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8802,9 +9551,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -8992,9 +9753,21 @@
         "operationId": "approve",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -9397,9 +10170,21 @@
             }
           },
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -9747,9 +10532,21 @@
         "operationId": "reject",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -10166,9 +10963,21 @@
         "operationId": "update",
         "parameters": [
           {
-            "example": "basic",
+            "example": 123,
             "in": "header",
-            "name": "X-Authorization-Source",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
             "required": true
           }
         ],
@@ -11984,6 +12793,9 @@
           "email": {
             "type": "string"
           },
+          "freeText": {
+            "type": "string"
+          },
           "gitHub": {
             "type": "string"
           },
@@ -12007,6 +12819,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "realName": {
+            "type": "string"
+          },
           "role": {
             "type": "string"
           },
@@ -12019,6 +12834,9 @@
             ]
           },
           "twitter": {
+            "type": "string"
+          },
+          "website": {
             "type": "string"
           }
         }
@@ -12041,6 +12859,9 @@
             "type": "string"
           },
           "email": {
+            "type": "string"
+          },
+          "freeText": {
             "type": "string"
           },
           "gitHub": {
@@ -12108,6 +12929,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "realName": {
+            "type": "string"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -12117,6 +12941,9 @@
             ]
           },
           "twitter": {
+            "type": "string"
+          },
+          "website": {
             "type": "string"
           }
         }
@@ -12266,7 +13093,6 @@
         "required": [
           "isOwner",
           "prefixName",
-          "status",
           "tags"
         ],
         "type": "object",
