@@ -103,7 +103,7 @@ fun ChildrenBuilder.inputForm(
             input {
                 placeholder = placeholderText
                 type = InputType.text
-                className = ClassName("form-control")
+                className = ClassName("form-control shadow")
                 previousValue.let {
                     defaultValue = it
                 }

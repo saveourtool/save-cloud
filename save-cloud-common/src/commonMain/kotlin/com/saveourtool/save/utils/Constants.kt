@@ -73,3 +73,5 @@ const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
  */
 @Suppress("NON_EXPORTABLE_TYPE")
 const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L
+
+const val AVATARS_PACKS_DIR: String = "avatar_packs"

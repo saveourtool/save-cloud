@@ -17,7 +17,29 @@ import web.cssom.ClassName
 import web.cssom.rem
 import web.file.File
 
-val avatarForm = avatarForm()
+val avatarForm: FC<AvatarFormProps> = FC { props ->
+    modalAvatarBuilder(
+        isOpen = props.isOpen,
+        title = props.title,
+        onCloseButtonPressed = {
+            props.onCloseWindow()
+        }
+    ) {
+        div {
+            className = ClassName("shadow")
+            style = jso {
+                height = 18.rem
+                width = 18.rem
+            }
+            reactAvatarImageCropper {
+                apply = { file, _ ->
+                    props.imageUpload(file)
+                    props.onCloseWindow()
+                }
+            }
+        }
+    }
+}
 
 /**
  * AvatarForm component props
@@ -42,28 +64,4 @@ external interface AvatarFormProps : Props {
      * Callback to upload avatar.
      */
     var imageUpload: (File) -> Unit
-}
-
-private fun avatarForm() = FC<AvatarFormProps> { props ->
-    modalAvatarBuilder(
-        isOpen = props.isOpen,
-        title = props.title,
-        onCloseButtonPressed = {
-            props.onCloseWindow()
-        }
-    ) {
-        div {
-            className = ClassName("shadow")
-            style = jso {
-                height = 18.rem
-                width = 18.rem
-            }
-            reactAvatarImageCropper {
-                apply = { file, _ ->
-                    props.imageUpload(file)
-                    props.onCloseWindow()
-                }
-            }
-        }
-    }
 }
