@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.validation.isValidLengthName
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,7 +34,9 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateName(organization.name) != 0L) {
+        val (organizationId, organizationSaveStatus) = if (organization.name.isValidLengthName()) {
+            Pair(0L, OrganizationSaveStatus.INVALID_NAME)
+        } else if (organizationRepository.validateName(organization.name) != 0L) {
             organizationRepository.saveHighLevelName(organization.name)
             Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
         } else {
