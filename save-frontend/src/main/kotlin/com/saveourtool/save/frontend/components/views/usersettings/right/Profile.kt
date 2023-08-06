@@ -23,6 +23,7 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.ChildrenBuilder
 import react.FC
+import react.StateSetter
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.hr
@@ -30,10 +31,7 @@ import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.useState
-import web.cssom.ClassName
-import web.cssom.Display
-import web.cssom.JustifyContent
-import web.cssom.rem
+import web.cssom.*
 import web.http.FormData
 
 import kotlinx.browser.window
@@ -47,6 +45,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
     // === states ===
     val avatarWindowOpen = useWindowOpenness()
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
+    val (selectedAvatar, setSelectedAvatar) = useState<String>()
     val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
 
     // === image editor ===
@@ -140,7 +139,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                         if (i % 3 == 0) {
                             div {
                                 className = ClassName("row")
-                                renderPreparedAvatars(lowerBound..i)
+                                renderPreparedAvatars(lowerBound..i, setSelectedAvatar)
                                 lowerBound = i + 1
                             }
                         }
@@ -241,14 +240,23 @@ private fun ChildrenBuilder.extraInformation(
     hr { }
 }
 
-private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange) {
+private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
     for (i in avatarsRange) {
-        img {
-            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle shadow")
-            src = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
-            style = jso {
-                height = 5.1.rem
-                width = 5.1.rem
+        val avatar = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
+        div {
+            className = ClassName("animated-provider")
+            img {
+                className =
+                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle shadow")
+                src = avatar
+                style = jso {
+                    height = 5.1.rem
+                    width = 5.1.rem
+                    cursor = Cursor.pointer
+                }
+                onClick = {
+                    setSelectedAvatar(avatar)
+                }
             }
         }
     }

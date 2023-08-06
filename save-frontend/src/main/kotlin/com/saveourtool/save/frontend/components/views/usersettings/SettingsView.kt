@@ -22,7 +22,6 @@ import react.dom.html.ReactHTML.main
 import web.cssom.*
 import web.html.InputType
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -31,6 +30,7 @@ val cardHeight: CSSProperties = jso {
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
+
     useBackground(Style.SAVE_LIGHT)
     main {
         className = ClassName("main-content")
@@ -48,6 +48,7 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                         rightSettingsColumn {
                             this.userInfo = props.userInfo
                             this.type = props.type
+                            this.userInfoSetter = props.userInfoSetter
                         }
                     } ?: main {
                         // FixMe: some light 404
@@ -66,7 +67,7 @@ typealias FieldsStateSetter = StateSetter<SettingsInputFields>
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface SettingsProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 
@@ -74,6 +75,14 @@ external interface SettingsProps : PropsWithChildren {
      * just a flag for a factory
      */
     var type: FrontendRoutes
+
+    /**
+     * After updating user information we will update userSettings without re-rendering the page
+     * PLEASE NOTE: THIS PROPERTY AFFECTS RENDERING OF WHOLE APP.KT
+     * IF YOU HAVE SOME PROBLEMS WITH IT, CHECK THAT YOU HAVE PROPAGATED IT PROPERLY:
+     * { this.userInfoSetter = (!) PROPS (!) .userInfoSetter }
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**
@@ -133,11 +142,13 @@ fun saveUser(
     settingsInputFields: SettingsInputFields,
     setFieldsValidation: FieldsStateSetter,
 ) = useDeferredRequest {
+    // this new user info will be sent to backend and also will be set in setter,
+    // so frontend will recalculate it on the fly at least for SettingsView (need to extend it later)
+    val newUserInfo = settingsInputFields.toUserInfo(props.userInfo!!)
     val response = post(
         "$apiUrl/users/save",
         jsonHeaders,
-
-        Json.encodeToString(settingsInputFields.toUserInfo(props.userInfo!!)),
+        Json.encodeToString(newUserInfo),
         loadingHandler = ::loadingHandler,
         responseHandler = ::noopResponseHandler
     )
@@ -149,6 +160,6 @@ fun saveUser(
     } else {
         val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, null)
         setFieldsValidation(newSettingsInputFields)
-        window.location.reload()
+        props.userInfoSetter(newUserInfo)
     }
 }

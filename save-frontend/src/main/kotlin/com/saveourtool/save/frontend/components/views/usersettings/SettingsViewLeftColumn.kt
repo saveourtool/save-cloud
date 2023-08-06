@@ -70,6 +70,13 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                 div {
                                     className = ClassName("row justify-content-center")
                                     h6 {
+                                        className = ClassName("mb-0 text-gray-800")
+                                        +(props.userInfo?.realName ?: "")
+                                    }
+                                }
+                                div {
+                                    className = ClassName("row justify-content-center")
+                                    h6 {
                                         Link {
                                             to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
                                             style = jso {
