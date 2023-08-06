@@ -31,7 +31,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
 
     div {
-        className = ClassName("card card-body pt-0 px-0")
+        className = ClassName("card card-body pt-0 px-0 shadow")
         style = cardHeight
         div {
             className = ClassName("col mr-2 px-0")
@@ -153,7 +153,7 @@ private fun ChildrenBuilder.settingsMenuTab(
     div {
         className = ClassName("mt-2")
         Link {
-            className = ClassName("btn $style btn-block text-left")
+            className = ClassName("btn $style btn-block text-left shadow")
             to = "/$link"
             fontAwesomeIcon(icon = icon) {
                 it.className = "fas fa-sm fa-fw mr-2"

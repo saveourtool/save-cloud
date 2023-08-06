@@ -16,7 +16,7 @@ import web.cssom.ClassName
 
 val rightSettingsColumn: FC<SettingsProps> = FC { props ->
     div {
-        className = ClassName("card card-body mt-0 pt-0 px-0 text-gray-800")
+        className = ClassName("card card-body mt-0 pt-0 px-0 text-gray-800 shadow")
         style = cardHeight
         when (props.type) {
             SETTINGS_PROFILE -> profileSettingsCard {
