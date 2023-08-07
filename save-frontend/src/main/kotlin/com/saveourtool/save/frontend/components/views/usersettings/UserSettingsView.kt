@@ -110,8 +110,8 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<OrganizationWithUsers> =
-            compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
-                .thenBy { it.organization.name }
+                compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+                    .thenBy { it.organization.name }
 
         scope.launch {
             val user = props.userName

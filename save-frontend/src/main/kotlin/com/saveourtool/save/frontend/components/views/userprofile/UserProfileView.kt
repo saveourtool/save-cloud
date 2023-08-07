@@ -38,7 +38,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
     val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
 
-    val initialRequests = useDeferredRequest {
+    useRequest {
         val userNew: UserInfo = get(
             "$apiUrl/users/$userName",
             jsonHeaders,
@@ -64,10 +64,6 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         ).decodeFromJsonString()
 
         setVulnerabilities(vulnerabilitiesNew)
-    }
-
-    useOnce {
-        initialRequests()
     }
 
     div {
