@@ -22,10 +22,12 @@ val rightSettingsColumn: FC<SettingsProps> = FC { props ->
             SETTINGS_PROFILE -> profileSettingsCard {
                 this.userInfo = props.userInfo
                 this.type = props.type
+                this.userInfoSetter = props.userInfoSetter
             }
             SETTINGS_EMAIL -> emailSettingsCard {
                 this.userInfo = props.userInfo
                 this.type = props.type
+                this.userInfoSetter = props.userInfoSetter
             }
             SETTINGS_TOKEN -> tokenSettingsCard {
                 this.userInfo = props.userInfo

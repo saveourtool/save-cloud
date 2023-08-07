@@ -213,11 +213,13 @@ val basicRouting: FC<AppProps> = FC { props ->
             termsOfUsageView.create() to TERMS_OF_USE,
 
             userSettingsView.create {
+                userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_PROFILE
             } to SETTINGS_PROFILE,
 
             userSettingsView.create {
+                userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_EMAIL
             } to SETTINGS_EMAIL,
@@ -295,6 +297,11 @@ external interface AppProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**

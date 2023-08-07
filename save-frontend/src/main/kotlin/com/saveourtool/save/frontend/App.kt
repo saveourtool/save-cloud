@@ -90,7 +90,10 @@ val App: VFC = FC {
                     div {
                         className = ClassName("container-fluid")
                         id = "common-save-container"
-                        basicRouting { this.userInfo = userInfo }
+                        basicRouting {
+                            this.userInfo = userInfo
+                            this.userInfoSetter = setUserInfo
+                        }
                     }
                     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                     footer { }
