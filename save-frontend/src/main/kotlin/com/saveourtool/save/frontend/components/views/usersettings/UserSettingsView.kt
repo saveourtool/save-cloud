@@ -236,7 +236,7 @@ abstract class UserSettingsView : AbstractView<UserSettingsProps, UserSettingsVi
                                                     fontAwesomeIcon(icon = faUser) {
                                                         it.className = "fas fa-sm fa-fw mr-2 text-gray-600"
                                                     }
-                                                    +"Profile"
+                                                    +"Profile settings"
                                                 }
                                             }
                                             div {

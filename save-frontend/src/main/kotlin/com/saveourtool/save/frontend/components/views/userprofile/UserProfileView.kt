@@ -23,7 +23,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
