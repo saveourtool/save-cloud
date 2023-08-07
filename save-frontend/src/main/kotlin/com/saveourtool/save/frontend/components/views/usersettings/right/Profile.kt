@@ -45,8 +45,8 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
     // === states ===
     val avatarWindowOpen = useWindowOpenness()
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
-    val (selectedAvatar, setSelectedAvatar) = useState<String>()
-    val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
+    val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val saveUser = useSaveUser(props, settingsInputFields, setSettingsInputFields)
 
     // === image editor ===
     avatarForm {

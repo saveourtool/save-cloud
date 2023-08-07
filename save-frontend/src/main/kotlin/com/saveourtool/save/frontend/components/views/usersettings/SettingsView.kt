@@ -132,12 +132,14 @@ fun ChildrenBuilder.inputForm(
 }
 
 /**
+ * (!) HOOK WITH REQUEST
+ *
  * @param props
  * @param settingsInputFields
  * @param setFieldsValidation
  * @return callback to a post request that will be executed
  */
-fun saveUser(
+fun useSaveUser(
     props: SettingsProps,
     settingsInputFields: SettingsInputFields,
     setFieldsValidation: FieldsStateSetter,
