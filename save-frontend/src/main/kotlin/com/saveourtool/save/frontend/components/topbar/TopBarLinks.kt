@@ -40,6 +40,13 @@ private val vulnTopbarLinks = sequenceOf(
     TopBarLink(hrefAnchor = FrontendRoutes.TOP_RATING.path, width = 7.rem, text = "Top Rating"),
 )
 
+@Suppress("MAGIC_NUMBER", "UnusedPrivateProperty")
+private val generalTopbarLinks = sequenceOf(
+    TopBarLink(hrefAnchor = FrontendRoutes.SAVE.path, width = 13.rem, text = "SAVE"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULN.path, width = 8.rem, text = "VULN"),
+    TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 7.rem, text = "About us"),
+)
+
 /**
  * Displays the static links that do not depend on the url.
  */
