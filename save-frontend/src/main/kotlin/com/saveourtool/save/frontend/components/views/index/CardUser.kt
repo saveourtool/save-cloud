@@ -108,9 +108,9 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 className = ClassName("col-9")
                 props.userInfo?.let {
                     p {
-                        +"Registered since ${it.createDate?.toInstant(TimeZone.UTC)?.toLocalDateTime(TimeZone.UTC)
+                        +"Registered since: ${it.createDate?.toInstant(TimeZone.UTC)?.toLocalDateTime(TimeZone.UTC)
                             .let { date ->
-                                "${date?.dayOfWeek?.name?.toLowerCasePreservingASCIIRules()}, ${date?.dayOfMonth} ${date?.month?.name?.toLowerCasePreservingASCIIRules()} ${date?.year}"
+                                "${date?.dayOfMonth} ${date?.month?.name?.toLowerCasePreservingASCIIRules()} ${date?.year}"
                             }} !"
                     }
                     p {
