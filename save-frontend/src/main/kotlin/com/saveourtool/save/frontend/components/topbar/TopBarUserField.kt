@@ -50,7 +50,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
+    val (avatarNew, setAvatarNew) = useStateFromProps(props.userInfo?.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_PROFILE_PLACEHOLDER)
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -100,10 +100,10 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = avatarNew
                             style = logoSize
                             onError = {
-                                setAvatar { AVATAR_PLACEHOLDER }
+                                setAvatarNew { AVATAR_PLACEHOLDER }
                             }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {

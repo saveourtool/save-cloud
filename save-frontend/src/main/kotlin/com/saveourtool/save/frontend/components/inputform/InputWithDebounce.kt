@@ -103,7 +103,7 @@ internal fun renderUserWithAvatar(childrenBuilder: ChildrenBuilder, userInfo: Us
                 className = ClassName("col-1")
                 img {
                     className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
-                    src = userInfo.avatar?.let { "/api/$v1/avatar$it" } ?: "/img/undraw_profile.svg"
+                    src = userInfo.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
                     style = jso {
                         width = "2rem".unsafeCast<Width>()
                         height = "2rem".unsafeCast<Height>()
