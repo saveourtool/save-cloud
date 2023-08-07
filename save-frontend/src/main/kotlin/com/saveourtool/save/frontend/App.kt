@@ -42,7 +42,7 @@ val App: VFC = FC {
         val userName: String? = get(
             "${window.location.origin}/sec/user",
             jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
         ).run {
             val responseText = text().await()
@@ -52,7 +52,7 @@ val App: VFC = FC {
         val globalRole: Role? = get(
             "$apiUrl/users/global-role",
             jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
         ).run {
             val responseText = text().await()

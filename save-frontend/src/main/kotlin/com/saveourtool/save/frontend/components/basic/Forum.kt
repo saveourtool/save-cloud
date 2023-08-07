@@ -49,7 +49,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
             url = "$apiUrl/comments/save",
             headers = jsonHeaders,
             body = Json.encodeToString(commentNew),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {

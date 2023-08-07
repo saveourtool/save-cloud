@@ -101,7 +101,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                 avatar,
                 props.userInfo?.name!!,
                 AvatarType.USER,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
         }
     }

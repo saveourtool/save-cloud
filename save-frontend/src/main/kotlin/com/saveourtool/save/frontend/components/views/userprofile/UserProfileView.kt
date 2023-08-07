@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.views.contests.tab
@@ -18,12 +19,10 @@ import com.saveourtool.save.frontend.externals.fontawesome.faLink
 import com.saveourtool.save.frontend.externals.fontawesome.faTwitter
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
@@ -37,14 +36,13 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val (user, setUser) = useState<UserInfo?>(null)
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
+    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
 
     useRequest {
         val userNew: UserInfo = get(
             "$apiUrl/users/$userName",
-            Headers().apply {
-                set("Accept", "application/json")
-            },
-            loadingHandler = ::noopLoadingHandler,
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
 
@@ -52,14 +50,20 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
         val organizationsNew: List<OrganizationDto> = get(
             "$apiUrl/organizations/get/list-by-user-name?userName=$userName",
-            Headers().apply {
-                set("Accept", "application/json")
-            },
-            loadingHandler = ::noopLoadingHandler,
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
 
         setOrganizations(organizationsNew)
+
+        val vulnerabilitiesNew: Array<VulnerabilityDto> = get(
+            url = "$apiUrl/vulnerabilities/by-user?userName=$userName",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        ).decodeFromJsonString()
+
+        setVulnerabilities(vulnerabilitiesNew)
     }
 
     div {
@@ -80,7 +84,10 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             }
 
             when (selectedMenu) {
-                UserProfileTab.VULNERABILITIES -> renderVulnerabilityTable { this.userName = userName }
+                UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
+                    this.userName = userName
+                    this.vulnerabilities = vulnerabilities
+                }
             }
         }
     }
