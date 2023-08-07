@@ -2,26 +2,21 @@
 
 package com.saveourtool.save.frontend.components.basic.table.filters
 
+import com.saveourtool.save.filters.VulnerabilityFilter
+import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.withNavigate
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
-import react.FC
+import react.*
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
-import react.useEffect
-import react.useState
 import web.cssom.ClassName
 import web.html.InputType
 
-val vulnerabilitiesFiltersRow: FC<NameFilterRowProps> = FC { props ->
-
-    val (filtersName, setFiltersName) = useState(props.name)
-    useEffect(props.name) {
-        if (filtersName != props.name) {
-            setFiltersName(props.name)
-        }
-    }
+val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
+    val (tagPrefix, setTagPrefix) = useState("")
+    val (filter, setFilter) = useStateFromProps(props.filter)
 
     div {
         className = ClassName("px-0 container-fluid")
@@ -35,47 +30,81 @@ val vulnerabilitiesFiltersRow: FC<NameFilterRowProps> = FC { props ->
             div {
                 className = ClassName("row")
                 div {
-                    className = ClassName("col-auto align-self-center")
-                    +"Name: "
-                }
-                div {
                     className = ClassName("col-auto mr-3")
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filtersName ?: ""
+                        value = filter.prefixName
+                        placeholder = "Name..."
                         required = false
-                        onChange = {
-                            setFiltersName(it.target.value)
+                        onChange = { event ->
+                            setFilter { oldFilter ->
+                                oldFilter.copy(prefixName = event.target.value)
+                            }
+                        }
+                    }
+                }
+                div {
+                    className = ClassName("col-auto")
+                    inputWithDebounceForString {
+                        selectedOption = tagPrefix
+                        setSelectedOption = { setTagPrefix(it) }
+                        getUrlForOptionsFetch = { prefix -> "$apiUrl/tags/vulnerabilities?prefix=$prefix" }
+                        placeholder = "Tag..."
+                        renderOption = { childrenBuilder, tag ->
+                            with(childrenBuilder) {
+                                h6 {
+                                    className = ClassName("text-sm")
+                                    +tag
+                                }
+                            }
+                        }
+                        onOptionClick = { newTag ->
+                            setFilter { oldFilter -> oldFilter.copy(tags = oldFilter.tags + newTag) }
+                            setTagPrefix("")
+                        }
+                    }
+                }
+                div {
+                    className = ClassName("col-auto align-middle row")
+                    filter.tags.forEach { tag ->
+                        buttonBuilder(tag, isOutline = tag !in props.filter.tags, classes = "rounded-pill text-sm btn-sm mx-1") {
+                            setFilter { oldFilter -> oldFilter.copy(tags = filter.tags - tag) }
                         }
                     }
                 }
             }
 
-            buttonBuilder(
-                faSearch,
-                classes = "btn mr-1",
-                isOutline = false,
-                style = "secondary"
-            ) {
-                props.onChangeFilters(filtersName)
-            }
+            div {
+                className = ClassName("ml-auto")
+                buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
+                    props.onChangeFilter(filter)
+                }
+                buttonBuilder(faWindowClose, classes = "btn mr-1", isOutline = true, style = "secondary") {
+                    props.onChangeFilter(null)
+                }
 
-            buttonBuilder(
-                faWindowClose,
-                classes = "btn mr-1",
-                isOutline = true,
-                style = "secondary"
-            ) {
-                setFiltersName(null)
-                props.onChangeFilters(null)
-            }
-
-            withNavigate { navigateContext ->
-                buttonBuilder(label = "Propose a new vulnerability", style = "primary") {
-                    navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                withNavigate { navigateContext ->
+                    buttonBuilder(faPlus, style = "primary", title = "Propose a new vulnerability", isOutline = true) {
+                        navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                    }
                 }
             }
         }
     }
+}
+
+/**
+ * [Props] for filters name
+ */
+external interface VulnerabilitiesFiltersProps : Props {
+    /**
+     * All [VulnerabilityFilter]
+     */
+    var filter: VulnerabilityFilter
+
+    /**
+     * [StateSetter] for [VulnerabilityFilter]
+     */
+    var onChangeFilter: (VulnerabilityFilter?) -> Unit
 }
