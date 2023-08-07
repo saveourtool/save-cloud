@@ -42,9 +42,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val initialRequests = useDeferredRequest {
         val userNew: UserInfo = get(
             "$apiUrl/users/$userName",
-            Headers().apply {
-                set("Accept", "application/json")
-            },
+            jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -53,9 +51,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
         val organizationsNew: List<OrganizationDto> = get(
             "$apiUrl/organizations/get/list-by-user-name?userName=$userName",
-            Headers().apply {
-                set("Accept", "application/json")
-            },
+            jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
             .decodeFromJsonString()
@@ -64,9 +60,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
         val vulnerabilitiesNew: Array<VulnerabilityDto> = get(
             url = "$apiUrl/vulnerabilities/by-user?userName=$userName",
-            Headers().apply {
-                set("Accept", "application/json")
-            },
+            jsonHeaders,
             loadingHandler = ::loadingHandler,
         ).decodeFromJsonString()
 
