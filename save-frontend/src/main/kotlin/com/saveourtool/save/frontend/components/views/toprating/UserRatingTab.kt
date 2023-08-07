@@ -7,7 +7,6 @@ import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import js.core.jso
@@ -91,7 +90,7 @@ val userRatingTable: FC<Props> = FC { _ ->
                     get(
                         url = "$apiUrl/users/all",
                         headers = jsonHeaders,
-                        loadingHandler = ::noopLoadingHandler,
+                        loadingHandler = ::loadingHandler,
                         responseHandler = ::noopResponseHandler,
                     ).unsafeMap {
                         it.decodeFromJsonString<Array<UserInfo>>()
