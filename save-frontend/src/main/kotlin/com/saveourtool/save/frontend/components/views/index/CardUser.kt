@@ -98,7 +98,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 className = ClassName("col-9")
                 props.userInfo?.let {
                     p {
-                        +"You are with us since ${it.createDate} !"
+                        +"Registered since ${it.createDate} !"
                     }
                     p {
                         +START_NOW
