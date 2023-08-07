@@ -4,10 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.renderAvatar
-import com.saveourtool.save.frontend.utils.buttonBuilder
-import com.saveourtool.save.frontend.utils.useStateFromProps
-import com.saveourtool.save.v1
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
@@ -15,7 +14,9 @@ import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.p
-import react.router.Navigate
+import react.router.dom.Link
+import react.router.useNavigate
+import react.useState
 import web.cssom.ClassName
 import web.cssom.TextAlign
 import web.cssom.rem
@@ -41,7 +42,19 @@ private const val START_NOW = """
 """
 
 val cardUser: FC<IndexViewProps> = FC { props ->
-    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
+    val (organizations, setOrganizations) = useState(emptyList<OrganizationDto>())
+    val navigate = useNavigate()
+
+    useRequest {
+        val organizationsNew: List<OrganizationDto> = get(
+            "$apiUrl/organizations/get/list-by-user-name?userName=${props.userInfo?.name}",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+            .decodeFromJsonString()
+
+        setOrganizations(organizationsNew)
+    }
 
     div {
         className = ClassName("col-3 mx-2 mt-2")
@@ -57,8 +70,11 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                     textAlign = TextAlign.center
                 }
                 +"Welcome${props.userInfo?.name?.let { ", " } ?: ""}"
-                b {
-                    +(props.userInfo?.name?.let { " @$it " } ?: "")
+                Link {
+                    to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                    b {
+                        +(props.userInfo?.name?.let { " @$it " } ?: "")
+                    }
                 }
                 +"!"
             }
@@ -82,6 +98,9 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 className = ClassName("col-9")
                 props.userInfo?.let {
                     p {
+                        +"You are with us since ${it.createDate} !"
+                    }
+                    p {
                         +START_NOW
                     }
 
@@ -92,9 +111,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                             style = "primary rounded-pill",
                             isOutline = false
                         ) {
-                            Navigate {
-                                to = "/${FrontendRoutes.SETTINGS_PROFILE}"
-                            }
+                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
                         }
                     }
                 }
@@ -111,9 +128,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                                 style = "primary rounded-pill",
                                 isOutline = false
                             ) {
-                                Navigate {
-                                    to = "/${FrontendRoutes.VULNERABILITIES}"
-                                }
+                                navigate(to = "/${FrontendRoutes.VULNERABILITIES}")
                             }
                         }
 
@@ -124,9 +139,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                                 style = "primary rounded-pill",
                                 isOutline = false
                             ) {
-                                Navigate {
-                                    to = "/${FrontendRoutes.PROJECTS}"
-                                }
+                                navigate(to = "/${FrontendRoutes.PROJECTS}")
                             }
                         }
                     }

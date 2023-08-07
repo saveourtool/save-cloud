@@ -101,5 +101,20 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="user-add-date" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="create_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="update_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <sql>
+            UPDATE user SET create_date = '2022-01-01 00:00:00';
+            UPDATE user SET create_date = '2022-01-01 00:00:00';
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
