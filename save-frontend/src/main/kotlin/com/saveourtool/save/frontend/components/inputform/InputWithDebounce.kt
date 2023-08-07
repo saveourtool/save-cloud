@@ -124,7 +124,7 @@ private fun <T> inputWithDebounce(
     asString: T.() -> String,
     decodeListFromJsonString: suspend Response.() -> List<T>,
 ) = FC<InputWithDebounceProps<T>> { props ->
-    val (options, setOptions) = useState<List<T>>(emptyList())
+    val (options, setOptions) = useState<List<T>?>(null)
     val getOptions = useDebouncedDeferredRequest(props.debouncePeriod ?: DEFAULT_DEBOUNCE_PERIOD) {
         if (props.selectedOption.asString().isNotBlank()) {
             val optionsFromBackend: List<T> = get(
@@ -150,7 +150,7 @@ private fun <T> inputWithDebounce(
             position = "relative".unsafeCast<Position>()
             zIndex = "2".unsafeCast<ZIndex>()
         }
-        onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(emptyList()) } }
+        onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(null) } }
         div {
             className = ClassName("input-group")
             input {
@@ -174,17 +174,21 @@ private fun <T> inputWithDebounce(
                 zIndex = "3".unsafeCast<ZIndex>()
                 overflowY = "scroll".unsafeCast<Overflow>()
             }
-            options.let { optionList ->
-                props.maxOptions?.let {
-                    optionList.take(it)
-                } ?: options
-            }.forEachIndexed { idx, option ->
+            if (props.selectedOption.asString().isNotEmpty() && options?.isEmpty() == true) {
                 div {
-                    className = ClassName("list-group-item list-group-item-action")
-                    id = "$DROPDOWN_ID-$idx"
-                    onClick = { props.onOptionClick(option) }
-                    props.renderOption(this, option)
+                    className = ClassName("list-group-item")
+                    +"Could not find anything that starts with ${props.selectedOption}..."
                 }
+            } else {
+                options.let { optionList -> props.maxOptions?.let { optionList?.take(it) } ?: options }
+                    ?.forEachIndexed { idx, option ->
+                        div {
+                            className = ClassName("list-group-item list-group-item-action")
+                            id = "$DROPDOWN_ID-$idx"
+                            onClick = { props.onOptionClick(option) }
+                            props.renderOption(this, option)
+                        }
+                    }
             }
         }
     }
