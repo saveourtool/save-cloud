@@ -7,6 +7,7 @@ import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.vulnerabilities.LnkVulnerabilityTag
 import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.utils.orNotFound
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -56,4 +57,14 @@ class TagService(
 
         lnkVulnerabilityTagRepository.delete(link)
     }
+
+    /**
+     * @param prefix [String] that should be matched with tag prefix
+     * @param page [Pageable]
+     * @return [List] of [Tag]s with [Tag.name] that starts with [prefix]
+     */
+    fun getVulnerabilityTagsByPrefix(
+        prefix: String,
+        page: Pageable,
+    ) = lnkVulnerabilityTagRepository.findAllByTagNameStartingWith(prefix, page).map { it.tag }
 }

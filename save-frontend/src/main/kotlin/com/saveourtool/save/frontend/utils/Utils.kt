@@ -42,7 +42,10 @@ internal const val AVATAR_PLACEHOLDER = "/img/undraw_image_not_found.png"
  */
 internal const val AVATAR_PROFILE_PLACEHOLDER = "/img/avatar_placeholder.png"
 
-const val ON_BLUR_TIMEOUT_MILLIS = 100
+/**
+ * Timeout after `onBlur` event takes place but before the component is hidden
+ */
+const val ON_BLUR_TIMEOUT_MILLIS = 200
 
 /**
  * The body of a [useDeferredRequest] invocation.
