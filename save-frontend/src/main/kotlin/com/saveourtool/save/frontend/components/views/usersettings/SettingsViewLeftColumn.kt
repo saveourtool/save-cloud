@@ -71,7 +71,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         className = ClassName("mb-0 text-gray-800")
-                                        +(props.userInfo?.realName ?: "")
+                                        +(props.userInfo?.realName.orEmpty())
                                     }
                                 }
                                 div {
