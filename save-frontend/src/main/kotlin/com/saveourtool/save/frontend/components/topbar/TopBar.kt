@@ -40,7 +40,7 @@ val topBarComponent: FC<TopBarProps> = FC { props ->
         topBarUrlSplits {
             this.location = location
         }
-        if (location.notIn(listOf(FrontendRoutes.REGISTRATION, FrontendRoutes.INDEX, FrontendRoutes.ERROR_404))) {
+        if (location.notIn(FrontendRoutes.noTopBarViewList)) {
             topBarLinks { this.location = location }
         }
         topBarUserField {
