@@ -46,6 +46,7 @@ val basicRouting: FC<AppProps> = FC { props ->
     val userProfileView: VFC = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
+            currentUserInfo = props.userInfo
         }
     }
 
@@ -209,7 +210,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             vulnerabilityView.create() to "$VULN/:vulnerabilityName",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
-            topRatingView.create() to TOP_RATING,
+            topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
 
             userSettingsView.create {

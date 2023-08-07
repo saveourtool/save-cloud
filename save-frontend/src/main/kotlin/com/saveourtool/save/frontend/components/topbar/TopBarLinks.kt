@@ -37,7 +37,7 @@ private val saveTopbarLinks = sequenceOf(
 private val vulnTopbarLinks = sequenceOf(
     TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, width = 13.rem, text = "Propose vulnerability"),
     TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 8.rem, text = "Vulnerabilities"),
-    TopBarLink(hrefAnchor = FrontendRoutes.TOP_RATING.path, width = 7.rem, text = "Top Rating"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, width = 7.rem, text = "Top Rating"),
 )
 
 /**
