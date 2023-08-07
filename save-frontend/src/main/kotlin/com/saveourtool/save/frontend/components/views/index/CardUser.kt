@@ -8,6 +8,8 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
+
+import io.ktor.util.*
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.b
@@ -20,6 +22,10 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.TextAlign
 import web.cssom.rem
+
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 
 // FixMe: List of organizations where user included, if not - link to creation of organization
 // FixMe: Current Rating in Vulnerabilities
@@ -41,6 +47,10 @@ private const val START_NOW = """
     start working with services that you like. 
 """
 
+@Suppress(
+    "PARAMETER_NAME_IN_OUTER_LAMBDA",
+    "LONG_LINE",
+)
 val cardUser: FC<IndexViewProps> = FC { props ->
     val (organizations, setOrganizations) = useState(emptyList<OrganizationDto>())
     val navigate = useNavigate()
@@ -98,7 +108,10 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 className = ClassName("col-9")
                 props.userInfo?.let {
                     p {
-                        +"Registered since ${it.createDate} !"
+                        +"Registered since ${it.createDate?.toInstant(TimeZone.UTC)?.toLocalDateTime(TimeZone.UTC)
+                            .let { date ->
+                                "${date?.dayOfWeek?.name?.toLowerCasePreservingASCIIRules()}, ${date?.dayOfMonth} ${date?.month?.name?.toLowerCasePreservingASCIIRules()} ${date?.year}"
+                            }} !"
                     }
                     p {
                         +START_NOW
