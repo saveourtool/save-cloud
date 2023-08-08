@@ -74,7 +74,7 @@ enum class InputTypes(
     // ==== user setting view
     USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
     USER_NAME(
-        "User name",
+        "Login",
         NAME_ERROR_MESSAGE,
         "name",
         tooltip = "Name must not be longer than $NAMING_MAX_LENGTH characters"

@@ -21,7 +21,8 @@ const val URL_ERROR_MESSAGE = "Please input a valid URL that starts either with 
 /**
  * Error message that is shown when name input is invalid.
  */
-const val NAME_ERROR_MESSAGE = "Please input a name that doesn't contain anything but english letters, numbers, dots and hyphens (but not the first and the last characters)"
+const val NAME_ERROR_MESSAGE = "Please input a name (not longer than $NAMING_MAX_LENGTH symbols) that contains " +
+        "only english letters, numbers; dots and hyphens (but not the first and the last characters)"
 
 /**
  * Error message that is shown when date range input is invalid.

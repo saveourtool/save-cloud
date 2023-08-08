@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
@@ -89,9 +90,9 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                 window.location.reload()
             } else if (responseFromCreationOrganization.isConflict()) {
                 val responseText = responseFromCreationOrganization.unpackMessage()
-                setState {
-                    conflictErrorMessage = responseText
-                }
+                    setState {
+                        conflictErrorMessage = responseText
+                    }
             } else if (!responseFromCreationOrganization.isUnauthorized()) {
                 responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {
@@ -149,8 +150,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                             form = InputTypes.ORGANIZATION_NAME
                                             conflictMessage = state.conflictErrorMessage
                                             textValue = state.organizationDto.name
-                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName() ||
-                                                    state.organizationDto.name.isValidLengthName()) && state.conflictErrorMessage == null
+                                            validInput = state.organizationDto.name.isNotEmpty() && state.organizationDto.validateName() &&
+                                                    state.organizationDto.name.isValidLengthName() && state.conflictErrorMessage == null
                                             classes = ""
                                             name = "Organization name"
                                             onChangeFun = {

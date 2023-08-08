@@ -18,6 +18,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
+import js.core.jso
 
 import react.FC
 import react.StateSetter
@@ -32,6 +34,11 @@ import web.cssom.ClassName
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.ChildrenBuilder
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.h6
+import web.cssom.rem
 
 val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
 
@@ -52,13 +59,61 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
     useOnce { getOrganizationsForUser() }
 
     div {
-        className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
-        h1 {
-            className = ClassName("h3 mb-0 mt-2 text-gray-800")
-            +"Organizations"
+        className = ClassName("row justify-content-center")
+        div {
+            className = ClassName("col-8 px-5")
+            div {
+                className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+                h3 {
+                    className = ClassName("mb-0 mt-2 text-gray-800")
+                    +"Organizations"
+                }
+            }
+
+            div {
+                className = ClassName("d-sm-flex align-items-center justify-content-center mt-1")
+                Link {
+                    to = "/${FrontendRoutes.CREATE_ORGANIZATION}"
+                    buttonBuilder(
+                        "Create new Organization",
+                        style = "outline-primary rounded-pill btn-sm",
+                        isOutline = false
+                    ) {
+                    }
+                }
+            }
+
+            if (organizations.isEmpty()) {
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center mt-5")
+                    h5 {
+                        className = ClassName("mt-2 text-gray-800")
+                        +"You are not added to any organization"
+                    }
+                }
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center mt-1")
+                    img {
+                        src = "/img/sad_cat.png"
+                        @Suppress("MAGIC_NUMBER")
+                        style = jso {
+                            width = 14.rem
+                        }
+                    }
+                }
+            } else {
+                renderOrganizations(organizations, setOrganizations, props)
+            }
+
         }
     }
+}
 
+private fun ChildrenBuilder.renderOrganizations(
+    organizations: List<OrganizationWithUsers>,
+    setOrganizations: OrganizationSetter,
+    props: SettingsProps
+) {
     ul {
         className = ClassName("list-group list-group-flush")
         organizations.forEach { organizationWithUsers ->
@@ -76,7 +131,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                         className = ClassName("align-items-center ml-3 $textClassName")
                         img {
                             className =
-                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                             src = organizationDto.avatar?.let {
                                 "/api/$v1/avatar$it"
                             } ?: AVATAR_ORGANIZATION_PLACEHOLDER
@@ -91,7 +146,10 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
 
                             OrganizationStatus.DELETED -> {
                                 +organizationDto.name
-                                spanWithClassesAndText("text-secondary", organizationDto.status.name.lowercase())
+                                spanWithClassesAndText(
+                                    "text-secondary",
+                                    organizationDto.status.name.lowercase()
+                                )
                             }
 
                             OrganizationStatus.BANNED -> {
@@ -102,14 +160,15 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                     }
                     div {
                         className = ClassName("col-5 text-right")
-                        val role = props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
+                        val role =
+                            props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                         if (role.isHigherOrEqualThan(Role.OWNER)) {
                             when (organizationDto.status) {
                                 OrganizationStatus.CREATED -> actionButton {
                                     title = "WARNING: You are about to delete this organization"
                                     errorTitle = "You cannot delete the organization ${organizationDto.name}"
                                     message =
-                                            "Are you sure you want to delete the organization ${organizationDto.name}?"
+                                        "Are you sure you want to delete the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -158,7 +217,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                                     title = "WARNING: You are about to recover this organization"
                                     errorTitle = "You cannot recover the organization ${organizationDto.name}"
                                     message =
-                                            "Are you sure you want to recover the organization ${organizationDto.name}?"
+                                        "Are you sure you want to recover the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -218,8 +277,8 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
 }
 
 private val comparator: Comparator<OrganizationWithUsers> =
-        compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
-            .thenBy { it.organization.name }
+    compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+        .thenBy { it.organization.name }
 
 typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
 
@@ -244,5 +303,8 @@ private fun updateOrganizationWithUserInOrganizationWithUsersList(
 /**
  * Returned the [organizationWithUsers] with the updated [OrganizationStatus] field to the [newStatus] in the organization field
  */
-private fun changeOrganizationWithUserStatus(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) =
-        organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
+private fun changeOrganizationWithUserStatus(
+    organizationWithUsers: OrganizationWithUsers,
+    newStatus: OrganizationStatus
+) =
+    organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
