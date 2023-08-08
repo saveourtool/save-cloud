@@ -34,7 +34,7 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = if (organization.name.isValidLengthName()) {
+        val (organizationId, organizationSaveStatus) = if (!organization.name.isValidLengthName()) {
             Pair(0L, OrganizationSaveStatus.INVALID_NAME)
         } else if (organizationRepository.validateName(organization.name) != 0L) {
             organizationRepository.saveHighLevelName(organization.name)
