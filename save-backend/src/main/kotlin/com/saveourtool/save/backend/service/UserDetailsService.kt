@@ -77,25 +77,44 @@ class UserDetailsService(
         ?: Role.VIEWER
 
     /**
-     * @param user
+     * @param newUser
      * @param oldName
+     * @param oldUserStatus
      * @return UserSaveStatus
      */
     @Transactional
-    fun saveUser(user: User, oldName: String?): UserSaveStatus =
-            if (userRepository.validateName(user.name) != 0L) {
-                oldName?.let {
-                    userRepository.deleteHighLevelName(oldName)
-                    userRepository.saveHighLevelName(user.name)
-                    userRepository.save(user)
-                    UserSaveStatus.UPDATE
-                } ?: run {
-                    userRepository.save(user)
-                    UserSaveStatus.UPDATE
-                }
+    fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
+        val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
+        // if we are registering new user (updating just name and status to ACTIVE):
+        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.ACTIVE) {
+            // checking if the user with new name already exists (it's definitely not our user, so if found -> CONFLICT)
+            if (isNameFreeAndNotTaken) {
+                userRepository.save(newUser)
+                UserSaveStatus.UPDATE
             } else {
                 UserSaveStatus.CONFLICT
             }
+        } else {
+            // we are trying to change the name of ACTIVE user
+            oldName?.let {
+                // but such name is already taken and exists in db
+                if (isNameFreeAndNotTaken) {
+                    userRepository.deleteHighLevelName(oldName)
+                    userRepository.saveHighLevelName(newUser.name)
+                    userRepository.save(newUser)
+                    UserSaveStatus.UPDATE
+                } else {
+                    UserSaveStatus.CONFLICT
+                }
+                // if we are changing other fields of ACTIVE users, but not changing the name we can just save user
+                // here we highly depend on the `oldName` field (from client code)
+                // but we are safe as we have a unique constraint on the database
+            } ?: run {
+                userRepository.save(newUser)
+                UserSaveStatus.UPDATE
+            }
+        }
+    }
 
     /**
      * @param userNameCandidate
@@ -117,12 +136,14 @@ class UserDetailsService(
         } ?: run {
             userNameCandidate
         }
-        return userRepository.save(User(
-            name = name,
-            password = null,
-            role = userRole,
-            status = UserStatus.CREATED,
-        ))
+        return userRepository.save(
+            User(
+                name = name,
+                password = null,
+                role = userRole,
+                status = UserStatus.CREATED,
+            )
+        )
     }
 
     /**

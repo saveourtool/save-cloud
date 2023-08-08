@@ -95,7 +95,7 @@ external interface SettingsProps : PropsWithChildren {
  * @param settingsInputFields
  * @param colRatio
  */
-@Suppress("TOO_MANY_PARAMETERS")
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
     previousValue: String?,
     inputType: InputTypes,

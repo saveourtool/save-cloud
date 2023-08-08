@@ -112,7 +112,7 @@ private val comparator: Comparator<OrganizationWithUsers> =
 
 typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "CyclomaticComplexMethod", "LongMethod")
 private fun ChildrenBuilder.renderOrganizations(
     organizations: List<OrganizationWithUsers>,
     setOrganizations: OrganizationSetter,

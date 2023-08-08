@@ -47,7 +47,8 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
             to = "/${FrontendRoutes.TERMS_OF_USE}"
             buttonBuilder(
                 "terms of usage",
-                style = "outline-secondary rounded-pill btn-sm",
+                style = "outline-secondary",
+                classes = "rounded-pill btn-sm",
                 isOutline = false
             ) {
                 }
