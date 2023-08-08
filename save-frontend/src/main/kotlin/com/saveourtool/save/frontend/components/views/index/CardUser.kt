@@ -29,7 +29,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-// FixMe: Latest notifications - for example: your Vuln was accepted or Change requested
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
 // FixMe: Statistics about demo
 
