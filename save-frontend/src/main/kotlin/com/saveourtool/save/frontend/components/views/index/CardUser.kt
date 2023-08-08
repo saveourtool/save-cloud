@@ -29,7 +29,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-// FixMe: List of organizations where user included, if not - link to creation of organization
 // FixMe: Current Rating in Vulnerabilities
 // FixMe: Latest notifications - for example: your Vuln was accepted or Change requested
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
@@ -170,33 +169,49 @@ val cardUser: FC<IndexViewProps> = FC { props ->
         }
 
         div {
-            className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
-            h5 {
-                style = jso {
-                    textAlign = TextAlign.center
-                }
-                +"Your organizations:"
-            }
-        }
-        organizations.forEach { organization ->
+            className = ClassName("mt-2")
             div {
-                className = ClassName("row d-flex justify-content-center")
-                div {
-                    className = ClassName("col-12 mt-2")
-                    val renderImg: ChildrenBuilder.() -> Unit = {
-                        renderAvatar(organization) {
-                            height = 2.rem
-                            width = 2.rem
-                        }
-                        +" ${organization.name}"
+                className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                h5 {
+                    style = jso {
+                        textAlign = TextAlign.center
                     }
-                    if (organization.status != OrganizationStatus.DELETED) {
-                        Link {
-                            to = "/${organization.name}"
-                            renderImg()
+                    +"Your organizations:"
+                }
+            }
+            if (organizations.isEmpty()) {
+                div {
+                    className = ClassName("row d-flex justify-content-center mt-1")
+                    buttonBuilder(
+                        "Create",
+                        style = "primary rounded-pill",
+                        isOutline = false
+                    ) {
+                        navigate(to = "/${FrontendRoutes.CREATE_ORGANIZATION}")
+                    }
+                }
+            } else {
+                organizations.forEach { organization ->
+                    div {
+                        className = ClassName("row d-flex justify-content-center")
+                        div {
+                            className = ClassName("col-12 mt-2")
+                            val renderImg: ChildrenBuilder.() -> Unit = {
+                                renderAvatar(organization) {
+                                    height = 2.rem
+                                    width = 2.rem
+                                }
+                                +" ${organization.name}"
+                            }
+                            if (organization.status != OrganizationStatus.DELETED) {
+                                Link {
+                                    to = "/${organization.name}"
+                                    renderImg()
+                                }
+                            } else {
+                                renderImg()
+                            }
                         }
-                    } else {
-                        renderImg()
                     }
                 }
             }
