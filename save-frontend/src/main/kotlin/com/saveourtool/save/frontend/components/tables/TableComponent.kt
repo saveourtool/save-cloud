@@ -285,7 +285,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                             className = ClassName("row justify-content-center")
                             h6 {
                                 className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
-                                +"No results found"
+                                +"Nothing was found"
                             }
                         }
                         div {
