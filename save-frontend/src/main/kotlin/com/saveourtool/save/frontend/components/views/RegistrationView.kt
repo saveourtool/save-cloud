@@ -15,6 +15,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
 
@@ -89,7 +90,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
         if (replyToLogout.ok) {
-            window.location.href = "${window.location.origin}/#"
+            window.location.href = window.location.origin
             window.location.reload()
         }
     }
@@ -153,7 +154,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 }
 
                                 div {
-                                    className = ClassName("mt-2 form-check")
+                                    className = ClassName("mt-2 form-check row")
                                     input {
                                         className = ClassName("form-check-input")
                                         type = "checkbox".unsafeCast<InputType>()
@@ -163,10 +164,9 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     }
                                     label {
                                         className = ClassName("form-check-label")
-                                        htmlFor = "terms-of-use"
                                         +" I agree with "
                                         Link {
-                                            to = "/terms-of-use"
+                                            to = "/${FrontendRoutes.TERMS_OF_USE}"
                                             target = "_blank".unsafeCast<WindowTarget>()
                                             +"terms of use"
                                         }
