@@ -169,101 +169,103 @@ val cardUser: FC<IndexViewProps> = FC { props ->
             }
         }
 
-        div {
-            className = ClassName("mt-2")
+        props.userInfo?.let {
             div {
-                className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
-                h5 {
-                    style = jso {
-                        textAlign = TextAlign.center
-                    }
-                    +"Your organizations:"
-                }
-            }
-            if (organizations.isEmpty()) {
+                className = ClassName("mt-2")
                 div {
-                    className = ClassName("row d-flex justify-content-center mt-1")
-                    buttonBuilder(
-                        "Create",
-                        style = "primary rounded-pill",
-                        isOutline = false
-                    ) {
-                        navigate(to = "/${FrontendRoutes.CREATE_ORGANIZATION}")
+                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                    h5 {
+                        style = jso {
+                            textAlign = TextAlign.center
+                        }
+                        +"Your organizations:"
                     }
                 }
-            } else {
-                organizations.forEach { organization ->
+                if (organizations.isEmpty()) {
                     div {
-                        className = ClassName("row d-flex justify-content-center")
+                        className = ClassName("row d-flex justify-content-center mt-1")
+                        buttonBuilder(
+                            "Create",
+                            style = "primary rounded-pill",
+                            isOutline = false
+                        ) {
+                            navigate(to = "/${FrontendRoutes.CREATE_ORGANIZATION}")
+                        }
+                    }
+                } else {
+                    organizations.forEach { organization ->
                         div {
-                            className = ClassName("col-12 mt-2")
-                            val renderImg: ChildrenBuilder.() -> Unit = {
-                                renderAvatar(organization) {
-                                    height = 2.rem
-                                    width = 2.rem
+                            className = ClassName("row d-flex justify-content-center")
+                            div {
+                                className = ClassName("col-12 mt-2")
+                                val renderImg: ChildrenBuilder.() -> Unit = {
+                                    renderAvatar(organization) {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                    +" ${organization.name}"
                                 }
-                                +" ${organization.name}"
-                            }
-                            if (organization.status != OrganizationStatus.DELETED) {
-                                Link {
-                                    to = "/${organization.name}"
+                                if (organization.status != OrganizationStatus.DELETED) {
+                                    Link {
+                                        to = "/${organization.name}"
+                                        renderImg()
+                                    }
+                                } else {
                                     renderImg()
                                 }
-                            } else {
-                                renderImg()
                             }
                         }
                     }
                 }
             }
-        }
 
-        div {
-            className = ClassName("mt-2")
             div {
-                className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
-                h5 {
-                    style = jso {
-                        textAlign = TextAlign.center
-                    }
-                    +"Your statistics:"
-                }
-            }
-            div {
-                className = ClassName("row text-muted border-bottom border-gray mx-3")
+                className = ClassName("mt-2")
                 div {
-                    className = ClassName("col-9")
-                    p {
-                        +"Vulnerabilities: "
+                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                    h5 {
+                        style = jso {
+                            textAlign = TextAlign.center
+                        }
+                        +"Your statistics:"
                     }
                 }
-
                 div {
-                    className = ClassName("col-3")
-                    p {
-                        Link {
-                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
-                            +countVulnerability
+                    className = ClassName("row text-muted border-bottom border-gray mx-3")
+                    div {
+                        className = ClassName("col-9")
+                        p {
+                            +"Vulnerabilities: "
+                        }
+                    }
+
+                    div {
+                        className = ClassName("col-3")
+                        p {
+                            Link {
+                                to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                +countVulnerability.toString()
+                            }
                         }
                     }
                 }
-            }
 
-            div {
-                className = ClassName("row text-muted border-bottom border-gray mx-3")
                 div {
-                    className = ClassName("col-9")
-                    p {
-                        +"Top rating: "
+                    className = ClassName("row text-muted border-bottom border-gray mx-3")
+                    div {
+                        className = ClassName("col-9")
+                        p {
+                            +"Top rating: "
+                        }
                     }
-                }
 
-                div {
-                    className = ClassName("col-3")
-                    p {
-                        Link {
-                            to = "/${FrontendRoutes.VULN_TOP_RATING}"
-                            +"${props.userInfo?.rating ?: 0}"
+                    div {
+                        className = ClassName("col-3")
+                        p {
+                            Link {
+                                to = "/${FrontendRoutes.VULN_TOP_RATING}"
+                                +"${props.userInfo?.rating ?: 0}"
+                            }
                         }
                     }
                 }
