@@ -92,7 +92,7 @@ fun ChildrenBuilder.renderUserAvatarWithName(
                     className = ClassName("row d-flex align-items-center")
                     renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
                     style = jso {
-                        fontSize = 1.2.rem
+                        fontSize = 1.rem
                     }
                     +" ${userInfo.name}"
                 }
