@@ -142,7 +142,7 @@ Thus, we add `Authorization` and `X-Authorization-Source` headers that correspon
       {
         proxy: [
           {
-            context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**", "**.ico", "**.png"],
+            context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**"],
             target: 'http://localhost:5300',
             logLevel: 'debug',
           }
