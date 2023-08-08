@@ -212,7 +212,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
     user?.twitter?.let { extraLinks(faTwitter, it) }
 
-    user?.linkedin?.let { extraLinks(faLinkedIn, it) }
+    user?.linkedin?.let { extraLinks(faLink, it) }
 
     user?.website?.let { extraLinks(faLink, it) }
 
