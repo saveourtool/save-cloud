@@ -30,7 +30,8 @@ val cardHeight: CSSProperties = jso {
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
-
+    // This is needed for us to wait for userInfo uploaded
+    val (loadedUserInfo: UserInfo?, setLoadedUserInfo) = useStateFromProps(props.userInfo?: UserInfo(""))
     useBackground(Style.SAVE_LIGHT)
     main {
         className = ClassName("main-content")
@@ -40,18 +41,20 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
-                    leftSettingsColumn { this.userInfo = props.userInfo }
+                    leftSettingsColumn { this.userInfo = loadedUserInfo }
                 }
                 div {
                     className = ClassName("col-7")
-                    props.userInfo?.let {
+                    if (loadedUserInfo.name.isNotEmpty()) {
                         rightSettingsColumn {
-                            this.userInfo = props.userInfo
+                            this.userInfo = loadedUserInfo
                             this.type = props.type
                             this.userInfoSetter = props.userInfoSetter
                         }
-                    } ?: main {
-                        // FixMe: some light 404
+                    } else {
+                        main {
+
+                        }
                     }
                 }
             }

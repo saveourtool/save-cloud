@@ -36,6 +36,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_ORGANIZATIONS("settings/organizations"),
     SETTINGS_PROFILE("settings/profile"),
     SETTINGS_TOKEN("settings/token"),
+    SETTINGS_DELETE("settings/delete"),
     TERMS_OF_USE("terms-of-use"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),

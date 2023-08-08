@@ -4,10 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
-import com.saveourtool.save.frontend.components.views.usersettings.right.emailSettingsCard
-import com.saveourtool.save.frontend.components.views.usersettings.right.organizationsSettingsCard
-import com.saveourtool.save.frontend.components.views.usersettings.right.profileSettingsCard
-import com.saveourtool.save.frontend.components.views.usersettings.right.tokenSettingsCard
+import com.saveourtool.save.frontend.components.views.usersettings.right.*
 import com.saveourtool.save.validation.FrontendRoutes.*
 
 import react.FC
@@ -36,6 +33,9 @@ val rightSettingsColumn: FC<SettingsProps> = FC { props ->
             SETTINGS_ORGANIZATIONS -> organizationsSettingsCard {
                 this.userInfo = props.userInfo
                 this.type = props.type
+            }
+            SETTINGS_DELETE -> deleteSettingsCard {
+
             }
             else -> {
                 // FixMe: finish stub here
