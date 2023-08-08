@@ -16,7 +16,6 @@ import remix.run.router.Location
 import web.cssom.ClassName
 import web.cssom.Width
 import web.cssom.rem
-import web.window.window
 
 /**
  * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],

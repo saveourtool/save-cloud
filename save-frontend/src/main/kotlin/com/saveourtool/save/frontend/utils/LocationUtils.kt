@@ -34,7 +34,6 @@ fun Location.isVuln() = this.pathname.startsWith("/vuln")
  */
 fun Location.isSettings() = this.pathname.startsWith("/$SETTINGS")
 
-
 /**
  * @return true if we are on a main (index) page
  */

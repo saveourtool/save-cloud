@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
@@ -90,9 +89,9 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                 window.location.reload()
             } else if (responseFromCreationOrganization.isConflict()) {
                 val responseText = responseFromCreationOrganization.unpackMessage()
-                    setState {
-                        conflictErrorMessage = responseText
-                    }
+                setState {
+                    conflictErrorMessage = responseText
+                }
             } else if (!responseFromCreationOrganization.isUnauthorized()) {
                 responseFromCreationOrganization.unpackMessage().let { message ->
                     setState {

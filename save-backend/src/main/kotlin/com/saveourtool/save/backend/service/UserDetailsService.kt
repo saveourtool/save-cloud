@@ -83,19 +83,19 @@ class UserDetailsService(
      */
     @Transactional
     fun saveUser(user: User, oldName: String?): UserSaveStatus =
-        if (userRepository.validateName(user.name) != 0L) {
-            if (oldName == null) {
-                userRepository.save(user)
-                UserSaveStatus.UPDATE
+            if (userRepository.validateName(user.name) != 0L) {
+                oldName?.let {
+                    userRepository.deleteHighLevelName(oldName)
+                    userRepository.saveHighLevelName(user.name)
+                    userRepository.save(user)
+                    UserSaveStatus.UPDATE
+                } ?: run {
+                    userRepository.save(user)
+                    UserSaveStatus.UPDATE
+                }
             } else {
-                userRepository.deleteHighLevelName(oldName)
-                userRepository.saveHighLevelName(user.name)
-                userRepository.save(user)
-                UserSaveStatus.UPDATE
+                UserSaveStatus.CONFLICT
             }
-        } else {
-            UserSaveStatus.CONFLICT
-        }
 
     /**
      * @param userNameCandidate

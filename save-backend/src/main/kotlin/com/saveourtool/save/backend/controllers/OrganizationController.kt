@@ -7,7 +7,6 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.OrganizationSaveStatus.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -248,8 +247,6 @@ internal class OrganizationController(
             logger.info("Save new organization id = $organizationId")
             ResponseEntity.ok(organizationStatus.message)
         }
-
-
 
     @PostMapping("/{organizationName}/update")
     @RequiresAuthorizationSourceHeader

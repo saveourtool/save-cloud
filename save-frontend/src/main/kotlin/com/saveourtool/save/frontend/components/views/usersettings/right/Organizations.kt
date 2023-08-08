@@ -19,26 +19,24 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 
+import js.core.jso
+import react.ChildrenBuilder
 import react.FC
 import react.StateSetter
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.ChildrenBuilder
-import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.h5
-import react.dom.html.ReactHTML.h6
-import web.cssom.rem
 
 val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
 
@@ -79,7 +77,7 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                         style = "outline-primary rounded-pill btn-sm",
                         isOutline = false
                     ) {
-                    }
+                        }
                 }
             }
 
@@ -104,11 +102,17 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
             } else {
                 renderOrganizations(organizations, setOrganizations, props)
             }
-
         }
     }
 }
 
+private val comparator: Comparator<OrganizationWithUsers> =
+        compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+            .thenBy { it.organization.name }
+
+typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
+
+@Suppress("TOO_LONG_FUNCTION")
 private fun ChildrenBuilder.renderOrganizations(
     organizations: List<OrganizationWithUsers>,
     setOrganizations: OrganizationSetter,
@@ -131,7 +135,7 @@ private fun ChildrenBuilder.renderOrganizations(
                         className = ClassName("align-items-center ml-3 $textClassName")
                         img {
                             className =
-                                ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
+                                    ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
                             src = organizationDto.avatar?.let {
                                 "/api/$v1/avatar$it"
                             } ?: AVATAR_ORGANIZATION_PLACEHOLDER
@@ -161,14 +165,14 @@ private fun ChildrenBuilder.renderOrganizations(
                     div {
                         className = ClassName("col-5 text-right")
                         val role =
-                            props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
+                                props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                         if (role.isHigherOrEqualThan(Role.OWNER)) {
                             when (organizationDto.status) {
                                 OrganizationStatus.CREATED -> actionButton {
                                     title = "WARNING: You are about to delete this organization"
                                     errorTitle = "You cannot delete the organization ${organizationDto.name}"
                                     message =
-                                        "Are you sure you want to delete the organization ${organizationDto.name}?"
+                                            "Are you sure you want to delete the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -217,7 +221,7 @@ private fun ChildrenBuilder.renderOrganizations(
                                     title = "WARNING: You are about to recover this organization"
                                     errorTitle = "You cannot recover the organization ${organizationDto.name}"
                                     message =
-                                        "Are you sure you want to recover the organization ${organizationDto.name}?"
+                                            "Are you sure you want to recover the organization ${organizationDto.name}?"
                                     buttonStyleBuilder = { childrenBuilder ->
                                         with(childrenBuilder) {
                                             fontAwesomeIcon(
@@ -276,12 +280,6 @@ private fun ChildrenBuilder.renderOrganizations(
     }
 }
 
-private val comparator: Comparator<OrganizationWithUsers> =
-    compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
-        .thenBy { it.organization.name }
-
-typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
-
 /**
  * Removes [oldOrganizationWithUsers] by [selfOrganizationWithUserList], adds [newOrganizationWithUsers] in [selfOrganizationWithUserList]
  * and sorts the resulting list by their status and then by name
@@ -307,4 +305,4 @@ private fun changeOrganizationWithUserStatus(
     organizationWithUsers: OrganizationWithUsers,
     newStatus: OrganizationStatus
 ) =
-    organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))
+        organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))

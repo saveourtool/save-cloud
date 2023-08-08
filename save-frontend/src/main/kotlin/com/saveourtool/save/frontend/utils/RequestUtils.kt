@@ -537,7 +537,6 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 @Suppress("MAGIC_NUMBER")
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
 
-
 /**
  * @return true if given [Response] has 409 code, false otherwise
  */

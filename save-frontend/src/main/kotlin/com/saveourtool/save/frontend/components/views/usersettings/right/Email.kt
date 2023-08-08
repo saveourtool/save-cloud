@@ -50,7 +50,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
                 style = "outline-secondary rounded-pill btn-sm",
                 isOutline = false
             ) {
-            }
+                }
         }
     }
 
