@@ -19,3 +19,35 @@
     display: none;
   }
 }
+
+/**
+ * Someone might need it. Usage:
+ *   div {
+ *     className = ClassName("expandable")
+ *     +"Text"
+ *     div {
+ *       className = ClassName("expand")
+ *       +"CONTENT"
+ *     }
+ */
+.expandable {
+  align-self: center;
+  .expand {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  &:hover {
+    .expand {
+      display: block;
+      position: absolute;
+      z-index: 50;
+      height: auto;
+      width: auto;
+      animation: growOut 300ms ease-in-out forwards;
+      transform-origin: top center;
+    }
+  }
+}
+

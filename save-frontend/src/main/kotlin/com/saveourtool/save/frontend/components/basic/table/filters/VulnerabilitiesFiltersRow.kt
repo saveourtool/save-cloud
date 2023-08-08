@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic.table.filters
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -13,6 +14,8 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import web.cssom.ClassName
 import web.html.InputType
+
+private const val LANGUAGE_PLACEHOLDER = "Select a language..."
 
 val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
     val (tagPrefix, setTagPrefix) = useState("")
@@ -65,12 +68,16 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         }
                     }
                 }
+
                 div {
-                    className = ClassName("col-auto align-middle row")
-                    filter.tags.forEach { tag ->
-                        buttonBuilder(tag, isOutline = tag !in props.filter.tags, classes = "rounded-pill text-sm btn-sm mx-1") {
-                            setFilter { oldFilter -> oldFilter.copy(tags = filter.tags - tag) }
-                        }
+                    className = ClassName("col-auto")
+                    selectorBuilder(
+                        filter.language?.value ?: LANGUAGE_PLACEHOLDER,
+                        VulnerabilityLanguage.values().map { it.value }.plus(LANGUAGE_PLACEHOLDER),
+                        "form-control custom-select",
+                    ) { event ->
+                        val newLanguage = VulnerabilityLanguage.values().find { it.value == event.target.value }
+                        setFilter { oldFilter -> oldFilter.copy(language = newLanguage) }
                     }
                 }
             }
@@ -82,11 +89,28 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 }
                 buttonBuilder(faWindowClose, classes = "btn mr-1", isOutline = true, style = "secondary") {
                     props.onChangeFilter(null)
+                    setFilter { props.filter }
+                    setTagPrefix("")
                 }
 
                 withNavigate { navigateContext ->
                     buttonBuilder(faPlus, style = "primary", title = "Propose a new vulnerability", isOutline = true) {
                         navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                    }
+                }
+            }
+        }
+        if (filter.tags.isNotEmpty()) {
+            div {
+                className = ClassName("row d-flex mt-2")
+                filter.tags.forEach { tag ->
+                    buttonBuilder(
+                        tag,
+                        if (tag !in props.filter.tags) "info" else "primary",
+                        isOutline = true,
+                        classes = "rounded-pill text-sm btn-sm mx-1 px-2"
+                    ) {
+                        setFilter { oldFilter -> oldFilter.copy(tags = filter.tags - tag) }
                     }
                 }
             }
