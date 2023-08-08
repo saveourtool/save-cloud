@@ -46,6 +46,16 @@ enum class FrontendRoutes(val path: String) {
 
     companion object {
         /**
+         * List of views on which topbar should not be rendered
+         */
+        val noTopBarViewList = arrayOf(
+            REGISTRATION,
+            INDEX,
+            ERROR_404,
+            TERMS_OF_USE,
+        )
+
+        /**
          * Get forbidden words from [FrontendRoutes].
          *
          * @return list of forbidden words
