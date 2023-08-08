@@ -29,10 +29,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-// FixMe: Current Rating in Vulnerabilities
 // FixMe: Latest notifications - for example: your Vuln was accepted or Change requested
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
-// FixMe: How many vuln were submitted and accepted, ranking in TOP ratings: for contests and more
 // FixMe: Statistics about demo
 
 private const val REGISTER_NOW = """
@@ -55,24 +53,27 @@ val cardUser: FC<IndexViewProps> = FC { props ->
     val (countVulnerability, setCountVulnerability) = useState(0)
     val navigate = useNavigate()
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     useRequest {
-        val organizationsNew: List<OrganizationDto> = get(
-            "$apiUrl/organizations/get/list-by-user-name?userName=${props.userInfo?.name}",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
+        props.userInfo?.name?.let {
+            val organizationsNew: List<OrganizationDto> = get(
+                "$apiUrl/organizations/get/list-by-user-name?userName=$it",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+                .decodeFromJsonString()
 
-        setOrganizations(organizationsNew)
+            setOrganizations(organizationsNew)
 
-        val countVuln: Int = get(
-            "$apiUrl/vulnerabilities/count-by-user?userName=${props.userInfo?.name}",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
+            val countVuln: Int = get(
+                "$apiUrl/vulnerabilities/count-by-user?userName=$it",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+                .decodeFromJsonString()
 
-        setCountVulnerability(countVuln)
+            setCountVulnerability(countVuln)
+        }
     }
 
     div {
@@ -211,6 +212,58 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                             } else {
                                 renderImg()
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        div {
+            className = ClassName("mt-2")
+            div {
+                className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                h5 {
+                    style = jso {
+                        textAlign = TextAlign.center
+                    }
+                    +"Your statistics:"
+                }
+            }
+            div {
+                className = ClassName("row text-muted border-bottom border-gray mx-3")
+                div {
+                    className = ClassName("col-9")
+                    p {
+                        +"Vulnerabilities: "
+                    }
+                }
+
+                div {
+                    className = ClassName("col-3")
+                    p {
+                        Link {
+                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                            +countVulnerability
+                        }
+                    }
+                }
+            }
+
+            div {
+                className = ClassName("row text-muted border-bottom border-gray mx-3")
+                div {
+                    className = ClassName("col-9")
+                    p {
+                        +"Top rating: "
+                    }
+                }
+
+                div {
+                    className = ClassName("col-3")
+                    p {
+                        Link {
+                            to = "/${FrontendRoutes.VULN_TOP_RATING}"
+                            +"${props.userInfo?.rating ?: 0}"
                         }
                     }
                 }
