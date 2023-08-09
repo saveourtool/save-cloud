@@ -2,38 +2,44 @@
 
 package com.saveourtool.save.frontend.components.basic.table.filters
 
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.filters.VulnerabilityFilter
-import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
+import com.saveourtool.save.frontend.components.inputform.*
+import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import web.cssom.ClassName
 import web.html.InputType
 
-private const val LANGUAGE_PLACEHOLDER = "Select a language..."
+private const val LANGUAGE_PLACEHOLDER = "Language..."
+
+private const val DROPDOWN_OPTIONS_AMOUNT = 3
 
 val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
     val (tagPrefix, setTagPrefix) = useState("")
+    val (user, setUser) = useState(UserInfo(""))
+    val (organization, setOrganization) = useState(OrganizationDto.empty)
     val (filter, setFilter) = useStateFromProps(props.filter)
 
     div {
         className = ClassName("px-0 container-fluid")
         div {
-            className = ClassName("row d-flex")
-
+            className = ClassName("row d-flex justify-content-between")
             div {
                 className = ClassName("col-0 mr-3 align-self-center")
                 fontAwesomeIcon(icon = faFilter)
             }
+
             div {
-                className = ClassName("row")
+                className = ClassName("row col-10 mb-1")
                 div {
-                    className = ClassName("col-auto mr-3")
+                    className = ClassName("col-3 px-1")
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
@@ -48,20 +54,15 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     }
                 }
                 div {
-                    className = ClassName("col-auto")
+                    className = ClassName("col-1 px-1")
                     inputWithDebounceForString {
                         selectedOption = tagPrefix
                         setSelectedOption = { setTagPrefix(it) }
-                        getUrlForOptionsFetch = { prefix -> "$apiUrl/tags/vulnerabilities?prefix=$prefix" }
-                        placeholder = "Tag..."
-                        renderOption = { childrenBuilder, tag ->
-                            with(childrenBuilder) {
-                                h6 {
-                                    className = ClassName("text-sm")
-                                    +tag
-                                }
-                            }
+                        getUrlForOptionsFetch = { prefix ->
+                            "$apiUrl/tags/vulnerabilities?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
+                        placeholder = "Tag..."
+                        renderOption = ::renderString
                         onOptionClick = { newTag ->
                             setFilter { oldFilter -> oldFilter.copy(tags = oldFilter.tags + newTag) }
                             setTagPrefix("")
@@ -70,7 +71,43 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 }
 
                 div {
-                    className = ClassName("col-auto")
+                    className = ClassName("col-3 px-1")
+                    inputWithDebounceForUserInfo {
+                        isDisabled = filter.authorName != null
+                        selectedOption = user
+                        setSelectedOption = { setUser(it) }
+                        getUrlForOptionsFetch = { prefix ->
+                            "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
+                        }
+                        placeholder = "User..."
+                        renderOption = ::renderUserWithAvatar
+                        onOptionClick = { newUser ->
+                            setUser(newUser)
+                            setFilter { oldFilter -> oldFilter.copy(authorName = newUser.name) }
+                        }
+                    }
+                }
+
+                div {
+                    className = ClassName("col-3 px-1")
+                    inputWithDebounceForOrganizationDto {
+                        isDisabled = filter.organizationName != null
+                        selectedOption = organization
+                        setSelectedOption = { setOrganization(it) }
+                        getUrlForOptionsFetch = { prefix ->
+                            "$apiUrl/organizations/get/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
+                        }
+                        placeholder = "Organization..."
+                        renderOption = ::renderOrganizationWithAvatar
+                        onOptionClick = { newOrganization ->
+                            setOrganization(newOrganization)
+                            setFilter { oldFilter -> oldFilter.copy(organizationName = newOrganization.name) }
+                        }
+                    }
+                }
+
+                div {
+                    className = ClassName("col-auto px-1")
                     selectorBuilder(
                         filter.language?.value ?: LANGUAGE_PLACEHOLDER,
                         VulnerabilityLanguage.values().map { it.value }.plus(LANGUAGE_PLACEHOLDER),
@@ -83,7 +120,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
             }
 
             div {
-                className = ClassName("ml-auto")
+                className = ClassName("my-auto align-items-center")
                 buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
                     props.onChangeFilter(filter)
                 }
@@ -91,8 +128,9 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     props.onChangeFilter(null)
                     setFilter { props.filter }
                     setTagPrefix("")
+                    setOrganization(OrganizationDto.empty)
+                    setUser(UserInfo(""))
                 }
-
                 withNavigate { navigateContext ->
                     buttonBuilder(faPlus, style = "primary", title = "Propose a new vulnerability", isOutline = true) {
                         navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
