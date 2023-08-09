@@ -61,8 +61,8 @@ val userRatingTable: FC<Props> = FC { _ ->
                     Fragment.create {
                         td {
                             renderUserAvatarWithName(cellContext.row.original, isHorizontal = true, classes = "mr-2") {
-                                height = 3.3.rem
-                                width = 3.3.rem
+                                height = 3.rem
+                                width = 3.rem
                             }
                         }
                     }

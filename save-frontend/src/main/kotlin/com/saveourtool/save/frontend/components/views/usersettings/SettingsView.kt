@@ -96,22 +96,25 @@ external interface SettingsProps : PropsWithChildren {
  * @param setFields
  * @param placeholderText
  * @param settingsInputFields
+ * @param colRatio
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
     previousValue: String?,
     inputType: InputTypes,
     settingsInputFields: SettingsInputFields,
     setFields: FieldsStateSetter,
     placeholderText: String = "",
+    colRatio: Pair<String, String> = "col-4" to "col-8"
 ) {
     div {
-        className = ClassName("row")
+        className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-4 mt-2 text-left align-self-center")
+            className = ClassName("${colRatio.first} mt-2 text-left align-self-center")
             +"${inputType.str}:"
         }
         div {
-            className = ClassName("col-8 mt-2 input-group pl-0")
+            className = ClassName("${colRatio.second} mt-2 input-group pl-0")
             input {
                 placeholder = placeholderText
                 type = InputType.text
