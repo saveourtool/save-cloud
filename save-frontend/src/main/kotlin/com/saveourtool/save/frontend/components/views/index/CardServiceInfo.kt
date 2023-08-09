@@ -4,23 +4,37 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.components.basic.markdown
 import js.core.jso
 import react.FC
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.i
 import react.dom.html.ReactHTML.p
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-// FixMe: all links with descriptions in pretty format
-
 private const val SERVICES = """
-    SaveOurTool provides Intelligent Services for developers of code analysis tools. Our two main directions:
-    1. SAVE - a platform for a distributed Cloud CI of code analyzers with a special test framework. With SAVE you can:
-    quickly establish testing and CI of your analyzer, share your tests with community to compare other tools with your tool
-    using your benchmarks. Using SAVE you can even create an online demo for your analyzer and setup it for your community.
-    2. VULN - a platform for reporting, aggregation and dedublication of 1-day Vulerabilities.
-    
+    provides Intelligent Services for developers of code analysis tools. Our two main directions:
+"""
+
+private const val SAVE = """
+     - a platform for a distributed Cloud CI of code analyzers with a special test framework. With SAVE you can:
+"""
+
+private const val SAVE_POSSIBILITIES = """
+    |- quickly establish testing and CI of your analyzer, 
+    |- share your tests with community to compare other tools with your tool.
+    |- using your benchmarks. 
+    |- using SAVE you can even create an online demo for your analyzer and setup it for your community.
+"""
+
+private const val VULN = """
+    - a platform for reporting, aggregation and dedublication of 1-day Vulerabilities.
+"""
+
+private const val CONTESTS = """
     Also we establish contests in the area of code analysis where you can propose your automated solutions for 
     finding bugs and compete with other projects.
 """
@@ -49,7 +63,34 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
             div {
                 className = ClassName("col-12")
                 p {
+                    b {
+                        +"SaveOurTool "
+                    }
                     +SERVICES
+                }
+                p {
+                    +"1. "
+                    b {
+                        i {
+                            +"SAVE "
+                        }
+                    }
+                    +SAVE
+                }
+                p {
+                    markdown(SAVE_POSSIBILITIES.trimMargin())
+                }
+                p {
+                    +"2. "
+                    b {
+                        i {
+                            +"VULN "
+                        }
+                    }
+                    +VULN
+                }
+                p {
+                    +CONTESTS
                 }
             }
         }

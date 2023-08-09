@@ -21,6 +21,8 @@ import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 import web.cssom.*
 
+const val INPUT_CREDENTIALS_VIEW_CUSTOM_BG = "rgb(240, 240, 240)"
+
 /**
  * @param oauthProviders
  * @param primaryColor color of a shield
@@ -34,6 +36,10 @@ internal fun ChildrenBuilder.inputCredentialsView(
 ) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
+        style = jso {
+            background = INPUT_CREDENTIALS_VIEW_CUSTOM_BG.unsafeCast<Background>()
+            border = "1px solid".unsafeCast<Border>()
+        }
         div {
             className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
             style = jso {
@@ -43,16 +49,16 @@ internal fun ChildrenBuilder.inputCredentialsView(
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
                 +"Sign in with"
             }
-            div {
-                className = ClassName("row")
-                oauthProviders.map {
-                    processRegistrationId(
-                        OauthProvidersFeConfig(
-                            size = @Suppress("MAGIC_NUMBER") 3.rem,
-                            it,
-                        )
+        }
+        div {
+            className = ClassName("row")
+            oauthProviders.map {
+                processRegistrationId(
+                    OauthProvidersFeConfig(
+                        size = @Suppress("MAGIC_NUMBER") 3.rem,
+                        it,
                     )
-                }
+                )
             }
         }
     }

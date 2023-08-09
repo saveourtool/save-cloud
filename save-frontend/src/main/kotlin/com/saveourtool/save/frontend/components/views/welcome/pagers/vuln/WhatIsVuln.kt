@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers.vuln
 
+import com.saveourtool.save.frontend.components.basic.markdown
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
@@ -19,21 +20,6 @@ private const val WHAT_IS_VULNERABILITY = """
      Vulnerabilities can arise from programming errors, misconfigurations, outdated software, or design flaws.
 """
 
-private const val MANY_INDEPENDENT_REPOS = """
-    Independent vulnerability repositories underscore the need for a unified source.
-    Consolidating vulnerabilities into one platform promotes collaboration, streamlines critical information access,
-    and simplifies identification and mitigation of security flaws.
-    It enhances vulnerability management and keeps organizations updated on the latest threats from a reliable,
-    centralized source.
-"""
-
-private const val WHY_VULNERABILITIES_DANGEROUS = """
-    Vulnerabilities allow attackers to exploit weaknesses in IT systems, leading to unauthorized access,
-    data manipulation, operational disruptions, and potential financial, reputational, and legal consequences.
-    Timely vulnerability detection and mitigation are crucial for minimizing cyberattack risks and preserving
-    IT system security and integrity.
-"""
-
 private const val IMPORTANCE_OF_VULNERABILITY_ARCHIVES = """
     A vulnerability archive is vital as a centralized repository for documented vulnerabilities.
     It offers insights for security professionals, aids in proactive risk management,
@@ -42,26 +28,33 @@ private const val IMPORTANCE_OF_VULNERABILITY_ARCHIVES = """
     fortifying overall security posture against future threats.
 """
 
+private const val USEFUL_LINKS_TEXT = """
+    * [OSV Schema](https://ossf.github.io/osv-schema/) - offers a data format interpretable by humans and machines.
+    
+    * [COSV Schema 1.0](https://mp.weixin.qq.com/s/1aJT1X09SVQeNzL8eHWT0Q) - enhances open-source vulnerability descriptions,
+    promotes standardized data sharing for supply chain security, and operational efficiency.
+    
+    * [osv4k](https://github.com/saveourtool/osv4k) - Kotlin and Java model for the serialization and deserialization of OSV Schema.
+"""
+
 /**
- * rendering of 4 paragraphs with info about SAVE
+ * rendering 4 paragraphs with info about VULN
  */
 fun ChildrenBuilder.renderVulnerabilityGeneralInfo() {
     div {
-        style = jso {
-            color = "rgb(6, 7, 89)".unsafeCast<Color>()
-        }
-        className = ClassName("row justify-content-center")
+        style = jso { color = "rgb(6, 7, 89)".unsafeCast<Color>() }
 
         div {
-            className = ClassName("row justify-content-center mt-5 mx-4")
-            textCard("What is vulnerability?", "/img/undraw_question.svg", WHAT_IS_VULNERABILITY)
-            textCard("Why should we pay attention?", "/img/undraw_warning.svg", WHY_VULNERABILITIES_DANGEROUS)
+            className = ClassName("row justify-content-between mt-5")
+            textCard("What is vulnerability?", "/img/undraw_question.svg", WHAT_IS_VULNERABILITY, "mr-3")
+            textCard("Why vulnerability archives important?", "/img/undraw_share.svg", IMPORTANCE_OF_VULNERABILITY_ARCHIVES, "ml-3")
         }
 
         div {
-            className = ClassName("row justify-content-center mt-5 mx-4")
-            textCard("Why vulnerability archives important?", "/img/undraw_important.svg", IMPORTANCE_OF_VULNERABILITY_ARCHIVES)
-            textCard("Unifying repositories", "/img/undraw_share.svg", MANY_INDEPENDENT_REPOS)
+            className = ClassName("row mt-4 align-middle")
+            div {
+                mdCard("Useful links", "/img/undraw_important.svg", USEFUL_LINKS_TEXT.trimIndent())
+            }
         }
     }
 }
@@ -70,9 +63,10 @@ private fun ChildrenBuilder.textCard(
     title: String,
     imageUrl: String,
     textStr: String,
+    classes: String,
 ) {
     div {
-        className = ClassName("card border border-primary rounded rounded-pill col-5 mx-3")
+        className = ClassName("card border border-primary rounded rounded-pill col $classes")
         div {
             className = ClassName("d-flex justify-content-center")
             img {
@@ -92,6 +86,41 @@ private fun ChildrenBuilder.textCard(
         }
         p {
             +textStr
+        }
+    }
+}
+
+private fun ChildrenBuilder.mdCard(
+    title: String,
+    imageUrl: String,
+    markdownStr: String,
+) {
+    div {
+        className = ClassName("card border border-primary rounded rounded-pill col")
+        div {
+            className = ClassName("row")
+            div {
+                className = ClassName("col-3 d-flex align-items-center")
+                div {
+                    className = ClassName("")
+                    img {
+                        className = ClassName("rounded mx-5 my-3")
+                        src = imageUrl
+                        style = jso {
+                            @Suppress("MAGIC_NUMBER")
+                            height = 8.rem
+                        }
+                    }
+                    h5 {
+                        style = jso { textAlign = TextAlign.center }
+                        +title
+                    }
+                }
+            }
+            div {
+                className = ClassName("col-8 align-middle m-3")
+                markdown(markdownStr)
+            }
         }
     }
 }
