@@ -235,6 +235,11 @@ val basicRouting: FC<AppProps> = FC { props ->
                 type = SETTINGS_ORGANIZATIONS
             } to SETTINGS_ORGANIZATIONS,
 
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_DELETE
+            } to SETTINGS_DELETE,
+
             props.viewWithFallBack(
                 UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
             ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",

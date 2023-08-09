@@ -132,7 +132,7 @@ val settingsTabs = VFC {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics", faPlus)
                         settingsMenuTab(
-                            FrontendRoutes.SETTINGS_TOKEN,
+                            FrontendRoutes.SETTINGS_DELETE,
                             "Delete Profile",
                             faWindowClose,
                             "btn-outline-danger"

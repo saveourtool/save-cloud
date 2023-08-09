@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.index.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -16,10 +17,13 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
+import react.router.useNavigate
 import web.cssom.*
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString
@@ -30,6 +34,33 @@ val cardHeight: CSSProperties = jso {
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
+    // This is needed for us to wait for userInfo uploaded
+    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(""))
+    val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
+    val useNavigate = useNavigate()
+
+    modal { modalProps ->
+        modalProps.isOpen = isModalOpen
+        modalProps.contentLabel = "Unauthenticated"
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            ReactHTML.h2 {
+                className = ClassName("h6 text-gray-800")
+                +"You are not logged in"
+            }
+        }
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+            ReactHTML.button {
+                className = ClassName("btn btn-outline-primary")
+                type = ButtonType.button
+                onClick = {
+                    useNavigate(to = "/")
+                }
+                +"Proceed to login page"
+            }
+        }
+    }
 
     useBackground(Style.SAVE_LIGHT)
     main {
@@ -40,18 +71,16 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
-                    leftSettingsColumn { this.userInfo = props.userInfo }
+                    leftSettingsColumn { this.userInfo = loadedUserInfo }
                 }
                 div {
                     className = ClassName("col-7")
-                    props.userInfo?.let {
+                    if (loadedUserInfo.name.isNotEmpty()) {
                         rightSettingsColumn {
-                            this.userInfo = props.userInfo
+                            this.userInfo = loadedUserInfo
                             this.type = props.type
                             this.userInfoSetter = props.userInfoSetter
                         }
-                    } ?: main {
-                        // FixMe: some light 404
                     }
                 }
             }

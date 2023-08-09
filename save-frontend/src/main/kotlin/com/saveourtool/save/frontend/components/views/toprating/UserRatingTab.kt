@@ -24,7 +24,7 @@ val userRatingTable: FC<Props> = FC { _ ->
         get(
             "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DEFAULT_PAGE_SIZE",
             jsonHeaders,
-            ::noopLoadingHandler,
+            ::loadingHandler,
             ::noopResponseHandler,
         )
             .decodeFromJsonString<UserArray>()

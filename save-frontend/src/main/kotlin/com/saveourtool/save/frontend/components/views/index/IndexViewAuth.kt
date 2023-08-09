@@ -56,7 +56,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
                         OauthProvidersFeConfig(
                             3.5.rem,
                             userInfo,
-                            "animate__backInUp",
+                            "animate__shakeX",
                             oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
                         )
                     )
