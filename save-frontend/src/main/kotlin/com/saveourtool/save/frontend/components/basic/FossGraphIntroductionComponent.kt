@@ -30,7 +30,7 @@ private const val SAVE_FOSS_GRAPH_HOW_TO_MD = """
 
 private const val SAVE_FOSS_GRAPH_TOP_RATING_MD = """
     |### Top rating
-    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](/top-rating) of users and organizations.
+    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](/vuln/top-rating) of users and organizations.
 """
 
 @Suppress(
