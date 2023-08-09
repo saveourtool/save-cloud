@@ -81,8 +81,8 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                                         "/api/$v1/avatar$it"
                                     } ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
-                                        height = 2.rem
-                                        width = 2.rem
+                                        height = 3.3.rem
+                                        width = 3.3.rem
                                     }
                                 }
                                 to = "/${cellContext.value}"
@@ -131,7 +131,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
     div {
         className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-8")
+            className = ClassName("col-5")
             tableWithOrganizationRating {
                 getData = { _, _ ->
                     post(

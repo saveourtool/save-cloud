@@ -8,6 +8,8 @@ package com.saveourtool.save.validation
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import kotlin.js.JsExport
 
+const val SETTINGS = "settings"
+
 /**
  * @property path substring of url that defines given route
  */
@@ -32,14 +34,14 @@ enum class FrontendRoutes(val path: String) {
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
     SAVE("save"),
-    SETTINGS_EMAIL("settings/email"),
-    SETTINGS_ORGANIZATIONS("settings/organizations"),
-    SETTINGS_PROFILE("settings/profile"),
-    SETTINGS_TOKEN("settings/token"),
+    SETTINGS_EMAIL("$SETTINGS/email"),
+    SETTINGS_ORGANIZATIONS("$SETTINGS/organizations"),
+    SETTINGS_PROFILE("$SETTINGS/profile"),
+    SETTINGS_TOKEN("$SETTINGS/token"),
     TERMS_OF_USE("terms-of-use"),
-    TOP_RATING("top-rating"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULN_TOP_RATING("$VULN/top-rating"),
     ;
 
     override fun toString(): String = path

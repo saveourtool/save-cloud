@@ -60,9 +60,9 @@ val userRatingTable: FC<Props> = FC { _ ->
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
-                            renderUserAvatarWithName(cellContext.row.original) {
-                                height = 2.rem
-                                width = 2.rem
+                            renderUserAvatarWithName(cellContext.row.original, isHorizontal = true, classes = "mr-2") {
+                                height = 3.rem
+                                width = 3.rem
                             }
                         }
                     }
@@ -84,7 +84,7 @@ val userRatingTable: FC<Props> = FC { _ ->
     div {
         className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-8")
+            className = ClassName("col-5")
             userRatingTable {
                 getData = { _, _ ->
                     get(

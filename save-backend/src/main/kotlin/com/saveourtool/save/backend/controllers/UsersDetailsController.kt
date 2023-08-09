@@ -110,22 +110,27 @@ class UsersDetailsController(
                 }
                 .map {
                     val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+                    val oldStatus = user.status
                     if (user.id == authentication.userId()) {
-                        userDetailsService.saveUser(user.apply {
-                            name = newUserInfo.name
-                            email = newUserInfo.email
-                            company = newUserInfo.company
-                            location = newUserInfo.location
-                            gitHub = newUserInfo.gitHub
-                            linkedin = newUserInfo.linkedin
-                            twitter = newUserInfo.twitter
-                            status = newUserInfo.status
-                            website = newUserInfo.website
-                            realName = newUserInfo.realName
-                            freeText = newUserInfo.freeText
-                        }, newUserInfo.oldName)
+                        userDetailsService.saveUser(
+                            user.apply {
+                                name = newUserInfo.name
+                                email = newUserInfo.email
+                                company = newUserInfo.company
+                                location = newUserInfo.location
+                                gitHub = newUserInfo.gitHub
+                                linkedin = newUserInfo.linkedin
+                                twitter = newUserInfo.twitter
+                                status = newUserInfo.status
+                                website = newUserInfo.website
+                                realName = newUserInfo.realName
+                                freeText = newUserInfo.freeText
+                            },
+                            newUserInfo.oldName,
+                            oldStatus
+                        )
                     } else {
-                        UserSaveStatus.CONFLICT
+                        UserSaveStatus.HACKER
                     }
                 }
                 .filter { status ->

@@ -5,12 +5,14 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import io.ktor.util.*
 import js.core.jso
+import react.ChildrenBuilder
 import react.FC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
@@ -27,14 +29,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
-// FixMe: List of organizations where user included, if not - link to creation of organization
-// FixMe: Current Rating in Vulnerabilities
-// FixMe: Link to settings where user can install avatars
-// FixMe: Latest notifications - for example: your Vuln was accepted or Change requested
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
-// FixMe: How many vuln were submitted and accepted, ranking in TOP ratings: for contests and more
 // FixMe: Statistics about demo
-// FixMe: Registration date
 
 private const val REGISTER_NOW = """
     For the better User Experience we recommend you to register or sign into the SaveOurTool platform 
@@ -53,17 +49,30 @@ private const val START_NOW = """
 )
 val cardUser: FC<IndexViewProps> = FC { props ->
     val (organizations, setOrganizations) = useState(emptyList<OrganizationDto>())
+    val (countVulnerability, setCountVulnerability) = useState(0)
     val navigate = useNavigate()
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     useRequest {
-        val organizationsNew: List<OrganizationDto> = get(
-            "$apiUrl/organizations/get/list-by-user-name?userName=${props.userInfo?.name}",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-            .decodeFromJsonString()
+        props.userInfo?.name?.let {
+            val organizationsNew: List<OrganizationDto> = get(
+                "$apiUrl/organizations/get/list-by-user-name?userName=$it",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+                .decodeFromJsonString()
 
-        setOrganizations(organizationsNew)
+            setOrganizations(organizationsNew)
+
+            val countVuln: Int = get(
+                "$apiUrl/vulnerabilities/count-by-user?userName=$it",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+                .decodeFromJsonString()
+
+            setCountVulnerability(countVuln)
+        }
     }
 
     div {
@@ -156,6 +165,109 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                             }
                         }
                     }
+            }
+        }
+
+        props.userInfo?.let {
+            div {
+                className = ClassName("mt-2")
+                div {
+                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                    h5 {
+                        style = jso {
+                            textAlign = TextAlign.center
+                        }
+                        +"Your organizations:"
+                    }
+                }
+                if (organizations.isEmpty()) {
+                    div {
+                        className = ClassName("row d-flex justify-content-center mt-1")
+                        buttonBuilder(
+                            "Create",
+                            style = "primary rounded-pill",
+                            isOutline = false
+                        ) {
+                            navigate(to = "/${FrontendRoutes.CREATE_ORGANIZATION}")
+                        }
+                    }
+                } else {
+                    organizations.forEach { organization ->
+                        div {
+                            className = ClassName("row d-flex justify-content-center")
+                            div {
+                                className = ClassName("col-12 mt-2")
+                                val renderImg: ChildrenBuilder.() -> Unit = {
+                                    renderAvatar(organization) {
+                                        height = 2.rem
+                                        width = 2.rem
+                                    }
+                                    +" ${organization.name}"
+                                }
+                                if (organization.status != OrganizationStatus.DELETED) {
+                                    Link {
+                                        to = "/${organization.name}"
+                                        renderImg()
+                                    }
+                                } else {
+                                    renderImg()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            div {
+                className = ClassName("mt-2")
+                div {
+                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                    h5 {
+                        style = jso {
+                            textAlign = TextAlign.center
+                        }
+                        +"Your statistics:"
+                    }
+                }
+                div {
+                    className = ClassName("row text-muted border-bottom border-gray mx-3")
+                    div {
+                        className = ClassName("col-9")
+                        p {
+                            +"Vulnerabilities: "
+                        }
+                    }
+
+                    div {
+                        className = ClassName("col-3")
+                        p {
+                            Link {
+                                to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                +countVulnerability.toString()
+                            }
+                        }
+                    }
+                }
+
+                div {
+                    className = ClassName("row text-muted border-bottom border-gray mx-3")
+                    div {
+                        className = ClassName("col-9")
+                        p {
+                            +"Top rating: "
+                        }
+                    }
+
+                    div {
+                        className = ClassName("col-3")
+                        p {
+                            Link {
+                                to = "/${FrontendRoutes.VULN_TOP_RATING}"
+                                +"${props.userInfo?.rating ?: 0}"
+                            }
+                        }
+                    }
+                }
             }
         }
     }

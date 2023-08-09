@@ -25,7 +25,7 @@ import web.html.ButtonType
  */
 @Suppress("MAGIC_NUMBER")
 val ringLoader = ringLoader(jso {
-    this.size = 70
+    this.size = 80
     this.loading = true
     this.color = "#3a00c2"
 })

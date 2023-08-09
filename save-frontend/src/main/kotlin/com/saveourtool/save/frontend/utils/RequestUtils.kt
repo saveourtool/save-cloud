@@ -538,6 +538,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
 
 /**
+ * @return true if given [Response] has 409 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isBadRequest(): Boolean = this.status == 400.toShort()
+
+/**
  * @return true if given [Response] has 401 code, false otherwise
  */
 @Suppress("MAGIC_NUMBER")
