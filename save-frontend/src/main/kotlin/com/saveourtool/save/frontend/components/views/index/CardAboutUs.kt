@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.p
@@ -69,15 +70,15 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
                 p {
                     +"We kindly ask you not to break this service and report any problems that you will find to our Github."
                 }
-                Link {
+                a {
                     className = ClassName("btn btn-secondary rounded-pill")
-                    to = "https://github.com/saveourtool/save-cloud"
+                    href = "https://github.com/saveourtool/save-cloud"
                     fontAwesomeIcon(icon = faGithub)
                     +"  Save-cloud"
                 }
-                Link {
+                a {
                     className = ClassName("btn btn-secondary rounded-pill mt-2 mb-3")
-                    to = "https://github.com/saveourtool/save-cli"
+                    href = "https://github.com/saveourtool/save-cli"
                     fontAwesomeIcon(icon = faGithub)
                     +"  Save-cli"
                 }
