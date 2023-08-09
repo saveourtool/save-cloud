@@ -8,17 +8,17 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.utils.*
+
 import js.core.jso
-import kotlinx.browser.window
-import kotlinx.coroutines.launch
 import org.w3c.fetch.Headers
 import react.FC
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
-import react.dom.html.ReactHTML.h3
 import web.cssom.ClassName
 import web.cssom.rem
+
+import kotlinx.browser.window
 
 val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
@@ -69,7 +69,9 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     }
 }
 
-@Suppress("MISSING_KDOC_CLASS_ELEMENTS", "MISSING_KDOC_ON_FUNCTION")
+/**
+ * @param userName
+ */
 fun deleteUser(userName: String) {
     useRequest {
         val response = get(

@@ -17,6 +17,7 @@ import react.FC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 import react.router.useNavigate
@@ -76,7 +77,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
     }
 
     div {
-        className = ClassName("col-3 mx-2 mt-2")
+        className = ClassName("col-3 shadow mx-3 mt-2")
         div {
             className = ClassName("row d-flex justify-content-center")
             cardImage("/img/icon1.png")
@@ -168,6 +169,10 @@ val cardUser: FC<IndexViewProps> = FC { props ->
             }
         }
 
+        hr {
+            className = ClassName("mt-3 px-3")
+        }
+
         props.userInfo?.let {
             div {
                 className = ClassName("mt-2")
@@ -194,9 +199,9 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 } else {
                     organizations.forEach { organization ->
                         div {
-                            className = ClassName("row d-flex justify-content-center")
+                            className = ClassName("row")
                             div {
-                                className = ClassName("col-12 mt-2")
+                                className = ClassName("col-12 mt-2 pl-4")
                                 val renderImg: ChildrenBuilder.() -> Unit = {
                                     renderAvatar(organization) {
                                         height = 2.rem
@@ -218,10 +223,14 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 }
             }
 
+            hr {
+                className = ClassName("mt-3 px-3")
+            }
+
             div {
                 className = ClassName("mt-2")
                 div {
-                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2")
+                    className = ClassName("row d-flex justify-content-center text-gray-900 mt-2 mb-2")
                     h5 {
                         style = jso {
                             textAlign = TextAlign.center

@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEH
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.v1
 
@@ -33,7 +32,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
             url = "$apiUrl/organizations/all-by-filters",
             headers = jsonHeaders,
             body = Json.encodeToString(filter),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
             .decodeFromJsonString<OrganizationArray>()

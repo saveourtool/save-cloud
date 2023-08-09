@@ -24,9 +24,8 @@ private const val SAVE = """
 """
 
 private const val SAVE_POSSIBILITIES = """
-    |- quickly establish testing and CI of your analyzer, 
-    |- share your tests with community to compare other tools with your tool.
-    |- using your benchmarks. 
+    |- quickly establish testing and CI of your analyzer; 
+    |- share your tests with community to compare other tools with your tool;
     |- using SAVE you can even create an online demo for your analyzer and setup it for your community.
 """
 
@@ -41,7 +40,7 @@ private const val CONTESTS = """
 
 val cardServiceInfo: FC<IndexViewProps> = FC { props ->
     div {
-        className = ClassName("col-3 mx-2 mt-2")
+        className = ClassName("col-3 shadow mx-3 mt-2")
         div {
             className = ClassName("row d-flex justify-content-center")
             cardImage("/img/icon2.png")
@@ -90,6 +89,7 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
                     +VULN
                 }
                 p {
+                    className = ClassName("text-gray-700")
                     +CONTESTS
                 }
             }

@@ -29,7 +29,7 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
     val navigate = useNavigate()
 
     div {
-        className = ClassName("col-3 mx-2 mt-2")
+        className = ClassName("col-3 shadow mx-3 mt-2")
         div {
             className = ClassName("row d-flex justify-content-center")
             cardImage("/img/icon3.png")
@@ -73,14 +73,14 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
                 a {
                     className = ClassName("btn btn-secondary rounded-pill")
                     href = "https://github.com/saveourtool/save-cloud"
-                    fontAwesomeIcon(icon = faGithub)
+                    fontAwesomeIcon(icon = faGithub, classes = "mr-2")
                     +"  Save-cloud"
                 }
                 a {
                     className = ClassName("btn btn-secondary rounded-pill mt-2 mb-3")
                     href = "https://github.com/saveourtool/save-cli"
-                    fontAwesomeIcon(icon = faGithub)
-                    +"  Save-cli"
+                    fontAwesomeIcon(icon = faGithub, classes = "mr-2")
+                    +"  Save-cli  "
                 }
                 p {
                     +"Please also read our"

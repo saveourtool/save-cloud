@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.externals.animations.ringLoader
 import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
-import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.button

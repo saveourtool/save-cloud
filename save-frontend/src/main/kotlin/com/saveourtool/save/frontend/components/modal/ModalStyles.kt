@@ -16,7 +16,7 @@ internal const val MAX_Z_INDEX = 1000
 
 private val defaultOverlayProperties: CSSProperties = jso {
     zIndex = MAX_Z_INDEX.unsafeCast<ZIndex>()
-    backgroundColor = "rgba(255, 255, 255, 0.9)".unsafeCast<BackgroundColor>()
+    backgroundColor = "rgba(255, 255, 255, 1)".unsafeCast<BackgroundColor>()
 }
 
 val defaultModalStyle = Styles(

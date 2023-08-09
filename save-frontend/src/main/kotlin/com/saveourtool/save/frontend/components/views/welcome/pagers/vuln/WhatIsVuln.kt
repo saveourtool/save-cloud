@@ -67,6 +67,9 @@ private fun ChildrenBuilder.textCard(
 ) {
     div {
         className = ClassName("card border border-primary rounded rounded-pill col $classes")
+        style = jso {
+            height = 30.rem
+        }
         div {
             className = ClassName("d-flex justify-content-center")
             img {
@@ -97,6 +100,9 @@ private fun ChildrenBuilder.mdCard(
 ) {
     div {
         className = ClassName("card border border-primary rounded rounded-pill col")
+        style = jso {
+            height = 15.rem
+        }
         div {
             className = ClassName("row")
             div {

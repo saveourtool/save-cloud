@@ -7,8 +7,6 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.index.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
@@ -19,17 +17,17 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
+import react.router.useNavigate
 import web.cssom.*
+import web.html.ButtonType
 import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML
-import react.router.useNavigate
-import web.html.ButtonType
 
 val cardHeight: CSSProperties = jso {
     height = 50.rem
@@ -37,7 +35,7 @@ val cardHeight: CSSProperties = jso {
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
     // This is needed for us to wait for userInfo uploaded
-    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo?: UserInfo(""))
+    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(""))
     val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
     val useNavigate = useNavigate()
 
