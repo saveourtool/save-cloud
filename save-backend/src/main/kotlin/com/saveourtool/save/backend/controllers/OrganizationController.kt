@@ -7,7 +7,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.OrganizationSaveStatus
+import com.saveourtool.save.domain.OrganizationSaveStatus.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilter
@@ -241,13 +241,14 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         organizationService.saveOrganization(newOrganization.toOrganization())
+    }.map {
+        when (it.second) {
+            CONFLICT -> throw ResponseStatusException(HttpStatus.CONFLICT, CONFLICT.message)
+            // Small hack here just not to affect frontend rendering: we return CONFLICT status
+            INVALID_NAME -> throw ResponseStatusException(HttpStatus.CONFLICT, INVALID_NAME.message)
+            else -> it
+        }
     }
-        .filter { (_, status) ->
-            status == OrganizationSaveStatus.NEW
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            OrganizationSaveStatus.CONFLICT.message
-        }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
                 authentication.userId(),
