@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.query.QueryByExampleExecutor
@@ -38,7 +39,8 @@ ValidateRepository {
     /**
      * @param prefix prefix of organization name
      * @param statuses is set of statuses, one of which an organization can have
+     * @param pageable [Pageable]
      * @return list of organizations with names that start with [prefix]
      */
-    fun findByNameStartingWithAndStatusIn(prefix: String, statuses: Set<OrganizationStatus>): List<Organization>
+    fun findByNameStartingWithAndStatusIn(prefix: String, statuses: Set<OrganizationStatus>, pageable: Pageable): List<Organization>
 }
