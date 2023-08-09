@@ -72,7 +72,8 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
                 href = "https://github.com/saveourtool/save-cloud/tree/master/save-api"
                 buttonBuilder(
                     "API Readme",
-                    style = "outline-secondary rounded-pill btn-sm",
+                    style = "outline-secondary",
+                    classes = "rounded-pill btn-sm",
                     isOutline = false
                 ) {
                     }
@@ -85,7 +86,8 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
                 href = "https://github.com/saveourtool/save-cloud/tree/master/save-api-cli"
                 buttonBuilder(
                     "Usage example",
-                    style = "outline-secondary rounded-pill btn-sm",
+                    style = "outline-secondary",
+                    classes = "rounded-pill btn-sm",
                     isOutline = false
                 ) {
 

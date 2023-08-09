@@ -23,12 +23,33 @@ class UsersDetailsControllerTest {
     private lateinit var webClient: WebTestClient
 
     @Test
-    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
-    fun `update user`() {
-        mutateMockedUser(id = 1)
+    @WithMockUser(value = "JohnDoe", roles = ["SUPER_ADMIN"])
+    fun `update other user`() {
+        mutateMockedUser(id = 2)
 
         val newUserInfo = UserInfo(
             name = "admin",
+            email = "example@save.com",
+            company = "Example",
+            status = UserStatus.ACTIVE,
+        )
+
+        webClient.post()
+            .uri("/api/$v1/users/save")
+            .bodyValue(newUserInfo)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.CONFLICT)
+    }
+
+    @Test
+    @WithMockUser(value = "JohnDoe", roles = ["SUPER_ADMIN"])
+    fun `new user registration with a free name`() {
+        mutateMockedUser(id = 2)
+
+        val newUserInfo = UserInfo(
+            name = "Kuleshov",
+            oldName = "JohnDoe",
             email = "example@save.com",
             company = "Example",
             status = UserStatus.ACTIVE,
@@ -43,8 +64,71 @@ class UsersDetailsControllerTest {
     }
 
     @Test
+    @WithMockUser(value = "JohnDoe", roles = ["SUPER_ADMIN"])
+    fun `new user registration with a taken name admin`() {
+        mutateMockedUser(id = 2)
+
+        val newUserInfo = UserInfo(
+            name = "admin",
+            email = "example@save.com",
+            company = "Example",
+            status = UserStatus.ACTIVE,
+        )
+
+        webClient.post()
+            .uri("/api/$v1/users/save")
+            .bodyValue(newUserInfo)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.CONFLICT)
+    }
+
+    @Test
     @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
-    fun `update user invalid name`() {
+    fun `update not a name but other info`() {
+        mutateMockedUser(id = 1)
+
+        val newUserInfo = UserInfo(
+            id = 1,
+            name = "admin",
+            oldName = null,
+            email = "example@save.com",
+            company = "Example Company",
+            status = UserStatus.ACTIVE,
+        )
+
+        webClient.post()
+            .uri("/api/$v1/users/save")
+            .bodyValue(newUserInfo)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    fun `update existing user with the same name`() {
+        mutateMockedUser(id = 1)
+
+        val newUserInfo = UserInfo(
+            name = "admin",
+            email = "example@save.com",
+            company = "Example",
+            status = UserStatus.ACTIVE,
+            oldName = "admin"
+        )
+
+        webClient.post()
+            .uri("/api/$v1/users/save")
+            .bodyValue(newUserInfo)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.CONFLICT)
+    }
+
+    @Test
+    @WithMockUser(value = "admin", roles = ["SUPER_ADMIN"])
+    fun `update user with taken name`() {
         mutateMockedUser(id = 1)
 
         val newUserInfo = UserInfo(
