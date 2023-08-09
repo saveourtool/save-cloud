@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -71,11 +72,15 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizationsByFilters(
-        @RequestBody organizationFilter: OrganizationFilter
-    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilter).map(Organization::toDto) }
+        @RequestBody organizationFilter: OrganizationFilter,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+    ): Mono<OrganizationDtoList> = blockingToMono {
+        organizationService.getFiltered(organizationFilter, Pageable.ofSize(pageSize)).map(Organization::toDto)
+    }
 
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
@@ -86,12 +91,14 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizationsWithRating(
         @RequestBody organizationFilter: OrganizationFilter,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
         authentication: Authentication?,
-    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter)
+    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter, pageSize)
         .flatMap { organizationDto ->
             organizationService.getGlobalRating(organizationDto.name, authentication)
                 .map { rating ->
@@ -166,11 +173,15 @@ internal class OrganizationController(
         summary = "Get organization by prefix.",
         description = "Get list of organizations matching prefix.",
     )
+    @Parameters(
+        Parameter(name = "prefix", `in` = ParameterIn.QUERY, description = "organization name prefix", required = false),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
+    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
-        @RequestParam prefix: String
-    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilter(prefix))
-        .map { it.name }
+        @RequestParam prefix: String,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+    ): Mono<OrganizationDtoList> = getFilteredOrganizationDtoList(OrganizationFilter(prefix), pageSize)
         .collectList()
 
     @PostMapping("/{organizationName}/manage-contest-permission")
@@ -524,8 +535,8 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter): Flux<OrganizationDto> = blockingToFlux {
-        organizationService.getFiltered(filters)
+    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter, pageSize: Int): Flux<OrganizationDto> = blockingToFlux {
+        organizationService.getFiltered(filters, Pageable.ofSize(pageSize))
     }.map { it.toDto() }
 
     private fun upsertGitCredential(
