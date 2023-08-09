@@ -7213,6 +7213,85 @@
         ]
       }
     },
+    "/api/v1/tags/vulnerabilities": {
+      "get": {
+        "description": "Get list of tags that are linked with any vulnerability.",
+        "operationId": "getAvailableVulnerabilitiesTags",
+        "parameters": [
+          {
+            "description": "string prefix of tag name",
+            "in": "query",
+            "name": "prefix",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          },
+          {
+            "description": "amount of records to be fetched, 3 by default",
+            "in": "query",
+            "name": "pageSize",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 3
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Avatar uploaded successfully."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "description": "User or organization not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get available vulnerability tags.",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
     "/api/v1/test-execution": {
       "post": {
         "operationId": "getTestExecutionByLocation",
@@ -12790,6 +12869,10 @@
           "company": {
             "type": "string"
           },
+          "createDate": {
+            "type": "string",
+            "format": "date-time"
+          },
           "email": {
             "type": "string"
           },
@@ -12836,6 +12919,10 @@
           "twitter": {
             "type": "string"
           },
+          "updateDate": {
+            "type": "string",
+            "format": "date-time"
+          },
           "website": {
             "type": "string"
           }
@@ -12857,6 +12944,9 @@
           },
           "company": {
             "type": "string"
+          },
+          "createDate": {
+            "$ref": "#/components/schemas/LocalDateTime"
           },
           "email": {
             "type": "string"
