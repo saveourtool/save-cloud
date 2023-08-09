@@ -60,7 +60,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val navigate = useNavigate()
 
     useEffect(response) {
-        val newModalState = when (response?.status || window.location.isSettings()) {
+        val newModalState = when (response?.status) {
             401.toShort() -> ErrorModalState(
                 isErrorModalOpen = true,
                 errorMessage = "You are not logged in",

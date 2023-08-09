@@ -35,7 +35,8 @@ val rightSettingsColumn: FC<SettingsProps> = FC { props ->
                 this.type = props.type
             }
             SETTINGS_DELETE -> deleteSettingsCard {
-
+                this.userInfo = props.userInfo
+                this.type = props.type
             }
             else -> {
                 // FixMe: finish stub here

@@ -7,6 +7,9 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.index.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -24,6 +27,9 @@ import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.dom.html.ReactHTML
+import react.router.useNavigate
+import web.html.ButtonType
 
 val cardHeight: CSSProperties = jso {
     height = 50.rem
@@ -31,7 +37,33 @@ val cardHeight: CSSProperties = jso {
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
     // This is needed for us to wait for userInfo uploaded
-    val (loadedUserInfo: UserInfo?, setLoadedUserInfo) = useStateFromProps(props.userInfo?: UserInfo(""))
+    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo?: UserInfo(""))
+    val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
+    val useNavigate = useNavigate()
+
+    modal { modalProps ->
+        modalProps.isOpen = isModalOpen
+        modalProps.contentLabel = "Unauthenticated"
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            ReactHTML.h2 {
+                className = ClassName("h6 text-gray-800")
+                +"You are not logged in"
+            }
+        }
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+            ReactHTML.button {
+                className = ClassName("btn btn-outline-primary")
+                type = ButtonType.button
+                onClick = {
+                    useNavigate(to = "/")
+                }
+                +"Proceed to login page"
+            }
+        }
+    }
+
     useBackground(Style.SAVE_LIGHT)
     main {
         className = ClassName("main-content")
@@ -50,10 +82,6 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                             this.userInfo = loadedUserInfo
                             this.type = props.type
                             this.userInfoSetter = props.userInfoSetter
-                        }
-                    } else {
-                        main {
-
                         }
                     }
                 }
