@@ -7,8 +7,6 @@ import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
-import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -24,59 +22,42 @@ import react.dom.html.ReactHTML.tr
 import react.router.dom.Link
 import web.cssom.*
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val organizationRatingTab: FC<Props> = FC { _ ->
-
     val (organizationFilter, setOrganizationFilter) = useState(OrganizationFilter.created)
 
-    @Suppress(
-        "TOO_MANY_LINES_IN_LAMBDA",
-        "MAGIC_NUMBER",
-        "TYPE_ALIAS",
-    )
+    val fetchOrganizationRequest: suspend WithRequestStatusContext.(OrganizationFilter) -> OrganizationArray = { filter ->
+        post(
+            url = "$apiUrl/organizations/all-by-filters",
+            headers = jsonHeaders,
+            body = Json.encodeToString(filter),
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+            .decodeFromJsonString<OrganizationArray>()
+            .also { array -> array.sortByDescending { it.rating } }
+    }
+
+    // Temp hack for correct position displaying
+    val (organizations, setOrganizations) = useState<OrganizationArray>(emptyArray())
+    val doOnce = useOnceAction()
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER", "TYPE_ALIAS")
     val tableWithOrganizationRating: FC<TableProps<OrganizationDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") { cellContext ->
-                    Fragment.create {
-                        td {
-                            val index = cellContext.row.index + 1 + cellContext.pageIndex * cellContext.pageSize
-                            var isTrophy = false
-                            var newColor = ""
-                            when (index) {
-                                1 -> {
-                                    isTrophy = true
-                                    newColor = "#ebcc36"
-                                }
-                                2 -> {
-                                    isTrophy = true
-                                    newColor = "#7d7d7d"
-                                }
-                                3 -> {
-                                    isTrophy = true
-                                    newColor = "#a15703"
-                                }
-                            }
-                            if (isTrophy) {
-                                style = jso {
-                                    color = newColor.unsafeCast<Color>()
-                                }
-                                fontAwesomeIcon(icon = faTrophy)
-                            }
-                            +" $index"
-                        }
-                    }
+                    Fragment.create { renderRatingPosition(cellContext.value, organizations) }
                 }
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             Link {
                                 img {
-                                    className =
-                                            ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                                    className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = cellContext.row.original.avatar?.let {
                                         "/api/$v1/avatar$it"
                                     } ?: AVATAR_ORGANIZATION_PLACEHOLDER
@@ -94,6 +75,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                 column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             +cellContext.value.rating.toString()
                         }
                     }
@@ -115,10 +97,6 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                                 OrganizationFilter(filterValue)
                             }
                             setOrganizationFilter(filter)
-                            window.location.href = buildString {
-                                append(window.location.href.substringBefore("?"))
-                                filterValue?.let { append("?organizationName=$filterValue") }
-                            }
                         }
                     }
                 }
@@ -134,19 +112,13 @@ val organizationRatingTab: FC<Props> = FC { _ ->
             className = ClassName("col-5")
             tableWithOrganizationRating {
                 getData = { _, _ ->
-                    post(
-                        url = "$apiUrl/organizations/all-by-filters",
-                        headers = jsonHeaders,
-                        body = Json.encodeToString(organizationFilter),
-                        loadingHandler = ::noopLoadingHandler,
-                        responseHandler = ::noopResponseHandler,
-                    )
-                        .decodeFromJsonString<Array<OrganizationDto>>().let { array ->
-                            array.sortByDescending { it.rating }
-                            array
-                        }
+                    fetchOrganizationRequest(organizationFilter).also {
+                        doOnce { setOrganizations(it) }
+                    }
                 }
             }
         }
     }
 }
+
+private typealias OrganizationArray = Array<OrganizationDto>
