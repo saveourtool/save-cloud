@@ -16,7 +16,7 @@ internal const val MAX_Z_INDEX = 1000
 
 private val defaultOverlayProperties: CSSProperties = jso {
     zIndex = MAX_Z_INDEX.unsafeCast<ZIndex>()
-    backgroundColor = "rgba(255, 255, 255, 1)".unsafeCast<BackgroundColor>()
+    backgroundColor = "rgba(255, 255, 255, 0.8)".unsafeCast<BackgroundColor>()
 }
 
 val defaultModalStyle = Styles(
@@ -81,5 +81,8 @@ val loaderModalStyle = Styles(
         // small hack to remove modal border and make loader prettier
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CSSProperties>(),
-    overlay = defaultOverlayProperties,
+    overlay = jso {
+        zIndex = MAX_Z_INDEX.unsafeCast<ZIndex>()
+        backgroundColor = "rgba(255, 255, 255, 1)".unsafeCast<BackgroundColor>()
+    },
 )

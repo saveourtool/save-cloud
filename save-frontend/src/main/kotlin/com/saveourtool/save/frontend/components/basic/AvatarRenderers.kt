@@ -76,11 +76,14 @@ fun ChildrenBuilder.renderAvatar(
  * @param link
  * @param styleBuilder
  * @param isHorizontal if the avatar shoud be on the same line with text
+ * @param isCentered
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.renderUserAvatarWithName(
     userInfo: UserInfo,
     classes: String = "",
     link: String? = null,
+    isCentered: Boolean = true,
     isHorizontal: Boolean = false,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
@@ -97,12 +100,13 @@ fun ChildrenBuilder.renderUserAvatarWithName(
                     +" ${userInfo.name}"
                 }
             } else {
+                val justify = if (isCentered) "justify-content-center" else ""
                 div {
-                    className = ClassName("row justify-content-center")
+                    className = ClassName("row $justify")
                     renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
                 }
                 div {
-                    className = ClassName("row justify-content-center mt-2")
+                    className = ClassName("row $justify mt-2")
                     style = jso {
                         fontSize = 0.8.rem
                     }
