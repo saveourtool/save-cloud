@@ -4002,6 +4002,17 @@
         "operationId": "getAllOrganizationsByFilters",
         "parameters": [
           {
+            "description": "amount of organizations that should be returned, default: 5",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
             "description": "organization filters",
             "in": "query",
             "name": "organizationFilter",
@@ -4156,6 +4167,17 @@
         "operationId": "getFilteredOrganizationsWithRating",
         "parameters": [
           {
+            "description": "amount of organizations that should be returned, default: 5",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            }
+          },
+          {
             "description": "organization filters",
             "in": "query",
             "name": "organizationFilter",
@@ -4307,11 +4329,23 @@
         "operationId": "getOrganizationNamesByPrefix",
         "parameters": [
           {
+            "description": "organization name prefix",
             "in": "query",
             "name": "prefix",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "description": "amount of organizations that should be returned, default: 5",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
             }
           }
         ],
@@ -4322,7 +4356,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -4335,7 +4369,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/OrganizationDto"
                   }
                 }
               }
@@ -10235,6 +10269,55 @@
         ]
       }
     },
+    "/api/v1/vulnerabilities/count-by-user": {
+      "get": {
+        "description": "Get cont of vulnerabilities by user name.",
+        "operationId": "getCountVulnerabilityByUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Successfully fetched cont of vulnerabilities by user name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get cont of vulnerabilities by user name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
     "/api/v1/vulnerabilities/delete": {
       "delete": {
         "description": "Deleted vulnerability.",
@@ -13187,8 +13270,32 @@
         ],
         "type": "object",
         "properties": {
+          "authorName": {
+            "type": "string"
+          },
           "isOwner": {
             "type": "boolean"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "C",
+              "C++",
+              "C#",
+              "Go",
+              "Java",
+              "JavaScript",
+              "Kotlin",
+              "Other",
+              "PHP",
+              "Python",
+              "Rust",
+              "Sql",
+              "TypeScript"
+            ]
+          },
+          "organizationName": {
+            "type": "string"
           },
           "prefixName": {
             "type": "string"
