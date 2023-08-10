@@ -76,7 +76,9 @@ fun ChildrenBuilder.renderAvatar(
  * @param link
  * @param styleBuilder
  * @param isHorizontal if the avatar shoud be on the same line with text
+ * @param isCentered
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.renderUserAvatarWithName(
     userInfo: UserInfo,
     classes: String = "",
