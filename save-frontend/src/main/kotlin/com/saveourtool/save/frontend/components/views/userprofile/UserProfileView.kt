@@ -243,10 +243,11 @@ fun ChildrenBuilder.renderLeftUserMenu(
 /**
  * @param icon
  * @param info
+ * @param patterns
  */
 fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String, patterns: List<UsefulUrls>) {
     val foundPattern = patterns.map { it.value }.findLast { info.startsWith(it) }
-    if (foundPattern != null) {
+    foundPattern?.let {
         val trimmedUserName = info.substringAfterLast(foundPattern)
         div {
             className = ClassName("mb-2")

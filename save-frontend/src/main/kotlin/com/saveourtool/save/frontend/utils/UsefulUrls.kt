@@ -1,11 +1,17 @@
 package com.saveourtool.save.frontend.utils
 
+/**
+ * Enum only for storing URLs to well-known website
+ *
+ * @property value real url of a website
+ */
 enum class UsefulUrls(val value: String) {
-    XCOM("https://x.com/"),
-    TWITTER("https://twitter.com/"),
-    LINKEDIN("https://linkedin.com/"),
-    GITHUB("https://github.com/"),
     GITEE("https://gitee.com/"),
+    GITHUB("https://github.com/"),
     HTTP("http://"),
-    HTTPS("https://")
+    HTTPS("https://"),
+    LINKEDIN("https://linkedin.com/"),
+    TWITTER("https://twitter.com/"),
+    XCOM("https://x.com/"),
+    ;
 }
