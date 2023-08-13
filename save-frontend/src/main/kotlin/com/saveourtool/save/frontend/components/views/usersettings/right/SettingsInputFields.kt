@@ -111,7 +111,7 @@ data class SettingsInputFields(
             linkedin = this.linkedIn.value?.trim() ?: userInfo.linkedin,
             gitHub = this.github.value?.trim() ?: userInfo.gitHub,
             twitter = this.twitter.value?.trim() ?: userInfo.twitter,
-            website = this.website.value?.trim() ?: userInfo.twitter,
+            website = this.website.value?.trim() ?: userInfo.website,
             realName = this.realName.value?.trim() ?: userInfo.realName,
             freeText = this.freeText.value?.trim() ?: userInfo.freeText,
         )
