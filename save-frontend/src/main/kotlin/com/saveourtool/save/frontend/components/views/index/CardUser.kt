@@ -259,7 +259,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 }
 
                 div {
-                    className = ClassName("row text-muted border-bottom border-gray mx-3")
+                    className = ClassName("row text-muted border-bottom border-gray mx-3 mt-2")
                     div {
                         className = ClassName("col-9")
                         p {
