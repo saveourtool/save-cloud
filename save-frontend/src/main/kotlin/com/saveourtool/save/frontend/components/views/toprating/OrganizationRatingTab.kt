@@ -24,12 +24,14 @@ import web.cssom.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+private const val DEFAULT_PAGE_SIZE = 10_000
+
 val organizationRatingTab: FC<Props> = FC { _ ->
     val (organizationFilter, setOrganizationFilter) = useState(OrganizationFilter.created)
 
     val fetchOrganizationRequest: suspend WithRequestStatusContext.(OrganizationFilter) -> OrganizationArray = { filter ->
         post(
-            url = "$apiUrl/organizations/all-by-filters",
+            url = "$apiUrl/organizations/all-by-filters?pageSize=$DEFAULT_PAGE_SIZE",
             headers = jsonHeaders,
             body = Json.encodeToString(filter),
             loadingHandler = ::loadingHandler,

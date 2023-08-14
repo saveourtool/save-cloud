@@ -240,22 +240,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 type = SETTINGS_DELETE
             } to SETTINGS_DELETE,
 
-            props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
-
-            props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
-
-            props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
-
-            props.viewWithFallBack(
-                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
-
         ).forEach { (view, route) ->
             PathRoute {
                 this.element = view

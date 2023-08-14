@@ -208,13 +208,13 @@ fun ChildrenBuilder.renderLeftUserMenu(
         }
     }
 
-    user?.gitHub?.let { extraLinks(faGithub, it) }
+    user?.gitHub?.let { extraLinks(faGithub, it, listOf(UsefulUrls.GITHUB, UsefulUrls.GITEE)) }
 
-    user?.twitter?.let { extraLinks(faTwitter, it) }
+    user?.twitter?.let { extraLinks(faTwitter, it, listOf(UsefulUrls.TWITTER, UsefulUrls.XCOM)) }
 
-    user?.linkedin?.let { extraLinks(faLink, it) }
+    user?.linkedin?.let { extraLinks(faLinkedIn, it, listOf(UsefulUrls.LINKEDIN)) }
 
-    user?.website?.let { extraLinks(faLink, it) }
+    user?.website?.let { extraLinks(faLink, it, listOf(UsefulUrls.HTTPS, UsefulUrls.HTTP)) }
 
     if (organizations.isNotEmpty()) {
         div {
@@ -243,16 +243,21 @@ fun ChildrenBuilder.renderLeftUserMenu(
 /**
  * @param icon
  * @param info
+ * @param patterns
  */
-fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String) {
-    div {
-        className = ClassName("mb-2")
-        fontAwesomeIcon(icon = icon) {
-            it.className = "fas fa-sm fa-fw mr-2 text-gray-900"
-        }
-        a {
-            href = info
-            +info.substringAfterLast("/")
+fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String, patterns: List<UsefulUrls>) {
+    val foundPattern = patterns.map { it.value }.findLast { info.startsWith(it) }
+    foundPattern?.let {
+        val trimmedUserName = info.substringAfterLast(foundPattern)
+        div {
+            className = ClassName("mb-2")
+            fontAwesomeIcon(icon = icon) {
+                it.className = "fas fa-sm fa-fw mr-2 text-gray-900"
+            }
+            a {
+                href = info
+                +trimmedUserName
+            }
         }
     }
 }
