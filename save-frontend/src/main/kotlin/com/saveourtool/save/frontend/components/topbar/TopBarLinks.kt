@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.utils.isSettings
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -36,8 +37,16 @@ private val saveTopbarLinks = sequenceOf(
 @Suppress("MAGIC_NUMBER")
 private val vulnTopbarLinks = sequenceOf(
     TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, width = 13.rem, text = "Propose vulnerability"),
-    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 8.rem, text = "Vulnerabilities"),
-    TopBarLink(hrefAnchor = FrontendRoutes.TOP_RATING.path, width = 7.rem, text = "Top Rating"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 9.rem, text = "Vulnerabilities"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, width = 7.rem, text = "Top Rating"),
+)
+
+@Suppress("MAGIC_NUMBER", "UnusedPrivateProperty")
+private val generalTopbarLinks = sequenceOf(
+    TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
+    TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 11.rem, text = "SAVE Projects list"),
+    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 11.rem, text = "Vulnerabilities list"),
+    TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 7.rem, text = "About us"),
 )
 
 /**
@@ -49,6 +58,7 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         className = ClassName("navbar-nav mx-auto")
         when {
             props.location.isVuln() -> vulnTopbarLinks
+            props.location.isSettings() -> generalTopbarLinks
             else -> saveTopbarLinks
         }
             .forEach { elem ->

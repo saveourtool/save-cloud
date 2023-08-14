@@ -5,6 +5,7 @@ import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 
 import kotlin.js.JsExport
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,6 +30,7 @@ import kotlinx.serialization.Serializable
  * @property website
  * @property freeText
  * @property realName
+ * @property createDate
  */
 @Serializable
 @JsExport
@@ -52,6 +54,7 @@ data class UserInfo(
     val website: String? = null,
     val freeText: String? = null,
     val realName: String? = null,
+    val createDate: LocalDateTime? = null,
 ) : Validatable {
     /**
      * Validation of organization name

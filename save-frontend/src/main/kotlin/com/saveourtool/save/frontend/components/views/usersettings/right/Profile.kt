@@ -10,11 +10,17 @@ import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
-import com.saveourtool.save.frontend.http.postImageUpload
+import com.saveourtool.save.frontend.externals.fontawesome.faCamera
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.v1
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
+
+import io.ktor.client.request.*
 import js.core.jso
+import org.w3c.fetch.Headers
 import react.ChildrenBuilder
 import react.FC
 import react.StateSetter
@@ -22,20 +28,25 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.hr
 import react.dom.html.ReactHTML.img
-import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.textarea
+import react.router.dom.Link
 import react.useState
-import web.cssom.ClassName
-import web.cssom.rem
+import web.cssom.*
+import web.http.FormData
+
+import kotlinx.browser.window
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 const val AVATARS_PACKAGE_COUNT = 9
 
 val profileSettingsCard: FC<SettingsProps> = FC { props ->
     // === states ===
     val avatarWindowOpen = useWindowOpenness()
-    val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
-    val saveUser = saveUser(props, settingsInputFields, setSettingsInputFields)
+    val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val saveUser = useSaveUser(props, settingsInputFields, setSettingsInputFields)
 
     // === image editor ===
     avatarForm {
@@ -45,8 +56,25 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
             avatarWindowOpen.closeWindow()
         }
         imageUpload = { file ->
-            useRequest {
-                postImageUpload(file, props.userInfo?.name, AvatarType.USER, ::loadingHandler)
+            // FixMe: we are inside of FC here, but without any reason avatarForm component is ignoring
+            // FixMe: useRequest {} hook, only works with scope directly,
+            // FixMe: expecting someone to investigate it later, but by for now we need this functionality to be working
+            val scope = CoroutineScope(Dispatchers.Default)
+            scope.launch {
+                val response = request(
+                    url = "$apiUrl/avatar/upload".withParams(jso<dynamic> {
+                        owner = props.userInfo?.name
+                        this.type = AvatarType.USER
+                    }),
+                    method = "POST",
+                    headers = Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
+                    body = FormData().apply { set(FILE_PART_NAME, file) },
+                    loadingHandler = ::noopLoadingHandler,
+                    responseHandler = ::noopResponseHandler,
+                )
+                if (response.ok) {
+                    window.location.reload()
+                }
             }
         }
     }
@@ -70,9 +98,10 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                 div {
                     className = ClassName("input-group needs-validation")
                     textarea {
-                        className = ClassName("form-control")
+                        className = ClassName("form-control shadow")
                         onChange = {
-                            val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, null)
+                            val newSettingsInputFields =
+                                    settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, null)
                             setSettingsInputFields(newSettingsInputFields)
                         }
                         defaultValue = props.userInfo?.freeText
@@ -98,11 +127,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                     div {
                         className = ClassName("row")
                         avatarEditor(
-                            props,
-                            avatarImgLink,
                             avatarWindowOpen,
-                            setAvatarImgLink,
-                            "/img/upload_avatar.png"
                         )
                     }
                 }
@@ -114,7 +139,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                         if (i % 3 == 0) {
                             div {
                                 className = ClassName("row")
-                                renderPreparedAvatars(lowerBound..i)
+                                renderPreparedAvatars(lowerBound..i, setSelectedAvatar)
                                 lowerBound = i + 1
                             }
                         }
@@ -142,36 +167,32 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 }
 
 /**
- * @param props
- * @param avatarImgLink
- * @param setAvatarImgLink
- * @param placeholder
  * @param avatarWindowOpen
  */
 internal fun ChildrenBuilder.avatarEditor(
-    props: SettingsProps,
-    avatarImgLink: String?,
     avatarWindowOpen: WindowOpenness,
-    setAvatarImgLink: StateSetter<String?>,
-    placeholder: String,
 ) {
-    label {
-        className = ClassName("btn animated-provider")
+    Link {
+        className = ClassName("btn px-0 pt-0")
         title = AVATAR_TITLE
         onClick = {
             avatarWindowOpen.openWindow()
         }
-        img {
-            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-            src = avatarImgLink
-                ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
-                ?: placeholder
+        div {
+            className = ClassName("card card-body shadow")
             style = jso {
+                display = Display.flex
+                justifyContent = JustifyContent.center
                 height = 8.rem
                 width = 8.rem
             }
-            onError = {
-                setAvatarImgLink(AVATAR_PLACEHOLDER)
+            div {
+                className = ClassName("row justify-content-center")
+                fontAwesomeIcon(faCamera, classes = "fa-xl")
+            }
+            div {
+                className = ClassName("row mt-2 justify-content-center")
+                +AVATAR_TITLE
             }
         }
     }
@@ -184,10 +205,34 @@ private fun ChildrenBuilder.extraInformation(
 ) {
     hr { }
 
-    inputForm(props.userInfo?.realName, InputTypes.REAL_NAME, settingsInputFields, setSettingsInputFields, "e.g. John Smith")
-    inputForm(props.userInfo?.company, InputTypes.COMPANY, settingsInputFields, setSettingsInputFields, "e.g. FutureWay Inc.")
-    inputForm(props.userInfo?.location, InputTypes.LOCATION, settingsInputFields, setSettingsInputFields, "Beijing, China")
-    inputForm(props.userInfo?.website, InputTypes.WEBSITE, settingsInputFields, setSettingsInputFields, "https://saveourtool.com")
+    inputForm(
+        props.userInfo?.realName,
+        InputTypes.REAL_NAME,
+        settingsInputFields,
+        setSettingsInputFields,
+        "e.g. John Smith"
+    )
+    inputForm(
+        props.userInfo?.company,
+        InputTypes.COMPANY,
+        settingsInputFields,
+        setSettingsInputFields,
+        "e.g. FutureWay Inc."
+    )
+    inputForm(
+        props.userInfo?.location,
+        InputTypes.LOCATION,
+        settingsInputFields,
+        setSettingsInputFields,
+        "Beijing, China"
+    )
+    inputForm(
+        props.userInfo?.website,
+        InputTypes.WEBSITE,
+        settingsInputFields,
+        setSettingsInputFields,
+        "https://saveourtool.com"
+    )
     inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, settingsInputFields, setSettingsInputFields)
     inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, settingsInputFields, setSettingsInputFields)
     inputForm(props.userInfo?.twitter, InputTypes.TWITTER, settingsInputFields, setSettingsInputFields)
@@ -195,14 +240,23 @@ private fun ChildrenBuilder.extraInformation(
     hr { }
 }
 
-private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange) {
+private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
     for (i in avatarsRange) {
-        img {
-            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-            src = "/img/avatar_packs/avatar$i.png"
-            style = jso {
-                height = 5.1.rem
-                width = 5.1.rem
+        val avatar = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
+        div {
+            className = ClassName("animated-provider")
+            img {
+                className =
+                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle shadow")
+                src = avatar
+                style = jso {
+                    height = 5.1.rem
+                    width = 5.1.rem
+                    cursor = Cursor.pointer
+                }
+                onClick = {
+                    setSelectedAvatar(avatar)
+                }
             }
         }
     }

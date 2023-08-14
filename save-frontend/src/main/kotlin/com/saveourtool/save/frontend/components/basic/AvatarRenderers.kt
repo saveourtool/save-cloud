@@ -23,7 +23,7 @@ import web.cssom.rem
 /**
  * Placeholder for organization avatar
  */
-const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.svg"
+const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
 
 /**
  * Render organization avatar or placeholder
@@ -75,26 +75,43 @@ fun ChildrenBuilder.renderAvatar(
  * @param classes
  * @param link
  * @param styleBuilder
+ * @param isHorizontal if the avatar shoud be on the same line with text
+ * @param isCentered
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.renderUserAvatarWithName(
     userInfo: UserInfo,
     classes: String = "",
     link: String? = null,
+    isCentered: Boolean = true,
+    isHorizontal: Boolean = false,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
         div {
             className = ClassName("col")
-            div {
-                className = ClassName("row justify-content-center")
-                renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
-            }
-            div {
-                className = ClassName("row justify-content-center mt-2")
-                style = jso {
-                    fontSize = 0.8.rem
+            if (isHorizontal) {
+                div {
+                    className = ClassName("row d-flex align-items-center")
+                    renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+                    style = jso {
+                        fontSize = 1.rem
+                    }
+                    +" ${userInfo.name}"
                 }
-                +" ${userInfo.name}"
+            } else {
+                val justify = if (isCentered) "justify-content-center" else ""
+                div {
+                    className = ClassName("row $justify")
+                    renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+                }
+                div {
+                    className = ClassName("row $justify mt-2")
+                    style = jso {
+                        fontSize = 0.8.rem
+                    }
+                    +" ${userInfo.name}"
+                }
             }
         }
     }

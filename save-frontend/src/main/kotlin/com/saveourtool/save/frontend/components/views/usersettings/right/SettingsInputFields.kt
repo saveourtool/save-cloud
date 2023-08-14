@@ -103,6 +103,7 @@ data class SettingsInputFields(
             // `oldName` is not saved into database, basically it's just a flag for
             // backend to understand that name was or wasn't changed on the frontend
             // need to pass `null` to backend if the field
+            // if it is passed as null, we will use this thing inside a controller
             oldName = newName?.let { userInfo.name },
             email = this.userEmail.value?.trim() ?: userInfo.email,
             company = this.company.value?.trim() ?: userInfo.company,
@@ -110,7 +111,7 @@ data class SettingsInputFields(
             linkedin = this.linkedIn.value?.trim() ?: userInfo.linkedin,
             gitHub = this.github.value?.trim() ?: userInfo.gitHub,
             twitter = this.twitter.value?.trim() ?: userInfo.twitter,
-            website = this.website.value?.trim() ?: userInfo.twitter,
+            website = this.website.value?.trim() ?: userInfo.website,
             realName = this.realName.value?.trim() ?: userInfo.realName,
             freeText = this.freeText.value?.trim() ?: userInfo.freeText,
         )

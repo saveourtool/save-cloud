@@ -18,17 +18,22 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.FrontendRoutes
 
+import js.core.jso
+import react.ChildrenBuilder
 import react.FC
 import react.StateSetter
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h1
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
+import web.cssom.rem
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -52,13 +57,67 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
     useOnce { getOrganizationsForUser() }
 
     div {
-        className = ClassName("d-sm-flex align-items-center justify-content-center mb-4 mt-4")
-        h1 {
-            className = ClassName("h3 mb-0 mt-2 text-gray-800")
-            +"Organizations"
+        className = ClassName("row justify-content-center")
+        div {
+            className = ClassName("col-8 px-5")
+            div {
+                className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+                h3 {
+                    className = ClassName("mb-0 mt-2 text-gray-800")
+                    +"Organizations"
+                }
+            }
+
+            div {
+                className = ClassName("d-sm-flex align-items-center justify-content-center mt-1")
+                Link {
+                    to = "/${FrontendRoutes.CREATE_ORGANIZATION}"
+                    buttonBuilder(
+                        "Create new Organization",
+                        style = "outline-primary rounded-pill btn-sm",
+                        isOutline = false
+                    ) {
+                        }
+                }
+            }
+
+            if (organizations.isEmpty()) {
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center mt-5")
+                    h5 {
+                        className = ClassName("mt-2 text-gray-800")
+                        +"You are not added to any organization"
+                    }
+                }
+                div {
+                    className = ClassName("d-sm-flex align-items-center justify-content-center mt-1")
+                    img {
+                        src = "/img/sad_cat.png"
+                        @Suppress("MAGIC_NUMBER")
+                        style = jso {
+                            width = 14.rem
+                        }
+                    }
+                }
+            } else {
+                renderOrganizations(organizations, setOrganizations, props)
+            }
         }
     }
+}
 
+private val comparator: Comparator<OrganizationWithUsers> =
+        compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
+            .thenBy { it.organization.name }
+
+typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
+
+@Suppress("TOO_LONG_FUNCTION", "CyclomaticComplexMethod", "LongMethod")
+private fun ChildrenBuilder.renderOrganizations(
+    organizations: List<OrganizationWithUsers>,
+    setOrganizations: OrganizationSetter,
+    props: SettingsProps
+) {
     ul {
         className = ClassName("list-group list-group-flush")
         organizations.forEach { organizationWithUsers ->
@@ -91,7 +150,10 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
 
                             OrganizationStatus.DELETED -> {
                                 +organizationDto.name
-                                spanWithClassesAndText("text-secondary", organizationDto.status.name.lowercase())
+                                spanWithClassesAndText(
+                                    "text-secondary",
+                                    organizationDto.status.name.lowercase()
+                                )
                             }
 
                             OrganizationStatus.BANNED -> {
@@ -102,7 +164,8 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
                     }
                     div {
                         className = ClassName("col-5 text-right")
-                        val role = props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
+                        val role =
+                                props.userInfo?.name?.let { organizationWithUsers.userRoles[it] } ?: Role.NONE
                         if (role.isHigherOrEqualThan(Role.OWNER)) {
                             when (organizationDto.status) {
                                 OrganizationStatus.CREATED -> actionButton {
@@ -217,12 +280,6 @@ val organizationsSettingsCard: FC<SettingsProps> = FC { props ->
     }
 }
 
-private val comparator: Comparator<OrganizationWithUsers> =
-        compareBy<OrganizationWithUsers> { it.organization.status.ordinal }
-            .thenBy { it.organization.name }
-
-typealias OrganizationSetter = StateSetter<List<OrganizationWithUsers>>
-
 /**
  * Removes [oldOrganizationWithUsers] by [selfOrganizationWithUserList], adds [newOrganizationWithUsers] in [selfOrganizationWithUserList]
  * and sorts the resulting list by their status and then by name
@@ -244,5 +301,8 @@ private fun updateOrganizationWithUserInOrganizationWithUsersList(
 /**
  * Returned the [organizationWithUsers] with the updated [OrganizationStatus] field to the [newStatus] in the organization field
  */
-private fun changeOrganizationWithUserStatus(organizationWithUsers: OrganizationWithUsers, newStatus: OrganizationStatus) =
+private fun changeOrganizationWithUserStatus(
+    organizationWithUsers: OrganizationWithUsers,
+    newStatus: OrganizationStatus
+) =
         organizationWithUsers.copy(organization = organizationWithUsers.organization.copy(status = newStatus))

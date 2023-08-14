@@ -9,6 +9,7 @@ import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.isValidLengthName
+import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,7 +35,7 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = if (organization.name.isValidLengthName()) {
+        val (organizationId, organizationSaveStatus) = if (!organization.name.isValidLengthName()) {
             Pair(0L, OrganizationSaveStatus.INVALID_NAME)
         } else if (organizationRepository.validateName(organization.name) != 0L) {
             organizationRepository.saveHighLevelName(organization.name)
@@ -150,11 +151,13 @@ class OrganizationService(
 
     /**
      * @param organizationFilter
+     * @param pageable [Pageable]
      * @return list of organizations with that match [organizationFilter]
      */
-    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
+    fun getFiltered(organizationFilter: OrganizationFilter, pageable: Pageable): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
         organizationFilter.prefix,
         organizationFilter.statuses,
+        pageable,
     )
 
     /**

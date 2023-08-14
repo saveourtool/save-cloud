@@ -46,6 +46,7 @@ val basicRouting: FC<AppProps> = FC { props ->
     val userProfileView: VFC = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
+            currentUserInfo = props.userInfo
         }
     }
 
@@ -209,15 +210,17 @@ val basicRouting: FC<AppProps> = FC { props ->
             vulnerabilityView.create() to "$VULN/:vulnerabilityName",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
-            topRatingView.create() to TOP_RATING,
+            topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
 
             userSettingsView.create {
+                userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_PROFILE
             } to SETTINGS_PROFILE,
 
             userSettingsView.create {
+                userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_EMAIL
             } to SETTINGS_EMAIL,
@@ -232,21 +235,10 @@ val basicRouting: FC<AppProps> = FC { props ->
                 type = SETTINGS_ORGANIZATIONS
             } to SETTINGS_ORGANIZATIONS,
 
-            props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
-
-            props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
-
-            props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
-
-            props.viewWithFallBack(
-                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_DELETE
+            } to SETTINGS_DELETE,
 
         ).forEach { (view, route) ->
             PathRoute {
@@ -295,6 +287,11 @@ external interface AppProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**

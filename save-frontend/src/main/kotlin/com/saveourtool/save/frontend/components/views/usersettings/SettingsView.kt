@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.index.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.externals.fontawesome.*
@@ -16,13 +17,15 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
+import react.router.useNavigate
 import web.cssom.*
+import web.html.ButtonType
 import web.html.InputType
 
-import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -31,6 +34,34 @@ val cardHeight: CSSProperties = jso {
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
+    // This is needed for us to wait for userInfo uploaded
+    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(""))
+    val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
+    val useNavigate = useNavigate()
+
+    modal { modalProps ->
+        modalProps.isOpen = isModalOpen
+        modalProps.contentLabel = "Unauthenticated"
+        div {
+            className = ClassName("row align-items-center justify-content-center")
+            ReactHTML.h2 {
+                className = ClassName("h6 text-gray-800")
+                +"You are not logged in"
+            }
+        }
+        div {
+            className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
+            ReactHTML.button {
+                className = ClassName("btn btn-outline-primary")
+                type = ButtonType.button
+                onClick = {
+                    useNavigate(to = "/")
+                }
+                +"Proceed to login page"
+            }
+        }
+    }
+
     useBackground(Style.SAVE_LIGHT)
     main {
         className = ClassName("main-content")
@@ -40,17 +71,16 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
-                    leftSettingsColumn { this.userInfo = props.userInfo }
+                    leftSettingsColumn { this.userInfo = loadedUserInfo }
                 }
                 div {
                     className = ClassName("col-7")
-                    props.userInfo?.let {
+                    if (loadedUserInfo.name.isNotEmpty()) {
                         rightSettingsColumn {
-                            this.userInfo = props.userInfo
+                            this.userInfo = loadedUserInfo
                             this.type = props.type
+                            this.userInfoSetter = props.userInfoSetter
                         }
-                    } ?: main {
-                        // FixMe: some light 404
                     }
                 }
             }
@@ -66,7 +96,7 @@ typealias FieldsStateSetter = StateSetter<SettingsInputFields>
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface SettingsProps : PropsWithChildren {
     /**
-     * Currently logged in user or null
+     * Currently logged-in user or null
      */
     var userInfo: UserInfo?
 
@@ -74,6 +104,14 @@ external interface SettingsProps : PropsWithChildren {
      * just a flag for a factory
      */
     var type: FrontendRoutes
+
+    /**
+     * After updating user information we will update userSettings without re-rendering the page
+     * PLEASE NOTE: THIS PROPERTY AFFECTS RENDERING OF WHOLE APP.KT
+     * IF YOU HAVE SOME PROBLEMS WITH IT, CHECK THAT YOU HAVE PROPAGATED IT PROPERLY:
+     * { this.userInfoSetter = (!) PROPS (!) .userInfoSetter }
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**
@@ -84,26 +122,29 @@ external interface SettingsProps : PropsWithChildren {
  * @param setFields
  * @param placeholderText
  * @param settingsInputFields
+ * @param colRatio
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
     previousValue: String?,
     inputType: InputTypes,
     settingsInputFields: SettingsInputFields,
     setFields: FieldsStateSetter,
     placeholderText: String = "",
+    colRatio: Pair<String, String> = "col-4" to "col-8"
 ) {
     div {
-        className = ClassName("row")
+        className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-4 mt-2 text-left align-self-center")
+            className = ClassName("${colRatio.first} mt-2 text-left align-self-center")
             +"${inputType.str}:"
         }
         div {
-            className = ClassName("col-8 mt-2 input-group pl-0")
+            className = ClassName("${colRatio.second} mt-2 input-group pl-0")
             input {
                 placeholder = placeholderText
                 type = InputType.text
-                className = ClassName("form-control")
+                className = ClassName("form-control shadow")
                 previousValue.let {
                     defaultValue = it
                 }
@@ -123,21 +164,25 @@ fun ChildrenBuilder.inputForm(
 }
 
 /**
+ * (!) HOOK WITH REQUEST
+ *
  * @param props
  * @param settingsInputFields
  * @param setFieldsValidation
  * @return callback to a post request that will be executed
  */
-fun saveUser(
+fun useSaveUser(
     props: SettingsProps,
     settingsInputFields: SettingsInputFields,
     setFieldsValidation: FieldsStateSetter,
 ) = useDeferredRequest {
+    // this new user info will be sent to backend and also will be set in setter,
+    // so frontend will recalculate it on the fly at least for SettingsView (need to extend it later)
+    val newUserInfo = settingsInputFields.toUserInfo(props.userInfo!!)
     val response = post(
         "$apiUrl/users/save",
         jsonHeaders,
-
-        Json.encodeToString(settingsInputFields.toUserInfo(props.userInfo!!)),
+        Json.encodeToString(newUserInfo),
         loadingHandler = ::loadingHandler,
         responseHandler = ::noopResponseHandler
     )
@@ -149,6 +194,6 @@ fun saveUser(
     } else {
         val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, null)
         setFieldsValidation(newSettingsInputFields)
-        window.location.reload()
+        props.userInfoSetter(newUserInfo)
     }
 }

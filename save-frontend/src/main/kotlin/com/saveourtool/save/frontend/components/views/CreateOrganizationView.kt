@@ -149,8 +149,8 @@ class CreateOrganizationView : AbstractView<Props, OrganizationSaveViewState>() 
                                             form = InputTypes.ORGANIZATION_NAME
                                             conflictMessage = state.conflictErrorMessage
                                             textValue = state.organizationDto.name
-                                            validInput = (state.organizationDto.name.isEmpty() || state.organizationDto.validateName() ||
-                                                    state.organizationDto.name.isValidLengthName()) && state.conflictErrorMessage == null
+                                            validInput = state.organizationDto.name.isNotEmpty() && state.organizationDto.validateName() &&
+                                                    state.organizationDto.name.isValidLengthName() && state.conflictErrorMessage == null
                                             classes = ""
                                             name = "Organization name"
                                             onChangeFun = {

@@ -31,7 +31,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
 
     div {
-        className = ClassName("card card-body pt-0 px-0")
+        className = ClassName("card card-body pt-0 px-0 shadow")
         style = cardHeight
         div {
             className = ClassName("col mr-2 px-0")
@@ -65,6 +65,13 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     h4 {
                                         className = ClassName("mb-0 text-gray-800")
                                         +(props.userInfo?.name ?: "")
+                                    }
+                                }
+                                div {
+                                    className = ClassName("row justify-content-center")
+                                    h6 {
+                                        className = ClassName("mb-0 text-gray-800")
+                                        +(props.userInfo?.realName.orEmpty())
                                     }
                                 }
                                 div {
@@ -125,7 +132,7 @@ val settingsTabs = VFC {
                         className = ClassName("menu")
                         settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics", faPlus)
                         settingsMenuTab(
-                            FrontendRoutes.SETTINGS_TOKEN,
+                            FrontendRoutes.SETTINGS_DELETE,
                             "Delete Profile",
                             faWindowClose,
                             "btn-outline-danger"
@@ -153,7 +160,7 @@ private fun ChildrenBuilder.settingsMenuTab(
     div {
         className = ClassName("mt-2")
         Link {
-            className = ClassName("btn $style btn-block text-left")
+            className = ClassName("btn $style btn-block text-left shadow")
             to = "/$link"
             fontAwesomeIcon(icon = icon) {
                 it.className = "fas fa-sm fa-fw mr-2"

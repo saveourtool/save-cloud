@@ -3,7 +3,10 @@
 package com.saveourtool.save.frontend.components.modal
 
 import com.saveourtool.save.frontend.externals.modal.Styles
+import js.core.jso
 import react.CSSProperties
+import web.cssom.BackgroundColor
+import web.cssom.ZIndex
 import kotlin.js.json
 
 /**
@@ -11,7 +14,10 @@ import kotlin.js.json
  */
 internal const val MAX_Z_INDEX = 1000
 
-private val defaultOverlayProperties: CSSProperties = json("zIndex" to MAX_Z_INDEX.toString()).unsafeCast<CSSProperties>()
+private val defaultOverlayProperties: CSSProperties = jso {
+    zIndex = MAX_Z_INDEX.unsafeCast<ZIndex>()
+    backgroundColor = "rgba(255, 255, 255, 0.8)".unsafeCast<BackgroundColor>()
+}
 
 val defaultModalStyle = Styles(
     // make modal window occupy center of the screen
@@ -75,5 +81,8 @@ val loaderModalStyle = Styles(
         // small hack to remove modal border and make loader prettier
         "border" to "1px solid rgba(255, 255, 255, 0.01)"
     ).unsafeCast<CSSProperties>(),
-    overlay = defaultOverlayProperties,
+    overlay = jso {
+        zIndex = MAX_Z_INDEX.unsafeCast<ZIndex>()
+        backgroundColor = "rgba(255, 255, 255, 1)".unsafeCast<BackgroundColor>()
+    },
 )
