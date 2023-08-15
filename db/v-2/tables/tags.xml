@@ -16,4 +16,8 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="tag-2" author="sanyavertolet" context="dev or prod">
+        <addUniqueConstraint tableName="tag" columnNames="name" constraintName="uq_tag_name"/>
+    </changeSet>
+
 </databaseChangeLog>
