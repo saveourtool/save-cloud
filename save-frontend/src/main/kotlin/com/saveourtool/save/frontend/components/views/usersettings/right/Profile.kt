@@ -48,14 +48,14 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 
     val saveAvatar = useDeferredRequest {
         avatar?.let {
-            val response = request(
-                url = "$apiUrl/avatar/upload".withParams(jso<dynamic> {
+            val response = post(
+                url = "$apiUrl/avatar/upload",
+                params = jso<dynamic> {
                     owner = props.userInfo?.name
                     this.type = AvatarType.USER
-                }),
-                method = "POST",
-                headers = Headers().apply { append(CONTENT_LENGTH_CUSTOM, avatar.size.toString()) },
-                body = FormData().apply { set(FILE_PART_NAME, avatar) },
+                },
+                Headers().apply { append(CONTENT_LENGTH_CUSTOM, avatar.size.toString()) },
+                FormData().apply { set(FILE_PART_NAME, avatar) },
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
