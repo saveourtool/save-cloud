@@ -31,3 +31,15 @@ In order to run `save-orchestrator` on Mac with M1 in order to make it run execu
 1. manually put all the files from `save-agent-*-distribution.jar` into `save-orchestrator/build/resources/main` as well as `save-*-linuxX64.kexe` (temporary workaround) 
 2. run `docker-mac-settings.sh` script (from `save-deploy` folder) in order to let docker be available via TCP 
 Also check `save-deploy/README.md` for extra information
+
+## Generating OpenAPI specification
+
+We generate [OpenAPI specification](https://swagger.io/specification/) for backend's endpoints.
+The job [`backend-api-spec-update`](.github/workflows/backend-api-spec-update.yml) does it:
+it runs each week and creates a PR with changes.
+
+By default, it checks all endpoints from controllers in packages:
+  - `com.saveourtool.save.backend.controllers`
+  - `com.saveourtool.save.osv.controllers`
+
+If you need to support a new package, need to update `com.saveourtool.save.backend.configs.ApiGroupsConfiguration`.

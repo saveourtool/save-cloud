@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.latestVersion
 import com.saveourtool.save.v1
