@@ -7,6 +7,6 @@ plugins {
 
 dependencies {
     api(projects.saveCloudCommon)
-    api(libs.osv4k)
+    api(libs.cosv4k)
     implementation(libs.spring.security.core)
 }
