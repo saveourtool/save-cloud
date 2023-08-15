@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class GoImports(
-    val imports: List<GoImports>,
+    val imports: List<GoImport>,
 ) {
     companion object {
         /**

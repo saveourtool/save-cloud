@@ -8,20 +8,22 @@ import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
 
 /**
  * Default implementation of [OsvProcessor] which uses only core fields
  */
 @Suppress("GENERIC_NAME")
-abstract class AbstractOsvProcessor<D : Any, A_D : Any, A_E : Any, A_R_D : Any>(
+abstract class AbstractOsvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
     private val osvStorage: OsvStorage,
 ) : OsvProcessor {
+    abstract val serializer: KSerializer<OsvSchema<D, A_E, A_D, A_R_D>>
+
     override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto> {
-        val osv: OsvSchema<D, A_D, A_E, A_R_D> = Json.decodeFromJsonElement(jsonObject)
-        return osvStorage.upload(osv).map {
+        val osv = Json.decodeFromJsonElement(serializer, jsonObject)
+        return osvStorage.upload(osv, serializer).map {
             createFromCoreFields(osv).updateBySpecificFields(osv)
         }
     }
@@ -30,7 +32,7 @@ abstract class AbstractOsvProcessor<D : Any, A_D : Any, A_E : Any, A_R_D : Any>(
      * @param osv
      * @return updated [VulnerabilityDto] by specific fields
      */
-    protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: OsvSchema<D, A_D, A_E, A_R_D>): VulnerabilityDto
+    protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: OsvSchema<D, A_E, A_D, A_R_D>): VulnerabilityDto
 
     private fun <T : AnyOsvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
         name = osv.id,
