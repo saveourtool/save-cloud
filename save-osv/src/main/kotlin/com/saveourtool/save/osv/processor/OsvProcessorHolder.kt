@@ -1,42 +1,45 @@
 package com.saveourtool.save.osv.processor
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.warn
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
+
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
+import kotlinx.serialization.json.JsonObject
+
 /**
  * Holder for all [OsvProcessor]
+ *
+ * @param osvProcessors all [OsvProcessor] injected by Spring
  */
 @Component
 class OsvProcessorHolder(
-    private val osvProcessors: List<OsvProcessor.Custom>,
-    private val defaultOsvProcessor: DefaultOsvProcessor,
+    osvProcessors: List<OsvProcessor>,
 ) {
+    private val osvProcessors = osvProcessors.associateBy { it.id }
+    private val defaultOsvProcessor = this.osvProcessors[DefaultOsvProcessor.ID]
+        ?: throw IllegalStateException("Not found default OsvProcessor")
+
     /**
      * @param jsonObject
+     * @param id
      * @return [VulnerabilityDto] processed by [OsvProcessor] resolved by ID or [DefaultOsvProcessor]
      */
-    fun apply(jsonObject: JsonObject): Mono<VulnerabilityDto> {
-        val id = jsonObject.getValue("id").jsonPrimitive.content
-        val osvProcessor = osvProcessors
-            .filter { it.supports(id) }
-            .let { supportedOsvProcessors ->
-                when (supportedOsvProcessors.size) {
-                    0 -> defaultOsvProcessor
-                    1 -> supportedOsvProcessors.first()
-                    else -> {
-                        log.warn {
-                            "Fallback to default osv processor because found several processors for $id: ${supportedOsvProcessors.map { it.javaClass.simpleName }}"
-                        }
-                        defaultOsvProcessor
-                    }
-                }
-            }
-        return osvProcessor.apply(jsonObject)
+    fun process(
+        id: String = DefaultOsvProcessor.ID,
+        jsonObject: JsonObject,
+    ): Mono<VulnerabilityDto> {
+        val osvProcessor = osvProcessors[id] ?: getDefaultOsvProcessorAsFallback(id)
+        return osvProcessor(jsonObject)
+    }
+
+    private fun getDefaultOsvProcessorAsFallback(id: String): OsvProcessor {
+        log.debug {
+            "Fallback to default osv processor because not found processor for $id: ${osvProcessors.map { it.javaClass.simpleName }}"
+        }
+        return defaultOsvProcessor
     }
 
     companion object {

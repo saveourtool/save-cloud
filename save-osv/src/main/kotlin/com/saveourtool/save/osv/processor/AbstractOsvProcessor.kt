@@ -1,24 +1,26 @@
 package com.saveourtool.save.osv.processor
 
-import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.osv.storage.OsvStorage
+
+import com.saveourtool.osv4k.OsvSchema
+import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import reactor.core.publisher.Mono
 
 /**
  * Default implementation of [OsvProcessor] which uses only core fields
  */
+@Suppress("GENERIC_NAME")
 abstract class AbstractOsvProcessor<D : Any, A_D : Any, A_E : Any, A_R_D : Any>(
     private val osvStorage: OsvStorage,
-): OsvProcessor {
+) : OsvProcessor {
     override fun apply(jsonObject: JsonObject): Mono<VulnerabilityDto> {
-        val osv = Json.decodeFromJsonElement<OsvSchema<D, A_D, A_E, A_R_D>>(jsonObject)
+        val osv: OsvSchema<D, A_D, A_E, A_R_D> = Json.decodeFromJsonElement(jsonObject)
         return osvStorage.upload(osv).map {
             createFromCoreFields(osv).updateBySpecificFields(osv)
         }

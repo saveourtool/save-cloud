@@ -2,12 +2,12 @@ package com.saveourtool.save.osv.service
 
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.osv.processor.OsvProcessorHolder
 import com.saveourtool.save.osv.storage.OsvStorage
+import com.saveourtool.save.osv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
-import com.saveourtool.save.osv.processor.OsvProcessorHolder
-import com.saveourtool.save.osv.utils.toJsonArrayOrSingle
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -35,41 +35,47 @@ class OsvService(
     /**
      * Decodes [inputStream] and saves the result
      *
+     * @param sourceId
      * @param inputStream
      * @param authentication who uploads [inputStream]
      * @return save's vulnerability names
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
+        sourceId: String,
         inputStream: InputStream,
         authentication: Authentication,
-    ): Flux<String> = decodeAndSave(json.decodeFromStream<JsonElement>(inputStream), authentication)
+    ): Flux<String> = decodeAndSave(sourceId, json.decodeFromStream<JsonElement>(inputStream), authentication)
 
     /**
      * Decodes [content] and saves the result
      *
+     * @param sourceId
      * @param content
      * @param authentication who uploads [content]
      * @return save's vulnerability names
      */
     fun decodeAndSave(
+        sourceId: String,
         content: String,
         authentication: Authentication,
-    ): Flux<String> = decodeAndSave(json.parseToJsonElement(content), authentication)
+    ): Flux<String> = decodeAndSave(sourceId, json.parseToJsonElement(content), authentication)
 
     /**
      * Saves OSVs from [jsonElement] in S3 storage and creates entities in save database
      *
+     * @param sourceId
      * @param jsonElement
      * @param authentication who uploads OSV
      * @return save's vulnerability names
      */
     private fun decodeAndSave(
+        sourceId: String,
         jsonElement: JsonElement,
         authentication: Authentication,
     ): Flux<String> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { osvProcessorHolder.apply(it.jsonObject) }
+        .flatMap { osvProcessorHolder.process(sourceId, it.jsonObject) }
         .blockingMap {
             vulnerabilityService.save(it, authentication).name
         }

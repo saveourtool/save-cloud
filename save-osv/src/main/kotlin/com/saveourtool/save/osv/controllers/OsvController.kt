@@ -3,6 +3,8 @@ package com.saveourtool.save.osv.controllers
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.osv.processor.DefaultOsvProcessor
+import com.saveourtool.save.osv.processor.OsvProcessor
 import com.saveourtool.save.osv.service.OsvService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -48,6 +50,7 @@ class OsvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping("/upload")
     fun upload(
+        @RequestParam(required = false, defaultValue = DefaultOsvProcessor.ID) sourceId: String,
         @RequestBody content: String,
         authentication: Authentication,
     ): Mono<StringListResponse> = osvService.decodeAndSave(content, authentication)
@@ -64,6 +67,7 @@ class OsvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
+        @RequestParam(required = false, defaultValue = DefaultOsvProcessor.ID) sourceId: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
     ): Mono<StringListResponse> = filePartFlux

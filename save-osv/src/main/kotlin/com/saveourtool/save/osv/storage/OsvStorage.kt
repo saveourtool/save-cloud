@@ -1,5 +1,6 @@
 package com.saveourtool.save.osv.storage
 
+import com.saveourtool.save.osv.processor.AnyOsvSchema
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
@@ -8,8 +9,6 @@ import com.saveourtool.save.storage.s3KeyToParts
 import com.saveourtool.save.utils.upload
 
 import com.saveourtool.osv4k.OsvSchema
-import com.saveourtool.osv4k.RawOsvSchema
-import com.saveourtool.save.osv.processor.AnyOsvSchema
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
