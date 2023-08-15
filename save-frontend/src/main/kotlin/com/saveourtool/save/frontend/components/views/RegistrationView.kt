@@ -6,20 +6,24 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
+import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
 
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -33,11 +37,10 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import react.router.useNavigate
-import web.cssom.ClassName
-import web.cssom.ZIndex
-import web.cssom.rem
+import web.cssom.*
 import web.file.File
 import web.html.InputType
+import web.http.FormData
 import web.window.WindowTarget
 
 import kotlinx.browser.window
@@ -52,6 +55,10 @@ import kotlinx.serialization.json.Json
 val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
+    val avatarWindowOpen = useWindowOpenness()
+    val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val (avatar, setAvatar) = useState<File?>(null)
+
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
     val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(name = "")) { userInfo ->
@@ -107,8 +114,39 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
-    if (props.userInfo?.status == UserStatus.ACTIVE) {
+    if (props.userInfo?.status != UserStatus.CREATED) {
         navigate("/", jso { replace = true })
+    }
+
+    val saveAvatar = useDeferredRequest {
+        avatar?.let {
+            val response = request(
+                url = "$apiUrl/avatar/upload".withParams(jso<dynamic> {
+                    owner = props.userInfo?.name
+                    this.type = AvatarType.USER
+                }),
+                method = "POST",
+                headers = Headers().apply { append(CONTENT_LENGTH_CUSTOM, avatar.size.toString()) },
+                body = FormData().apply { set(FILE_PART_NAME, avatar) },
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                window.location.reload()
+            }
+        }
+    }
+
+    avatarForm {
+        isOpen = avatarWindowOpen.isOpen()
+        title = AVATAR_TITLE
+        onCloseWindow = {
+            saveAvatar()
+            avatarWindowOpen.closeWindow()
+        }
+        imageUpload = { file ->
+            setAvatar(file)
+        }
     }
 
     main {
@@ -135,7 +173,30 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 +"Set your user name and avatar"
                             }
 
-                            renderAvatar(props.userInfo?.avatar) { setNewAvatar(it) }
+                            div {
+                                className = ClassName("row")
+
+                                div {
+                                    className = ClassName("col-3")
+                                    div {
+                                        className = ClassName("row d-flex justify-content-center")
+                                        renderPreparedAvatars(1..3, setSelectedAvatar)
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("col-6")
+                                    renderAvatar(avatarWindowOpen, props.userInfo?.avatar)
+                                }
+
+                                div {
+                                    className = ClassName("col-3")
+                                    div {
+                                        className = ClassName("row d-flex justify-content-center")
+                                        renderPreparedAvatars(4..6, setSelectedAvatar)
+                                    }
+                                }
+                            }
 
                             form {
                                 div {
@@ -211,26 +272,51 @@ external interface RegistrationProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-@Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.renderAvatar(avatar: String?, onAvatarUpload: (File) -> Unit) {
-    label {
-        className = ClassName("btn")
-        title = "Change the user's avatar"
-        input {
-            type = InputType.file
-            hidden = true
-            onChange = { event ->
-                val file = event.target.files!!.asList()
-                    .single()
-                onAvatarUpload(file)
+/**
+ * @param avatarWindowOpen
+ * @param avatar
+ */
+fun ChildrenBuilder.renderAvatar(
+    avatarWindowOpen: WindowOpenness,
+    avatar: String?,
+) {
+    div {
+        className = ClassName("animated-provider")
+        Link {
+            className = ClassName("btn px-0 pt-0")
+            title = AVATAR_TITLE
+            onClick = {
+                avatarWindowOpen.openWindow()
+            }
+            img {
+                className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+                style = jso {
+                    height = 16.rem
+                    width = 16.rem
+                }
             }
         }
-        img {
-            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-            src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
-            style = jso {
-                height = 16.rem
-                width = 16.rem
+    }
+}
+
+private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
+    for (i in avatarsRange) {
+        val avatar = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
+        div {
+            className = ClassName("animated-provider")
+            img {
+                className =
+                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mt-1")
+                src = avatar
+                style = jso {
+                    height = 5.1.rem
+                    width = 5.1.rem
+                    cursor = Cursor.pointer
+                }
+                onClick = {
+                    setSelectedAvatar(avatar)
+                }
             }
         }
     }
