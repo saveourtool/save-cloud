@@ -45,6 +45,6 @@ class TagController(
         @RequestParam(required = false, defaultValue = "") prefix: String,
         @RequestParam(required = false, defaultValue = "3") pageSize: Int,
     ) = blockingToMono {
-        tagService.getVulnerabilityTagsByPrefix(prefix, Pageable.ofSize(pageSize)).map { it.name }
+        tagService.getVulnerabilityTagsByPrefix(prefix, Pageable.ofSize(pageSize)).map { it.name }.distinct()
     }
 }
