@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
 
-import io.ktor.client.request.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.ChildrenBuilder
@@ -32,12 +31,10 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.useState
 import web.cssom.*
+import web.file.File
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 const val AVATARS_PACKAGE_COUNT = 9
 
@@ -46,36 +43,38 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
     val avatarWindowOpen = useWindowOpenness()
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
     val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val (avatar, setAvatar) = useState<File?>(null)
     val saveUser = useSaveUser(props, settingsInputFields, setSettingsInputFields)
+
+    val saveAvatar = useDeferredRequest {
+        avatar?.let {
+            val response = request(
+                url = "$apiUrl/avatar/upload".withParams(jso<dynamic> {
+                    owner = props.userInfo?.name
+                    this.type = AvatarType.USER
+                }),
+                method = "POST",
+                headers = Headers().apply { append(CONTENT_LENGTH_CUSTOM, avatar.size.toString()) },
+                body = FormData().apply { set(FILE_PART_NAME, avatar) },
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                window.location.reload()
+            }
+        }
+    }
 
     // === image editor ===
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
         title = AVATAR_TITLE
         onCloseWindow = {
+            saveAvatar()
             avatarWindowOpen.closeWindow()
         }
         imageUpload = { file ->
-            // FixMe: we are inside of FC here, but without any reason avatarForm component is ignoring
-            // FixMe: useRequest {} hook, only works with scope directly,
-            // FixMe: expecting someone to investigate it later, but by for now we need this functionality to be working
-            val scope = CoroutineScope(Dispatchers.Default)
-            scope.launch {
-                val response = request(
-                    url = "$apiUrl/avatar/upload".withParams(jso<dynamic> {
-                        owner = props.userInfo?.name
-                        this.type = AvatarType.USER
-                    }),
-                    method = "POST",
-                    headers = Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
-                    body = FormData().apply { set(FILE_PART_NAME, file) },
-                    loadingHandler = ::noopLoadingHandler,
-                    responseHandler = ::noopResponseHandler,
-                )
-                if (response.ok) {
-                    window.location.reload()
-                }
-            }
+            setAvatar(file)
         }
     }
 
