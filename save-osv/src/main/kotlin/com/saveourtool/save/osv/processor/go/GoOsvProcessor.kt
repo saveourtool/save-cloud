@@ -6,9 +6,9 @@ import com.saveourtool.save.osv.processor.OsvProcessor
 import com.saveourtool.save.osv.storage.OsvStorage
 
 import com.saveourtool.osv4k.OsvSchema
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 import org.springframework.stereotype.Component
+
+import kotlinx.serialization.serializer
 
 private typealias GoSchema = OsvSchema<GoUrl, GoImports, Unit, Unit>
 
@@ -18,9 +18,8 @@ private typealias GoSchema = OsvSchema<GoUrl, GoImports, Unit, Unit>
 @Component
 class GoOsvProcessor(
     osvStorage: OsvStorage,
-) : AbstractOsvProcessor<GoUrl, GoImports, Unit, Unit>(osvStorage) {
+) : AbstractOsvProcessor<GoUrl, GoImports, Unit, Unit>(osvStorage, serializer()) {
     override val id: String = "GO"
-    override val serializer: KSerializer<GoSchema> = serializer()
 
     override fun VulnerabilityDto.updateBySpecificFields(osv: GoSchema): VulnerabilityDto = copy(
         relatedLink = osv.databaseSpecific?.url,

@@ -18,9 +18,9 @@ import kotlinx.serialization.json.JsonObject
 @Suppress("GENERIC_NAME")
 abstract class AbstractOsvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
     private val osvStorage: OsvStorage,
+    @Suppress("TYPE_ALIAS")
+    private val serializer: KSerializer<OsvSchema<D, A_E, A_D, A_R_D>>
 ) : OsvProcessor {
-    abstract val serializer: KSerializer<OsvSchema<D, A_E, A_D, A_R_D>>
-
     override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto> {
         val osv = Json.decodeFromJsonElement(serializer, jsonObject)
         return osvStorage.upload(osv, serializer).map {
