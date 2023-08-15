@@ -4,7 +4,6 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.osv.processor.DefaultOsvProcessor
-import com.saveourtool.save.osv.processor.OsvProcessor
 import com.saveourtool.save.osv.service.OsvService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -43,6 +42,7 @@ class OsvController(
         }
 
     /**
+     * @param sourceId
      * @param content
      * @param authentication
      * @return list of save's vulnerability names
@@ -53,13 +53,14 @@ class OsvController(
         @RequestParam(required = false, defaultValue = DefaultOsvProcessor.ID) sourceId: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<StringListResponse> = osvService.decodeAndSave(content, authentication)
+    ): Mono<StringListResponse> = osvService.decodeAndSave(sourceId, content, authentication)
         .collectList()
         .map {
             ResponseEntity.ok(it)
         }
 
     /**
+     * @param sourceId
      * @param filePartFlux
      * @param authentication
      * @return list of save's vulnerability names
@@ -79,7 +80,7 @@ class OsvController(
                 .map { it.asByteBuffer() }
                 .collectToInputStream()
                 .flatMapMany {
-                    osvService.decodeAndSave(it, authentication)
+                    osvService.decodeAndSave(sourceId, it, authentication)
                 }
         }
         .collectList()

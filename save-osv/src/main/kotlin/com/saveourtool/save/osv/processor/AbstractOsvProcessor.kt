@@ -19,7 +19,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 abstract class AbstractOsvProcessor<D : Any, A_D : Any, A_E : Any, A_R_D : Any>(
     private val osvStorage: OsvStorage,
 ) : OsvProcessor {
-    override fun apply(jsonObject: JsonObject): Mono<VulnerabilityDto> {
+    override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto> {
         val osv: OsvSchema<D, A_D, A_E, A_R_D> = Json.decodeFromJsonElement(jsonObject)
         return osvStorage.upload(osv).map {
             createFromCoreFields(osv).updateBySpecificFields(osv)

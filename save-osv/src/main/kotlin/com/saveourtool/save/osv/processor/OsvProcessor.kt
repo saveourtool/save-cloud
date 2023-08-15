@@ -14,7 +14,7 @@ typealias AnyOsvSchema = OsvSchema<out Any, out Any, out Any, out Any>
  * Processor of OSV entry which creates [VulnerabilityDto].
  *  to save required info in save database
  */
-interface OsvProcessor: Function1<JsonObject, Mono<VulnerabilityDto>> {
+interface OsvProcessor : Function1<JsonObject, Mono<VulnerabilityDto>> {
     /**
      * Identifier of [OsvProcessor] which provided by user
      */
