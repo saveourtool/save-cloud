@@ -89,10 +89,10 @@ class DockerContainerManagerTest {
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
-
-        Assertions.assertEquals("bash", inspectContainerResponse.path)
+        Assertions.assertEquals("/entrypoint.sh", inspectContainerResponse.path)
+        inspectContainerResponse.args.forEach { println(it) }
         Assertions.assertArrayEquals(
-            arrayOf("-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
+            arrayOf("bash", "-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
             inspectContainerResponse.args
         )
         // leading extra slash: https://github.com/moby/moby/issues/6705
