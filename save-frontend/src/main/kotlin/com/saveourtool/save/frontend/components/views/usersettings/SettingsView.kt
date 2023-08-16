@@ -30,7 +30,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val cardHeight: CSSProperties = jso {
-    height = 50.rem
+    height = 53.rem
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
@@ -129,9 +129,9 @@ fun ChildrenBuilder.inputForm(
     inputType: InputTypes,
     settingsInputFields: SettingsInputFields,
     setFields: FieldsStateSetter,
-    validationFunction: String.() -> String,
     placeholderText: String = "",
-    colRatio: Pair<String, String> = "col-4" to "col-8"
+    colRatio: Pair<String, String> = "col-4" to "col-8",
+    validationFunction: String.() -> String,
 ) {
     div {
         className = ClassName("row justify-content-center")

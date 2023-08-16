@@ -41,6 +41,14 @@ data class SettingsInputFields(
     val freeText: SettingsFromInput = SettingsFromInput(),
 ) {
     /**
+     * method that indicates that inside some input form we have a validation error
+     */
+    fun containsError() =
+            listOf(userName, userEmail, realName, company, location, website, linkedIn, github, twitter, freeText)
+                .map { it.containsError() }
+                .any { it }
+    
+    /**
      * Updating some particular field and saving all old fields that were not affected by this change
      *
      * @param inputType
@@ -126,4 +134,9 @@ data class SettingsInputFields(
 data class SettingsFromInput(
     val value: String? = null,
     val validation: String = "",
-)
+) {
+    /**
+     * @return true is validation is not empty
+     */
+    fun containsError() = validation.isNotBlank()
+}

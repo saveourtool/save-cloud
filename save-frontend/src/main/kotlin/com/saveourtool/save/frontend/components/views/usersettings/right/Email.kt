@@ -64,17 +64,16 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
             InputTypes.LOGIN,
             settingsInputFields,
             setSettingsInputFields,
-            String::validateLogin,
-            colRatio = "col-2" to "col-6"
-        )
+            colRatio = "col-2" to "col-6",
+        ) { validateLogin() }
+
         inputForm(
             props.userInfo?.email,
             InputTypes.USER_EMAIL,
             settingsInputFields,
             setSettingsInputFields,
-            String::validateUserEmail,
             colRatio = "col-2" to "col-6"
-        )
+        ) { validateUserEmail() }
 
         div {
             className = ClassName("row justify-content-center")
@@ -87,7 +86,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
 
         div {
             className = ClassName("row justify-content-center")
-            buttonBuilder("Save changes", style = "primary") {
+            buttonBuilder("Save changes", style = "primary", isDisabled = settingsInputFields.containsError()) {
                 saveUser()
             }
         }

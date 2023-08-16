@@ -105,8 +105,10 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                                     settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, "")
                             setSettingsInputFields(newSettingsInputFields)
                         }
+                        placeholder = "400 characters"
                         defaultValue = props.userInfo?.freeText
                         rows = 10
+                        maxLength = 400
                     }
                 }
             }
@@ -159,7 +161,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 
             div {
                 className = ClassName("row justify-content-center")
-                buttonBuilder("Save changes", style = "primary") {
+                buttonBuilder("Save changes", style = "primary", isDisabled = settingsInputFields.containsError()) {
                     saveUser()
                 }
             }
@@ -211,57 +213,56 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.REAL_NAME,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateRealName,
         "e.g. John Smith"
-    )
+    ) { validateRealName() }
+
     inputForm(
         props.userInfo?.company,
         InputTypes.COMPANY,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateCompany,
         "e.g. FutureWay Inc."
-    )
+    ) { validateCompany() }
+
     inputForm(
         props.userInfo?.location,
         InputTypes.LOCATION,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateLocation,
         "Beijing, China"
-    )
+    ) { validateLocation() }
+
     inputForm(
         props.userInfo?.website,
         InputTypes.WEBSITE,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateWebsite,
         "https://saveourtool.com"
-    )
+    ) { validateWebsite() }
+
     inputForm(
         props.userInfo?.linkedin,
         InputTypes.LINKEDIN,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateLinkedIn,
         "https://linkedin.com/yourname"
-    )
+    ) { validateLinkedIn() }
+
     inputForm(
         props.userInfo?.gitHub,
         InputTypes.GITHUB,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateGithub,
         "https://github.com/yourname"
-    )
+    ) { validateGithub() }
+
     inputForm(
         props.userInfo?.twitter,
         InputTypes.TWITTER,
         settingsInputFields,
         setSettingsInputFields,
-        String::validateTwitter,
         "https://x.com/yourname"
-    )
+    ) { validateTwitter() }
 
     hr { }
 }
