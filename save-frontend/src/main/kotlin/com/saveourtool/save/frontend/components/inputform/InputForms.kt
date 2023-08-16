@@ -47,12 +47,6 @@ enum class InputTypes(
     PROJECT_PROBLEM_NAME("project problem name", NAME_ERROR_MESSAGE, placeholder = "name"),
 
     // ==== signIn view
-    LOGIN(
-        "login",
-        null,
-        "login",
-        NAME_TOOLTIP
-    ),
     PASSWORD("password", null, "*****"),
     PROJECT_NAME(
         "project name",
@@ -73,7 +67,7 @@ enum class InputTypes(
 
     // ==== user setting view
     USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME(
+    LOGIN(
         "Login",
         NAME_ERROR_MESSAGE,
         "name",

@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCamera
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -101,7 +102,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                         className = ClassName("form-control shadow")
                         onChange = {
                             val newSettingsInputFields =
-                                    settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, null)
+                                    settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, "")
                             setSettingsInputFields(newSettingsInputFields)
                         }
                         defaultValue = props.userInfo?.freeText
@@ -210,6 +211,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.REAL_NAME,
         settingsInputFields,
         setSettingsInputFields,
+        String::validateRealName,
         "e.g. John Smith"
     )
     inputForm(
@@ -217,6 +219,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.COMPANY,
         settingsInputFields,
         setSettingsInputFields,
+        String::validateCompany,
         "e.g. FutureWay Inc."
     )
     inputForm(
@@ -224,6 +227,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.LOCATION,
         settingsInputFields,
         setSettingsInputFields,
+        String::validateLocation,
         "Beijing, China"
     )
     inputForm(
@@ -231,11 +235,33 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.WEBSITE,
         settingsInputFields,
         setSettingsInputFields,
+        String::validateWebsite,
         "https://saveourtool.com"
     )
-    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, settingsInputFields, setSettingsInputFields)
-    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, settingsInputFields, setSettingsInputFields)
-    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, settingsInputFields, setSettingsInputFields)
+    inputForm(
+        props.userInfo?.linkedin,
+        InputTypes.LINKEDIN,
+        settingsInputFields,
+        setSettingsInputFields,
+        String::validateLinkedIn,
+        "https://linkedin.com/yourname"
+    )
+    inputForm(
+        props.userInfo?.gitHub,
+        InputTypes.GITHUB,
+        settingsInputFields,
+        setSettingsInputFields,
+        String::validateGithub,
+        "https://github.com/yourname"
+    )
+    inputForm(
+        props.userInfo?.twitter,
+        InputTypes.TWITTER,
+        settingsInputFields,
+        setSettingsInputFields,
+        String::validateTwitter,
+        "https://x.com/yourname"
+    )
 
     hr { }
 }

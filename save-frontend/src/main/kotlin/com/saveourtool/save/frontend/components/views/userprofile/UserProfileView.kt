@@ -249,14 +249,16 @@ fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String, patter
     val foundPattern = patterns.map { it.value }.findLast { info.startsWith(it) }
     foundPattern?.let {
         val trimmedUserName = info.substringAfterLast(foundPattern)
-        div {
-            className = ClassName("mb-2")
-            fontAwesomeIcon(icon = icon) {
-                it.className = "fas fa-sm fa-fw mr-2 text-gray-900"
-            }
-            a {
-                href = info
-                +trimmedUserName
+        if (trimmedUserName.isNotBlank()) {
+            div {
+                className = ClassName("mb-2")
+                fontAwesomeIcon(icon = icon) {
+                    it.className = "fas fa-sm fa-fw mr-2 text-gray-900"
+                }
+                a {
+                    href = info
+                    +trimmedUserName
+                }
             }
         }
     }

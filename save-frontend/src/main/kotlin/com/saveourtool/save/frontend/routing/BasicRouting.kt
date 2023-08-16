@@ -214,13 +214,13 @@ val basicRouting: FC<AppProps> = FC { props ->
             termsOfUsageView.create() to TERMS_OF_USE,
 
             userSettingsView.create {
-                userInfoSetter = props.userInfoSetter
+                this.userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_PROFILE
             } to SETTINGS_PROFILE,
 
             userSettingsView.create {
-                userInfoSetter = props.userInfoSetter
+                this.userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
                 type = SETTINGS_EMAIL
             } to SETTINGS_EMAIL,

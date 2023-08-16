@@ -7,6 +7,8 @@ package com.saveourtool.save.frontend.components.views.usersettings.right
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.components.views.usersettings.inputForm
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateLogin
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateUserEmail
 import com.saveourtool.save.frontend.components.views.usersettings.useSaveUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
@@ -57,8 +59,22 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
 
     div {
         className = ClassName("col mt-2 px-5")
-        inputForm(props.userInfo?.name, InputTypes.USER_NAME, settingsInputFields, setSettingsInputFields, colRatio = "col-2" to "col-6")
-        inputForm(props.userInfo?.email, InputTypes.USER_EMAIL, settingsInputFields, setSettingsInputFields, colRatio = "col-2" to "col-6")
+        inputForm(
+            props.userInfo?.name,
+            InputTypes.LOGIN,
+            settingsInputFields,
+            setSettingsInputFields,
+            String::validateLogin,
+            colRatio = "col-2" to "col-6"
+        )
+        inputForm(
+            props.userInfo?.email,
+            InputTypes.USER_EMAIL,
+            settingsInputFields,
+            setSettingsInputFields,
+            String::validateUserEmail,
+            colRatio = "col-2" to "col-6"
+        )
 
         div {
             className = ClassName("row justify-content-center")
