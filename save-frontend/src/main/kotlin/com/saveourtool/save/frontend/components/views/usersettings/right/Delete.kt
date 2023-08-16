@@ -38,7 +38,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
                 loadingHandler = ::loadingHandler,
             )
             if (replyToLogout.ok) {
-                window.location.href = "${window.location.origin}/#"
+                window.location.href = "${window.location.origin}/"
                 window.location.reload()
             }
         }
