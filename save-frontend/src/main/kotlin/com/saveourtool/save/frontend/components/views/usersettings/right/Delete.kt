@@ -24,22 +24,24 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
 
     val deleteUser = useDeferredRequest {
-        val response = get(
-            url = "$apiUrl/users/delete/${props.userInfo?.name!!}",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val replyToLogout = post(
-                "${window.location.origin}/logout",
-                Headers(),
-                "ping",
+        props.userInfo?.name?.let {
+            val response = get(
+                url = "$apiUrl/users/delete/$it",
+                headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
             )
-            if (replyToLogout.ok) {
-                window.location.href = "${window.location.origin}/"
-                window.location.reload()
+            if (response.ok) {
+                val replyToLogout = post(
+                    "${window.location.origin}/logout",
+                    Headers(),
+                    "ping",
+                    loadingHandler = ::loadingHandler,
+                )
+                if (replyToLogout.ok) {
+                    window.location.href = "${window.location.origin}/"
+                    window.location.reload()
+                }
             }
         }
     }
