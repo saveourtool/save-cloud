@@ -41,15 +41,23 @@ data class SettingsInputFields(
     val freeText: SettingsFromInput = SettingsFromInput(),
 ) {
     /**
+     * method that indicates that inside some input form we have a validation error
+     */
+    fun containsError() =
+            listOf(userName, userEmail, realName, company, location, website, linkedIn, github, twitter, freeText)
+                .map { it.containsError() }
+                .any { it }
+    
+    /**
      * Updating some particular field and saving all old fields that were not affected by this change
      *
      * @param inputType
      * @param value
      * @param validation
      */
-    fun updateValue(inputType: InputTypes, value: String? = null, validation: String? = null) =
+    fun updateValue(inputType: InputTypes, value: String?, validation: String) =
             when (inputType) {
-                InputTypes.USER_NAME -> this.copy(userName = singleFieldCopy(this.userName, SettingsFromInput(value, validation)))
+                InputTypes.LOGIN -> this.copy(userName = singleFieldCopy(this.userName, SettingsFromInput(value, validation)))
                 InputTypes.USER_EMAIL -> this.copy(userEmail = singleFieldCopy(this.userEmail, SettingsFromInput(value, validation)))
                 InputTypes.REAL_NAME -> this.copy(realName = singleFieldCopy(this.realName, SettingsFromInput(value, validation)))
                 InputTypes.COMPANY -> this.copy(company = singleFieldCopy(this.company, SettingsFromInput(value, validation)))
@@ -67,7 +75,7 @@ data class SettingsInputFields(
      */
     fun getValueByType(inputType: InputTypes) =
             when (inputType) {
-                InputTypes.USER_NAME -> userName
+                InputTypes.LOGIN -> userName
                 InputTypes.USER_EMAIL -> userEmail
                 InputTypes.REAL_NAME -> realName
                 InputTypes.COMPANY -> company
@@ -83,14 +91,15 @@ data class SettingsInputFields(
     /**
      * If an input field was somehow changed, we reflect it:
      * we have both value and error in the same object (to have all logic in the same place)
-     * If value was not submitted -> we save old value and add only changed part
+     * If value was not changed in the form (null) -> we save old value and add only change validation part
+     * If just validation was changed (some problem appeared or was fixed) - it will be also reflected here
      */
-    private fun singleFieldCopy(old: SettingsFromInput, new: SettingsFromInput) =
-            when (Pair(new.value, new.validation)) {
-                Pair(new.value, null) -> old.copy(value = new.value)
-                Pair(null, new.validation) -> old.copy(validation = new.validation)
-                else -> old
-            }
+    private fun singleFieldCopy(old: SettingsFromInput, new: SettingsFromInput): SettingsFromInput = when (Pair(new.value, new.validation)) {
+        // this scenario is now only used in the response from backend, when the login is duplicated
+        // in this case the value is not changed, but need to update validation part
+        Pair(null, new.validation) -> old.copy(validation = new.validation)
+        else -> new
+    }
 
     /**
      * @param userInfo
@@ -124,5 +133,10 @@ data class SettingsInputFields(
  */
 data class SettingsFromInput(
     val value: String? = null,
-    val validation: String? = null,
-)
+    val validation: String = "",
+) {
+    /**
+     * @return true is validation is not empty
+     */
+    fun containsError() = validation.isNotBlank()
+}

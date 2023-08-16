@@ -55,7 +55,14 @@ fun String.isValidEmail() = ValidationRegularExpressions.EMAIL_VALIDATOR.value.m
  *
  * @return true if length name less than [NAMING_MAX_LENGTH], false otherwise
  */
-fun String.isValidLengthName() = this.length <= NAMING_MAX_LENGTH
+fun String.isValidLengthName() = isLengthOk(NAMING_MAX_LENGTH)
+
+/**
+ * checking that the field is less than NAMING_ALLOWED_LENGTH symbols
+ *
+ * @return false if the length is more than [NAMING_ALLOWED_LENGTH]
+ */
+fun String.isValidMaxAllowedLength() = isLengthOk(NAMING_ALLOWED_LENGTH)
 
 private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 

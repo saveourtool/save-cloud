@@ -201,7 +201,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                             form {
                                 div {
                                     inputTextFormRequired {
-                                        form = InputTypes.USER_NAME
+                                        form = InputTypes.LOGIN
                                         textValue = userInfo.name
                                         validInput = userInfo.name.isNotEmpty() && userInfo.name.isValidName() && userInfo.name.isValidLengthName()
                                         classes = ""

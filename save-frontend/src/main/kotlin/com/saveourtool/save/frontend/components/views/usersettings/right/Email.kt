@@ -7,6 +7,8 @@ package com.saveourtool.save.frontend.components.views.usersettings.right
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.components.views.usersettings.inputForm
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateLogin
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateUserEmail
 import com.saveourtool.save.frontend.components.views.usersettings.useSaveUser
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
@@ -57,8 +59,21 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
 
     div {
         className = ClassName("col mt-2 px-5")
-        inputForm(props.userInfo?.name, InputTypes.USER_NAME, settingsInputFields, setSettingsInputFields, colRatio = "col-2" to "col-6")
-        inputForm(props.userInfo?.email, InputTypes.USER_EMAIL, settingsInputFields, setSettingsInputFields, colRatio = "col-2" to "col-6")
+        inputForm(
+            props.userInfo?.name,
+            InputTypes.LOGIN,
+            settingsInputFields,
+            setSettingsInputFields,
+            colRatio = "col-2" to "col-6",
+        ) { validateLogin() }
+
+        inputForm(
+            props.userInfo?.email,
+            InputTypes.USER_EMAIL,
+            settingsInputFields,
+            setSettingsInputFields,
+            colRatio = "col-2" to "col-6"
+        ) { validateUserEmail() }
 
         div {
             className = ClassName("row justify-content-center")
@@ -71,7 +86,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
 
         div {
             className = ClassName("row justify-content-center")
-            buttonBuilder("Save changes", style = "primary") {
+            buttonBuilder("Save changes", style = "primary", isDisabled = settingsInputFields.containsError()) {
                 saveUser()
             }
         }

@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
+import com.saveourtool.save.frontend.components.views.usersettings.right.validation.*
 import com.saveourtool.save.frontend.externals.fontawesome.faCamera
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
@@ -100,11 +101,13 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                         className = ClassName("form-control shadow")
                         onChange = {
                             val newSettingsInputFields =
-                                    settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, null)
+                                    settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, "")
                             setSettingsInputFields(newSettingsInputFields)
                         }
+                        placeholder = "400 characters"
                         defaultValue = props.userInfo?.freeText
                         rows = 10
+                        maxLength = 400
                     }
                 }
             }
@@ -157,7 +160,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 
             div {
                 className = ClassName("row justify-content-center")
-                buttonBuilder("Save changes", style = "primary") {
+                buttonBuilder("Save changes", style = "primary", isDisabled = settingsInputFields.containsError()) {
                     saveUser()
                 }
             }
@@ -210,31 +213,55 @@ private fun ChildrenBuilder.extraInformation(
         settingsInputFields,
         setSettingsInputFields,
         "e.g. John Smith"
-    )
+    ) { validateRealName() }
+
     inputForm(
         props.userInfo?.company,
         InputTypes.COMPANY,
         settingsInputFields,
         setSettingsInputFields,
         "e.g. FutureWay Inc."
-    )
+    ) { validateCompany() }
+
     inputForm(
         props.userInfo?.location,
         InputTypes.LOCATION,
         settingsInputFields,
         setSettingsInputFields,
         "Beijing, China"
-    )
+    ) { validateLocation() }
+
     inputForm(
         props.userInfo?.website,
         InputTypes.WEBSITE,
         settingsInputFields,
         setSettingsInputFields,
         "https://saveourtool.com"
-    )
-    inputForm(props.userInfo?.linkedin, InputTypes.LINKEDIN, settingsInputFields, setSettingsInputFields)
-    inputForm(props.userInfo?.gitHub, InputTypes.GITHUB, settingsInputFields, setSettingsInputFields)
-    inputForm(props.userInfo?.twitter, InputTypes.TWITTER, settingsInputFields, setSettingsInputFields)
+    ) { validateWebsite() }
+
+    inputForm(
+        props.userInfo?.linkedin,
+        InputTypes.LINKEDIN,
+        settingsInputFields,
+        setSettingsInputFields,
+        "https://linkedin.com/yourname"
+    ) { validateLinkedIn() }
+
+    inputForm(
+        props.userInfo?.gitHub,
+        InputTypes.GITHUB,
+        settingsInputFields,
+        setSettingsInputFields,
+        "https://github.com/yourname"
+    ) { validateGithub() }
+
+    inputForm(
+        props.userInfo?.twitter,
+        InputTypes.TWITTER,
+        settingsInputFields,
+        setSettingsInputFields,
+        "https://x.com/yourname"
+    ) { validateTwitter() }
 
     hr { }
 }
