@@ -122,7 +122,7 @@ Usually, not the whole stack is required for development. Application logic is p
        {
          proxy: [
            {
-             context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**", "**.ico", "**.png"],
+             context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**"],
              target: 'http://localhost:5300',
              logLevel: 'debug',
            }
