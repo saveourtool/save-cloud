@@ -23,6 +23,27 @@ import kotlinx.browser.window
 val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
 
+    val deleteUser = useDeferredRequest {
+        val response = get(
+            url = "$apiUrl/users/delete/${props.userInfo?.name!!}",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+        if (response.ok) {
+            val replyToLogout = post(
+                "${window.location.origin}/logout",
+                Headers(),
+                "ping",
+                loadingHandler = ::loadingHandler,
+            )
+            if (replyToLogout.ok) {
+                window.location.href = "${window.location.origin}/#"
+                window.location.reload()
+            }
+        }
+    }
+
     displayModal(
         deleteUserWindowOpenness.isOpen(),
         "Deletion of user profile",
@@ -31,7 +52,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
         deleteUserWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Yes", isActive = props.userInfo != null) {
-            deleteUser(props.userInfo?.name!!)
+            deleteUser()
             deleteUserWindowOpenness.closeWindow()
         }
         buttonBuilder("Cancel", "secondary") {
@@ -64,32 +85,6 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
             className = ClassName("col-4 text-center")
             buttonBuilder("Delete your profile", style = "danger") {
                 deleteUserWindowOpenness.openWindow()
-            }
-        }
-    }
-}
-
-/**
- * @param userName
- */
-fun deleteUser(userName: String) {
-    useRequest {
-        val response = get(
-            url = "$apiUrl/users/delete/$userName",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val replyToLogout = post(
-                "${window.location.origin}/logout",
-                Headers(),
-                "ping",
-                loadingHandler = ::loadingHandler,
-            )
-            if (replyToLogout.ok) {
-                window.location.href = "${window.location.origin}/#"
-                window.location.reload()
             }
         }
     }
