@@ -23,6 +23,7 @@ import kotlinx.browser.window
 val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
 
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val deleteUser = useDeferredRequest {
         props.userInfo?.name?.let {
             val response = get(
