@@ -109,8 +109,8 @@ Usually, not the whole stack is required for development. Application logic is p
    * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
    * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
      default gateway URL); 
-   * `onProxyReq`: drop the entire callback, since all auth headers (`X-Authorization-Id`,
-     `X-Authorization-Name` and `X-Authorization-Roles`) will be set by the gateway now (the gateway
+   * `onProxyReq`: drop the entire callback, since both headers (`Authorization`
+     and `X-Authorization-Source`) will be set by the gateway now (the gateway
      acts as a reverse proxy);
    * `bypass`: drop the entire callback.
 
