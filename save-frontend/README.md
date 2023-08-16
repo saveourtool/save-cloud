@@ -120,36 +120,4 @@ onProxyReq: (proxyReq, req, res) => {
 Thus, we add `Authorization` and `X-Authorization-Source` headers that correspond with `admin` user headers.
 
 ### Using OAuth with a local deployment (`api-gateway` on)
-
-* When the default [`dev-server.js`](../save-frontend/webpack.config.d/dev-server.js)
-  is used, the front-end is expected to communicate directly with the back-end,
-  omitting any gateway. When enabling OAuth, make sure the gateway is contacted
-  instead:
-
-    * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
-    * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
-      default gateway URL);
-    * `onProxyReq`: drop the entire callback, since both headers (`Authorization`
-      and `X-Authorization-Source`) will be set by the gateway now (the gateway
-      acts as a reverse proxy);
-    * `bypass`: drop the entire callback.
-
-  The resulting `dev-server.js` should look like this:
-  ```javascript
-  config.devServer = Object.assign(
-      {},
-      config.devServer || {},
-      {
-        proxy: [
-          {
-            context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**"],
-            target: 'http://localhost:5300',
-            logLevel: 'debug',
-          }
-        ],
-        historyApiFallback: true
-      }
-  )
-  ```
-
-Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
+This is described in [`save-deploy/README.md`](../save-deploy/README.md)
