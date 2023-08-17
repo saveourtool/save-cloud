@@ -12,6 +12,7 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
@@ -19,6 +20,7 @@ import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.lang.IllegalArgumentException
 
 import java.util.*
 
@@ -54,14 +56,36 @@ class UserDetailsService(
      * @param name
      * @throws NoSuchElementException
      */
-    fun updateAvatarVersion(name: String) {
+    fun updateAvatarVersion(name: String): String {
         val user = userRepository.findByName(name).orNotFound()
-        var version = user.avatar?.substringAfterLast("?")?.toInt() ?: 0
-
-        user.apply {
-            avatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+        var version = if (user.avatar?.find { it == '?' } != null) {
+            user.avatar!!.substringAfterLast("?").toInt()
+        } else {
+            0
         }
-        user.let { userRepository.save(it) }
+        val newAvatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+            user.apply { avatar = newAvatar }
+            .let { userRepository.save(it) }
+
+        return newAvatar
+    }
+
+    /**
+     * Only for static resources!
+     *
+     * @param name
+     * @param resource
+     * @throws IllegalArgumentException
+     */
+    fun setAvatarFromResource(name: String, resource: String) {
+        if (!resource.startsWith(AVATARS_PACKS_DIR)) {
+            throw IllegalArgumentException("Only avatars from $AVATARS_PACKS_DIR can be set for user $name")
+        }
+
+        userRepository.findByName(name)
+            .orNotFound()
+            .apply { avatar = resource }
+            .let { userRepository.save(it) }
     }
 
     /**

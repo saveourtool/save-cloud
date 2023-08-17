@@ -25,6 +25,8 @@ import web.cssom.rem
  */
 const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
 
+fun String.avatarRenderer() = if (this.startsWith("/img")) this else "/api/$v1/avatar/$this"
+
 /**
  * Render organization avatar or placeholder
  *
@@ -39,7 +41,7 @@ fun ChildrenBuilder.renderAvatar(
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) = renderAvatar(
-    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER,
+    organizationDto.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER,
     classes,
     link ?: "/${organizationDto.name}",
     styleBuilder
@@ -63,7 +65,7 @@ fun ChildrenBuilder.renderAvatar(
 ) {
     val newLink = (link ?: "/${FrontendRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
     return renderAvatar(
-        userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
+        userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
         newLink,
         styleBuilder

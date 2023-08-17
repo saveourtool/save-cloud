@@ -34,11 +34,10 @@ val cardHeight: CSSProperties = jso {
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
-    val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
     val useNavigate = useNavigate()
 
     modal { modalProps ->
-        modalProps.isOpen = isModalOpen
+        modalProps.isOpen = props.userInfo == null
         modalProps.contentLabel = "Unauthenticated"
         div {
             className = ClassName("row align-items-center justify-content-center")

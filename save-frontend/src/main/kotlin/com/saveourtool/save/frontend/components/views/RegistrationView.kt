@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
@@ -19,7 +20,6 @@ import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
@@ -290,7 +290,7 @@ fun ChildrenBuilder.renderAvatar(
             }
             img {
                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+                src = avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                 style = jso {
                     height = 16.rem
                     width = 16.rem
@@ -302,7 +302,7 @@ fun ChildrenBuilder.renderAvatar(
 
 private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
     for (i in avatarsRange) {
-        val avatar = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
+        val avatar = "$AVATARS_PACKS_DIR/avatar$i.png"
         div {
             className = ClassName("animated-provider")
             img {
