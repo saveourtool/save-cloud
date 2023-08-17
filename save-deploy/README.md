@@ -101,43 +101,7 @@ Usually, not the whole stack is required for development. Application logic is p
 
 ### Using OAuth with a local deployment
 
- * When the default [`dev-server.js`](../save-frontend/webpack.config.d/dev-server.js)
-   is used, the front-end is expected to communicate directly with the back-end, 
-   omitting any gateway. When enabling OAuth, make sure the gateway is contacted
-   instead:
- 
-   * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
-   * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
-     default gateway URL); 
-   * `onProxyReq`: drop the entire callback, since both headers (`Authorization`
-     and `X-Authorization-Source`) will be set by the gateway now (the gateway
-     acts as a reverse proxy);
-   * `bypass`: drop the entire callback.
-
-   The resulting `dev-server.js` should look like this:
-   ```javascript
-   config.devServer = Object.assign(
-       {},
-       config.devServer || {},
-       {
-         proxy: [
-           {
-             context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**"],
-             target: 'http://localhost:5300',
-             logLevel: 'debug',
-           }
-         ],
-         historyApiFallback: true
-       }
-   )
-   ```
-   
-    Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
-
- * Avoid potential name conflicts between local users (those authenticated using
-   _HTTP Basic Auth_) and users created via an external _OAuth_ provider. For
-   example, if you have a local user named `torvalds`, don't try to authenticate
-   as a [_GitHub_ user with the same name](https://github.com/torvalds).
+This is described in [`save-frontend/README.md`](../save-frontend/README.md)
 
 #### _Dex_-specific notes
 
