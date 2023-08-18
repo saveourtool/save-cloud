@@ -134,6 +134,12 @@ enum class InputTypes(
     ACE_THEME_SELECTOR("theme"),
     ACE_MODE_SELECTOR("mode"),
 
+    COMMIT_HASH(
+        "commit hash",
+        COMMIT_HASH_ERROR_MESSAGE,
+        "hash",
+    ),
+
     // ==== vulnerability
     CVE_NAME(
         "CVE identifier",

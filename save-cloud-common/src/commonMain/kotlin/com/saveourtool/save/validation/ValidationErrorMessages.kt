@@ -26,6 +26,11 @@ const val NAME_ERROR_MESSAGE = "Please input a name (not longer than $NAMING_MAX
         "only letters, numbers; dots and hyphens (but not the first and the last characters)"
 
 /**
+ * Error message for commit hash
+ */
+const val COMMIT_HASH_ERROR_MESSAGE = "Please input a valid commit hash"
+
+/**
  * Error message that is shown when date range input is invalid.
  */
 const val DATE_RANGE_ERROR_MESSAGE = "Please input a valid date range"
