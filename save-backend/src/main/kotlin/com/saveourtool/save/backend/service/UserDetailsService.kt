@@ -62,7 +62,7 @@ class UserDetailsService(
     fun updateAvatarVersion(name: String): String {
         val user = userRepository.findByName(name).orNotFound()
         var version = user.avatar?.find { it == '?' }?.let {
-            user.avatar!!.substringAfterLast("?").toInt()
+            user.avatar?.substringAfterLast("?")?.toInt() ?: 0
         } ?: 0
         val newAvatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
         user.apply { avatar = newAvatar }
