@@ -59,7 +59,7 @@ internal class AvatarController(
         Parameter(name = "type", `in` = ParameterIn.QUERY, description = "type of avatar", required = true)
 
     )
-    @GetMapping(path = ["/avatar_update"])
+    @GetMapping(path = ["/avatar-update"])
     fun updateAvatarFromResources(
         @RequestParam resource: String,
         @RequestParam type: AvatarType,
@@ -122,10 +122,12 @@ internal class AvatarController(
                 log.info("Saved $contentLength bytes of $avatarKey")
             }
         }
-        .map {
-            when (type) {
-                AvatarType.ORGANIZATION -> organizationService.updateAvatarVersion(owner)
-                AvatarType.USER -> userDetailsService.updateAvatarVersion(owner)
+        .flatMap {
+            blockingToMono {
+                when (type) {
+                    AvatarType.ORGANIZATION -> organizationService.updateAvatarVersion(owner)
+                    AvatarType.USER -> userDetailsService.updateAvatarVersion(owner)
+                }
             }
         }
         .map {

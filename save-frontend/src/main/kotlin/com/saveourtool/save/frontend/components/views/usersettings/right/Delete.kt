@@ -12,9 +12,9 @@ import com.saveourtool.save.frontend.utils.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.img
 import web.cssom.ClassName
 import web.cssom.rem
 
@@ -65,7 +65,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
 
     div {
         className = ClassName("row justify-content-center mt-5")
-        ReactHTML.img {
+        img {
             src = "/img/sad_cat.png"
             @Suppress("MAGIC_NUMBER")
             style = jso {

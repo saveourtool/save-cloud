@@ -17,7 +17,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
@@ -41,14 +40,14 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
         modalProps.contentLabel = "Unauthenticated"
         div {
             className = ClassName("row align-items-center justify-content-center")
-            ReactHTML.h2 {
+            h2 {
                 className = ClassName("h6 text-gray-800")
                 +"You are not logged in"
             }
         }
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
-            ReactHTML.button {
+            button {
                 className = ClassName("btn btn-outline-primary")
                 type = ButtonType.button
                 onClick = {

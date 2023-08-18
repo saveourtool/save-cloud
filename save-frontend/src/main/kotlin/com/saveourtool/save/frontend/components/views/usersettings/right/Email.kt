@@ -14,7 +14,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.hr
@@ -29,7 +28,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
 
     div {
         className = ClassName("row justify-content-center mt-5")
-        ReactHTML.img {
+        img {
             src = "/img/settings_icon1.png"
             style = jso {
                 height = 10.rem

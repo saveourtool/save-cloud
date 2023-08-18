@@ -25,6 +25,9 @@ import web.cssom.rem
  */
 const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
 
+/**
+ * links to avatars: "/img" for static resources, "/api" for uploaded
+ */
 fun String.avatarRenderer() = if (this.startsWith("/img")) this else "/api/$v1/avatar/$this"
 
 /**

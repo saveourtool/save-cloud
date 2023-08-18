@@ -53,18 +53,19 @@ class UserDetailsService(
     }
 
     /**
+     * We change the version just to work-around the caching on the frontend
+     *
      * @param name
+     * @return the id (version) of new avatar
      * @throws NoSuchElementException
      */
     fun updateAvatarVersion(name: String): String {
         val user = userRepository.findByName(name).orNotFound()
-        var version = if (user.avatar?.find { it == '?' } != null) {
+        var version = user.avatar?.find { it == '?' }?.let {
             user.avatar!!.substringAfterLast("?").toInt()
-        } else {
-            0
-        }
+        } ?: 0
         val newAvatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
-            user.apply { avatar = newAvatar }
+        user.apply { avatar = newAvatar }
             .let { userRepository.save(it) }
 
         return newAvatar

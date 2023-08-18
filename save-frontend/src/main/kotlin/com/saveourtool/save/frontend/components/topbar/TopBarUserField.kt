@@ -7,7 +7,6 @@ import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 

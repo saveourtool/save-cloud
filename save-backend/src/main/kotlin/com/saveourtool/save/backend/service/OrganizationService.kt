@@ -167,7 +167,10 @@ class OrganizationService(
     fun updateOrganization(organization: Organization): Organization = organizationRepository.save(organization)
 
     /**
+     * We change the version just to work-around the caching on the frontend
+     *
      * @param name
+     * @return the id (version) of new avatar
      * @throws NoSuchElementException
      */
     fun updateAvatarVersion(name: String): String {
