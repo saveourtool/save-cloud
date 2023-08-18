@@ -20,14 +20,14 @@ import com.saveourtool.save.utils.FILE_PART_NAME
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.*
 import web.file.File
 import web.http.FormData
 
 import kotlinx.coroutines.await
-import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.img
 
 val avatarSelector: FC<AvatarSelectorProps> = FC { props ->
     val (avatar, setAvatar) = useState<File?>(null)

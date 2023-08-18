@@ -17,7 +17,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.router.useNavigate
@@ -27,8 +29,6 @@ import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML.button
-import react.dom.html.ReactHTML.h2
 
 val cardHeight: CSSProperties = jso {
     height = 53.rem
