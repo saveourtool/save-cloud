@@ -3,12 +3,11 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -50,7 +49,6 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatarNew, setAvatarNew) = useStateFromProps(props.userInfo?.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_PROFILE_PLACEHOLDER)
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -100,11 +98,8 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = avatarNew
+                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                             style = logoSize
-                            onError = {
-                                setAvatarNew { AVATAR_PLACEHOLDER }
-                            }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"

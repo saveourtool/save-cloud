@@ -167,17 +167,23 @@ class OrganizationService(
     fun updateOrganization(organization: Organization): Organization = organizationRepository.save(organization)
 
     /**
+     * We change the version just to work-around the caching on the frontend
+     *
      * @param name
+     * @return the id (version) of new avatar
      * @throws NoSuchElementException
      */
-    fun updateAvatarVersion(name: String) {
+    fun updateAvatarVersion(name: String): String {
         val organization = organizationRepository.findByName(name).orNotFound()
         var version = organization.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        val newAvatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
 
         organization.apply {
-            avatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
+            avatar = newAvatar
         }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
+
+        return newAvatar
     }
 
     /**
