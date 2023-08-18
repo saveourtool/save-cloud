@@ -16,7 +16,8 @@ const val EMAIL_ERROR_MESSAGE = "Please input a valid email address"
 /**
  * Error message that is shown when url input is invalid.
  */
-const val URL_ERROR_MESSAGE = "Please input a valid URL that starts either with [http://] or [https://]"
+const val URL_ERROR_MESSAGE = "Please input a valid URL that starts either with [http://] or [https://], " +
+        "ends with a top-level domain name with more than one character."
 
 /**
  * Error message that is shown when name input is invalid.
