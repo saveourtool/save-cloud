@@ -27,6 +27,8 @@ import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.h2
 
 val cardHeight: CSSProperties = jso {
     height = 53.rem

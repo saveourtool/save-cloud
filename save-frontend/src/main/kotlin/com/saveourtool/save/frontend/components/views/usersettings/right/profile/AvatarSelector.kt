@@ -26,6 +26,8 @@ import web.file.File
 import web.http.FormData
 
 import kotlinx.coroutines.await
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.img
 
 val avatarSelector: FC<AvatarSelectorProps> = FC { props ->
     val (avatar, setAvatar) = useState<File?>(null)
