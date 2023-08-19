@@ -11,6 +11,57 @@
     }
   ],
   "paths": {
+    "/api/v1/avatar/avatar-update": {
+      "get": {
+        "description": "This endpoint can only be used in case of setting avatar for user from existing resources",
+        "operationId": "updateAvatarFromResources",
+        "parameters": [
+          {
+            "description": "static resource for avatar",
+            "in": "query",
+            "name": "resource",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "type of avatar",
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ORGANIZATION",
+                "USER"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Set avatar from existing avatar packages",
+        "tags": [
+          "avatars"
+        ]
+      }
+    },
     "/api/v1/avatar/upload": {
       "post": {
         "description": "Upload an avatar for user or organization.",
