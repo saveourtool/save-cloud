@@ -79,6 +79,7 @@ internal class AvatarController(
      * @param owner owner name
      * @param type type of avatar
      * @param contentLength
+     * @param authentication
      * @return [Mono] with response
      */
     @Operation(
