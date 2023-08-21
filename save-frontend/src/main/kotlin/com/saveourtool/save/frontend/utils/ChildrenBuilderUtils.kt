@@ -141,8 +141,18 @@ fun ChildrenBuilder.renderTablePlaceholder(
     }
 }
 
+/**
+ * @param labelBuilder
+ * @param style
+ * @param isDisabled
+ * @param isOutline
+ * @param isActive
+ * @param classes
+ * @param title
+ * @param onClickFun
+ */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList", "LAMBDA_IS_NOT_LAST_PARAMETER")
-private fun ChildrenBuilder.buttonBuilder(
+fun ChildrenBuilder.buttonBuilder(
     labelBuilder: ChildrenBuilder.() -> Unit,
     style: String? = "primary",
     isDisabled: Boolean = false,
