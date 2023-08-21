@@ -89,7 +89,7 @@ class DockerContainerManagerTest {
         val inspectContainerResponse = dockerClient
             .inspectContainerCmd(testContainerId)
             .exec()
-        Assertions.assertEquals("/entrypoint.sh", inspectContainerResponse.path)
+        Assertions.assertEquals("/__cacert_entrypoint.sh", inspectContainerResponse.path)
         inspectContainerResponse.args.forEach { println(it) }
         Assertions.assertArrayEquals(
             arrayOf("bash", "-c", "env \$(cat /home/save-agent/.env | xargs) sh -c \"./script.sh\""),
