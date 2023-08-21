@@ -111,6 +111,7 @@ internal class AvatarController(
         @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
         @RequestParam owner: String,
         @RequestParam type: AvatarType,
+        authentication: Authentication,
     ): Mono<StringResponse> = partMono
         .flatMap { part ->
             val avatarKey = AvatarKey(
@@ -126,7 +127,7 @@ internal class AvatarController(
             blockingToMono {
                 when (type) {
                     AvatarType.ORGANIZATION -> organizationService.updateAvatarVersion(owner)
-                    AvatarType.USER -> userDetailsService.updateAvatarVersion(owner)
+                    AvatarType.USER -> userDetailsService.updateAvatarVersion(authentication.username())
                 }
             }
         }
