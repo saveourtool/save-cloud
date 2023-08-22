@@ -83,24 +83,6 @@ val organizationRatingTab: FC<Props> = FC { _ ->
         },
         useServerPaging = false,
         isTransparentGrid = true,
-        commonHeader = { tableInstance, _ ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    nameFiltersRow {
-                        name = organizationFilter.prefix
-                        onChangeFilters = { filterValue ->
-                            val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilter.created
-                            } else {
-                                OrganizationFilter(filterValue)
-                            }
-                            setOrganizationFilter(filter)
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it)
     }
@@ -113,6 +95,26 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                 getData = { _, _ ->
                     fetchOrganizationRequest(organizationFilter).also {
                         doOnce { setOrganizations(it) }
+                    }
+                }
+                commonHeaderBuilder = { cb, tableInstance, _ ->
+                    with(cb) {
+                        tr {
+                            th {
+                                colSpan = tableInstance.visibleColumnsCount()
+                                nameFiltersRow {
+                                    name = organizationFilter.prefix
+                                    onChangeFilters = { filterValue ->
+                                        val filter = if (filterValue.isNullOrEmpty()) {
+                                            OrganizationFilter.created
+                                        } else {
+                                            OrganizationFilter(filterValue)
+                                        }
+                                        setOrganizationFilter(filter)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
