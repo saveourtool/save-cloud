@@ -42,10 +42,9 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                     div {
                         className = ClassName("line")
                     }
-
                     props.dates.toList()
-                        .sortedBy { it.first }
-                        .forEach { (dateTime, label) ->
+                    .sortedBy { it.second }
+                    .forEach { (label, dateTime) ->
                             div {
                                 className = ClassName("step $hoverable")
                                 props.onNodeClick?.let { onClickCallback ->
@@ -86,7 +85,7 @@ external interface TimelineComponentProps : Props {
     /**
      * Map with dates where key is [LocalDateTime] and value is label
      */
-    var dates: Map<LocalDateTime, String>
+    var dates: Map<String, LocalDateTime>
 
     /**
      * Callback that should be invoked on add button click
