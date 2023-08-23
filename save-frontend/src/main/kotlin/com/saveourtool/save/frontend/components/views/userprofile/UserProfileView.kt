@@ -10,23 +10,32 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.renderAvatar
+import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
+import react.dom.aria.ariaDescribedBy
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.hr
+import react.dom.html.ReactHTML.input
+import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
+import web.html.InputType
 
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
@@ -144,6 +153,83 @@ fun ChildrenBuilder.renderLeftUserMenu(
     organizations: List<OrganizationDto>,
 ) {
     val navigate = useNavigate()
+    val banUserWindowOpenness = useWindowOpenness()
+
+    val banUser = useDeferredRequest {
+        user?.name?.let {
+            val response = get(
+                url = "$apiUrl/users/delete",
+                params = jso<dynamic> {
+                    userName = it
+                    userStatus = UserStatus.BANNED
+                },
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                navigate(to = "/")
+            }
+        }
+    }
+
+    // FixMe: Comment and cause is not used anywhere. Need to send email notification
+    displayModal(
+        banUserWindowOpenness.isOpen(),
+        "User profile ban",
+        bodyBuilder = {
+            div {
+                div {
+                    className = ClassName("col-12 form-check-inline mb-2")
+                    input {
+                        className = ClassName("form-check-input")
+                        defaultChecked = true
+                        name = "cause"
+                        type = InputType.radio
+                        value = "public"
+                    }
+                    label {
+                        className = ClassName("form-check-label")
+                        htmlFor = "cause"
+                        +"Violation of the rules for using the service"
+                    }
+                }
+                div {
+                    className = ClassName("col-12 form-check-inline mb-3")
+                    input {
+                        className = ClassName("form-check-input")
+                        defaultChecked = false
+                        name = "cause"
+                        type = InputType.radio
+                        value = "public"
+                    }
+                    label {
+                        className = ClassName("form-check-label")
+                        htmlFor = "cause"
+                        +"Other"
+                    }
+                }
+                textarea {
+                    className = ClassName("border-secondary form-control p-3 border-1")
+                    ariaDescribedBy = "${InputTypes.COMMENT.name}Span"
+                    rows = 5
+                    id = InputTypes.COMMENT.name
+                    required = true
+                    placeholder = "Write a comment"
+                }
+            }
+        },
+        modalStyle = mediumTransparentModalStyle,
+        onCloseButtonPressed = banUserWindowOpenness.closeWindowAction(),
+    ) {
+        buttonBuilder("Ok", "danger") {
+            banUser()
+            banUserWindowOpenness.closeWindow()
+        }
+        buttonBuilder("Close", "secondary") {
+            banUserWindowOpenness.closeWindow()
+        }
+    }
 
     div {
         className = ClassName("row justify-content-center")
@@ -181,6 +267,16 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
                 buttonBuilder(label = "Customize profile", isOutline = true, style = "primary btn-sm") {
                     navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
+                }
+            }
+        }
+
+        if (currentUser?.isSuperAdmin() == true) {
+            div {
+                className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
+
+                buttonBuilder(label = "Ban user", isOutline = true, style = "danger btn-sm") {
+                    banUserWindowOpenness.openWindow()
                 }
             }
         }

@@ -24,5 +24,10 @@ enum class UserStatus {
      * User deleted
      */
     DELETED,
+
+    /**
+     * User banned
+     */
+    BANNED,
     ;
 }

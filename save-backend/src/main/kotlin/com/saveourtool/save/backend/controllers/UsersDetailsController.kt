@@ -8,6 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.isValidLengthName
@@ -177,15 +178,17 @@ class UsersDetailsController(
 
     /**
      * @param userName
+     * @param userStatus
      * @param authentication
      */
-    @GetMapping("/delete/{userName}")
+    @GetMapping("/delete")
     @PreAuthorize("isAuthenticated()")
     fun deleteUser(
-        @PathVariable userName: String,
+        @RequestParam userName: String,
+        @RequestParam userStatus: UserStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        userDetailsService.deleteUser(userName, authentication)
+        userDetailsService.deleteUser(userName, userStatus, authentication)
     }
         .filter { status ->
             status == UserSaveStatus.DELETED
