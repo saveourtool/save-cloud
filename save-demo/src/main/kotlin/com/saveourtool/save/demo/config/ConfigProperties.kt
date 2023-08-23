@@ -88,9 +88,9 @@ data class KubernetesConfig(
         fun limitsQuantity() = Quantity(limits)
     }
     companion object {
+        private const val DEFAULT_BACKOFF_LIMIT = 6
         private val defaultAgentCpuLimitations = Limitations("200m", "2")
         private val defaultAgentMemoryLimitations = Limitations("300Mi", "500Mi")
         private val defaultEphemeralStorageLimitations = Limitations("100Mi", "500Mi")
-        private const val DEFAULT_BACKOFF_LIMIT = 6
     }
 }
