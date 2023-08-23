@@ -11,8 +11,10 @@ import web.cssom.*
 
 import kotlinx.datetime.LocalDateTime
 
+const val hoverableConst = "hoverable"
+
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
-    val hoverable = props.onNodeClick?.let { "hoverable" }.orEmpty()
+    val hoverable = props.onNodeClick?.let { hoverableConst }.orEmpty()
 
     div {
         className = ClassName("mb-3")
@@ -22,50 +24,52 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 +title
             }
         }
-        div {
-            className = ClassName("p-0 timeline-container")
+
+        props.onAddClick?.let { onClickCallback ->
+            buttonBuilder(
+                label = "Add date",
+                style = "secondary",
+                isOutline = true,
+                classes = "btn btn-primary"
+            ) {
+                onClickCallback()
+            }
+        }
+
+        if (props.dates.isNotEmpty()) {
             div {
-                className = ClassName("steps-container")
+                className = ClassName("p-0 timeline-container")
                 div {
-                    style = jso {
-                        position = "absolute".unsafeCast<Position>()
-                        right = "1%".unsafeCast<Right>()
-                        top = "0%".unsafeCast<Top>()
-                        zIndex = "4".unsafeCast<ZIndex>()
+                    className = ClassName("steps-container")
+                    div {
+                        className = ClassName("line")
                     }
-                    props.onAddClick?.let { onClickCallback ->
-                        buttonBuilder(faPlus, style = "secondary", isOutline = true, classes = "rounded-circle btn-sm mt-1 mr-1") {
-                            onClickCallback()
-                        }
-                    }
-                }
-                div {
-                    className = ClassName("line completed")
-                }
-                props.dates.toList()
-                    .sortedBy { it.first }
-                    .forEach { (dateTime, label) ->
-                        div {
-                            className = ClassName("step completed $hoverable")
-                            props.onNodeClick?.let { onClickCallback ->
-                                style = jso { cursor = "pointer".unsafeCast<Cursor>() }
-                                onClick = { onClickCallback(dateTime, label) }
+
+                    props.dates.toList()
+                        .sortedBy { it.first }
+                        .forEach { (dateTime, label) ->
+                            div {
+                                className = ClassName("step $hoverable")
+                                props.onNodeClick?.let { onClickCallback ->
+                                    onClick = { onClickCallback(dateTime, label) }
+                                }
+
+                                div {
+                                    className = ClassName("text-label")
+                                    +label
+                                }
+                                div {
+                                    className = ClassName("date-label")
+                                    +dateTime.date.toString()
+                                }
                             }
                             div {
-                                className = ClassName("text-label completed")
-                                +label
-                            }
-                            div {
-                                className = ClassName("date-label completed")
-                                +dateTime.date.toString()
+                                className = ClassName("line")
                             }
                         }
-                        div {
-                            className = ClassName("line completed")
-                        }
+                    div {
+                        className = ClassName("line-end")
                     }
-                div {
-                    className = ClassName("line-end")
                 }
             }
         }
