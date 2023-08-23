@@ -13234,7 +13234,7 @@
           "datesWithLabels": {
             "type": "object",
             "additionalProperties": {
-              "type": "string"
+              "$ref": "#/components/schemas/LocalDateTime"
             }
           },
           "description": {
