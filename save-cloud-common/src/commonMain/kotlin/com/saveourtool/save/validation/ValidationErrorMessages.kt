@@ -39,3 +39,8 @@ const val DATE_RANGE_ERROR_MESSAGE = "Please input a valid date range"
  * Error message that is shown when CVE identifier is invalid.
  */
 const val CVE_NAME_ERROR_MESSAGE = "CVE identifier is invalid"
+
+/**
+ * Error message that is shown when tag is invalid.
+ */
+const val TAG_ERROR_MESSAGE = "Tag length should be in [3, 15] range, no commas are allowed."
