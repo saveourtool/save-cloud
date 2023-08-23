@@ -32,7 +32,6 @@ data class ConfigProperties(
 }
 
 /**
- *
  * @property apiServerUrl URL of Kubernetes API Server. See [docs on accessing API from within a pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
  * @property serviceAccount Name of [ServiceAccount](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that will be used
  * to authenticate save-demo to the API server
@@ -44,6 +43,7 @@ data class ConfigProperties(
  * @property agentCpuLimitations configures CPU [Limitations] for demo-agent pods
  * @property agentMemoryLimitations configures memory [Limitations] for demo-agent pods
  * @property agentEphemeralStorageLimitations configures ephemeral storage [Limitations] for demo-agent pods
+ * @property podBackoffLimit number of attempts to restart the pod before it is considered to be failed, [DEFAULT_BACKOFF_LIMIT] by default
  */
 data class KubernetesConfig(
     val apiServerUrl: String,
@@ -55,7 +55,8 @@ data class KubernetesConfig(
     val agentNamespace: String = currentNamespace,
     val agentCpuLimitations: Limitations? = defaultAgentCpuLimitations,
     val agentMemoryLimitations: Limitations? = defaultAgentMemoryLimitations,
-    val agentEphemeralStorageLimitations: Limitations? = defaultEphemeralStorageLimitations
+    val agentEphemeralStorageLimitations: Limitations? = defaultEphemeralStorageLimitations,
+    val podBackoffLimit: Int = DEFAULT_BACKOFF_LIMIT,
 ) {
     /**
      * Data class that configures demo-agent limitations:
@@ -90,5 +91,6 @@ data class KubernetesConfig(
         private val defaultAgentCpuLimitations = Limitations("200m", "2")
         private val defaultAgentMemoryLimitations = Limitations("300Mi", "500Mi")
         private val defaultEphemeralStorageLimitations = Limitations("100Mi", "500Mi")
+        private const val DEFAULT_BACKOFF_LIMIT = 6
     }
 }
