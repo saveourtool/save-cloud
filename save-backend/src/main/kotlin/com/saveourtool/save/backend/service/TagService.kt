@@ -7,9 +7,13 @@ import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.vulnerabilities.LnkVulnerabilityTag
 import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
+import com.saveourtool.save.validation.isValidTag
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * [Service] for [Tag] entity
@@ -26,9 +30,13 @@ class TagService(
      * @param vulnerabilityName [Vulnerability.name]
      * @param tagName tag to add
      * @return new [LnkVulnerabilityTag]
+     * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
      */
     @Transactional
     fun addVulnerabilityTag(vulnerabilityName: String, tagName: String): LnkVulnerabilityTag {
+        if (!tagName.isValidTag()) {
+            throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
+        }
         val vulnerability = vulnerabilityRepository.findByName(vulnerabilityName).orNotFound {
             "Could not find vulnerability $vulnerabilityName"
         }
