@@ -56,7 +56,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
     val avatarWindowOpen = useWindowOpenness()
-    val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val (selectedAvatar, setSelectedAvatar) = useState(props.userInfo?.avatar)
     val (avatar, setAvatar) = useState<File?>(null)
 
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
@@ -137,6 +137,18 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
+    val setAvatarFromResources = useDeferredRequest {
+        get(
+            url = "$apiUrl/avatar/avatar-update",
+            params = jso<dynamic> {
+                this.type = AvatarType.USER
+                this.resource = selectedAvatar
+            },
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+    }
+
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
         title = AVATAR_TITLE
@@ -180,20 +192,28 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     className = ClassName("col-3")
                                     div {
                                         className = ClassName("row d-flex justify-content-center")
-                                        renderPreparedAvatars(1..3, setSelectedAvatar)
+                                        renderPreparedAvatars(
+                                            1..3,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
                                     }
                                 }
 
                                 div {
                                     className = ClassName("col-6")
-                                    renderAvatar(avatarWindowOpen, props.userInfo?.avatar)
+                                    renderAvatar(avatarWindowOpen, selectedAvatar)
                                 }
 
                                 div {
                                     className = ClassName("col-3")
                                     div {
                                         className = ClassName("row d-flex justify-content-center")
-                                        renderPreparedAvatars(4..6, setSelectedAvatar)
+                                        renderPreparedAvatars(
+                                            4..6,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
                                     }
                                 }
                             }
@@ -300,7 +320,11 @@ fun ChildrenBuilder.renderAvatar(
     }
 }
 
-private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
+private fun ChildrenBuilder.renderPreparedAvatars(
+    avatarsRange: IntRange,
+    setSelectedAvatar: StateSetter<String?>,
+    setAvatarFromResources: () -> Unit = { },
+) {
     for (i in avatarsRange) {
         val avatar = "$AVATARS_PACKS_DIR/avatar$i.png"
         div {
@@ -316,6 +340,7 @@ private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSel
                 }
                 onClick = {
                     setSelectedAvatar(avatar)
+                    setAvatarFromResources()
                 }
             }
         }
