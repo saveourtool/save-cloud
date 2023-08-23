@@ -3,12 +3,8 @@
 package com.saveourtool.save.frontend.externals.progressbar
 
 import com.saveourtool.save.frontend.themes.Colors
-import js.core.jso
-import react.CSSProperties
 import react.ChildrenBuilder
 import react.react
-import web.cssom.Font
-import web.cssom.FontSize
 
 /**
  * @param progress progress and percentage
@@ -16,20 +12,18 @@ import web.cssom.FontSize
  * @param lineWidth of the circle's stroke
  * @param color of percentage text and "progress" portion of circle
  * @param handler
+ * @param showPercentageSymbol
  */
-@Suppress("MAGIC_NUMBER")
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.progressBar(
     progress: Int,
     size: String = "10rem",
     lineWidth: String = "5rem",
     color: String = Colors.SUCCESS.value,
     showPercentageSymbol: Boolean = false,
-    // FixMe: this does not work in Circle, investigate why
-    textStyle: CSSProperties = jso {
-        font = "bold 6.rem".unsafeCast<Font>()
-                                   },
     handler: ChildrenBuilder.(ReactCircleProps) -> Unit = {},
 ) {
+    // FixMe: setting textStyle as jso this does not work in Circle, investigate why
     ReactCircle::class.react {
         this.size = size
         this.lineWidth = lineWidth

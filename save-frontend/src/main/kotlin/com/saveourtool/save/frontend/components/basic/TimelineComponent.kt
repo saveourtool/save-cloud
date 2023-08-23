@@ -2,19 +2,17 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.frontend.externals.fontawesome.faPlus
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import web.cssom.*
 
 import kotlinx.datetime.LocalDateTime
 
-const val hoverableConst = "hoverable"
+const val HOVERABLE_CONST = "hoverable"
 
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
-    val hoverable = props.onNodeClick?.let { hoverableConst }.orEmpty()
+    val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
 
     div {
         className = ClassName("mb-3")
