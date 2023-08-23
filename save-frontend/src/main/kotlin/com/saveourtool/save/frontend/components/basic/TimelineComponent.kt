@@ -43,8 +43,8 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                         className = ClassName("line")
                     }
                     props.dates.toList()
-                    .sortedBy { it.second }
-                    .forEach { (label, dateTime) ->
+                        .sortedBy { it.second }
+                        .forEach { (label, dateTime) ->
                             div {
                                 className = ClassName("step $hoverable")
                                 props.onNodeClick?.let { onClickCallback ->
