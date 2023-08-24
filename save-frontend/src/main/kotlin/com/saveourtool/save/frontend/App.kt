@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
+import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
@@ -36,6 +37,7 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE")
 val App: VFC = FC {
+    useOnce { initI18n() }
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
         val userName: String? = get(

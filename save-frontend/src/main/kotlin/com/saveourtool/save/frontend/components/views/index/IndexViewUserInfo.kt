@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -17,6 +18,9 @@ import web.cssom.*
 const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 val indexViewInfo: FC<IndexViewProps> = FC { props ->
+    val (t, i18n) = useTranslation()
+    i18n.changeLanguage("cn")
+
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
         h2 {
@@ -38,7 +42,7 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
         h2 {
-            +"Notifications"
+            +t("Notifications")
         }
     }
     div {
