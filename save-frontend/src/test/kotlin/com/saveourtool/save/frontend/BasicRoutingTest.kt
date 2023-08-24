@@ -1,6 +1,7 @@
 package com.saveourtool.save.frontend
 
 import com.saveourtool.save.frontend.externals.findByTextAndCast
+import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 import com.saveourtool.save.frontend.routing.basicRouting
@@ -17,6 +18,7 @@ class BasicRoutingTest {
         // App uses `BrowserRouter`, while `MemoryRouter` should be used for tests. Thus, app cannot be rendered
         render(
             MemoryRouter.create {
+                initI18n()
                 basicRouting()
             }
         )
