@@ -1,5 +1,3 @@
-// Custom Card Styling
-
 .card {
   .card-header {
     // Format Dropdowns in Card Headings
@@ -34,3 +32,20 @@
     }
   }
 }
+
+.vulnerability-placeholder svg {
+    transition: 0.4s;
+}
+
+.vulnerability-placeholder:hover {
+    border: #5711d9;
+    border-style: solid;
+}
+
+.vulnerability-placeholder:hover svg {
+    transition: 0.4s;
+    transform: scale(1.2);
+    color: #5711d9;
+}
+
+
