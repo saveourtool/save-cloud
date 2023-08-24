@@ -46,5 +46,5 @@ sealed class Translation {
      * @return localized value by [key]
      * @see component1
      */
-    operator fun invoke(key: String): String = component1()(key)
+    inline operator fun invoke(key: String): String = component1()(key)
 }

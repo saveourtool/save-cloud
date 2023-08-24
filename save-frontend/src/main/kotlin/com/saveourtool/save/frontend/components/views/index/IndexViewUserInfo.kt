@@ -17,9 +17,9 @@ import web.cssom.*
 
 const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
+@Suppress("IDENTIFIER_LENGTH")
 val indexViewInfo: FC<IndexViewProps> = FC { props ->
-    val (t, i18n) = useTranslation()
-    i18n.changeLanguage("cn")
+    val t = useTranslation()
 
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
