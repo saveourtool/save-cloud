@@ -54,6 +54,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+const val TABLE_HEADERS_LOCALE_NAMESPACE = "table-headers"
+
 private typealias TableHeaderBuilder<T> = (ChildrenBuilder, Table<T>, NavigateFunction) -> Unit
 
 /**

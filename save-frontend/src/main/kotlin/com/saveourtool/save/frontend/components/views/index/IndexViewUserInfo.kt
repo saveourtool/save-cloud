@@ -19,7 +19,7 @@ const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 @Suppress("IDENTIFIER_LENGTH")
 val indexViewInfo: FC<IndexViewProps> = FC { props ->
-    val t = useTranslation()
+    val (t) = useTranslation()
 
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
@@ -42,7 +42,7 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
         h2 {
-            +t("Notifications")
+            +"Notifications".t()
         }
     }
     div {

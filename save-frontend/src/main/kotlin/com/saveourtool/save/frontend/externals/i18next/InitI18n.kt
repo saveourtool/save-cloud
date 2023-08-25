@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.frontend.externals.i18next
 
+import com.saveourtool.save.frontend.externals.i18next.locales.*
+
 /**
  * Function that encapsulates i18n initialization.
  *
@@ -19,7 +21,9 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
             en: {
                 translation: {
                     "Notifications": "Notifications"
-                }
+                },
+                "vulnerability-collection": $VULN_COLLECTION_EN,
+                "table-headers": $TABLE_HEADERS_EN,
             },
             cn: {
                 translation: {
@@ -29,7 +33,9 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
             ru: {
                 translation: {
                     "Notifications": "Уведомления"
-                }
+                },
+                "vulnerability-collection": $VULN_COLLECTION_RU,
+                "table-headers": $TABLE_HEADERS_RU,
             }
         };
         
