@@ -207,7 +207,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             vulnerabilityCollectionView.create() to "$VULN/list",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
-            vulnerabilityView.create() to "$VULN/:vulnerabilityName",
+            vulnerabilityView.create() to "$VULN/list/:vulnerabilityName",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
