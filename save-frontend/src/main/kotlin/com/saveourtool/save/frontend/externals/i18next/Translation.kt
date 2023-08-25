@@ -1,5 +1,7 @@
 package com.saveourtool.save.frontend.externals.i18next
 
+import com.saveourtool.save.frontend.PlatformLanguages
+
 /**
  * Class that represents the return value of `useTranslation` hook
  * @see useTranslation
@@ -22,7 +24,7 @@ sealed class Translation {
      *
      * @return an i18n instance
      */
-    inline operator fun component2(): dynamic = asDynamic()[1]
+    inline operator fun component2(): I18n = asDynamic()[1].unsafeCast<I18n>()
 
     /**
      * @return ready flag
@@ -48,3 +50,15 @@ sealed class Translation {
      */
     inline operator fun invoke(key: String): String = component1()(key)
 }
+
+/**
+ * @param language [PlatformLanguages] enum entity corresponding to language to set
+ */
+fun I18n.changeLanguage(language: PlatformLanguages) = changeLanguage(language.code)
+
+/**
+ * @param namespace locale namespace
+ *
+ * @see useTranslation
+ */
+fun useTranslation(namespace: String) = useTranslation(arrayOf(namespace))

@@ -7,7 +7,9 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
+import com.saveourtool.save.frontend.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
@@ -17,11 +19,15 @@ import react.dom.html.ReactHTML.input
 import web.cssom.ClassName
 import web.html.InputType
 
-private const val LANGUAGE_PLACEHOLDER = "Language..."
-
 private const val DROPDOWN_OPTIONS_AMOUNT = 3
 
+@Suppress("IDENTIFIER_LENGTH")
 val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
+    useTooltip()
+    val t = useTranslation(TABLE_HEADERS_LOCALE_NAMESPACE)
+
+    val languagePlaceholder = t("Language")
+
     val (tagPrefix, setTagPrefix) = useState("")
     val (user, setUser) = useState(UserInfo(""))
     val (organization, setOrganization) = useState(OrganizationDto.empty)
@@ -44,7 +50,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filter.prefixName
-                        placeholder = "Name..."
+                        placeholder = "${t("Name")}..."
                         required = false
                         onChange = { event ->
                             setFilter { oldFilter ->
@@ -61,7 +67,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/tags/vulnerabilities?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "Tag..."
+                        placeholder = "${t("Tag")}..."
                         renderOption = ::renderString
                         onOptionClick = { newTag ->
                             setFilter { oldFilter -> oldFilter.copy(tags = oldFilter.tags + newTag) }
@@ -79,7 +85,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "User..."
+                        placeholder = "${t("Author")}..."
                         renderOption = ::renderUserWithAvatar
                         onOptionClick = { newUser ->
                             setUser(newUser)
@@ -97,7 +103,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/organizations/get/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "Organization..."
+                        placeholder = "${t("Organization")}..."
                         renderOption = ::renderOrganizationWithAvatar
                         onOptionClick = { newOrganization ->
                             setOrganization(newOrganization)
@@ -109,8 +115,8 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 div {
                     className = ClassName("col-auto px-1")
                     selectorBuilder(
-                        filter.language?.value ?: LANGUAGE_PLACEHOLDER,
-                        VulnerabilityLanguage.values().map { it.value }.plus(LANGUAGE_PLACEHOLDER),
+                        filter.language?.value ?: languagePlaceholder,
+                        VulnerabilityLanguage.values().map { it.value }.plus(languagePlaceholder),
                         "form-control custom-select",
                     ) { event ->
                         val newLanguage = VulnerabilityLanguage.values().find { it.value == event.target.value }
