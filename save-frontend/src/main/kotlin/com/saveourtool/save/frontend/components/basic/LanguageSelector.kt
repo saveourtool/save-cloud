@@ -32,13 +32,13 @@ val languageSelector: VFC = FC {
     div {
         className = ClassName("dropdown")
         a {
-            className = ClassName("dropdown-toggle")
+            className = ClassName("dropdown-toggle text-light")
             id = LANG_DROPDOWN_ID
             asDynamic()["data-toggle"] = "dropdown"
             ariaHasPopup = true.unsafeCast<AriaHasPopup>()
             ariaExpanded = false
-            style = jso { cursor = "pointer".unsafeCast<Cursor>() }
             span { +language.label }
+            style = jso { cursor = "pointer".unsafeCast<Cursor>() }
         }
 
         div {
