@@ -17,8 +17,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.main
 import react.router.useNavigate
@@ -30,28 +31,25 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 val cardHeight: CSSProperties = jso {
-    height = 50.rem
+    height = 53.rem
 }
 
 val userSettingsView: FC<SettingsProps> = FC { props ->
-    // This is needed for us to wait for userInfo uploaded
-    val (loadedUserInfo, setLoadedUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(""))
-    val (isModalOpen, setIsModalOpen) = useState(props.userInfo == null)
     val useNavigate = useNavigate()
 
     modal { modalProps ->
-        modalProps.isOpen = isModalOpen
+        modalProps.isOpen = props.userInfo == null
         modalProps.contentLabel = "Unauthenticated"
         div {
             className = ClassName("row align-items-center justify-content-center")
-            ReactHTML.h2 {
+            h2 {
                 className = ClassName("h6 text-gray-800")
                 +"You are not logged in"
             }
         }
         div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
-            ReactHTML.button {
+            button {
                 className = ClassName("btn btn-outline-primary")
                 type = ButtonType.button
                 onClick = {
@@ -71,13 +69,13 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 className = ClassName("row justify-content-center mt-3")
                 div {
                     className = ClassName("col-2")
-                    leftSettingsColumn { this.userInfo = loadedUserInfo }
+                    leftSettingsColumn { this.userInfo = props.userInfo }
                 }
                 div {
                     className = ClassName("col-7")
-                    if (loadedUserInfo.name.isNotEmpty()) {
+                    if (props.userInfo?.name?.isNotEmpty() == true) {
                         rightSettingsColumn {
-                            this.userInfo = loadedUserInfo
+                            this.userInfo = props.userInfo
                             this.type = props.type
                             this.userInfoSetter = props.userInfoSetter
                         }
@@ -122,7 +120,8 @@ external interface SettingsProps : PropsWithChildren {
  * @param setFields
  * @param placeholderText
  * @param settingsInputFields
- * @param colRatio
+ * @param colRatio sizes of columns: <TITLE> =====INPUT FIELD=====
+ * @param validationFunction
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
@@ -131,7 +130,8 @@ fun ChildrenBuilder.inputForm(
     settingsInputFields: SettingsInputFields,
     setFields: FieldsStateSetter,
     placeholderText: String = "",
-    colRatio: Pair<String, String> = "col-4" to "col-8"
+    colRatio: Pair<String, String> = "col-4" to "col-8",
+    validationFunction: String.() -> String,
 ) {
     div {
         className = ClassName("row justify-content-center")
@@ -149,14 +149,17 @@ fun ChildrenBuilder.inputForm(
                     defaultValue = it
                 }
                 onChange = {
-                    val settingsInputFieldsNew = settingsInputFields.updateValue(inputType, it.target.value, null)
+                    val textInTheInput = it.target.value
+                    val settingsInputFieldsNew =
+                            settingsInputFields.updateValue(inputType, it.target.value, textInTheInput.validationFunction())
                     setFields(settingsInputFieldsNew)
                 }
             }
-            settingsInputFields.getValueByType(inputType).validation?.let {
+            val validationText = settingsInputFields.getValueByType(inputType).validation
+            if (validationText.isNotBlank()) {
                 div {
                     className = ClassName("invalid-feedback d-block")
-                    +it
+                    +validationText
                 }
             }
         }
@@ -179,6 +182,7 @@ fun useSaveUser(
     // this new user info will be sent to backend and also will be set in setter,
     // so frontend will recalculate it on the fly at least for SettingsView (need to extend it later)
     val newUserInfo = settingsInputFields.toUserInfo(props.userInfo!!)
+
     val response = post(
         "$apiUrl/users/save",
         jsonHeaders,
@@ -189,10 +193,10 @@ fun useSaveUser(
 
     if (response.isConflict()) {
         val responseText = response.unpackMessage()
-        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, responseText)
+        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.LOGIN, null, responseText)
         setFieldsValidation(newSettingsInputFields)
     } else {
-        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.USER_NAME, null, null)
+        val newSettingsInputFields = settingsInputFields.updateValue(InputTypes.LOGIN, null, "")
         setFieldsValidation(newSettingsInputFields)
         props.userInfoSetter(newUserInfo)
     }

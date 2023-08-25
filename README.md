@@ -37,6 +37,7 @@ To build the project and run all tests, execute `./gradlew build`.
 For more detailed instructions, including **deployment instructions**, see [save-deploy/README.md](save-deploy/README.md).
 
 ## Local deployment
+0. Install Java 17 (LTS). We recommend [azul](https://www.azul.com/downloads/#downloads-table-zulu).
 1. Ensure that docker daemon is running and `docker compose` is installed. We suggest [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 2. Run `./gradlew deployLocal -Psave.profile=dev` to start the MySql DB, Minio and will run all Spring Microservices with Docker Compose.
 3. Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be

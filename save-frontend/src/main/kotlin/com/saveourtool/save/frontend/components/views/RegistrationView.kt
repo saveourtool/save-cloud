@@ -7,6 +7,7 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.components.basic.avatarForm
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
@@ -19,7 +20,6 @@ import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
@@ -56,7 +56,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
     val avatarWindowOpen = useWindowOpenness()
-    val (selectedAvatar, setSelectedAvatar) = useState<String?>(null)
+    val (selectedAvatar, setSelectedAvatar) = useState(props.userInfo?.avatar)
     val (avatar, setAvatar) = useState<File?>(null)
 
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
@@ -137,6 +137,18 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
+    val setAvatarFromResources = useDeferredRequest {
+        get(
+            url = "$apiUrl/avatar/avatar-update",
+            params = jso<dynamic> {
+                this.type = AvatarType.USER
+                this.resource = selectedAvatar
+            },
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+    }
+
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
         title = AVATAR_TITLE
@@ -180,20 +192,28 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     className = ClassName("col-3")
                                     div {
                                         className = ClassName("row d-flex justify-content-center")
-                                        renderPreparedAvatars(1..3, setSelectedAvatar)
+                                        renderPreparedAvatars(
+                                            1..3,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
                                     }
                                 }
 
                                 div {
                                     className = ClassName("col-6")
-                                    renderAvatar(avatarWindowOpen, props.userInfo?.avatar)
+                                    renderAvatar(avatarWindowOpen, selectedAvatar)
                                 }
 
                                 div {
                                     className = ClassName("col-3")
                                     div {
                                         className = ClassName("row d-flex justify-content-center")
-                                        renderPreparedAvatars(4..6, setSelectedAvatar)
+                                        renderPreparedAvatars(
+                                            4..6,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
                                     }
                                 }
                             }
@@ -201,7 +221,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                             form {
                                 div {
                                     inputTextFormRequired {
-                                        form = InputTypes.USER_NAME
+                                        form = InputTypes.LOGIN
                                         textValue = userInfo.name
                                         validInput = userInfo.name.isNotEmpty() && userInfo.name.isValidName() && userInfo.name.isValidLengthName()
                                         classes = ""
@@ -290,7 +310,7 @@ fun ChildrenBuilder.renderAvatar(
             }
             img {
                 className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+                src = avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                 style = jso {
                     height = 16.rem
                     width = 16.rem
@@ -300,9 +320,13 @@ fun ChildrenBuilder.renderAvatar(
     }
 }
 
-private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSelectedAvatar: StateSetter<String?>) {
+private fun ChildrenBuilder.renderPreparedAvatars(
+    avatarsRange: IntRange,
+    setSelectedAvatar: StateSetter<String?>,
+    setAvatarFromResources: () -> Unit = { },
+) {
     for (i in avatarsRange) {
-        val avatar = "/img/$AVATARS_PACKS_DIR/avatar$i.png"
+        val avatar = "$AVATARS_PACKS_DIR/avatar$i.png"
         div {
             className = ClassName("animated-provider")
             img {
@@ -316,6 +340,7 @@ private fun ChildrenBuilder.renderPreparedAvatars(avatarsRange: IntRange, setSel
                 }
                 onClick = {
                     setSelectedAvatar(avatar)
+                    setAvatarFromResources()
                 }
             }
         }

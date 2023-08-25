@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
 import com.saveourtool.save.frontend.components.views.actionIconClasses
@@ -17,7 +18,6 @@ import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -136,9 +136,7 @@ private fun ChildrenBuilder.renderOrganizations(
                         img {
                             className =
                                     ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mr-2")
-                            src = organizationDto.avatar?.let {
-                                "/api/$v1/avatar$it"
-                            } ?: AVATAR_ORGANIZATION_PLACEHOLDER
+                            src = organizationDto.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
                             height = 60.0
                             width = 60.0
                         }

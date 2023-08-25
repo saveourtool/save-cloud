@@ -5,11 +5,11 @@ package com.saveourtool.save.frontend.components.views.toprating
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
@@ -59,9 +59,7 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                             Link {
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellContext.row.original.avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: AVATAR_ORGANIZATION_PLACEHOLDER
+                                    src = cellContext.row.original.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         height = 3.3.rem
                                         width = 3.3.rem
@@ -85,24 +83,6 @@ val organizationRatingTab: FC<Props> = FC { _ ->
         },
         useServerPaging = false,
         isTransparentGrid = true,
-        commonHeader = { tableInstance, _ ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    nameFiltersRow {
-                        name = organizationFilter.prefix
-                        onChangeFilters = { filterValue ->
-                            val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilter.created
-                            } else {
-                                OrganizationFilter(filterValue)
-                            }
-                            setOrganizationFilter(filter)
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it)
     }
@@ -115,6 +95,26 @@ val organizationRatingTab: FC<Props> = FC { _ ->
                 getData = { _, _ ->
                     fetchOrganizationRequest(organizationFilter).also {
                         doOnce { setOrganizations(it) }
+                    }
+                }
+                commonHeaderBuilder = { cb, tableInstance, _ ->
+                    with(cb) {
+                        tr {
+                            th {
+                                colSpan = tableInstance.visibleColumnsCount()
+                                nameFiltersRow {
+                                    name = organizationFilter.prefix
+                                    onChangeFilters = { filterValue ->
+                                        val filter = if (filterValue.isNullOrEmpty()) {
+                                            OrganizationFilter.created
+                                        } else {
+                                            OrganizationFilter(filterValue)
+                                        }
+                                        setOrganizationFilter(filter)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -20,7 +20,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.v1
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -196,7 +195,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER
+                avatar = organizationLoaded.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
             }
         }
     }

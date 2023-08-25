@@ -12,9 +12,9 @@ import com.saveourtool.save.frontend.utils.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.img
 import web.cssom.ClassName
 import web.cssom.rem
 
@@ -22,6 +22,30 @@ import kotlinx.browser.window
 
 val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA")
+    val deleteUser = useDeferredRequest {
+        props.userInfo?.name?.let {
+            val response = get(
+                url = "$apiUrl/users/delete/$it",
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                val replyToLogout = post(
+                    "${window.location.origin}/logout",
+                    Headers(),
+                    "ping",
+                    loadingHandler = ::loadingHandler,
+                )
+                if (replyToLogout.ok) {
+                    window.location.href = "${window.location.origin}/"
+                    window.location.reload()
+                }
+            }
+        }
+    }
 
     displayModal(
         deleteUserWindowOpenness.isOpen(),
@@ -31,7 +55,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
         deleteUserWindowOpenness.closeWindowAction(),
     ) {
         buttonBuilder("Yes", isActive = props.userInfo != null) {
-            deleteUser(props.userInfo?.name!!)
+            deleteUser()
             deleteUserWindowOpenness.closeWindow()
         }
         buttonBuilder("Cancel", "secondary") {
@@ -41,7 +65,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
 
     div {
         className = ClassName("row justify-content-center mt-5")
-        ReactHTML.img {
+        img {
             src = "/img/sad_cat.png"
             @Suppress("MAGIC_NUMBER")
             style = jso {
@@ -64,32 +88,6 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
             className = ClassName("col-4 text-center")
             buttonBuilder("Delete your profile", style = "danger") {
                 deleteUserWindowOpenness.openWindow()
-            }
-        }
-    }
-}
-
-/**
- * @param userName
- */
-fun deleteUser(userName: String) {
-    useRequest {
-        val response = get(
-            url = "$apiUrl/users/delete/$userName",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler,
-        )
-        if (response.ok) {
-            val replyToLogout = post(
-                "${window.location.origin}/logout",
-                Headers(),
-                "ping",
-                loadingHandler = ::loadingHandler,
-            )
-            if (replyToLogout.ok) {
-                window.location.href = "${window.location.origin}/#"
-                window.location.reload()
             }
         }
     }

@@ -66,17 +66,6 @@ val userRatingTable: FC<Props> = FC { _ ->
         initialPageSize = 10,
         useServerPaging = false,
         isTransparentGrid = true,
-        commonHeader = { tableInstance, _ ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    nameFiltersRow {
-                        name = userNamePrefix
-                        onChangeFilters = { setUserNamePrefix(it.orEmpty()) }
-                    }
-                }
-            }
-        }
     )
 
     div {
@@ -87,6 +76,19 @@ val userRatingTable: FC<Props> = FC { _ ->
                 getData = { _, _ ->
                     fetchUserRequest(userNamePrefix).also {
                         doOnce { setUsers(it) }
+                    }
+                }
+                commonHeaderBuilder = { cb, tableInstance, _ ->
+                    with(cb) {
+                        tr {
+                            th {
+                                colSpan = tableInstance.visibleColumnsCount()
+                                nameFiltersRow {
+                                    name = userNamePrefix
+                                    onChangeFilters = { setUserNamePrefix(it.orEmpty()) }
+                                }
+                            }
+                        }
                     }
                 }
             }

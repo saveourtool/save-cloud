@@ -291,28 +291,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                 }
             }
         },
-        commonHeader = { tableInstance, navigate ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    testExecutionFiltersRow {
-                        filters = state.filters
-                        onChangeFilters = { filterValue ->
-                            setState {
-                                filters = filters.copy(
-                                    status = filterValue.status?.takeIf { it.name != "ANY" },
-                                    fileName = filterValue.fileName?.ifEmpty { null },
-                                    testSuite = filterValue.testSuite?.ifEmpty { null },
-                                    tag = filterValue.tag?.ifEmpty { null },
-                                )
-                            }
-                            tableInstance.resetPageIndex(true)
-                            navigate(getUrlWithFiltersParams(filterValue))
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it.filters)
     }
@@ -407,6 +385,30 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
             filters = state.filters
+            commonHeaderBuilder = { cb, tableInstance, navigate ->
+                with(cb) {
+                    tr {
+                        th {
+                            colSpan = tableInstance.visibleColumnsCount()
+                            testExecutionFiltersRow {
+                                filters = state.filters
+                                onChangeFilters = { filterValue ->
+                                    setState {
+                                        filters = filters.copy(
+                                            status = filterValue.status?.takeIf { it.name != "ANY" },
+                                            fileName = filterValue.fileName?.ifEmpty { null },
+                                            testSuite = filterValue.testSuite?.ifEmpty { null },
+                                            tag = filterValue.tag?.ifEmpty { null },
+                                        )
+                                    }
+                                    tableInstance.resetPageIndex(true)
+                                    navigate(getUrlWithFiltersParams(filterValue))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             getData = { page, size ->
                 post(
                     url = "$apiUrl/test-executions",

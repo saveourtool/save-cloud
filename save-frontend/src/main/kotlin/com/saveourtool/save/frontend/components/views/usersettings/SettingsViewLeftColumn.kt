@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
@@ -50,7 +50,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
                                     src = avatarImgLink
-                                        ?: props.userInfo?.avatar?.let { "/api/$v1/avatar$it" }
+                                        ?: props.userInfo?.avatar?.avatarRenderer()
                                         ?: AVATAR_PROFILE_PLACEHOLDER
                                     style = jso {
                                         height = 12.rem
