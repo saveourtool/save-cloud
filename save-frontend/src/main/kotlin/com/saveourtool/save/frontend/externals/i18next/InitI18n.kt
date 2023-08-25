@@ -25,6 +25,11 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                 translation: {
                     "Notifications": "通知"
                 }
+            },
+            ru: {
+                translation: {
+                    "Notifications": "Уведомления"
+                }
             }
         };
         
