@@ -24,15 +24,14 @@ private const val DROPDOWN_OPTIONS_AMOUNT = 3
 @Suppress("IDENTIFIER_LENGTH")
 val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
     useTooltip()
-    val t = useTranslation(TABLE_HEADERS_LOCALE_NAMESPACE)
-
-    val languagePlaceholder = t("Language")
+    val (t) = useTranslation(TABLE_HEADERS_LOCALE_NAMESPACE)
 
     val (tagPrefix, setTagPrefix) = useState("")
     val (user, setUser) = useState(UserInfo(""))
     val (organization, setOrganization) = useState(OrganizationDto.empty)
     val (filter, setFilter) = useStateFromProps(props.filter)
 
+    val languagePlaceholder = "Language".t()
     div {
         className = ClassName("px-0 container-fluid")
         div {
@@ -50,7 +49,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         type = InputType.text
                         className = ClassName("form-control")
                         value = filter.prefixName
-                        placeholder = "${t("Name")}..."
+                        placeholder = "${"Name".t()}..."
                         required = false
                         onChange = { event ->
                             setFilter { oldFilter ->
@@ -67,7 +66,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/tags/vulnerabilities?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "${t("Tag")}..."
+                        placeholder = "${"Tag".t()}..."
                         renderOption = ::renderString
                         onOptionClick = { newTag ->
                             setFilter { oldFilter -> oldFilter.copy(tags = oldFilter.tags + newTag) }
@@ -85,7 +84,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "${t("Author")}..."
+                        placeholder = "${"Author".t()}..."
                         renderOption = ::renderUserWithAvatar
                         onOptionClick = { newUser ->
                             setUser(newUser)
@@ -103,7 +102,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/organizations/get/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "${t("Organization")}..."
+                        placeholder = "${"Organization".t()}..."
                         renderOption = ::renderOrganizationWithAvatar
                         onOptionClick = { newOrganization ->
                             setOrganization(newOrganization)

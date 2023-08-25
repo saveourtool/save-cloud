@@ -32,7 +32,7 @@ const val TABLE_HEADERS_RU = """
     "Criticality": "Критичность",
     "Language": "Язык",
     "Status": "Статус",
-    "Tag": "Тэг"
+    "Tag": "Тег"
 }
 """
 
