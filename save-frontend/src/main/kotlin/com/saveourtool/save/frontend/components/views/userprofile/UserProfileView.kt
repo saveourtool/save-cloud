@@ -17,7 +17,6 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -158,10 +157,9 @@ fun ChildrenBuilder.renderLeftUserMenu(
     val banUser = useDeferredRequest {
         user?.name?.let {
             val response = get(
-                url = "$apiUrl/users/delete",
+                url = "$apiUrl/users/ban",
                 params = jso<dynamic> {
                     userName = it
-                    userStatus = UserStatus.BANNED
                 },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,

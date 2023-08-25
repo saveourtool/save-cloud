@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserStatus
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -31,7 +30,6 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
                 url = "$apiUrl/users/delete",
                 params = jso<dynamic> {
                     userName = it
-                    userStatus = UserStatus.DELETED
                 },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,

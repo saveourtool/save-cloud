@@ -8,7 +8,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.isValidLengthName
@@ -178,20 +177,38 @@ class UsersDetailsController(
 
     /**
      * @param userName
-     * @param userStatus
      * @param authentication
      */
     @GetMapping("/delete")
     @PreAuthorize("isAuthenticated()")
     fun deleteUser(
         @RequestParam userName: String,
-        @RequestParam userStatus: UserStatus,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
-        userDetailsService.deleteUser(userName, userStatus, authentication)
+        userDetailsService.deleteUser(userName, authentication)
     }
         .filter { status ->
             status == UserSaveStatus.DELETED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.HACKER.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/ban")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun banUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.banUser(userName)
+    }
+        .filter { status ->
+            status == UserSaveStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message

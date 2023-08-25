@@ -78,6 +78,11 @@ val App: VFC = FC {
                     to = "/${FrontendRoutes.REGISTRATION}"
                     replace = false
                 }
+            } else if (userInfo?.status == UserStatus.BANNED) {
+                Navigate {
+                    to = "/${FrontendRoutes.BAN}"
+                    replace = false
+                }
             }
 
             div {

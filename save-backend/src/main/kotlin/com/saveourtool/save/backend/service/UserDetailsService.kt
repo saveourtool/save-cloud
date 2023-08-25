@@ -8,7 +8,6 @@ import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
@@ -185,36 +184,33 @@ class UserDetailsService(
 
     /**
      * @param name name of user
-     * @param status new status of user
      * @param authentication
      * @return UserSaveStatus
      */
     @Transactional
     fun deleteUser(
         name: String,
-        status: UserStatus,
         authentication: Authentication,
     ): UserSaveStatus {
         val user: User = userRepository.findByName(name).orNotFound()
-        val newName = if (status == UserStatus.DELETED) "Deleted-${user.id}" else "Banned-${user.id}"
-
-        if ((status == UserStatus.DELETED && user.id != authentication.userId()) || (status == UserStatus.BANNED && !authentication.hasRole(Role.SUPER_ADMIN))) {
-            return UserSaveStatus.CONFLICT
+        val newName = "Deleted-${user.id}"
+        if (user.id == authentication.userId()) {
+            userRepository.deleteHighLevelName(user.name)
+            userRepository.saveHighLevelName(newName)
+            userRepository.save(user.apply {
+                this.name = newName
+                this.status = UserStatus.DELETED
+                this.avatar = null
+                this.company = null
+                this.twitter = null
+                this.email = null
+                this.gitHub = null
+                this.linkedin = null
+                this.location = null
+            })
+        } else {
+            return UserSaveStatus.HACKER
         }
-
-        userRepository.deleteHighLevelName(user.name)
-        userRepository.saveHighLevelName(newName)
-        userRepository.save(user.apply {
-            this.name = newName
-            this.status = status
-            this.avatar = null
-            this.company = null
-            this.twitter = null
-            this.email = null
-            this.gitHub = null
-            this.linkedin = null
-            this.location = null
-        })
 
         val avatarKey = AvatarKey(
             AvatarType.USER,
@@ -227,6 +223,23 @@ class UserDetailsService(
         lnkUserOrganizationRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
+    }
+
+    /**
+     * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun banUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+
+        userRepository.save(user.apply {
+            this.status = UserStatus.BANNED
+        })
+
+        return UserSaveStatus.BANNED
     }
 
     companion object {
