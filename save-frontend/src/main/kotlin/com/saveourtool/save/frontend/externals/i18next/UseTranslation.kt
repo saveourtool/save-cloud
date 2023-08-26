@@ -4,7 +4,8 @@
 package com.saveourtool.save.frontend.externals.i18next
 
 /**
+ * @param namespaces [Array] of namespaces to load
  * @return [Translation] instance
  */
 @JsName("useTranslation")
-external fun useTranslation(): Translation
+external fun useTranslation(namespaces: Array<String> = definedExternally): Translation
