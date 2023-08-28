@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.PlatformLanguages
+import com.saveourtool.save.frontend.externals.i18next.changeLanguage
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import js.core.jso
 import react.FC
@@ -27,18 +28,18 @@ private const val LANG_DROPDOWN_ID = "lang-dropdown"
 val languageSelector: VFC = FC {
     val (_, i18n) = useTranslation()
     val (language, setSelectedLanguage) = useState(PlatformLanguages.defaultLanguage)
-    useEffect(language) { i18n.changeLanguage(language.code) }
+    useEffect(language) { i18n.changeLanguage(language) }
 
     div {
         className = ClassName("dropdown")
         a {
-            className = ClassName("dropdown-toggle")
+            className = ClassName("dropdown-toggle text-light")
             id = LANG_DROPDOWN_ID
             asDynamic()["data-toggle"] = "dropdown"
             ariaHasPopup = true.unsafeCast<AriaHasPopup>()
             ariaExpanded = false
-            style = jso { cursor = "pointer".unsafeCast<Cursor>() }
             span { +language.label }
+            style = jso { cursor = "pointer".unsafeCast<Cursor>() }
         }
 
         div {
