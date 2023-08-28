@@ -17,6 +17,7 @@ const val SETTINGS = "settings"
 enum class FrontendRoutes(val path: String) {
     ABOUT_US("about"),
     AWESOME_BENCHMARKS("awesome-benchmarks"),
+    BAN("ban"),
     CONTESTS("contests"),
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
     CONTESTS_TEMPLATE("contest-template"),
@@ -42,6 +43,7 @@ enum class FrontendRoutes(val path: String) {
     TERMS_OF_USE("terms-of-use"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
     ;
 

@@ -179,16 +179,36 @@ class UsersDetailsController(
      * @param userName
      * @param authentication
      */
-    @GetMapping("/delete/{userName}")
+    @GetMapping("/delete")
     @PreAuthorize("isAuthenticated()")
     fun deleteUser(
-        @PathVariable userName: String,
+        @RequestParam userName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
         .filter { status ->
             status == UserSaveStatus.DELETED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.HACKER.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/ban")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun banUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.banUser(userName)
+    }
+        .filter { status ->
+            status == UserSaveStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message
