@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.cosv.repository.CosvRepository
+import com.saveourtool.save.cosv.repository.CosvSchemaKSerializer
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
@@ -10,7 +11,6 @@ import com.saveourtool.osv4k.TimeLineEntryType
 import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -20,8 +20,7 @@ import kotlinx.serialization.json.JsonObject
 @Suppress("GENERIC_NAME")
 abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
     private val cosvRepository: CosvRepository,
-    @Suppress("TYPE_ALIAS")
-    private val serializer: KSerializer<CosvSchema<D, A_E, A_D, A_R_D>>
+    private val serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
 ) : CosvProcessor {
     override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto> {
         val osv = Json.decodeFromJsonElement(serializer, jsonObject)
@@ -55,7 +54,7 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
         },
         participants = emptyList(),
         status = VulnerabilityStatus.CREATED,
-        tags = setOf("osv-schema")
+        tags = setOf("cosv-schema")
     )
 
     companion object {

@@ -79,9 +79,9 @@ class CosvController(
             filePart.content()
                 .map { it.asByteBuffer() }
                 .collectToInputStream()
-                .flatMapMany {
-                    cosvService.decodeAndSave(sourceId, it, authentication)
-                }
+        }
+        .let { inputStreams ->
+            cosvService.decodeAndSave(sourceId, inputStreams, authentication)
         }
         .collectList()
         .map { ResponseEntity.ok(it) }

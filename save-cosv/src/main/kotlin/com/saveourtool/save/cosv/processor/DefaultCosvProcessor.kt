@@ -1,6 +1,6 @@
 package com.saveourtool.save.cosv.processor
 
-import com.saveourtool.save.cosv.storage.CosvStorage
+import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 
 import com.saveourtool.osv4k.RawOsvSchema
@@ -14,8 +14,8 @@ import kotlinx.serialization.serializer
  */
 @Component
 class DefaultCosvProcessor(
-    cosvStorage: CosvStorage,
-) : AbstractCosvProcessor<JsonObject, JsonObject, JsonObject, JsonObject>(cosvStorage, serializer()) {
+    cosvRepository: CosvRepository,
+) : AbstractCosvProcessor<JsonObject, JsonObject, JsonObject, JsonObject>(cosvRepository, serializer()) {
     override val id: String = ID
 
     override fun VulnerabilityDto.updateBySpecificFields(osv: RawOsvSchema): VulnerabilityDto = this

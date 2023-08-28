@@ -34,19 +34,21 @@ class CosvService(
     }
 
     /**
-     * Decodes [inputStream] and saves the result
+     * Decodes [inputStreams] and saves the result
      *
      * @param sourceId
-     * @param inputStream
+     * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @return save's vulnerability names
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
         sourceId: String,
-        inputStream: InputStream,
+        inputStreams: Flux<InputStream>,
         authentication: Authentication,
-    ): Flux<String> = decodeAndSave(sourceId, json.decodeFromStream<JsonElement>(inputStream), authentication)
+    ): Flux<String> = inputStreams.flatMap { inputStream ->
+        decode(sourceId, json.decodeFromStream<JsonElement>(inputStream))
+    }.save(authentication)
 
     /**
      * Decodes [content] and saves the result
@@ -60,26 +62,36 @@ class CosvService(
         sourceId: String,
         content: String,
         authentication: Authentication,
-    ): Flux<String> = decodeAndSave(sourceId, json.parseToJsonElement(content), authentication)
+    ): Flux<String> = decode(sourceId, json.parseToJsonElement(content)).save(authentication)
 
     /**
-     * Saves OSVs from [jsonElement] in S3 storage and creates entities in save database
+     * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
      *
      * @param sourceId
      * @param jsonElement
-     * @param authentication who uploads OSV
-     * @return save's vulnerability names
+     * @return save's vulnerability
      */
-    private fun decodeAndSave(
+    private fun decode(
         sourceId: String,
         jsonElement: JsonElement,
-        authentication: Authentication,
-    ): Flux<String> = jsonElement.toMono()
+    ): Flux<VulnerabilityDto> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
         .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject) }
-        .blockingMap {
-            vulnerabilityService.save(it, authentication).name
+
+    /**
+     * Creates entities in save database
+     *
+     * @receiver save's vulnerability
+     * @param authentication who uploads
+     * @return save's vulnerability names
+     */
+    private fun Flux<VulnerabilityDto>.save(
+        authentication: Authentication,
+    ): Flux<String> = collectList()
+        .blockingMap { vulnerabilities ->
+            vulnerabilities.map { vulnerabilityService.save(it, authentication).name }
         }
+        .flatMapIterable { it }
 
     /**
      * Finds OSV with validating save database
