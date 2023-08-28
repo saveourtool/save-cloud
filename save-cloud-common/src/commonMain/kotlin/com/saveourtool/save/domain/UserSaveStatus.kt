@@ -10,6 +10,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class UserSaveStatus(val message: String) {
     /**
+     * Banned user
+     */
+    BANNED("User successfully banned"),
+
+    /**
      * User has conflicting name
      */
     CONFLICT("This name is already taken"),
