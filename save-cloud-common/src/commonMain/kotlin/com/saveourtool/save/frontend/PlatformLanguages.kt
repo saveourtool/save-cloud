@@ -1,5 +1,7 @@
 package com.saveourtool.save.frontend
 
+import io.ktor.http.*
+
 /**
  * Enum that contains all supported saveourtool languages
  *
@@ -28,5 +30,11 @@ enum class PlatformLanguages(val code: String, val value: String, val label: Str
          * Default platform language
          */
         val defaultLanguage = EN
+
+        /**
+         * @param code language code
+         * @return [PlatformLanguages] enum entity corresponding to language [code]
+         */
+        fun getByCode(code: String) = values().find { it.code == code }
     }
 }
