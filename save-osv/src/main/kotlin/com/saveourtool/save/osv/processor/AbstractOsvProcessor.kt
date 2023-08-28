@@ -38,18 +38,18 @@ abstract class AbstractOsvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
 
     private fun <T : AnyOsvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
         name = osv.id,
-        vulnerabilityIdentifier = osv.id, // should be replaced by alias
-        progress = 0, // TODO: it can be presented in two ways cvss v3 and cvss v2
-        projects = emptyList(), // TODO: need to refactor VulnerabilityProjectDto, COSV is basic
+        vulnerabilityIdentifier = osv.id,  // should be replaced by alias
+        progress = 0,  // TODO: it can be presented in two ways cvss v3 and cvss v2
+        projects = emptyList(),  // TODO: need to refactor VulnerabilityProjectDto, COSV is basic
         description = osv.details,
         shortDescription = osv.summary.orEmpty(),
         relatedLink = null,
-        language = VulnerabilityLanguage.OTHER, // it seems to be removed, since language is invalid here and valid on package level (affected)
+        language = VulnerabilityLanguage.OTHER,  // it seems to be removed, since language is invalid here and valid on package level (affected)
         userInfo = UserInfo(name = ""),  // will be set on saving to database
         organization = null,
         dates = buildList {
             osv.timeLine?.map { it.asVulnerabilityDateDto() }?.let { addAll(it) }
-            add(osv.modified.asVulnerabilityDateDto(VulnerabilityDateType.CVE_UPDATED)) // TODO: do we need it?
+            add(osv.modified.asVulnerabilityDateDto(VulnerabilityDateType.CVE_UPDATED))  // TODO: do we need it?
             osv.published?.asVulnerabilityDateDto(VulnerabilityDateType.INTRODUCED)?.run { add(this) }
             osv.withdrawn?.asVulnerabilityDateDto(VulnerabilityDateType.FIXED)?.run { add(this) }
         },
