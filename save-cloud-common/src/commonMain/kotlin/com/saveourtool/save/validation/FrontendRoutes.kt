@@ -43,6 +43,7 @@ enum class FrontendRoutes(val path: String) {
     TERMS_OF_USE("terms-of-use"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
     ;
 
