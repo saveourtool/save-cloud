@@ -189,7 +189,7 @@ val basicRouting: FC<AppProps> = FC { props ->
                 smallText = "Page not found"
                 withRouterLink = true
             } to ERROR_404,
-
+            banView.create { userInfo = props.userInfo } to BAN,
             contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
             contestView.create() to "$CONTESTS/:contestName",
             createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,

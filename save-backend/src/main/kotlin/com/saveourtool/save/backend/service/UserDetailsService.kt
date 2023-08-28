@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -208,7 +209,7 @@ class UserDetailsService(
                 this.location = null
             })
         } else {
-            return UserSaveStatus.CONFLICT
+            return UserSaveStatus.HACKER
         }
 
         val avatarKey = AvatarKey(
@@ -222,6 +223,23 @@ class UserDetailsService(
         lnkUserOrganizationRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
+    }
+
+    /**
+     * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun banUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+
+        userRepository.save(user.apply {
+            this.status = UserStatus.BANNED
+        })
+
+        return UserSaveStatus.BANNED
     }
 
     companion object {
