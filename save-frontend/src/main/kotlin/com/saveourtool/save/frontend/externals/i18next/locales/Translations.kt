@@ -49,3 +49,38 @@ const val TABLE_HEADERS_EN = """
     "Tag": "Tag"
 }
 """
+
+const val TOPBAR_RU = """
+{
+    "Demo": "Демо",
+    "CPG": "CPG",
+    "Awesome Benchmarks": "Awesome Benchmarks",
+    "Try SAVE format": "Попробуйте SAVE-формат",
+    "Projects board": "Проекты",
+    "Contests": "Соревнования",
+    "About us": "О нас",
+    "Propose vulnerability": "Предложите уязвимость",
+    "Vulnerabilities": "Уязвимости",
+    "Top Rating": "Рейтинг",
+    "SAVE Projects list": "SAVE-проекты",
+    "Vulnerabilities list": "Список уязвимостей"
+}
+"""
+
+const val TOPBAR_EN = """
+{
+    "Demo": "Demo",
+    "CPG": "CPG",
+    "Awesome Benchmarks": "Awesome Benchmarks",
+    "Try SAVE format": "Try SAVE format",
+    "Projects board": "Projects board",
+    "Contests": "Contests",
+    "About us": "About us",
+    "Propose vulnerability": "Propose vulnerability",
+    "Vulnerabilities": "Vulnerabilities",
+    "Top Rating": "Top Rating",
+    "Awesome Benchmarks": "Awesome Benchmarks",
+    "SAVE Projects list": "SAVE Projects list",
+    "Vulnerabilities list": "Vulnerabilities list"
+}
+"""
