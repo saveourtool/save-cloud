@@ -1,10 +1,10 @@
-package com.saveourtool.save.osv.processor
+package com.saveourtool.save.cosv.processor
 
+import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.osv.storage.OsvStorage
 
-import com.saveourtool.osv4k.OsvSchema
+import com.saveourtool.osv4k.OsvSchema as CosvSchema
 import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
 import reactor.core.publisher.Mono
@@ -15,17 +15,17 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
 /**
- * Default implementation of [OsvProcessor] which uses only core fields
+ * Default implementation of [CosvProcessor] which uses only core fields
  */
 @Suppress("GENERIC_NAME")
-abstract class AbstractOsvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
-    private val osvStorage: OsvStorage,
+abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
+    private val cosvRepository: CosvRepository,
     @Suppress("TYPE_ALIAS")
-    private val serializer: KSerializer<OsvSchema<D, A_E, A_D, A_R_D>>
-) : OsvProcessor {
+    private val serializer: KSerializer<CosvSchema<D, A_E, A_D, A_R_D>>
+) : CosvProcessor {
     override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto> {
         val osv = Json.decodeFromJsonElement(serializer, jsonObject)
-        return osvStorage.upload(osv, serializer).map {
+        return cosvRepository.save(osv, serializer).map {
             createFromCoreFields(osv).updateBySpecificFields(osv)
         }
     }
@@ -34,9 +34,9 @@ abstract class AbstractOsvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>(
      * @param osv
      * @return updated [VulnerabilityDto] by specific fields
      */
-    protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: OsvSchema<D, A_E, A_D, A_R_D>): VulnerabilityDto
+    protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: CosvSchema<D, A_E, A_D, A_R_D>): VulnerabilityDto
 
-    private fun <T : AnyOsvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
+    private fun <T : AnyCosvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
         name = osv.id,
         vulnerabilityIdentifier = osv.id,  // should be replaced by alias
         progress = 0,  // TODO: it can be presented in two ways cvss v3 and cvss v2

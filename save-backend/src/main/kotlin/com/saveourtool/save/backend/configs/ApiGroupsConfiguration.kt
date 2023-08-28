@@ -23,7 +23,7 @@ class ApiGroupsConfiguration {
         .pathsToMatch("/api/**")
         .packagesToScan(
             "com.saveourtool.save.backend.controllers",
-            "com.saveourtool.save.osv.controllers"
+            "com.saveourtool.save.cosv.controllers"
         )
         .build()
 
@@ -48,7 +48,7 @@ class ApiGroupsConfiguration {
         .pathsToExclude("?!(/api/$version).+")
         .packagesToScan(
             "com.saveourtool.save.backend.controllers",
-            "com.saveourtool.save.osv.controllers"
+            "com.saveourtool.save.cosv.controllers"
         )
         .build()
 }

@@ -1,4 +1,4 @@
-package com.saveourtool.save.osv.storage
+package com.saveourtool.save.cosv.storage
 
 import kotlinx.datetime.LocalDateTime
 
@@ -6,7 +6,7 @@ import kotlinx.datetime.LocalDateTime
  * @property id
  * @property modified
  */
-data class OsvKey(
+data class CosvKey(
     val id: String,
     val modified: LocalDateTime,
 )

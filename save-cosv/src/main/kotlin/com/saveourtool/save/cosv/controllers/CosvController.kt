@@ -1,10 +1,10 @@
-package com.saveourtool.save.osv.controllers
+package com.saveourtool.save.cosv.controllers
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
+import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.osv.processor.DefaultOsvProcessor
-import com.saveourtool.save.osv.service.OsvService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -20,23 +20,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * Rest controller for OSVs
+ * Rest controller for COSVs
  */
 @ApiSwaggerSupport
 @RestController
-@RequestMapping("/api/$v1/osv")
-class OsvController(
-    private val osvService: OsvService,
+@RequestMapping("/api/$v1/cosv")
+class CosvController(
+    private val cosvService: CosvService,
 ) {
     /**
      * @param id vulnerability name in save db
-     * @return content of OSV
+     * @return content of COSV
      */
     @RequiresAuthorizationSourceHeader
     @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getById(
         @PathVariable id: String,
-    ): Mono<StringResponse> = osvService.findById(id)
+    ): Mono<StringResponse> = cosvService.findById(id)
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }
@@ -50,10 +50,10 @@ class OsvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping("/upload")
     fun upload(
-        @RequestParam(required = false, defaultValue = DefaultOsvProcessor.ID) sourceId: String,
+        @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<StringListResponse> = osvService.decodeAndSave(sourceId, content, authentication)
+    ): Mono<StringListResponse> = cosvService.decodeAndSave(sourceId, content, authentication)
         .collectList()
         .map {
             ResponseEntity.ok(it)
@@ -68,7 +68,7 @@ class OsvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
-        @RequestParam(required = false, defaultValue = DefaultOsvProcessor.ID) sourceId: String,
+        @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
     ): Mono<StringListResponse> = filePartFlux
@@ -80,7 +80,7 @@ class OsvController(
                 .map { it.asByteBuffer() }
                 .collectToInputStream()
                 .flatMapMany {
-                    osvService.decodeAndSave(sourceId, it, authentication)
+                    cosvService.decodeAndSave(sourceId, it, authentication)
                 }
         }
         .collectList()
@@ -88,6 +88,6 @@ class OsvController(
 
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        private val log = getLogger<OsvController>()
+        private val log = getLogger<CosvController>()
     }
 }

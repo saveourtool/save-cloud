@@ -2,7 +2,7 @@
  * File contains util methods for Json
  */
 
-package com.saveourtool.save.osv.utils
+package com.saveourtool.save.cosv.utils
 
 import kotlinx.serialization.json.*
 

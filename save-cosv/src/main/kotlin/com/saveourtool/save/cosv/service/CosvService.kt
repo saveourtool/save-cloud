@@ -1,10 +1,10 @@
-package com.saveourtool.save.osv.service
+package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IVulnerabilityService
+import com.saveourtool.save.cosv.processor.CosvProcessorHolder
+import com.saveourtool.save.cosv.repository.CosvRepository
+import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.osv.processor.OsvProcessorHolder
-import com.saveourtool.save.osv.storage.OsvStorage
-import com.saveourtool.save.osv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
@@ -18,15 +18,16 @@ import java.io.InputStream
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 
 /**
  * Service for vulnerabilities
  */
 @Service
-class OsvService(
-    private val osvStorage: OsvStorage,
+class CosvService(
+    private val cosvRepository: CosvRepository,
     private val vulnerabilityService: IVulnerabilityService,
-    private val osvProcessorHolder: OsvProcessorHolder,
+    private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -75,7 +76,7 @@ class OsvService(
         authentication: Authentication,
     ): Flux<String> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { osvProcessorHolder.process(sourceId, it.jsonObject) }
+        .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject) }
         .blockingMap {
             vulnerabilityService.save(it, authentication).name
         }
@@ -86,7 +87,6 @@ class OsvService(
      * @param id [VulnerabilityDto.name]
      * @return found OSV
      */
-    @OptIn(ExperimentalSerializationApi::class)
     fun findById(
         id: String,
     ): Mono<RawOsvSchema> = blockingToMono {
@@ -96,8 +96,6 @@ class OsvService(
             "Not found vulnerability $id in save database"
         }
         .flatMap { vulnerability ->
-            osvStorage.downloadLatest(vulnerability.name)
-                .collectToInputStream()
-                .map { json.decodeFromStream<RawOsvSchema>(it) }
+            cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
         }
 }

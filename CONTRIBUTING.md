@@ -40,6 +40,6 @@ it runs each week and creates a PR with changes.
 
 By default, it checks all endpoints from controllers in packages:
   - `com.saveourtool.save.backend.controllers`
-  - `com.saveourtool.save.osv.controllers`
+  - `com.saveourtool.save.cosv.controllers`
 
 If you need to support a new package, need to update `com.saveourtool.save.backend.configs.ApiGroupsConfiguration`.

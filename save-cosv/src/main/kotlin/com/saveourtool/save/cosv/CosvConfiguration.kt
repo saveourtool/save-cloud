@@ -1,4 +1,4 @@
-package com.saveourtool.save.osv
+package com.saveourtool.save.cosv
 
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -8,4 +8,4 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @ComponentScan
-class OsvConfiguration
+class CosvConfiguration

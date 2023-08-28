@@ -1,4 +1,4 @@
-package com.saveourtool.save.osv.processor.go
+package com.saveourtool.save.cosv.processor.go
 
 import kotlinx.serialization.Serializable
 

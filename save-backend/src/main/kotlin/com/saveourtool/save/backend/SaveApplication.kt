@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.osv.OsvConfiguration
+import com.saveourtool.save.cosv.CosvConfiguration
 import com.saveourtool.save.s3.DefaultS3Configuration
 
 import org.springframework.boot.SpringApplication
@@ -25,7 +25,7 @@ internal typealias ByteBufferFluxResponse = FluxResponse<ByteBuffer>
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
     DefaultS3Configuration::class,
-    OsvConfiguration::class,
+    CosvConfiguration::class,
 )
 class SaveApplication
 
