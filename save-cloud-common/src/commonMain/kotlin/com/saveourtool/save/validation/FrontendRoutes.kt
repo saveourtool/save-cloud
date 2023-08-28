@@ -39,10 +39,10 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_ORGANIZATIONS("$SETTINGS/organizations"),
     SETTINGS_PROFILE("$SETTINGS/profile"),
     SETTINGS_TOKEN("$SETTINGS/token"),
-    SIGNLE_VULNERABILITY("$VULN/collection"),
     TERMS_OF_USE("terms-of-use"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
     ;
 

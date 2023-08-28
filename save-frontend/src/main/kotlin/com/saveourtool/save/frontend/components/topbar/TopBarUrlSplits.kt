@@ -41,7 +41,7 @@ val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
             }
             props.location.pathname
                 // workaround for avoiding invalid routing to /vuln/list/:param from /vuln/collection/vulnName
-                .replace("${FrontendRoutes.SIGNLE_VULNERABILITY}", "${FrontendRoutes.VULNERABILITIES}")
+                .replace("${FrontendRoutes.VULNERABILITY_SINGLE}", "${FrontendRoutes.VULNERABILITIES}")
                 .substringBeforeLast("?")
                 .split(URL_PATH_DELIMITER)
                 .filterNot { it.isBlank() }
