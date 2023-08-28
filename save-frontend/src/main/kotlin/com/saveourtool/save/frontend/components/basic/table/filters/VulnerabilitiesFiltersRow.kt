@@ -129,9 +129,10 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
                     props.onChangeFilter(filter)
                 }
-                buttonBuilder(faWindowClose, classes = "btn mr-1", isOutline = true, style = "secondary") {
+                buttonBuilder(faWindowClose, classes = "btn mr-1", title = "Drop filters", isOutline = true, style = "secondary") {
                     props.onChangeFilter(null)
-                    setFilter { props.filter }
+                    // need to drop all tags
+                    setFilter { props.filter.copy(tags = emptySet()) }
                     setTagPrefix("")
                     setOrganization(OrganizationDto.empty)
                     setUser(UserInfo(""))
@@ -149,11 +150,13 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 filter.tags.forEach { tag ->
                     buttonBuilder(
                         tag,
-                        if (tag !in props.filter.tags) "info" else "primary",
+                        "info",
                         isOutline = true,
                         classes = "rounded-pill text-sm btn-sm mx-1 px-2"
                     ) {
-                        setFilter { oldFilter -> oldFilter.copy(tags = filter.tags - tag) }
+                        val newFilter = filter.copy(tags = filter.tags - tag)
+                        setFilter { newFilter }
+                        props.onChangeFilter(newFilter)
                     }
                 }
             }
