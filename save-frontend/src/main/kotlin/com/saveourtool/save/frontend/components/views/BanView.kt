@@ -24,11 +24,9 @@ private const val BAN = """
 """
 
 private const val SUPPORT = """
-    You have received a ban on our platform. If you think that this happened by mistake, please contact our support.
+    You have been banned from our platform. If you believe this was a mistake, please contact our support team at saveourtool@gmail.com.
 """
 
-@JsExport
-@OptIn(ExperimentalJsExport::class)
 val banView: FC<BanProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
 
@@ -38,13 +36,13 @@ val banView: FC<BanProps> = FC { props ->
     }
 
     div {
-        className = ClassName("text-center")
+        className = ClassName("col text-center")
         style = jso {
             height = 40.rem
         }
 
         div {
-            className = ClassName("error mx-auto mt-5")
+            className = ClassName("col error mx-auto mt-5")
             asDynamic()["data-text"] = BAN
             +BAN
         }
