@@ -2,11 +2,11 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.isSettings
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
-import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.li
@@ -14,8 +14,6 @@ import react.dom.html.ReactHTML.ul
 import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
-import web.cssom.Width
-import web.cssom.rem
 
 /**
  * If [Location.pathname] has more slashes then [TOP_BAR_PATH_SEGMENTS_HIGHLIGHT],
@@ -23,37 +21,39 @@ import web.cssom.rem
  */
 private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 
-@Suppress("MAGIC_NUMBER")
-private val saveTopbarLinks = sequenceOf(
-    TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, width = 4.rem, text = "Demo"),
-    TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", width = 3.rem, text = "CPG"),
-    TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
-    TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, width = 10.rem, text = "Try SAVE format"),
-    TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 9.rem, text = "Projects board"),
-    TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, width = 6.rem, text = "Contests"),
-    TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 6.rem, text = "About us"),
-)
-
-@Suppress("MAGIC_NUMBER")
-private val vulnTopbarLinks = sequenceOf(
-    TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, width = 13.rem, text = "Propose vulnerability"),
-    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 9.rem, text = "Vulnerabilities"),
-    TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, width = 7.rem, text = "Top Rating"),
-)
-
-@Suppress("MAGIC_NUMBER", "UnusedPrivateProperty")
-private val generalTopbarLinks = sequenceOf(
-    TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, width = 13.rem, text = "Awesome Benchmarks"),
-    TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, width = 11.rem, text = "SAVE Projects list"),
-    TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, width = 11.rem, text = "Vulnerabilities list"),
-    TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, width = 7.rem, text = "About us"),
-)
-
 /**
  * Displays the static links that do not depend on the url.
  */
 @Suppress("LongMethod", "TOO_LONG_FUNCTION")
 val topBarLinks: FC<TopBarLinksProps> = FC { props ->
+    val (t) = useTranslation("topbar")
+
+    @Suppress("MAGIC_NUMBER")
+    val saveTopbarLinks = sequenceOf(
+        TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, text = "Demo".t()),
+        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", text = "CPG".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, text = "Awesome Benchmarks".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, text = "Try SAVE format".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, text = "Projects board".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, text = "Contests".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
+    )
+
+    @Suppress("MAGIC_NUMBER")
+    val vulnTopbarLinks = sequenceOf(
+        TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, text = "Propose vulnerability".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
+    )
+
+    @Suppress("MAGIC_NUMBER", "UnusedPrivateProperty")
+    val generalTopbarLinks = sequenceOf(
+        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, text = "Awesome Benchmarks".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, text = "SAVE Projects list".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
+    )
+
     ul {
         className = ClassName("navbar-nav mx-auto")
         when {
@@ -67,7 +67,6 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                     if (elem.isExternalLink) {
                         a {
                             className = ClassName("nav-link d-flex align-items-center text-light me-2 active")
-                            style = jso { width = elem.width }
                             href = elem.hrefAnchor
                             +elem.text
                         }
@@ -79,9 +78,8 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                                         elem.hrefAnchor,
                                         props.location
                                     )
-                                } active"
+                                } active mx-2 text-nowrap col-auto"
                             )
-                            style = jso { width = elem.width }
                             to = elem.hrefAnchor
                             +elem.text
                         }
@@ -103,13 +101,11 @@ external interface TopBarLinksProps : Props {
 
 /**
  * @property hrefAnchor the link
- * @property width the width of the link text
  * @property text the link text
  * @property isExternalLink
  */
 data class TopBarLink(
     val hrefAnchor: String,
-    val width: Width,
     val text: String,
     val isExternalLink: Boolean = false,
 )
