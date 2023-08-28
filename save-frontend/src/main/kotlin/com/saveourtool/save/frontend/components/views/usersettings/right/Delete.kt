@@ -27,7 +27,10 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUser = useDeferredRequest {
         props.userInfo?.name?.let {
             val response = get(
-                url = "$apiUrl/users/delete/$it",
+                url = "$apiUrl/users/delete",
+                params = jso<dynamic> {
+                    userName = it
+                },
                 headers = jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler,

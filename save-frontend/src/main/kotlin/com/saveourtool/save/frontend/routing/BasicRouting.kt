@@ -142,9 +142,10 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: VFC = VFC {
+    val vulnerabilityCollectionView: VFC = withRouter { _, params ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
+            filter = URLSearchParams(useLocation().search).toVulnerabilitiesFilter()
         }
     }
 
@@ -188,7 +189,7 @@ val basicRouting: FC<AppProps> = FC { props ->
                 smallText = "Page not found"
                 withRouterLink = true
             } to ERROR_404,
-
+            banView.create { userInfo = props.userInfo } to BAN,
             contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
             contestView.create() to "$CONTESTS/:contestName",
             createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
@@ -205,9 +206,9 @@ val basicRouting: FC<AppProps> = FC { props ->
             demoView.create() to "$DEMO/:organizationName/:projectName",
             cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            vulnerabilityCollectionView.create() to "$VULN/list",
+            vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
-            vulnerabilityView.create() to "$VULN/list/:vulnerabilityName",
+            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:vulnerabilityName",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
