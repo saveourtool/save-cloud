@@ -17,7 +17,7 @@ import react.dom.html.ReactHTML.td
 import web.cssom.ClassName
 import web.cssom.rem
 
-val renderNewUsersTableForProfileView: FC<UserProfileNewUsersTabProps> = FC { _ ->
+val renderNewUsersTableForProfileView: FC<Props> = FC { _ ->
 
     @Suppress(
         "TYPE_ALIAS",
@@ -72,14 +72,4 @@ val renderNewUsersTableForProfileView: FC<UserProfileNewUsersTabProps> = FC { _ 
             }
         }
     }
-}
-
-/**
- * [Props] of user profile new users tab component
- */
-external interface UserProfileNewUsersTabProps : Props {
-    /**
-     * User name
-     */
-    var userName: String
 }

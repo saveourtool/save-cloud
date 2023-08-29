@@ -43,13 +43,13 @@ class UsersDetailsControllerTest {
     }
 
     @Test
-    @WithMockUser(value = "JohnDoe", roles = ["SUPER_ADMIN"])
+    @WithMockUser(value = "user", roles = ["SUPER_ADMIN"])
     fun `new user registration with a free name`() {
-        mutateMockedUser(id = 2)
+        mutateMockedUser(id = 3)
 
         val newUserInfo = UserInfo(
             name = "Kuleshov",
-            oldName = "JohnDoe",
+            oldName = "user",
             email = "example@save.com",
             company = "Example",
             status = UserStatus.ACTIVE,

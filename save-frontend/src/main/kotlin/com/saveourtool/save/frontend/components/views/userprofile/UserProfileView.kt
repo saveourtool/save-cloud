@@ -88,7 +88,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         div {
             className = ClassName("col-6 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
-                val tabList = if (role.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
+                val tabList = if (role.isSuperAdmin()) {
                     UserProfileTab.values().map { it.name }
                 } else {
                     UserProfileTab.values().filter { it != UserProfileTab.USERS }
@@ -103,10 +103,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
                 UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
                     this.vulnerabilities = vulnerabilities
                 }
-                UserProfileTab.USERS -> renderNewUsersTableForProfileView {
-                    this.userName = userName
-                    // this.vulnerabilities = vulnerabilities
-                }
+                UserProfileTab.USERS -> renderNewUsersTableForProfileView
             }
         }
     }
