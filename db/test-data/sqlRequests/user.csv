@@ -1,9 +1,9 @@
 id;name;password;role;avatar;email;company;location;linkedin;git_hub;twitter;rating;status;real_name;free_text
 1;"admin";"{bcrypt}$2a$12$7jB6.fJ/uHZiti94w0.QOu0M/lPzKU1lvX9TLL3uZHFjLGIfz1gHq";"ROLE_SUPER_ADMIN";;"saveourtool@mail.ru";"FutureWay";"Russia";"https://linkedin.com";"https://github.com";"https://twitter.com";999;"ACTIVE";"Ivan Ivanov";"I work in a super company, I love coding"
-2;"JohnDoe";"{bcrypt}$2a$12$zjCjULtsSvapH5kt6KUq4eyTx3WluDwB3GepcbLA.mf/NcGZCLuvi";"ROLE_VIEWER";;;;;;;;-37;"CREATED";;
+2;"JohnDoe";"{bcrypt}$2a$12$zjCjULtsSvapH5kt6KUq4eyTx3WluDwB3GepcbLA.mf/NcGZCLuvi";"ROLE_VIEWER";;;;;;;;-37;"NOT_APPROVED";;
 3;"user";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"CREATED";;
 4;"user1";"noop{123}";"ROLE_VIEWER";;;;;;;;-3;"CREATED";;
-5;"user2";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"CREATED";;
+5;"user2";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"NOT_APPROVED";;
 6;"user3";"noop{123}";"ROLE_VIEWER";;;;;;;;15;"CREATED";;
 7;"user4";"noop{123}";"ROLE_VIEWER";;;;;;;;34;"CREATED";;
 8;"user5";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"CREATED";;
@@ -12,3 +12,4 @@ id;name;password;role;avatar;email;company;location;linkedin;git_hub;twitter;rat
 11;"user8";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"CREATED";;
 12;"user9";"noop{123}";"ROLE_VIEWER";;;;;;;;12;"CREATED";;
 13;"user10";"noop{123}";"ROLE_VIEWER";;;;;;;;24;"CREATED";;
+14;"Batman";"noop{123}";"ROLE_VIEWER";;;;;;;;0;"NOT_APPROVED";;

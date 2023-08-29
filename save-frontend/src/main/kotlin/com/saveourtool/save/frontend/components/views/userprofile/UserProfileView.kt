@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views.userprofile
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
@@ -86,14 +87,25 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         // ===================== RIGHT COLUMN =======================================================================
         div {
             className = ClassName("col-6 mb-4 mt-2")
-            tab(selectedMenu.name, UserProfileTab.values().map { it.name }, "nav nav-tabs mt-3") { value ->
-                setSelectedMenu { UserProfileTab.valueOf(value) }
+            props.currentUserInfo?.globalRole?.let { role ->
+                val tabList = if (role.isHigherOrEqualThan(Role.SUPER_ADMIN)) {
+                    UserProfileTab.values().map { it.name }
+                } else {
+                    UserProfileTab.values().filter { it != UserProfileTab.USERS }
+                        .map { it.name }
+                }
+                tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
+                    setSelectedMenu { UserProfileTab.valueOf(value) }
+                }
             }
 
             when (selectedMenu) {
                 UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
-                    this.userName = userName
                     this.vulnerabilities = vulnerabilities
+                }
+                UserProfileTab.USERS -> renderNewUsersTableForProfileView {
+                    this.userName = userName
+                    // this.vulnerabilities = vulnerabilities
                 }
             }
         }
@@ -125,6 +137,7 @@ external interface UserProfileViewProps : Props {
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class UserProfileTab {
     VULNERABILITIES,
+    USERS,
     ;
 
     companion object : TabMenuBar<UserProfileTab> {

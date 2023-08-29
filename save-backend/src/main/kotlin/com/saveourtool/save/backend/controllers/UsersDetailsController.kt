@@ -8,6 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.isValidLengthName
@@ -216,4 +217,11 @@ class UsersDetailsController(
         .map { status ->
             ResponseEntity.ok(status.message)
         }
+
+    /**
+     * @return list of [UserInfo] info about users
+     */
+    @GetMapping("/new-users")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun findNewUsers(): Flux<UserInfo> = blockingToFlux { userRepository.findByStatus(UserStatus.NOT_APPROVED).map { it.toUserInfo() } }
 }
