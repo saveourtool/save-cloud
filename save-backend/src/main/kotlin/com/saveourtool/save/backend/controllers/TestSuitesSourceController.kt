@@ -32,7 +32,6 @@ import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
 typealias EntitySaveStatusResponse = ResponseEntity<EntitySaveStatus>
-typealias StringListResponse = ResponseEntity<List<String>>
 
 /**
  * Controller for [TestSuitesSource]

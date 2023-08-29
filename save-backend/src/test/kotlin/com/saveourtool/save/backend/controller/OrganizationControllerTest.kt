@@ -86,6 +86,7 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkOrganizationTestSuiteService::class),
     MockBean(LnkExecutionTestSuiteService::class),
     MockBean(AvatarStorage::class),
+    MockBean(IVulnerabilityService::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

@@ -43,6 +43,7 @@ cpg = "7.0.0"
 cpg-neo4j-ogm = { strictly = "4.0.4" }
 cpg-neo4j-java-driver = { strictly = "5.6.0" }
 aws-sdk = "2.20.84"
+cosv4k = "0.0.11"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -203,3 +204,6 @@ arrow-kt-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow-kt"}
 aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws-sdk" }
 aws-sdk-s3 = { module = "software.amazon.awssdk:s3" }
 aws-sdk-netty-nio = { module = "software.amazon.awssdk:netty-nio-client" }
+
+# vulnerability
+cosv4k = { module = "com.saveourtool.cosv4k:cosv4k", version.ref = "cosv4k" }
