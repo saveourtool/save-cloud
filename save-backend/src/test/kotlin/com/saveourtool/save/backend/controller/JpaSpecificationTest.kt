@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.controller
 import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
+import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.backend.utils.InfraExtension
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -10,12 +11,17 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.boot.test.mock.mockito.MockBeans
 import org.springframework.context.annotation.Import
 
 @Import(ApplicationConfiguration::class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ExtendWith(InfraExtension::class)
+@MockBeans(
+    MockBean(IVulnerabilityService::class),
+)
 class JpaSpecificationTest {
     @Autowired
     lateinit var agentStatusRepository: AgentStatusRepository

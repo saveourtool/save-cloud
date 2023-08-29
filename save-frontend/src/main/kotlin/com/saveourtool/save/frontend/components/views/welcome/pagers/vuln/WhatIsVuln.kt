@@ -34,7 +34,7 @@ private const val USEFUL_LINKS_TEXT = """
     * [COSV Schema 1.0](https://mp.weixin.qq.com/s/1aJT1X09SVQeNzL8eHWT0Q) - enhances open-source vulnerability descriptions,
     promotes standardized data sharing for supply chain security, and operational efficiency.
     
-    * [osv4k](https://github.com/saveourtool/osv4k) - Kotlin and Java model for the serialization and deserialization of OSV Schema.
+    * [cosv4k](https://github.com/saveourtool/cosv4k) - Kotlin and Java model for the serialization and deserialization of COSV Schema.
 """
 
 /**

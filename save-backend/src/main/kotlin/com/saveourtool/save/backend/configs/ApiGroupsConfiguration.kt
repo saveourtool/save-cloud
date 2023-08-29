@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.latestVersion
 import com.saveourtool.save.v1
@@ -21,7 +21,10 @@ class ApiGroupsConfiguration {
     fun openApiAll(): GroupedOpenApi? = GroupedOpenApi.builder()
         .group("all")
         .pathsToMatch("/api/**")
-        .packagesToScan("com.saveourtool.save.backend.controllers")
+        .packagesToScan(
+            "com.saveourtool.save.backend.controllers",
+            "com.saveourtool.save.cosv.controllers"
+        )
         .build()
 
     @Bean
@@ -43,6 +46,9 @@ class ApiGroupsConfiguration {
         .group(groupName)
         .pathsToMatch("/api/$version/**")
         .pathsToExclude("?!(/api/$version).+")
-        .packagesToScan("com.saveourtool.save.backend.controllers")
+        .packagesToScan(
+            "com.saveourtool.save.backend.controllers",
+            "com.saveourtool.save.cosv.controllers"
+        )
         .build()
 }

@@ -70,6 +70,7 @@ import kotlin.io.path.*
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(DebugInfoStorage::class),
     MockBean(ExecutionInfoStorage::class),
+    MockBean(IVulnerabilityService::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {
