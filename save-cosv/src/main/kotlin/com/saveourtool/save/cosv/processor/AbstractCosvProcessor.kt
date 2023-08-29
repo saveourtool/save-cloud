@@ -48,9 +48,9 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
         organization = null,
         dates = buildList {
             osv.timeLine?.map { it.asVulnerabilityDateDto() }?.let { addAll(it) }
-            add(osv.modified.asVulnerabilityDateDto(VulnerabilityDateType.CVE_UPDATED))  // TODO: do we need it?
-            osv.published?.asVulnerabilityDateDto(VulnerabilityDateType.INTRODUCED)?.run { add(this) }
-            osv.withdrawn?.asVulnerabilityDateDto(VulnerabilityDateType.FIXED)?.run { add(this) }
+            add(osv.modified.asVulnerabilityDateDto(VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
+            osv.published?.asVulnerabilityDateDto(VulnerabilityDateType.PUBLISHED)?.run { add(this) }
+            osv.withdrawn?.asVulnerabilityDateDto(VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
         },
         participants = emptyList(),
         status = VulnerabilityStatus.CREATED,
@@ -68,9 +68,9 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
             date = value,
             type = when (type) {
                 TimeLineEntryType.introduced -> VulnerabilityDateType.INTRODUCED
-                TimeLineEntryType.found -> VulnerabilityDateType.DISCOVERED
+                TimeLineEntryType.found -> VulnerabilityDateType.FOUND
                 TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
-                TimeLineEntryType.disclosed -> VulnerabilityDateType.RELEASED
+                TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
             },
             vulnerabilityName = "NOT_USED_WHEN_SAVING_IN_DATABASE",
         )
