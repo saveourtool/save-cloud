@@ -12,6 +12,7 @@ import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.agreements.cookieTermsOfUse
 import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
 import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
@@ -213,6 +214,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
+            cookieTermsOfUse.create() to COOKIE,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter

@@ -4,6 +4,8 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.frontend.PlatformLanguages
 import com.saveourtool.save.frontend.externals.cookie.cookie
+import com.saveourtool.save.frontend.externals.cookie.getLanguageCode
+import com.saveourtool.save.frontend.externals.cookie.isAccepted
 import com.saveourtool.save.frontend.externals.i18next.changeLanguage
 import com.saveourtool.save.frontend.externals.i18next.language
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
@@ -24,14 +26,16 @@ import web.cssom.Cursor
 
 private const val LANG_DROPDOWN_ID = "lang-dropdown"
 
-internal const val PREFERRED_LANGUAGE_COOKIE = "language"
-
 /**
  * A [FC] that is responsible for language selection
  */
 val languageSelector: VFC = FC {
     val (_, i18n) = useTranslation()
-    val languageFromCookie = PlatformLanguages.getByCodeOrDefault(cookie.get(PREFERRED_LANGUAGE_COOKIE))
+    val languageFromCookie = if (cookie.isAccepted()) {
+        PlatformLanguages.getByCodeOrDefault(cookie.getLanguageCode())
+    } else {
+        PlatformLanguages.defaultLanguage
+    }
     val (language, setSelectedLanguage) = useState(languageFromCookie)
 
     useEffect(language) { i18n.changeLanguage(language) }

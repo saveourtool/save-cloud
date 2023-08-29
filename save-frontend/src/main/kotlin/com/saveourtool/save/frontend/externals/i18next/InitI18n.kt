@@ -25,6 +25,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                 "vulnerability-collection": $VULN_COLLECTION_EN,
                 "table-headers": $TABLE_HEADERS_EN,
                 "topbar": $TOPBAR_EN,
+                "cookies": $COOKIES_EN,
             },
             cn: {
                 translation: {
@@ -38,6 +39,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                 "vulnerability-collection": $VULN_COLLECTION_RU,
                 "table-headers": $TABLE_HEADERS_RU,
                 "topbar": $TOPBAR_RU,
+                "cookies": $COOKIES_RU,
             }
         };
         
