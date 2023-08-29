@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -26,6 +27,7 @@ import kotlinx.serialization.serializer
 @Service
 class CosvService(
     private val cosvRepository: CosvRepository,
+    private val cosvMetadataRepository: CosvMetadataRepository,
     private val vulnerabilityService: IVulnerabilityService,
     private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
