@@ -1,5 +1,6 @@
 package com.saveourtool.save.cosv.controllers
 
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
@@ -96,7 +97,7 @@ class CosvController(
     fun proposeNew(
         @RequestBody request: ProposeSaveOsvRequest,
         authentication: Authentication,
-    ) : Mono<StringResponse> = osvService.createNew(request, authentication.userId())
+    ): Mono<StringResponse> = cosvService.createNew(request, authentication.userId())
         .map { ResponseEntity.ok(it) }
 
     companion object {

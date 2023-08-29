@@ -2,8 +2,9 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
-import org.springframework.data.domain.Pageable
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 
 /**

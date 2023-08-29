@@ -1,17 +1,17 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.*
 
+import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.osv4k.Reference
 import com.saveourtool.osv4k.ReferenceType
-import com.saveourtool.save.info.UserInfo
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -25,6 +25,8 @@ import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
+
+typealias EmptyCosvSchema = OsvSchema<Unit, Unit, Unit, Unit>
 
 /**
  * Service for vulnerabilities
@@ -117,12 +119,17 @@ class CosvService(
             cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
         }
 
+    /**
+     * @param proposeSaveOsvRequest
+     * @param creatorUserId
+     * @return save's vulnerability names
+     */
     fun createNew(
         proposeSaveOsvRequest: ProposeSaveOsvRequest,
         creatorUserId: Long,
     ): Mono<String> = blockingToMono { vulnerabilityService.save(proposeSaveOsvRequest, creatorUserId) }
         .flatMap { vulnerabilityMeta ->
-            val osv = OsvSchema<Unit, Unit, Unit, Unit>(
+            val osv = EmptyCosvSchema(
                 schemaVersion = "1.5.0",
                 id = vulnerabilityMeta.name,
                 modified = vulnerabilityMeta.createDate.orNotFound {
@@ -133,7 +140,7 @@ class CosvService(
                 aliases = proposeSaveOsvRequest.vulnerabilityIdentifier?.let { listOf(it) },
                 references = proposeSaveOsvRequest.relatedLink?.let { listOf(Reference(ReferenceType.WEB, it)) }
             )
-            cosvRepository.save(osv, serializer<OsvSchema<Unit, Unit, Unit, Unit>>())
+            cosvRepository.save(osv, serializer<EmptyCosvSchema>())
                 .map { osv.id }
         }
 
