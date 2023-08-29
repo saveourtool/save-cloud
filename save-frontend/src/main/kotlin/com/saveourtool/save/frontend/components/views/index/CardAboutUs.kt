@@ -88,6 +88,11 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
                         +" Terms of Usage"
                         to = "/${FrontendRoutes.TERMS_OF_USE}"
                     }
+                    +" and "
+                    Link {
+                        +"Cookie policy"
+                        to = "/${FrontendRoutes.COOKIE}"
+                    }
                     +"."
                 }
             }
