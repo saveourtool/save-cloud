@@ -9680,6 +9680,36 @@
         ]
       }
     },
+    "/api/v1/users/ban": {
+      "get": {
+        "operationId": "banUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/by-prefix": {
       "get": {
         "description": "Get list of users by prefix with ids not in.",
@@ -9754,12 +9784,12 @@
         ]
       }
     },
-    "/api/v1/users/delete/{userName}": {
+    "/api/v1/users/delete": {
       "get": {
         "operationId": "deleteUser",
         "parameters": [
           {
-            "in": "path",
+            "in": "query",
             "name": "userName",
             "required": true,
             "schema": {
@@ -13047,7 +13077,8 @@
             "enum": [
               "CREATED",
               "ACTIVE",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "twitter": {
@@ -13161,7 +13192,8 @@
             "enum": [
               "CREATED",
               "ACTIVE",
-              "DELETED"
+              "DELETED",
+              "BANNED"
             ]
           },
           "twitter": {
