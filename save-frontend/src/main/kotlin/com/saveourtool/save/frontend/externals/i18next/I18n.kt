@@ -1,5 +1,7 @@
 package com.saveourtool.save.frontend.externals.i18next
 
+import com.saveourtool.save.frontend.PlatformLanguages
+
 /**
  * Class that represents i18n object
  */
@@ -18,3 +20,10 @@ external class I18n {
      */
     fun changeLanguage(language: String)
 }
+
+/**
+ * Get current [PlatformLanguages]
+ *
+ * @return current language as [PlatformLanguages] or [PlatformLanguages.defaultLanguage]
+ */
+fun I18n.language(): PlatformLanguages = PlatformLanguages.getByCodeOrDefault(language)
