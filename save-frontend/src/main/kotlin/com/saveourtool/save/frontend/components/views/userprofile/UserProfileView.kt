@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views.userprofile
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
