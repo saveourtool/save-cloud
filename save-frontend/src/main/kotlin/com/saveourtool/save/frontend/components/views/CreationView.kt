@@ -20,6 +20,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faQuestionCircle
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
 
 import react.*
@@ -187,7 +188,7 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() 
                                         organizationSelectForm {
                                             selectClasses = "custom-select"
                                             formType = InputTypes.ORGANIZATION_NAME
-                                            validInput = state.projectCreationRequest.organizationName.isEmpty() || state.projectCreationRequest.organizationName.isValidName()
+                                            validInput = state.projectCreationRequest.organizationName.isNotEmpty() && state.projectCreationRequest.organizationName.isValidName()
                                             classes = "col-12 pl-2 pr-2"
                                             formName = "Organization"
                                             getData = { context ->
@@ -223,8 +224,8 @@ class CreationView : AbstractView<ProjectSaveViewProps, ProjectSaveViewState>() 
                                         inputTextFormRequired {
                                             form = InputTypes.PROJECT_NAME
                                             textValue = state.projectCreationRequest.name
-                                            validInput = (state.projectCreationRequest.name.isEmpty() || state.projectCreationRequest.validateProjectName()) &&
-                                                    state.conflictErrorMessage == null
+                                            validInput = state.projectCreationRequest.name.isNotEmpty() && state.projectCreationRequest.validateProjectName() &&
+                                                    state.projectCreationRequest.name.isValidLengthName() && state.conflictErrorMessage == null
                                             classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                             name = "Tested tool name"
                                             conflictMessage = state.conflictErrorMessage

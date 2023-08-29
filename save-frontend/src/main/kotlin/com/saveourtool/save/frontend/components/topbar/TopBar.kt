@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.components.basic.languageSelector
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.notIn
 import com.saveourtool.save.info.UserInfo
@@ -24,8 +25,6 @@ import web.html.HTMLButtonElement
 
 /**
  * A component for web page top bar.
- *
- * @return a function component
  */
 val topBarComponent: FC<TopBarProps> = FC { props ->
     val location = useLocation()
@@ -40,9 +39,13 @@ val topBarComponent: FC<TopBarProps> = FC { props ->
         topBarUrlSplits {
             this.location = location
         }
-        if (location.notIn(listOf(FrontendRoutes.REGISTRATION, FrontendRoutes.INDEX, FrontendRoutes.ERROR_404))) {
+        if (location.notIn(FrontendRoutes.noTopBarViewList)) {
             topBarLinks { this.location = location }
         }
+
+        @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+        languageSelector { }
+
         topBarUserField {
             userInfo = props.userInfo
         }
@@ -54,7 +57,7 @@ val topBarComponent: FC<TopBarProps> = FC { props ->
  */
 external interface TopBarProps : PropsWithChildren {
     /**
-     * Currently logged in user, or `null`.
+     * Currently logged-in user, or `null`.
      */
     var userInfo: UserInfo?
 }

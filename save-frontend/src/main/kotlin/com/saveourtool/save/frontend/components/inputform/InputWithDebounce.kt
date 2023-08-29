@@ -2,20 +2,20 @@
 
 package com.saveourtool.save.frontend.components.inputform
 
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
-import com.saveourtool.save.v1
 
 import js.core.jso
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.AutoComplete
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h4
-import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.option
 import web.cssom.*
@@ -31,6 +31,16 @@ private const val DROPDOWN_ID = "option-dropdown"
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val inputWithDebounceForUserInfo = inputWithDebounce(
     asOption = { UserInfo(name = this) },
+    asString = { name },
+    decodeListFromJsonString = { decodeFromJsonString() },
+)
+
+/**
+ * Component that encapsulates debounced prefix autocompletion over [OrganizationDto.name]
+ */
+@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+val inputWithDebounceForOrganizationDto = inputWithDebounce(
+    asOption = { OrganizationDto(name = this) },
     asString = { name },
     decodeListFromJsonString = { decodeFromJsonString() },
 )
@@ -89,31 +99,71 @@ external interface InputWithDebounceProps<T> : PropsWithChildren {
      * Maximum amount of options to display
      */
     var maxOptions: Int?
+
+    /**
+     * Flag that defines if input form is disabled or not
+     */
+    var isDisabled: Boolean?
 }
 
 /**
+ * Default renderer for [inputWithDebounceForUserInfo]
+ *
  * @param childrenBuilder [ChildrenBuilder] instance
  * @param userInfo user's [UserInfo]
  */
 internal fun renderUserWithAvatar(childrenBuilder: ChildrenBuilder, userInfo: UserInfo) {
     with(childrenBuilder) {
         div {
-            className = ClassName("row col d-flex align-items-center")
-            div {
-                className = ClassName("col-1")
-                img {
-                    className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
-                    src = userInfo.avatar?.let { "/api/$v1/avatar$it" } ?: "/img/undraw_profile.svg"
-                    style = jso {
-                        width = "2rem".unsafeCast<Width>()
-                        height = "2rem".unsafeCast<Height>()
-                    }
-                }
+            className = ClassName("row d-flex align-items-center")
+            renderAvatar(userInfo) {
+                width = 2.rem
+                height = 2.rem
             }
-            h4 {
+            h6 {
                 className = ClassName("col-auto mb-0")
                 +userInfo.name
             }
+        }
+    }
+}
+
+/**
+ * Default renderer for [inputWithDebounceForOrganizationDto]
+ *
+ * @param childrenBuilder [ChildrenBuilder] instance
+ * @param organizationDto [OrganizationDto] to display
+ */
+internal fun renderOrganizationWithAvatar(childrenBuilder: ChildrenBuilder, organizationDto: OrganizationDto) {
+    with(childrenBuilder) {
+        div {
+            className = ClassName("row d-flex align-items-center")
+            style = jso {
+                fontSize = 1.2.rem
+            }
+            renderAvatar(organizationDto) {
+                width = 2.rem
+                height = 2.rem
+            }
+            h6 {
+                className = ClassName("col-auto mb-0")
+                +organizationDto.name
+            }
+        }
+    }
+}
+
+/**
+ * Default renderer for [inputWithDebounceForString]
+ *
+ * @param childrenBuilder [ChildrenBuilder] instance
+ * @param stringOption option to display as [String]
+ */
+internal fun renderString(childrenBuilder: ChildrenBuilder, stringOption: String) {
+    with(childrenBuilder) {
+        h6 {
+            className = ClassName("text-sm align-middle m-0")
+            +stringOption
         }
     }
 }
@@ -124,7 +174,7 @@ private fun <T> inputWithDebounce(
     asString: T.() -> String,
     decodeListFromJsonString: suspend Response.() -> List<T>,
 ) = FC<InputWithDebounceProps<T>> { props ->
-    val (options, setOptions) = useState<List<T>>(emptyList())
+    val (options, setOptions) = useState<List<T>?>(null)
     val getOptions = useDebouncedDeferredRequest(props.debouncePeriod ?: DEFAULT_DEBOUNCE_PERIOD) {
         if (props.selectedOption.asString().isNotBlank()) {
             val optionsFromBackend: List<T> = get(
@@ -150,7 +200,7 @@ private fun <T> inputWithDebounce(
             position = "relative".unsafeCast<Position>()
             zIndex = "2".unsafeCast<ZIndex>()
         }
-        onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(emptyList()) } }
+        onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(null) } }
         div {
             className = ClassName("input-group")
             input {
@@ -160,30 +210,37 @@ private fun <T> inputWithDebounce(
                 placeholder = props.placeholder
                 autoComplete = "off".unsafeCast<AutoComplete>()
                 value = props.selectedOption.asString()
+                disabled = props.isDisabled
                 onChange = { props.setSelectedOption(it.target.value.asOption()) }
             }
             props.children?.let { +it }
         }
-        div {
-            className = ClassName("list-group")
-            id = DROPDOWN_ID
-            style = jso {
-                position = "absolute".unsafeCast<Position>()
-                top = "100%".unsafeCast<Top>()
-                width = "100%".unsafeCast<Width>()
-                zIndex = "3".unsafeCast<ZIndex>()
-                overflowY = "scroll".unsafeCast<Overflow>()
-            }
-            options.let { optionList ->
-                props.maxOptions?.let {
-                    optionList.take(it)
-                } ?: options
-            }.forEachIndexed { idx, option ->
-                div {
-                    className = ClassName("list-group-item list-group-item-action")
-                    id = "$DROPDOWN_ID-$idx"
-                    onClick = { props.onOptionClick(option) }
-                    props.renderOption(this, option)
+        if (props.isDisabled != true) {
+            div {
+                className = ClassName("list-group")
+                id = DROPDOWN_ID
+                style = jso {
+                    position = "absolute".unsafeCast<Position>()
+                    top = "100%".unsafeCast<Top>()
+                    width = "max(100%, 10rem)".unsafeCast<Width>()
+                    zIndex = "3".unsafeCast<ZIndex>()
+                    overflowY = "scroll".unsafeCast<Overflow>()
+                }
+                if (props.selectedOption.asString().isNotEmpty() && options?.isEmpty() == true) {
+                    div {
+                        className = ClassName("list-group-item")
+                        +"Could not find anything that starts with ${props.selectedOption.asString()}..."
+                    }
+                } else {
+                    options.let { optionList -> props.maxOptions?.let { optionList?.take(it) } ?: options }
+                        ?.forEachIndexed { idx, option ->
+                            div {
+                                className = ClassName("list-group-item list-group-item-action")
+                                id = "$DROPDOWN_ID-$idx"
+                                onClick = { props.onOptionClick(option) }
+                                props.renderOption(this, option)
+                            }
+                        }
                 }
             }
         }

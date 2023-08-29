@@ -14,6 +14,10 @@ private const val EMAIL_PLACEHOLDER = "test@example.com"
 private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
+private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMING_MAX_LENGTH characters." +
+        "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+        "No dot, hyphen or underscore at the beginning and at the end of the line."
+
 /**
  * @property str
  * @property placeholder
@@ -43,18 +47,12 @@ enum class InputTypes(
     PROJECT_PROBLEM_NAME("project problem name", NAME_ERROR_MESSAGE, placeholder = "name"),
 
     // ==== signIn view
-    LOGIN(
-        "login",
-        null,
-        "login",
-        NAME_TOOLTIP
-    ),
     PASSWORD("password", null, "*****"),
     PROJECT_NAME(
         "project name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
     PROJECT_VERSION("project Url", placeholder = "0.0.1; 0.0.3-0.0.5; 1.0.1.RELEASE; etc."),
@@ -64,17 +62,25 @@ enum class InputTypes(
         "organization name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
 
     // ==== user setting view
-    USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("user name", NAME_ERROR_MESSAGE, "name"),
-    COMPANY("company"),
-    LOCATION("location"),
-    GIT_HUB("git hub"),
-    LINKEDIN("linkedin"),
-    TWITTER("twitter"),
+    USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    LOGIN(
+        "Login",
+        NAME_ERROR_MESSAGE,
+        "name",
+        tooltip = "Name must not be longer than $NAMING_MAX_LENGTH characters"
+    ),
+    COMPANY("Company/Affiliation"),
+    REAL_NAME("Your name"),
+    LOCATION("Location"),
+    GITHUB("GitHub"),
+    LINKEDIN("Linkedin"),
+    TWITTER("Twitter/X"),
+    WEBSITE("Website"),
+    FREE_TEXT("Info"),
 
     // ==== contest creation component
     CONTEST_NAME(
@@ -127,6 +133,12 @@ enum class InputTypes(
     // ==== ace editor
     ACE_THEME_SELECTOR("theme"),
     ACE_MODE_SELECTOR("mode"),
+
+    COMMIT_HASH(
+        "commit hash",
+        COMMIT_HASH_ERROR_MESSAGE,
+        "hash",
+    ),
 
     // ==== vulnerability
     CVE_NAME(

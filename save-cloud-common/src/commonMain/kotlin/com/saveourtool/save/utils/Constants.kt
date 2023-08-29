@@ -54,13 +54,27 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
- * `X-Authorization-Source`, used to specify an _OAuth_ provider (`basic`,
- * `github`, `dex`, etc.).
+ * `X-Authorization-Roles` used to specify save's user id
  */
-const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
+const val AUTHORIZATION_ID = "X-Authorization-Id"
+
+/**
+ * `X-Authorization-Roles` used to specify save's username
+ */
+const val AUTHORIZATION_NAME = "X-Authorization-Name"
+
+/**
+ * `X-Authorization-Roles` used to specify save's user roles
+ */
+const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
 
 /**
  * Default time to execute setup.sh
  */
 @Suppress("NON_EXPORTABLE_TYPE")
 const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L
+
+/**
+ * directory with the default avatars package
+ */
+const val AVATARS_PACKS_DIR: String = "/img/avatar_packs"

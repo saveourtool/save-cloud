@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.authservice.utils.toSpringUserDetails
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -13,6 +13,7 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
@@ -20,6 +21,7 @@ import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.lang.IllegalArgumentException
 
 import java.util.*
 
@@ -41,7 +43,6 @@ class UserDetailsService(
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
-        .map { it.toSpringUserDetails() }
 
     /**
      * @param username
@@ -51,20 +52,42 @@ class UserDetailsService(
     fun findByOriginalLogin(username: String, source: String) = blockingToMono {
         originalLoginRepository.findByNameAndSource(username, source)?.user
     }
-        .map { it.toSpringUserDetails() }
 
     /**
+     * We change the version just to work-around the caching on the frontend
+     *
      * @param name
+     * @return the id (version) of new avatar
      * @throws NoSuchElementException
      */
-    fun updateAvatarVersion(name: String) {
+    fun updateAvatarVersion(name: String): String {
         val user = userRepository.findByName(name).orNotFound()
-        var version = user.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        var version = user.avatar?.find { it == '?' }?.let {
+            user.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        } ?: 0
+        val newAvatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+        user.apply { avatar = newAvatar }
+            .let { userRepository.save(it) }
 
-        user.apply {
-            avatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+        return newAvatar
+    }
+
+    /**
+     * Only for static resources!
+     *
+     * @param name
+     * @param resource
+     * @throws IllegalArgumentException
+     */
+    fun setAvatarFromResource(name: String, resource: String) {
+        if (!resource.startsWith(AVATARS_PACKS_DIR)) {
+            throw IllegalArgumentException("Only avatars from $AVATARS_PACKS_DIR can be set for user $name")
         }
-        user.let { userRepository.save(it) }
+
+        userRepository.findByName(name)
+            .orNotFound()
+            .apply { avatar = resource }
+            .let { userRepository.save(it) }
     }
 
     /**
@@ -80,21 +103,43 @@ class UserDetailsService(
         ?: Role.VIEWER
 
     /**
-     * @param user
+     * @param newUser
      * @param oldName
+     * @param oldUserStatus
      * @return UserSaveStatus
      */
     @Transactional
-    fun saveUser(user: User, oldName: String?): UserSaveStatus = if (oldName == null) {
-        userRepository.save(user)
-        UserSaveStatus.UPDATE
-    } else if (userRepository.validateName(user.name) != 0L) {
-        userRepository.deleteHighLevelName(oldName)
-        userRepository.saveHighLevelName(user.name)
-        userRepository.save(user)
-        UserSaveStatus.UPDATE
-    } else {
-        UserSaveStatus.CONFLICT
+    fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
+        val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
+        // if we are registering new user (updating just name and status to ACTIVE):
+        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.ACTIVE) {
+            // checking if the user with new name already exists (it's definitely not our user, so if found -> CONFLICT)
+            if (isNameFreeAndNotTaken) {
+                userRepository.save(newUser)
+                UserSaveStatus.UPDATE
+            } else {
+                UserSaveStatus.CONFLICT
+            }
+        } else {
+            // we are trying to change the name of ACTIVE user
+            oldName?.let {
+                // but such name is already taken and exists in db
+                if (isNameFreeAndNotTaken) {
+                    userRepository.deleteHighLevelName(oldName)
+                    userRepository.saveHighLevelName(newUser.name)
+                    userRepository.save(newUser)
+                    UserSaveStatus.UPDATE
+                } else {
+                    UserSaveStatus.CONFLICT
+                }
+                // if we are changing other fields of ACTIVE users, but not changing the name we can just save user
+                // here we highly depend on the `oldName` field (from client code)
+                // but we are safe as we have a unique constraint on the database
+            } ?: run {
+                userRepository.save(newUser)
+                UserSaveStatus.UPDATE
+            }
+        }
     }
 
     /**
@@ -117,12 +162,14 @@ class UserDetailsService(
         } ?: run {
             userNameCandidate
         }
-        return userRepository.save(User(
-            name = name,
-            password = null,
-            role = userRole,
-            status = UserStatus.CREATED,
-        ))
+        return userRepository.save(
+            User(
+                name = name,
+                password = null,
+                role = userRole,
+                status = UserStatus.CREATED,
+            )
+        )
     }
 
     /**
@@ -162,7 +209,7 @@ class UserDetailsService(
                 this.location = null
             })
         } else {
-            return UserSaveStatus.CONFLICT
+            return UserSaveStatus.HACKER
         }
 
         val avatarKey = AvatarKey(
@@ -176,6 +223,23 @@ class UserDetailsService(
         lnkUserOrganizationRepository.deleteByUserId(user.requiredId())
 
         return UserSaveStatus.DELETED
+    }
+
+    /**
+     * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun banUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+
+        userRepository.save(user.apply {
+            this.status = UserStatus.BANNED
+        })
+
+        return UserSaveStatus.BANNED
     }
 
     companion object {

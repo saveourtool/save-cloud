@@ -126,13 +126,13 @@ Thus, we add `Authorization` and `X-Authorization-Source` headers that correspon
   omitting any gateway. When enabling OAuth, make sure the gateway is contacted
   instead:
 
-    * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
-    * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
-      default gateway URL);
-    * `onProxyReq`: drop the entire callback, since both headers (`Authorization`
-      and `X-Authorization-Source`) will be set by the gateway now (the gateway
-      acts as a reverse proxy);
-    * `bypass`: drop the entire callback.
+   * `context`: add `/sec/**, /oauth2/**, /login/oauth2/**` to the list;
+   * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
+     default gateway URL);
+   * `onProxyReq`: drop the entire callback, since all auth headers (`X-Authorization-Id`,
+     `X-Authorization-Name` and `X-Authorization-Roles`) will be set by the gateway now (the gateway
+     acts as a reverse proxy);
+   * `bypass`: drop the entire callback.
 
   The resulting `dev-server.js` should look like this:
   ```javascript
@@ -142,7 +142,7 @@ Thus, we add `Authorization` and `X-Authorization-Source` headers that correspon
       {
         proxy: [
           {
-            context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**", "**.ico", "**.png"],
+            context: ["/api/**", "/sec/**", "/oauth2/**", "/logout/**", "/login/oauth2/**"],
             target: 'http://localhost:5300',
             logLevel: 'debug',
           }
@@ -151,5 +151,9 @@ Thus, we add `Authorization` and `X-Authorization-Source` headers that correspon
       }
   )
   ```
+   Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
 
-Notice that `historyApiFallback` is required for `BrowserRouter` work fine.
+* Avoid potential name conflicts between local users (those authenticated using
+  _HTTP Basic Auth_) and users created via an external _OAuth_ provider. For
+  example, if you have a local user named `torvalds`, don't try to authenticate
+  as a [_GitHub_ user with the same name](https://github.com/torvalds).

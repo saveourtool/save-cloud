@@ -25,7 +25,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
         val availableProviders: List<OauthProviderInfo> = get(
             "${window.location.origin}/sec/oauth-providers",
             Headers(),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         ).run {
             if (ok) decodeFromJsonString() else emptyList()
@@ -56,7 +56,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
                         OauthProvidersFeConfig(
                             3.5.rem,
                             userInfo,
-                            "animate__backInUp",
+                            "animate__shakeX",
                             oauthProvider.replaceFirstChar { ch -> if (ch.isLowerCase()) ch.titlecase() else ch.toString() }
                         )
                     )

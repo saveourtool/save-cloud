@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.service.LnkContestExecutionService
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.execution.ExecutionDto
@@ -87,9 +86,7 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser
     fun checkExecutionDto() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         webClient.get()
             .uri("/api/$v1/executionDto?executionId=1")
@@ -106,9 +103,7 @@ class ExecutionControllerTest {
     @Test
     @WithMockUser
     fun checkExecutionDtoByProject() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         val project = projectRepository.findById(1).get()
         val executionCounts = executionRepository.findAll().count { it.project.id == project.id }

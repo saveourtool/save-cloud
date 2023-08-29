@@ -5,6 +5,7 @@ import com.saveourtool.save.validation.Validatable
 import com.saveourtool.save.validation.isValidName
 
 import kotlin.js.JsExport
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -26,6 +27,10 @@ import kotlinx.serialization.Serializable
  * @property oldName is always null except for the process of renaming the user.
  * @property originalLogins
  * @property rating
+ * @property website
+ * @property freeText
+ * @property realName
+ * @property createDate
  */
 @Serializable
 @JsExport
@@ -46,6 +51,10 @@ data class UserInfo(
     val globalRole: Role? = null,
     val status: UserStatus = UserStatus.CREATED,
     val rating: Long = 0,
+    val website: String? = null,
+    val freeText: String? = null,
+    val realName: String? = null,
+    val createDate: LocalDateTime? = null,
 ) : Validatable {
     /**
      * Validation of organization name

@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
+import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
@@ -36,13 +37,13 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE")
 val App: VFC = FC {
+    useOnce { initI18n() }
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
-
     useRequest {
         val userName: String? = get(
             "${window.location.origin}/sec/user",
             jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
         ).run {
             val responseText = text().await()
@@ -52,7 +53,7 @@ val App: VFC = FC {
         val globalRole: Role? = get(
             "$apiUrl/users/global-role",
             jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
         ).run {
             val responseText = text().await()
@@ -69,15 +70,19 @@ val App: VFC = FC {
 
         userInfoNew?.let { setUserInfo(userInfoNew) }
     }
-
     BrowserRouter {
         basename = "/"
         requestModalHandler {
             this.userInfo = userInfo
 
-            if (userInfo?.status == UserStatus.CREATED) {
+            if (userInfo?.status == UserStatus.CREATED && kotlinx.browser.window.location.pathname != "/${FrontendRoutes.TERMS_OF_USE}") {
                 Navigate {
                     to = "/${FrontendRoutes.REGISTRATION}"
+                    replace = false
+                }
+            } else if (userInfo?.status == UserStatus.BANNED) {
+                Navigate {
+                    to = "/${FrontendRoutes.BAN}"
                     replace = false
                 }
             }
@@ -90,7 +95,10 @@ val App: VFC = FC {
                     div {
                         className = ClassName("container-fluid")
                         id = "common-save-container"
-                        basicRouting { this.userInfo = userInfo }
+                        basicRouting {
+                            this.userInfo = userInfo
+                            this.userInfoSetter = setUserInfo
+                        }
                     }
                     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
                     footer { }

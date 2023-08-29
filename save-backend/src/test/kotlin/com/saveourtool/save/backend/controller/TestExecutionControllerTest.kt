@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -79,9 +78,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should count TestExecutions for a particular Execution`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         webClient.get()
             .uri("/api/$v1/testExecution/count?executionId=1")
@@ -93,9 +90,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should return a page of TestExecutions for a particular Execution`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         val expectedExecutionCount = 20
         webClient.post()
@@ -110,9 +105,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should return a list test suits with number of test for executions id`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
 
         webClient.get()
             .uri("/api/$v1/testLatestExecutions?executionId=3&status=${TestResultStatus.PASSED}&page=0&size=10")

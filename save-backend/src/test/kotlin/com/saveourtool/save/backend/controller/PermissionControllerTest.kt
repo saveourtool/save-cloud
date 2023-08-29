@@ -1,9 +1,6 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
-import com.saveourtool.save.authservice.repository.AuthenticationUserRepository
-import com.saveourtool.save.authservice.security.ConvertingAuthenticationManager
-import com.saveourtool.save.authservice.service.AuthenticationUserDetailsService
 import com.saveourtool.save.backend.controllers.PermissionController
 import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -11,7 +8,6 @@ import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -40,9 +36,6 @@ import reactor.util.function.Tuples
     OrganizationService::class,
     LnkUserProjectService::class,
     LnkUserOrganizationService::class,
-    ConvertingAuthenticationManager::class,
-    AuthenticationUserDetailsService::class,
-    AuthenticationUserRepository::class,
 )
 @MockBeans(
     MockBean(LnkUserProjectService::class),
@@ -65,9 +58,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should allow reading of roles if user has permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -88,9 +79,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid reading of roles if user doesn't have permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -108,9 +97,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should allow changing roles for organization owners`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(userRepository.findByName(any())).willReturn(
             User("user", null, null, "").apply { id = 99 }
         )
@@ -135,9 +122,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid changing roles unless user is an organization owner`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),
@@ -157,9 +142,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should return 404 when changing roles on hidden project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99).apply { public = false },
@@ -179,9 +162,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should get 404 when deleting users from project without permission`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99).apply { public = true },
@@ -198,9 +179,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should permit deleting users from project if user can change roles in project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         val project = Project.stub(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
@@ -220,9 +199,7 @@ class PermissionControllerTest {
     @Test
     @WithMockUser
     fun `should forbid removing people from project if user cannot change roles in project`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 99)
-        }
+        mutateMockedUser(id = 99)
         given(
             user = { User(name = it.arguments[0] as String, null, null, "") },
             project = Project.stub(id = 99),

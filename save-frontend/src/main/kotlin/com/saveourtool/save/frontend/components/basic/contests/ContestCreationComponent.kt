@@ -158,7 +158,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_NAME
                             textValue = contestDto.name
-                            validInput = (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null
+                            validInput = contestDto.name.isNotEmpty() && contestDto.name.isValidName() && conflictErrorMessage == null
                             classes = "col-12 pl-2 pr-2"
                             name = "Contest name"
                             conflictMessage = conflictErrorMessage

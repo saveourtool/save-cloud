@@ -3,12 +3,11 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -50,7 +49,6 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
     useEffect {
         cleanup {
             if (scope.isActive) {
@@ -81,7 +79,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     div {
                         className = ClassName("d-flex flex-column")
                         span {
-                            className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
+                            className = ClassName("mr-2 text-white-400")
                             +(props.userInfo?.name.orEmpty())
                         }
                         val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
@@ -100,11 +98,8 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                             style = logoSize
-                            onError = {
-                                setAvatar { AVATAR_PLACEHOLDER }
-                            }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
@@ -123,7 +118,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     }
                     dropdownEntry(faCog, "Settings") { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
                         }
                     }
                     dropdownEntry(
@@ -131,7 +126,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         "Manage organizations"
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out") { attrs ->

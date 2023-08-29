@@ -14,14 +14,21 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
+import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.ClassName
+import web.cssom.rem
 
 /**
  * Placeholder for organization avatar
  */
-const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.svg"
+const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
+
+/**
+ * links to avatars: "/img" for static resources, "/api" for uploaded
+ */
+fun String.avatarRenderer() = if (this.startsWith("/img")) this else "/api/$v1/avatar/$this"
 
 /**
  * Render organization avatar or placeholder
@@ -37,7 +44,7 @@ fun ChildrenBuilder.renderAvatar(
     link: String? = null,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) = renderAvatar(
-    organizationDto.avatar?.let { "/api/$v1/avatar/$it" } ?: AVATAR_ORGANIZATION_PLACEHOLDER,
+    organizationDto.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER,
     classes,
     link ?: "/${organizationDto.name}",
     styleBuilder
@@ -61,7 +68,7 @@ fun ChildrenBuilder.renderAvatar(
 ) {
     val newLink = (link ?: "/${FrontendRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
     return renderAvatar(
-        userInfo?.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER,
+        userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
         newLink,
         styleBuilder
@@ -73,16 +80,45 @@ fun ChildrenBuilder.renderAvatar(
  * @param classes
  * @param link
  * @param styleBuilder
+ * @param isHorizontal if the avatar shoud be on the same line with text
+ * @param isCentered
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.renderUserAvatarWithName(
     userInfo: UserInfo,
     classes: String = "",
     link: String? = null,
+    isCentered: Boolean = true,
+    isHorizontal: Boolean = false,
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
-        +" ${userInfo.name}"
+        div {
+            className = ClassName("col")
+            if (isHorizontal) {
+                div {
+                    className = ClassName("row d-flex align-items-center")
+                    renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+                    style = jso {
+                        fontSize = 1.rem
+                    }
+                    +" ${userInfo.name}"
+                }
+            } else {
+                val justify = if (isCentered) "justify-content-center" else ""
+                div {
+                    className = ClassName("row $justify")
+                    renderAvatar(userInfo, classes, link, styleBuilder = styleBuilder)
+                }
+                div {
+                    className = ClassName("row $justify mt-2")
+                    style = jso {
+                        fontSize = 0.8.rem
+                    }
+                    +" ${userInfo.name}"
+                }
+            }
+        }
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
@@ -107,8 +143,20 @@ fun ChildrenBuilder.renderOrganizationWithName(
     styleBuilder: CSSProperties.() -> Unit = {},
 ) {
     val renderImg: ChildrenBuilder.() -> Unit = {
-        renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
-        +" ${organizationDto.name}"
+        div {
+            className = ClassName("col")
+            div {
+                className = ClassName("row justify-content-center")
+                renderAvatar(organizationDto, classes, link, styleBuilder = styleBuilder)
+            }
+            div {
+                className = ClassName("row justify-content-center mt-2")
+                style = jso {
+                    fontSize = 0.8.rem
+                }
+                +" ${organizationDto.name}"
+            }
+        }
     }
     return if (organizationDto.status != OrganizationStatus.DELETED) {
         Link {

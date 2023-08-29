@@ -4,10 +4,7 @@
 
 package com.saveourtool.save.frontend.externals.progressbar
 
-import react.Component
-import react.PropsWithChildren
-import react.ReactElement
-import react.State
+import react.*
 
 /**
  * External declaration of [ReactCircleProps] react component
@@ -65,4 +62,9 @@ external interface ReactCircleProps : PropsWithChildren {
      * Show/hide only the "%" symbol.
      */
     var showPercentageSymbol: Boolean
+
+    /**
+     * Custom styling for text.
+     */
+    var textStyle: CSSProperties
 }

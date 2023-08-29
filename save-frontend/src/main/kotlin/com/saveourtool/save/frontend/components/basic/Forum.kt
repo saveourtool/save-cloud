@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.toUnixCalendarFormat
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -49,7 +48,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
             url = "$apiUrl/comments/save",
             headers = jsonHeaders,
             body = Json.encodeToString(commentNew),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
@@ -185,7 +184,7 @@ private fun ChildrenBuilder.renderLeftColumn(
     rating: Long,
     color: String = "#f1f1f1",
 ) {
-    val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER)
+    val (avatar, setAvatar) = useState(userAvatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER)
 
     div {
         className = ClassName("input-group-prepend col-2")

@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -20,7 +21,6 @@ import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.components.views.AbstractView
 import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
@@ -118,9 +118,7 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                 img {
                                     className =
                                             ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = cellContext.row.original.organization.avatar?.let {
-                                        "/api/$v1/avatar$it"
-                                    } ?: AVATAR_ORGANIZATION_PLACEHOLDER
+                                    src = cellContext.row.original.organization.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
                                     style = jso {
                                         height = 2.rem
                                         width = 2.rem
@@ -143,31 +141,6 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         },
         useServerPaging = false,
         isTransparentGrid = true,
-        commonHeader = { tableInstance, _ ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    nameFiltersRow {
-                        name = state.organizationFilter.prefix
-                        onChangeFilters = { filterValue ->
-                            val filter = if (filterValue.isNullOrEmpty()) {
-                                OrganizationFilter.created
-                            } else {
-                                OrganizationFilter(filterValue)
-                            }
-                            setState {
-                                organizationFilter = filter
-                            }
-                            getOrganization(filter)
-                            window.location.href = buildString {
-                                append(window.location.href.substringBefore("?"))
-                                filterValue?.let { append("?organizationName=$filterValue") }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it)
     }
@@ -208,31 +181,6 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
         },
         useServerPaging = false,
         isTransparentGrid = true,
-        commonHeader = { tableInstance, _ ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    nameFiltersRow {
-                        name = state.projectFilter.name
-                        onChangeFilters = { filterValue ->
-                            val filter = if (filterValue.isNullOrEmpty()) {
-                                ProjectFilter.created
-                            } else {
-                                ProjectFilter(filterValue)
-                            }
-                            setState {
-                                projectFilter = filter
-                            }
-                            getProject(filter)
-                            window.location.href = buildString {
-                                append(window.location.href.substringBefore("?"))
-                                filterValue?.let { append("?projectName=$filterValue") }
-                            }
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it)
     }
@@ -319,6 +267,33 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         state.organizationWithRatingList
                     }
                     getPageCount = null
+                    commonHeaderBuilder = { cb, tableInstance, _ ->
+                        with(cb) {
+                            tr {
+                                th {
+                                    colSpan = tableInstance.visibleColumnsCount()
+                                    nameFiltersRow {
+                                        name = state.organizationFilter.prefix
+                                        onChangeFilters = { filterValue ->
+                                            val filter = if (filterValue.isNullOrEmpty()) {
+                                                OrganizationFilter.created
+                                            } else {
+                                                OrganizationFilter(filterValue)
+                                            }
+                                            setState {
+                                                organizationFilter = filter
+                                            }
+                                            getOrganization(filter)
+                                            window.location.href = buildString {
+                                                append(window.location.href.substringBefore("?"))
+                                                filterValue?.let { append("?organizationName=$filterValue") }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -334,6 +309,33 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                         state.projects
                     }
                     getPageCount = null
+                    commonHeaderBuilder = { cb, tableInstance, _ ->
+                        with(cb) {
+                            tr {
+                                th {
+                                    colSpan = tableInstance.visibleColumnsCount()
+                                    nameFiltersRow {
+                                        name = state.projectFilter.name
+                                        onChangeFilters = { filterValue ->
+                                            val filter = if (filterValue.isNullOrEmpty()) {
+                                                ProjectFilter.created
+                                            } else {
+                                                ProjectFilter(filterValue)
+                                            }
+                                            setState {
+                                                projectFilter = filter
+                                            }
+                                            getProject(filter)
+                                            window.location.href = buildString {
+                                                append(window.location.href.substringBefore("?"))
+                                                filterValue?.let { append("?projectName=$filterValue") }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

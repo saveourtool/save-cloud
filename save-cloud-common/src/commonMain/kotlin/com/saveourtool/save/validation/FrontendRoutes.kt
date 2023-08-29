@@ -8,6 +8,8 @@ package com.saveourtool.save.validation
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import kotlin.js.JsExport
 
+const val SETTINGS = "settings"
+
 /**
  * @property path substring of url that defines given route
  */
@@ -15,6 +17,7 @@ import kotlin.js.JsExport
 enum class FrontendRoutes(val path: String) {
     ABOUT_US("about"),
     AWESOME_BENCHMARKS("awesome-benchmarks"),
+    BAN("ban"),
     CONTESTS("contests"),
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
     CONTESTS_TEMPLATE("contest-template"),
@@ -32,19 +35,31 @@ enum class FrontendRoutes(val path: String) {
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
     SAVE("save"),
-    SETTINGS_EMAIL("settings/email"),
-    SETTINGS_ORGANIZATIONS("settings/organizations"),
-    SETTINGS_PROFILE("settings/profile"),
-    SETTINGS_TOKEN("settings/token"),
+    SETTINGS_DELETE("$SETTINGS/delete"),
+    SETTINGS_EMAIL("$SETTINGS/email"),
+    SETTINGS_ORGANIZATIONS("$SETTINGS/organizations"),
+    SETTINGS_PROFILE("$SETTINGS/profile"),
+    SETTINGS_TOKEN("$SETTINGS/token"),
     TERMS_OF_USE("terms-of-use"),
-    TOP_RATING("top-rating"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULNERABILITY_SINGLE("$VULN/collection"),
+    VULN_TOP_RATING("$VULN/top-rating"),
     ;
 
     override fun toString(): String = path
 
     companion object {
+        /**
+         * List of views on which topbar should not be rendered
+         */
+        val noTopBarViewList = arrayOf(
+            REGISTRATION,
+            INDEX,
+            ERROR_404,
+            TERMS_OF_USE,
+        )
+
         /**
          * Get forbidden words from [FrontendRoutes].
          *

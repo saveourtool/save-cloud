@@ -16,6 +16,8 @@ import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.NAMING_MAX_LENGTH
+import com.saveourtool.save.validation.isValidLengthName
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -134,6 +136,10 @@ class ProjectController(
         @RequestBody projectCreationRequest: ProjectDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(projectCreationRequest)
+        .filter { projectCreationRequest.name.isValidLengthName() }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            "Name must not be longer than $NAMING_MAX_LENGTH characters"
+        }
         .flatMap {
             Mono.zip(
                 projectCreationRequest.toMono(),

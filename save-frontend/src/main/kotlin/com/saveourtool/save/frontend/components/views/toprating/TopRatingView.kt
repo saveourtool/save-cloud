@@ -28,7 +28,7 @@ val topRatingView = VFC {
         className = ClassName("d-sm-flex align-items-center justify-content-center mb-4")
         h1 {
             className = ClassName("h3 mb-0 text-gray-800")
-            title(" Top Rating", faTrophy)
+            title(" Top Vuln Reporters", faTrophy)
         }
     }
 
@@ -54,7 +54,7 @@ enum class TopRatingTab {
     companion object : TabMenuBar<TopRatingTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: TopRatingTab = USERS
-        override val regexForUrlClassification = "/${FrontendRoutes.TOP_RATING}"
+        override val regexForUrlClassification = "/${FrontendRoutes.VULN_TOP_RATING}"
         override fun valueOf(elem: String): TopRatingTab = TopRatingTab.valueOf(elem)
         override fun values(): Array<TopRatingTab> = TopRatingTab.values()
     }

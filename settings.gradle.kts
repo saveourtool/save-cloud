@@ -52,7 +52,7 @@ include("save-demo")
 include("save-demo-cpg")
 include("test-analysis-core")
 include("save-demo-agent")
-include("save-osv")
+include("save-cosv")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

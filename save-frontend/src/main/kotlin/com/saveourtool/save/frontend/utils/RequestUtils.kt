@@ -538,6 +538,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
 
 /**
+ * @return true if given [Response] has 409 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isBadRequest(): Boolean = this.status == 400.toShort()
+
+/**
  * @return true if given [Response] has 401 code, false otherwise
  */
 @Suppress("MAGIC_NUMBER")
@@ -550,6 +556,23 @@ fun Response.isUnauthorized(): Boolean = this.status == 401.toShort()
  * @see Response.inputStream
  */
 suspend fun Response.readLines(): Flow<String> = inputStream().decodeToString()
+
+/**
+ * Appends the [parameters][params] to this URL.
+ *
+ * @param params
+ * @return final URL with appended parameters after a `question` symbol
+ */
+fun <T : Any> String.withParams(params: T): String {
+    val paramString = URLSearchParams(params).toString()
+
+    return when {
+        paramString.isEmpty() -> this
+        endsWith('?') -> this + paramString
+        contains('?') -> "$this&$paramString"
+        else -> "$this?$paramString"
+    }
+}
 
 /**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
@@ -736,36 +759,6 @@ private fun Uint8Array.asByteArray(): ByteArray = Int8Array(
     .asDynamic()
 
 /**
- * Appends the [parameters][params] to this URL.
- */
-private fun <T : Any> String.withParams(params: T): String {
-    val paramString = URLSearchParams(params).toString()
-
-    return when {
-        paramString.isEmpty() -> this
-        endsWith('?') -> this + paramString
-        contains('?') -> "$this&$paramString"
-        else -> "$this?$paramString"
-    }
-}
-
-/**
- * Handler that allows to skip loading modal
- *
- * @param request REST API method
- * @return [Response] received with [request]
- */
-internal suspend fun noopLoadingHandler(request: suspend () -> Response) = request()
-
-/**
- * Can be used to explicitly specify, that response will be handled is a custom way
- *
- * @param response
- * @return Unit
- */
-internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit
-
-/**
  * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
  *
  * @param url request URL
@@ -773,10 +766,12 @@ internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Respons
  * @param headers HTTP headers
  * @param body request body
  * @param credentials [RequestCredentials] for fetch API
+ * @param loadingHandler
+ * @param responseHandler
  * @return [Response] instance
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
-private suspend fun request(
+suspend fun request(
     url: String,
     method: String,
     headers: Headers,
@@ -801,3 +796,19 @@ private suspend fun request(
             responseHandler(response)
         }
     }
+
+/**
+ * Handler that allows to skip loading modal
+ *
+ * @param request REST API method
+ * @return [Response] received with [request]
+ */
+internal suspend fun noopLoadingHandler(request: suspend () -> Response) = request()
+
+/**
+ * Can be used to explicitly specify, that response will be handled is a custom way
+ *
+ * @param response
+ * @return Unit
+ */
+internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit

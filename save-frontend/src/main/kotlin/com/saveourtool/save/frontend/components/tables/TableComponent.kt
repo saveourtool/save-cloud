@@ -19,6 +19,7 @@ import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.em
 import react.dom.html.ReactHTML.h6
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.table
 import react.dom.html.ReactHTML.tbody
@@ -44,6 +45,7 @@ import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
 import web.cssom.ClassName
 import web.cssom.Cursor
+import web.cssom.rem
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +53,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+const val TABLE_HEADERS_LOCALE_NAMESPACE = "table-headers"
+
+private typealias TableHeaderBuilder<T> = (ChildrenBuilder, Table<T>, NavigateFunction) -> Unit
 
 /**
  * [Props] of a data table
@@ -76,6 +82,11 @@ external interface TableProps<D : Any> : Props {
      * [ClassName] that is applied to card-body section of a table (table itself)
      */
     var cardBodyClassName: String
+
+    /**
+     * Builder function for table common header, which will be placed above individual column headers
+     */
+    var commonHeaderBuilder: TableHeaderBuilder<D>?
 }
 
 /**
@@ -87,7 +98,6 @@ external interface TableProps<D : Any> : Props {
  * @param useServerPaging whether data is split into pages server-side or in browser
  * @param additionalOptions
  * @param renderExpandedRow how to render an expanded row if `useExpanded` plugin is used. Is invoked inside a `<tbody>` tag.
- * @param commonHeader (optional) a common header for the table, which will be placed above individual column headers
  * @param getAdditionalDependencies allows filter the table using additional components (dependencies)
  * @param isTransparentGrid
  * @param tableOptionsCustomizer can customize [TableOptions] in scope of [FC]; for example:
@@ -120,7 +130,6 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
     additionalOptions: TableOptions<D>.() -> Unit = {},
     getRowProps: (Row<D>) -> PropsWithStyle = { jso() },
     renderExpandedRow: (ChildrenBuilder.(table: Table<D>, row: Row<D>) -> Unit)? = undefined,
-    commonHeader: ChildrenBuilder.(table: Table<D>, navigate: NavigateFunction) -> Unit = { _, _ -> },
     getAdditionalDependencies: (P) -> Array<dynamic> = { emptyArray() },
 ): FC<P> = FC { props ->
     require(useServerPaging xor (props.getPageCount == null)) {
@@ -210,6 +219,16 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
     val navigate = useNavigate()
 
+    val commonHeader = useMemo {
+        Fragment.create {
+            props.commonHeaderBuilder?.invoke(
+                this,
+                tableInstance,
+                navigate
+            )
+        }
+    }
+
     div {
         className = ClassName("${if (isTransparentGrid) "" else "card shadow"} mb-4")
         if (props.tableHeader != undefined) {
@@ -230,7 +249,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                     width = 100.0
                     cellSpacing = "0"
                     thead {
-                        commonHeader(tableInstance, navigate)
+                        +commonHeader
                         tableInstance.getHeaderGroups().map { headerGroup ->
                             tr {
                                 id = headerGroup.id
@@ -278,10 +297,23 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
 
                 if (data.isEmpty()) {
                     div {
-                        className = ClassName("align-items-center justify-content-center mb-4")
-                        h6 {
-                            className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
-                            +"No results found"
+                        className = ClassName("col mt-4 mb-4")
+                        div {
+                            className = ClassName("row justify-content-center")
+                            h6 {
+                                className = ClassName("m-0 mt-3 font-weight-bold text-primary text-center")
+                                +"Nothing was found"
+                            }
+                        }
+                        div {
+                            className = ClassName("row justify-content-center")
+                            img {
+                                src = "/img/sad_cat.png"
+                                @Suppress("MAGIC_NUMBER")
+                                style = jso {
+                                    width = 14.rem
+                                }
+                            }
                         }
                     }
                 }

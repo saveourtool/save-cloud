@@ -87,7 +87,7 @@ fun getJobObjectForDemo(
     spec = JobSpec().apply {
         parallelism = REPLICAS_PER_DEMO
         ttlSecondsAfterFinished = TTL_AFTER_COMPLETED
-        backoffLimit = 0
+        backoffLimit = kubernetesSettings.podBackoffLimit
         template = PodTemplateSpec().apply {
             spec = PodSpec().apply {
                 subdomain = kubernetesSettings.agentSubdomainName

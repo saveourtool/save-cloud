@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.isValidLengthName
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -57,7 +58,12 @@ class UsersDetailsController(
     )
     @Parameters(
         Parameter(name = "prefix", `in` = ParameterIn.QUERY, description = "username prefix", required = true),
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of users that should be returned, default: 5", required = false),
+        Parameter(
+            name = "pageSize",
+            `in` = ParameterIn.QUERY,
+            description = "amount of users that should be returned, default: 5",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched users.")
     @RequiresAuthorizationSourceHeader
@@ -95,34 +101,47 @@ class UsersDetailsController(
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
-    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
-        .map {
-            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val response = if (user.id == authentication.userId()) {
-                userDetailsService.saveUser(user.apply {
-                    name = newUserInfo.name
-                    email = newUserInfo.email
-                    company = newUserInfo.company
-                    location = newUserInfo.location
-                    gitHub = newUserInfo.gitHub
-                    linkedin = newUserInfo.linkedin
-                    twitter = newUserInfo.twitter
-                    status = newUserInfo.status
-                }, newUserInfo.oldName)
-            } else {
-                UserSaveStatus.CONFLICT
-            }
-            response
-        }
-        .filter { status ->
-            status == UserSaveStatus.UPDATE
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
-        }
+    @Suppress("MagicNumber")
+    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
+            Mono.just(newUserInfo)
+                .filter { newUserInfo.name.isValidLengthName() }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    UserSaveStatus.INVALID_NAME.message
+                }
+                .map {
+                    val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+                    val oldStatus = user.status
+                    if (user.id == authentication.userId()) {
+                        userDetailsService.saveUser(
+                            user.apply {
+                                name = newUserInfo.name
+                                email = newUserInfo.email
+                                company = newUserInfo.company
+                                location = newUserInfo.location
+                                gitHub = newUserInfo.gitHub
+                                linkedin = newUserInfo.linkedin
+                                twitter = newUserInfo.twitter
+                                status = newUserInfo.status
+                                website = newUserInfo.website
+                                realName = newUserInfo.realName
+                                freeText = newUserInfo.freeText
+                            },
+                            newUserInfo.oldName,
+                            oldStatus
+                        )
+                    } else {
+                        UserSaveStatus.HACKER
+                    }
+                }
+                .filter { status ->
+                    status == UserSaveStatus.UPDATE
+                }
+                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+                    UserSaveStatus.CONFLICT.message
+                }
+                .map { status ->
+                    ResponseEntity.ok(status.message)
+                }
 
     /**
      * @param userName
@@ -160,16 +179,36 @@ class UsersDetailsController(
      * @param userName
      * @param authentication
      */
-    @GetMapping("/delete/{userName}")
+    @GetMapping("/delete")
     @PreAuthorize("isAuthenticated()")
     fun deleteUser(
-        @PathVariable userName: String,
+        @RequestParam userName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
         .filter { status ->
             status == UserSaveStatus.DELETED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.HACKER.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/ban")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun banUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.banUser(userName)
+    }
+        .filter { status ->
+            status == UserSaveStatus.BANNED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message

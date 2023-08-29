@@ -21,10 +21,7 @@ import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
+import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
@@ -49,6 +46,7 @@ val basicRouting: FC<AppProps> = FC { props ->
     val userProfileView: VFC = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
+            currentUserInfo = props.userInfo
         }
     }
 
@@ -144,9 +142,10 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: VFC = VFC {
+    val vulnerabilityCollectionView: VFC = withRouter { _, params ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
+            filter = URLSearchParams(useLocation().search).toVulnerabilitiesFilter()
         }
     }
 
@@ -190,7 +189,7 @@ val basicRouting: FC<AppProps> = FC { props ->
                 smallText = "Page not found"
                 withRouterLink = true
             } to ERROR_404,
-
+            banView.create { userInfo = props.userInfo } to BAN,
             contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
             contestView.create() to "$CONTESTS/:contestName",
             createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
@@ -207,29 +206,40 @@ val basicRouting: FC<AppProps> = FC { props ->
             demoView.create() to "$DEMO/:organizationName/:projectName",
             cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            vulnerabilityCollectionView.create() to "$VULN/list",
+            vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
-            vulnerabilityView.create() to "$VULN/:vulnerabilityName",
+            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:vulnerabilityName",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
-            topRatingView.create() to TOP_RATING,
+            topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
 
-            props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_PROFILE",
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
 
-            props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_EMAIL",
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
 
-            props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_TOKEN",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
 
-            props.viewWithFallBack(
-                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_DELETE
+            } to SETTINGS_DELETE,
 
         ).forEach { (view, route) ->
             PathRoute {
@@ -278,6 +288,11 @@ external interface AppProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**

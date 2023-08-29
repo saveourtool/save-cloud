@@ -7,7 +7,6 @@ package com.saveourtool.save.frontend.components.basic.demo.welcome
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.v1
 
@@ -33,7 +32,7 @@ internal val featuredDemos = VFC {
         val demos: List<DemoDto> = get(
             url = "$demoApiUrl/stats/featured",
             headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         ).decodeFromJsonString()
         setFeaturedDemos(demos)

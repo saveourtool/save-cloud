@@ -6,19 +6,24 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.components.basic.renderAvatar
+import com.saveourtool.save.frontend.components.basic.avatarForm
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
+import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
 import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.v1
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
+import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
 
-import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*
@@ -32,11 +37,10 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import react.router.useNavigate
-import web.cssom.ClassName
-import web.cssom.ZIndex
-import web.cssom.rem
+import web.cssom.*
 import web.file.File
 import web.html.InputType
+import web.http.FormData
 import web.window.WindowTarget
 
 import kotlinx.browser.window
@@ -51,6 +55,10 @@ import kotlinx.serialization.json.Json
 val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
+    val avatarWindowOpen = useWindowOpenness()
+    val (selectedAvatar, setSelectedAvatar) = useState(props.userInfo?.avatar)
+    val (avatar, setAvatar) = useState<File?>(null)
+
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
     val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(name = "")) { userInfo ->
@@ -89,7 +97,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
         if (replyToLogout.ok) {
-            window.location.href = "${window.location.origin}/#"
+            window.location.href = window.location.origin
             window.location.reload()
         }
     }
@@ -101,13 +109,56 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                 avatar,
                 props.userInfo?.name!!,
                 AvatarType.USER,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
         }
     }
 
-    if (props.userInfo?.status == UserStatus.ACTIVE) {
+    if (props.userInfo?.status != UserStatus.CREATED) {
         navigate("/", jso { replace = true })
+    }
+
+    val saveAvatar = useDeferredRequest {
+        avatar?.let {
+            val response = post(
+                url = "$apiUrl/avatar/upload",
+                params = jso<dynamic> {
+                    owner = props.userInfo?.name
+                    this.type = AvatarType.USER
+                },
+                Headers().apply { append(CONTENT_LENGTH_CUSTOM, avatar.size.toString()) },
+                FormData().apply { set(FILE_PART_NAME, avatar) },
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                window.location.reload()
+            }
+        }
+    }
+
+    val setAvatarFromResources = useDeferredRequest {
+        get(
+            url = "$apiUrl/avatar/avatar-update",
+            params = jso<dynamic> {
+                this.type = AvatarType.USER
+                this.resource = selectedAvatar
+            },
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+    }
+
+    avatarForm {
+        isOpen = avatarWindowOpen.isOpen()
+        title = AVATAR_TITLE
+        onCloseWindow = {
+            saveAvatar()
+            avatarWindowOpen.closeWindow()
+        }
+        imageUpload = { file ->
+            setAvatar(file)
+        }
     }
 
     main {
@@ -134,14 +185,45 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 +"Set your user name and avatar"
                             }
 
-                            renderAvatar(props.userInfo?.avatar) { setNewAvatar(it) }
+                            div {
+                                className = ClassName("row")
+
+                                div {
+                                    className = ClassName("col-3")
+                                    div {
+                                        className = ClassName("row d-flex justify-content-center")
+                                        renderPreparedAvatars(
+                                            1..3,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("col-6")
+                                    renderAvatar(avatarWindowOpen, selectedAvatar)
+                                }
+
+                                div {
+                                    className = ClassName("col-3")
+                                    div {
+                                        className = ClassName("row d-flex justify-content-center")
+                                        renderPreparedAvatars(
+                                            4..6,
+                                            setSelectedAvatar,
+                                            setAvatarFromResources,
+                                        )
+                                    }
+                                }
+                            }
 
                             form {
                                 div {
                                     inputTextFormRequired {
-                                        form = InputTypes.USER_NAME
+                                        form = InputTypes.LOGIN
                                         textValue = userInfo.name
-                                        validInput = userInfo.name.isEmpty() || userInfo.name.isValidName()
+                                        validInput = userInfo.name.isNotEmpty() && userInfo.name.isValidName() && userInfo.name.isValidLengthName()
                                         classes = ""
                                         name = "User name"
                                         conflictMessage = conflictErrorMessage
@@ -153,7 +235,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 }
 
                                 div {
-                                    className = ClassName("mt-2 form-check")
+                                    className = ClassName("mt-2 form-check row")
                                     input {
                                         className = ClassName("form-check-input")
                                         type = "checkbox".unsafeCast<InputType>()
@@ -163,10 +245,9 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     }
                                     label {
                                         className = ClassName("form-check-label")
-                                        htmlFor = "terms-of-use"
                                         +" I agree with "
                                         Link {
-                                            to = "/terms-of-use"
+                                            to = "/${FrontendRoutes.TERMS_OF_USE}"
                                             target = "_blank".unsafeCast<WindowTarget>()
                                             +"terms of use"
                                         }
@@ -211,26 +292,56 @@ external interface RegistrationProps : PropsWithChildren {
     var userInfo: UserInfo?
 }
 
-@Suppress("MAGIC_NUMBER")
-private fun ChildrenBuilder.renderAvatar(avatar: String?, onAvatarUpload: (File) -> Unit) {
-    label {
-        className = ClassName("btn")
-        title = "Change the user's avatar"
-        input {
-            type = InputType.file
-            hidden = true
-            onChange = { event ->
-                val file = event.target.files!!.asList()
-                    .single()
-                onAvatarUpload(file)
+/**
+ * @param avatarWindowOpen
+ * @param avatar
+ */
+fun ChildrenBuilder.renderAvatar(
+    avatarWindowOpen: WindowOpenness,
+    avatar: String?,
+) {
+    div {
+        className = ClassName("animated-provider")
+        Link {
+            className = ClassName("btn px-0 pt-0")
+            title = AVATAR_TITLE
+            onClick = {
+                avatarWindowOpen.openWindow()
+            }
+            img {
+                className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
+                src = avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
+                style = jso {
+                    height = 16.rem
+                    width = 16.rem
+                }
             }
         }
-        img {
-            className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-            src = avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
-            style = jso {
-                height = 16.rem
-                width = 16.rem
+    }
+}
+
+private fun ChildrenBuilder.renderPreparedAvatars(
+    avatarsRange: IntRange,
+    setSelectedAvatar: StateSetter<String?>,
+    setAvatarFromResources: () -> Unit = { },
+) {
+    for (i in avatarsRange) {
+        val avatar = "$AVATARS_PACKS_DIR/avatar$i.png"
+        div {
+            className = ClassName("animated-provider")
+            img {
+                className =
+                        ClassName("avatar avatar-user width-full border color-bg-default rounded-circle mt-1")
+                src = avatar
+                style = jso {
+                    height = 5.1.rem
+                    width = 5.1.rem
+                    cursor = Cursor.pointer
+                }
+                onClick = {
+                    setSelectedAvatar(avatar)
+                    setAvatarFromResources()
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
+import com.saveourtool.save.validation.FrontendRoutes
 
 import react.FC
 import react.Props
@@ -39,11 +40,15 @@ val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
                 }
             }
             props.location.pathname
+                // workaround for avoiding invalid routing to /vuln/list/:param from /vuln/collection/vulnName
+                .replace("${FrontendRoutes.VULNERABILITY_SINGLE}", "${FrontendRoutes.VULNERABILITIES}")
                 .substringBeforeLast("?")
                 .split(URL_PATH_DELIMITER)
                 .filterNot { it.isBlank() }
                 .apply {
-                    val url = TopBarUrl(props.location.pathname.substringBeforeLast("?"))
+                    val url = TopBarUrl(
+                        props.location.pathname.substringBeforeLast("?")
+                    )
                     forEachIndexed { index: Int, pathPart: String ->
                         url.changeUrlBeforeButton(pathPart)
                         if (url.shouldDisplayPathFragment(index)) {
