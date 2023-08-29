@@ -26,4 +26,4 @@ external class I18n {
  *
  * @return current language as [PlatformLanguages] or [PlatformLanguages.defaultLanguage]
  */
-fun I18n.language(): PlatformLanguages = PlatformLanguages.getByCode(language) ?: PlatformLanguages.defaultLanguage
+fun I18n.language(): PlatformLanguages = PlatformLanguages.getByCodeOrDefault(language)

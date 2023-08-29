@@ -66,11 +66,8 @@ sealed class Translation {
  *
  * @param language [PlatformLanguages] enum entity corresponding to language to set
  */
-fun I18n.changeLanguage(language: PlatformLanguages) {
-    if (language != undefined) {
-        changeLanguage(language.code).also { cookie.set(PREFERRED_LANGUAGE_COOKIE, language.code) }
-    }
-}
+fun I18n.changeLanguage(language: PlatformLanguages) = changeLanguage(language.code)
+    .also { cookie.set(PREFERRED_LANGUAGE_COOKIE, language.code) }
 
 /**
  * @param namespace locale namespace

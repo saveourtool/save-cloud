@@ -33,8 +33,8 @@ enum class PlatformLanguages(val code: String, val value: String, val label: Str
 
         /**
          * @param code language code
-         * @return [PlatformLanguages] enum entity corresponding to language [code]
+         * @return [PlatformLanguages] enum entity corresponding to language [code] or [defaultLanguage]
          */
-        fun getByCode(code: String) = values().find { it.code == code }
+        fun getByCodeOrDefault(code: String) = values().find { it.code == code } ?: defaultLanguage
     }
 }

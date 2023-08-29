@@ -31,7 +31,7 @@ internal const val PREFERRED_LANGUAGE_COOKIE = "language"
  */
 val languageSelector: VFC = FC {
     val (_, i18n) = useTranslation()
-    val languageFromCookie = PlatformLanguages.getByCode(cookie.get(PREFERRED_LANGUAGE_COOKIE)) ?: PlatformLanguages.defaultLanguage
+    val languageFromCookie = PlatformLanguages.getByCodeOrDefault(cookie.get(PREFERRED_LANGUAGE_COOKIE))
     val (language, setSelectedLanguage) = useState(languageFromCookie)
 
     useEffect(language) { i18n.changeLanguage(language) }
