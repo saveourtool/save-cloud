@@ -86,6 +86,19 @@ class CosvController(
         .collectList()
         .map { ResponseEntity.ok(it) }
 
+    /**
+     * @param request
+     * @param authentication
+     * @return saved save's vulnerability name
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/propose-new")
+    fun proposeNew(
+        @RequestBody request: ProposeSaveOsvRequest,
+        authentication: Authentication,
+    ) : Mono<StringResponse> = osvService.createNew(request, authentication.userId())
+        .map { ResponseEntity.ok(it) }
+
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
