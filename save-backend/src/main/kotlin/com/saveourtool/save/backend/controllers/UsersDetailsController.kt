@@ -224,4 +224,24 @@ class UsersDetailsController(
     @GetMapping("/new-users")
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun findNewUsers(): Flux<UserInfo> = blockingToFlux { userRepository.findByStatus(UserStatus.NOT_APPROVED).map { it.toUserInfo() } }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/approve")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun approveUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.approveUser(userName)
+    }
+        .filter { status ->
+            status == UserSaveStatus.APPROVED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
 }

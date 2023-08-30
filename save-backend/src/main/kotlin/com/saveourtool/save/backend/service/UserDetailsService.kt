@@ -242,6 +242,23 @@ class UserDetailsService(
         return UserSaveStatus.BANNED
     }
 
+    /**
+     * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun approveUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+
+        userRepository.save(user.apply {
+            this.status = UserStatus.ACTIVE
+        })
+
+        return UserSaveStatus.APPROVED
+    }
+
     companion object {
         private const val UNIQUE_NAME_SEPARATOR = "_"
     }

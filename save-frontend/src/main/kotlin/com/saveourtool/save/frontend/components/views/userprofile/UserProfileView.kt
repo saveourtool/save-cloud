@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -98,11 +99,12 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
                 }
             }
 
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
                 UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
                     this.vulnerabilities = vulnerabilities
                 }
-                UserProfileTab.USERS -> renderNewUsersTableForProfileView
+                UserProfileTab.USERS -> renderNewUsersTableForProfileView {}
             }
         }
     }
@@ -167,6 +169,23 @@ fun ChildrenBuilder.renderLeftUserMenu(
         user?.name?.let {
             val response = get(
                 url = "$apiUrl/users/ban",
+                params = jso<dynamic> {
+                    userName = it
+                },
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                navigate(to = "/")
+            }
+        }
+    }
+
+    val approveUser = useDeferredRequest {
+        user?.name?.let {
+            val response = get(
+                url = "$apiUrl/users/approve",
                 params = jso<dynamic> {
                     userName = it
                 },
@@ -284,6 +303,15 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
                 buttonBuilder(label = "Ban user", isOutline = true, style = "danger btn-sm") {
                     banUserWindowOpenness.openWindow()
+                }
+            }
+            if (user?.status == UserStatus.NOT_APPROVED) {
+                div {
+                    className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
+
+                    buttonBuilder(label = "Approve user", isOutline = true, style = "success btn-sm") {
+                        approveUser()
+                    }
                 }
             }
         }
