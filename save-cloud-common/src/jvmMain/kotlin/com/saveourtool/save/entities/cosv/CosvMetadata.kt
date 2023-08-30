@@ -6,6 +6,8 @@ import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
+import javax.persistence.JoinColumn
+import javax.persistence.ManyToOne
 
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -22,6 +24,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property organization [Organization] to which COSV was uploaded
  **/
 @Entity
+@Suppress("LongParameterList")
 class CosvMetadata(
     var cosvId: String,
     var summary: String,
@@ -30,7 +33,11 @@ class CosvMetadata(
     var severityNum: Int,
     var modified: LocalDateTime,
     var published: LocalDateTime,
+    @ManyToOne
+    @JoinColumn(name = "user_id")
     var user: User,
+    @ManyToOne
+    @JoinColumn(name = "organization_id")
     var organization: Organization,
 ) : BaseEntityWithDto<CosvMetadataDto>() {
     override fun toDto(): CosvMetadataDto = CosvMetadataDto(

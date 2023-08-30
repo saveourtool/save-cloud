@@ -44,6 +44,7 @@ class CosvController(
      * @param sourceId
      * @param content
      * @param authentication
+     * @param organizationName
      * @return list of save's vulnerability names
      */
     @RequiresAuthorizationSourceHeader
@@ -63,6 +64,7 @@ class CosvController(
      * @param sourceId
      * @param filePartFlux
      * @param authentication
+     * @param organizationName
      * @return list of save's vulnerability names
      */
     @RequiresAuthorizationSourceHeader
