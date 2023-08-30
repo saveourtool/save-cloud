@@ -1,6 +1,8 @@
 package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.cosv.repository.CosvSchema
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 
 import reactor.core.publisher.Mono
@@ -13,7 +15,7 @@ typealias AnyCosvSchema = CosvSchema<out Any, out Any, out Any, out Any>
 /**
  * Processor of COSV entry which saves provided entry in save database.
  */
-interface CosvProcessor : Function1<JsonObject, Mono<VulnerabilityDto>> {
+interface CosvProcessor {
     /**
      * Identifier of [CosvProcessor] which provided by user
      */
@@ -21,7 +23,13 @@ interface CosvProcessor : Function1<JsonObject, Mono<VulnerabilityDto>> {
 
     /**
      * @param jsonObject should contain a single object only
+     * @param user who uploads
+     * @param organization to which is uploaded
      * @return [VulnerabilityDto]
      */
-    override fun invoke(jsonObject: JsonObject): Mono<VulnerabilityDto>
+    fun process(
+        jsonObject: JsonObject,
+        user: User,
+        organization: Organization,
+    ): Mono<VulnerabilityDto>
 }

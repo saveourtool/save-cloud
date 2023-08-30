@@ -2,9 +2,13 @@ package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.spring.entity.BaseEntityWithDateAndDto
-import kotlinx.datetime.toKotlinLocalDateTime
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
+
+import java.time.LocalDateTime
 import javax.persistence.Entity
+
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property cosvId [com.saveourtool.osv4k.OsvSchema.id]
@@ -12,6 +16,8 @@ import javax.persistence.Entity
  * @property details [com.saveourtool.osv4k.OsvSchema.details]
  * @property severity [com.saveourtool.osv4k.Severity.score]
  * @property severityNum [com.saveourtool.osv4k.Severity.scoreNum]
+ * @property modified [com.saveourtool.osv4k.OsvSchema.modified]
+ * @property published [com.saveourtool.osv4k.OsvSchema.published]
  * @property user [User] who uploaded COSV to save
  * @property organization [Organization] to which COSV was uploaded
  **/
@@ -22,21 +28,21 @@ class CosvMetadata(
     var details: String,
     var severity: String?,
     var severityNum: Int,
+    var modified: LocalDateTime,
+    var published: LocalDateTime,
     var user: User,
     var organization: Organization,
-) : BaseEntityWithDateAndDto<CosvMetadataDto>() {
+) : BaseEntityWithDto<CosvMetadataDto>() {
     override fun toDto(): CosvMetadataDto = CosvMetadataDto(
         cosvId = cosvId,
         summary = summary,
         details = details,
         severity = severity,
         severityNum = severityNum,
+        modified = modified.toKotlinLocalDateTime(),
+        published = published.toKotlinLocalDateTime(),
         userId = user.requiredId(),
         organizationId = organization.requiredId(),
-        updateDate = updateDate?.toKotlinLocalDateTime()
-            ?: throw IllegalStateException("updateDate is not set on ${CosvMetadata::class.simpleName}"),
-        createDate = createDate?.toKotlinLocalDateTime()
-            ?: throw IllegalStateException("createDate is not set on ${CosvMetadata::class.simpleName}"),
     )
 
     companion object {
@@ -55,6 +61,8 @@ class CosvMetadata(
             details = details,
             severity = severity,
             severityNum = severityNum,
+            modified = modified.toJavaLocalDateTime(),
+            published = published.toJavaLocalDateTime(),
             user = userResolver(userId),
             organization = organizationResolver(organizationId),
         )
