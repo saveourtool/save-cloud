@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.components.views.contests.tab
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -86,15 +87,24 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         // ===================== RIGHT COLUMN =======================================================================
         div {
             className = ClassName("col-6 mb-4 mt-2")
-            tab(selectedMenu.name, UserProfileTab.values().map { it.name }, "nav nav-tabs mt-3") { value ->
-                setSelectedMenu { UserProfileTab.valueOf(value) }
+            props.currentUserInfo?.globalRole?.let { role ->
+                val tabList = if (role.isSuperAdmin()) {
+                    UserProfileTab.values().map { it.name }
+                } else {
+                    UserProfileTab.values().filter { it != UserProfileTab.USERS }
+                        .map { it.name }
+                }
+                tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
+                    setSelectedMenu { UserProfileTab.valueOf(value) }
+                }
             }
 
+            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
                 UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
-                    this.userName = userName
                     this.vulnerabilities = vulnerabilities
                 }
+                UserProfileTab.USERS -> renderNewUsersTableForProfileView {}
             }
         }
     }
@@ -125,6 +135,7 @@ external interface UserProfileViewProps : Props {
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class UserProfileTab {
     VULNERABILITIES,
+    USERS,
     ;
 
     companion object : TabMenuBar<UserProfileTab> {
@@ -158,6 +169,23 @@ fun ChildrenBuilder.renderLeftUserMenu(
         user?.name?.let {
             val response = get(
                 url = "$apiUrl/users/ban",
+                params = jso<dynamic> {
+                    userName = it
+                },
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+            if (response.ok) {
+                navigate(to = "/")
+            }
+        }
+    }
+
+    val approveUser = useDeferredRequest {
+        user?.name?.let {
+            val response = get(
+                url = "$apiUrl/users/approve",
                 params = jso<dynamic> {
                     userName = it
                 },
@@ -275,6 +303,15 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
                 buttonBuilder(label = "Ban user", isOutline = true, style = "danger btn-sm") {
                     banUserWindowOpenness.openWindow()
+                }
+            }
+            if (user?.status == UserStatus.NOT_APPROVED) {
+                div {
+                    className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
+
+                    buttonBuilder(label = "Approve user", isOutline = true, style = "success btn-sm") {
+                        approveUser()
+                    }
                 }
             }
         }

@@ -64,7 +64,7 @@ class User(
     fun toUserInfo(projects: Map<String, Role> = emptyMap(), organizations: Map<String, Role> = emptyMap()) = UserInfo(
         id = id,
         name = name,
-        originalLogins = originalLogins.map { it.name },
+        originalLogins = originalLogins.associate { it.source to it.name },
         projects = projects,
         organizations = organizations,
         email = email,

@@ -79,11 +79,6 @@ val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProp
  */
 external interface UserProfileVulnerabilitiesTabProps : Props {
     /**
-     * User name
-     */
-    var userName: String
-
-    /**
      * Just a list of vulnerabilities
      */
     var vulnerabilities: Array<VulnerabilityDto>

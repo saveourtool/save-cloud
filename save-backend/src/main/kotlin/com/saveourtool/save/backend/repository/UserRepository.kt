@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -16,6 +17,12 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
      * @return user or null if no results have been found
      */
     fun findByName(username: String): User?
+
+    /**
+     * @param status
+     * @return users with status
+     */
+    fun findByStatus(status: UserStatus): List<User>
 
     /**
      * @param username
