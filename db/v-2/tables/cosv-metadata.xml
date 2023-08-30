@@ -25,6 +25,12 @@
             <column name="severity_num" type="bigint">
                 <constraints nullable="false"/>
             </column>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_cosv_metadata_user" references="user(id)" nullable="false"/>
+            </column>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_cosv_metadata_organization" references="organization(id)" nullable="false"/>
+            </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="true"/>
             </column>

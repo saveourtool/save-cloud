@@ -8,4 +8,10 @@ import org.springframework.stereotype.Repository
  * JPA repository for [CosvMetadata]
  */
 @Repository
-interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata>
+interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata> {
+    /**
+     * @param cosvId [CosvMetadata.cosvId]
+     * @return found [CosvMetadata] or null
+     */
+    fun findByCosvId(cosvId: String): CosvMetadata?
+}

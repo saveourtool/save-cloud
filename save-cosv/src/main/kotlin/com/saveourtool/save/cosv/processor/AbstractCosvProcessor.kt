@@ -1,11 +1,11 @@
 package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.cosv.repository.CosvRepository
+import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.CosvSchemaKSerializer
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
-import com.saveourtool.osv4k.OsvSchema as CosvSchema
 import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
 import reactor.core.publisher.Mono
