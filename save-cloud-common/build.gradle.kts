@@ -71,7 +71,7 @@ kotlin {
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
-                api(libs.spring.data.jpa)
+                implementation(libs.spring.data.jpa)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)

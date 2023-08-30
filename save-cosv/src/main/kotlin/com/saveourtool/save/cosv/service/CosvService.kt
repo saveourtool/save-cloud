@@ -2,7 +2,6 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
-import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.vulnerability.*
@@ -27,7 +26,6 @@ import kotlinx.serialization.serializer
 @Service
 class CosvService(
     private val cosvRepository: CosvRepository,
-    private val cosvMetadataRepository: CosvMetadataRepository,
     private val vulnerabilityService: IVulnerabilityService,
     private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
