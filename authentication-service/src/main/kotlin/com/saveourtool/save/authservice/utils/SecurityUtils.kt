@@ -12,19 +12,19 @@ import org.springframework.security.core.Authentication
 
 /**
  * Extract userId from this [Authentication]
- * We assume that the authentication uses [AuthenticationUserDetails] as principal
+ * We assume that the authentication uses [SaveUserDetails] as principal
  *
  * @return userId
  */
-fun Authentication.userId() = (principal as AuthenticationUserDetails).id
+fun Authentication.userId() = (principal as SaveUserDetails).id
 
 /**
  * Extract username from this [Authentication].
- * We assume that the authentication uses [AuthenticationUserDetails] as principal
+ * We assume that the authentication uses [SaveUserDetails] as principal
  *
  * @return username
  */
-fun Authentication.username(): String = (principal as AuthenticationUserDetails).name
+fun Authentication.username(): String = (principal as SaveUserDetails).name
 
 /**
  * Set role hierarchy for spring security

@@ -1,6 +1,6 @@
 package com.saveourtool.save.gateway.utils
 
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.cloud.gateway.filter.GatewayFilter
@@ -43,9 +43,9 @@ class AuthorizationHeadersGatewayFilterFactory(
             .flatMap { chain.filter(it) }
     }
 
-    private fun resolveSaveUser(principal: Principal): Mono<AuthenticationUserDetails> = when (principal) {
+    private fun resolveSaveUser(principal: Principal): Mono<SaveUserDetails> = when (principal) {
         is OAuth2AuthenticationToken -> backendService.findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
-        is UsernamePasswordAuthenticationToken -> (principal.principal as? AuthenticationUserDetails)
+        is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                 "Unexpected principal type ${principal.principal.javaClass} in ${UsernamePasswordAuthenticationToken::class}"

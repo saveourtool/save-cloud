@@ -5,6 +5,7 @@ import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.http.HttpHeaders
+import org.springframework.security.core.CredentialsContainer
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.UserDetails
@@ -14,18 +15,26 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
  * @property id [com.saveourtool.save.entities.User.id]
  * @property name [com.saveourtool.save.entities.User.name]
  * @property role [com.saveourtool.save.entities.User.role]
+ * @property token [com.saveourtool.save.entities.User.password]
  */
-data class AuthenticationUserDetails(
+class SaveUserDetails(
     val id: Long,
     val name: String,
     val role: String,
-) : UserDetails {
-    constructor(user: User) : this(user.requiredId(), user.name, user.role.orEmpty())
+    var token: String?,
+) : UserDetails, CredentialsContainer {
+    constructor(user: User) : this(
+        user.requiredId(),
+        user.name,
+        user.role.orEmpty(),
+        user.password,
+    )
 
     /**
      * @return [PreAuthenticatedAuthenticationToken]
      */
-    fun toAuthenticationToken() = PreAuthenticatedAuthenticationToken(this, NO_CREDENTIALS, authorities)
+    fun toPreAuthenticatedAuthenticationToken() =
+            PreAuthenticatedAuthenticationToken(this, null, AuthorityUtils.commaSeparatedStringToAuthorityList(role))
 
     /**
      * Populates `X-Authorization-*` headers
@@ -42,36 +51,40 @@ data class AuthenticationUserDetails(
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(role)
 
     @JsonIgnore
-    override fun getPassword(): String = NO_CREDENTIALS
+    override fun getPassword(): String? = token
 
     @JsonIgnore
     override fun getUsername(): String = name
 
     @JsonIgnore
-    override fun isAccountNonExpired(): Boolean = false
+    override fun isAccountNonExpired(): Boolean = true
 
     @JsonIgnore
-    override fun isAccountNonLocked(): Boolean = false
+    override fun isAccountNonLocked(): Boolean = true
 
     @JsonIgnore
-    override fun isCredentialsNonExpired(): Boolean = false
+    override fun isCredentialsNonExpired(): Boolean = true
 
     @JsonIgnore
     override fun isEnabled(): Boolean = true
 
+    override fun eraseCredentials() {
+        token = null
+    }
+
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        private val log = getLogger<AuthenticationUserDetails>()
-        private const val NO_CREDENTIALS = "N/A"
+        private val log = getLogger<SaveUserDetails>()
 
         /**
-         * @return [AuthenticationUserDetails] created from values in headers
+         * @return [SaveUserDetails] created from values in headers
          */
-        fun HttpHeaders.toAuthenticationUserDetails(): AuthenticationUserDetails? {
-            return AuthenticationUserDetails(
+        fun HttpHeaders.toSaveUserDetails(): SaveUserDetails? {
+            return SaveUserDetails(
                 id = getSingleHeader(AUTHORIZATION_ID)?.toLong() ?: return logWarnAndReturnEmpty(AUTHORIZATION_ID),
                 name = getSingleHeader(AUTHORIZATION_NAME) ?: return logWarnAndReturnEmpty(AUTHORIZATION_NAME),
                 role = getSingleHeader(AUTHORIZATION_ROLES) ?: return logWarnAndReturnEmpty(AUTHORIZATION_ROLES),
+                token = null,
             )
         }
 
