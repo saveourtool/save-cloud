@@ -12,6 +12,8 @@ data:
     server.shutdown=graceful
     management.endpoints.web.exposure.include=*
     management.server.port={{ .Values.gateway.managementPort }}
+    logging.level.org.springframework=DEBUG
+    logging.level.com.saveourtool=DEBUG
     {{ if .Values.gateway.applicationProperties }}
     {{- .Values.gateway.applicationProperties | nindent 4 }}
     {{ end }}
