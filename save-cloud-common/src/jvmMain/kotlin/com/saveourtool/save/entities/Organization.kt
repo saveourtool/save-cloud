@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property description
  * @property canCreateContests
- * @property canBulkUpload
+ * @property canBulkUpload ability to bulk upload cosv files
  * @property rating
  */
 @Entity
