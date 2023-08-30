@@ -35,7 +35,7 @@ class UserDetailsService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val avatarStorage: AvatarStorage,
-) {
+) : IUserService {
     /**
      * @param username
      * @return spring's UserDetails retrieved from save's user found by provided values
@@ -43,6 +43,8 @@ class UserDetailsService(
     fun findByName(username: String) = blockingToMono {
         userRepository.findByName(username)
     }
+
+    override fun getByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
 
     /**
      * @param username

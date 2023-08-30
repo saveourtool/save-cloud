@@ -4,7 +4,6 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -51,9 +50,10 @@ class CosvController(
     @PostMapping("/upload")
     fun upload(
         @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
+        @RequestParam organizationName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<StringListResponse> = cosvService.decodeAndSave(sourceId, content, authentication)
+    ): Mono<StringListResponse> = cosvService.decodeAndSave(sourceId, content, authentication, organizationName)
         .collectList()
         .map {
             ResponseEntity.ok(it)
@@ -69,6 +69,7 @@ class CosvController(
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
         @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
+        @RequestParam organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
     ): Mono<StringListResponse> = filePartFlux
@@ -81,7 +82,7 @@ class CosvController(
                 .collectToInputStream()
         }
         .let { inputStreams ->
-            cosvService.decodeAndSave(sourceId, inputStreams, authentication)
+            cosvService.decodeAndSave(sourceId, inputStreams, authentication, organizationName)
         }
         .collectList()
         .map { ResponseEntity.ok(it) }
