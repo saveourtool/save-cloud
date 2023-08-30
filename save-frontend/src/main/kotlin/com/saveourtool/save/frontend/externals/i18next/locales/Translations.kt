@@ -84,3 +84,27 @@ const val TOPBAR_EN = """
     "Vulnerabilities list": "Vulnerabilities list"
 }
 """
+
+const val COOKIES_EN = """
+{
+    "What are cookies": "### What are cookies\n\nThis Cookie Policy explains what cookies are, how we use them, the types of cookies we use (i.e., the information we collect using cookies and how we use that information), and how to manage the cookie settings.\n\nCookies are small text files used to store small pieces of information. They are stored on your device when the website is loaded in your browser. These cookies help us ensure the proper functioning of the website, enhance its security, provide a better user experience, understand how the website performs, analyze what works, and identify areas for improvement.",
+    "How do we use cookies": "### How do we use cookies\n\nLike most online services, our website utilizes first-party cookies for various purposes. These cookies are primarily essential for the proper functioning of the website and do not collect any of your personally identifiable data.",
+    "What exactly do we store": "### What exactly do we store\n\n* We store information on your **preferred language**, which expires in **1 year**. This data is required your convenience, it is not passed anywhere.\n\n* If you once accepted cookies on our website, we save that in our cookies (expires in **1 year**).",
+    "We value your privacy": "### **We value your privacy**\n\nWe use cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. By clicking \"Accept\", you consent to our use of cookies.",
+    "Accept": "Accept",
+    "Decline": "Decline",
+    "Read more": "Read more"
+}
+"""
+
+const val COOKIES_RU = """
+{
+    "What are cookies": "### Что такое Cookie\n\nЭта Политика использования файлов cookie объясняет, что такое файлы cookie и как мы их используем, информацию, которую мы собираем с помощью файлов cookie, и как эта информация используется.\n\nФайлы cookie - это небольшие текстовые файлы, использующиеся для хранения небольших фрагментов информации. Они сохраняются на Вашем устройстве, когда веб-сайт загружается в браузере. Эти файлы cookie помогают правильно функционировать веб-сайту, обеспечивать его безопасность, повышать качество сервиса.",
+    "How do we use cookies": "### Как мы используем Cookie\n\nКак и большинство онлайн-сервисов, наш веб-сайт использует файлы cookie для правильного функционирования веб-сайта, они собирают никакие персональные данные, идентифицирующие Вас.",
+    "What exactly do we store": "### Что конкретно мы храним\n\n* Мы храним **предпочитаемый язык**, cookie-файлы с которым устаревают через **1 год**. Эта информация необходима исключительно для Вашего удобства, она никуда не передается.\n\n* Если вы согласились с данной Политикой использования файлов cookie, мы сохраним это в cookie-файле (устаревает через **1 год**).",
+    "We value your privacy": "### **Мы уважаем Вашу конфиденциальность**\n\nМы используем cookie-файлы для Вашего комфорта. Нажимая на кнопку \"Принять\", вы соглашаетесь с нашей Политикой использования cookie-файлов.",
+    "Accept": "Принять",
+    "Decline": "Отклонить",
+    "Read more": "Узнать больше"
+}
+"""

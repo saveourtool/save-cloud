@@ -13,8 +13,10 @@ import com.saveourtool.save.info.UserStatus
 import js.core.jso
 import react.FC
 import react.PropsWithChildren
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.strong
 import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.rem
@@ -24,7 +26,7 @@ private const val BAN = """
 """
 
 private const val SUPPORT = """
-    You have been banned from our platform. If you believe this was a mistake, please contact our support team at saveourtool@gmail.com.
+    You have been banned from our platform. If you believe this was a mistake, please contact our support team at
 """
 
 val banView: FC<BanProps> = FC { props ->
@@ -50,6 +52,13 @@ val banView: FC<BanProps> = FC { props ->
         p {
             className = ClassName("lead text-gray-800 mb-3")
             +SUPPORT
+            a {
+                href = "mailto:saveourtool@gmail.com"
+                strong {
+                    className = ClassName("d-inline-block mb-2")
+                    +" saveourtool@gmail.com."
+                }
+            }
         }
     }
 }

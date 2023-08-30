@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend
 import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
+import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n
@@ -35,7 +36,7 @@ import kotlinx.serialization.json.Json
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-@Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE")
+@Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE", "EMPTY_BLOCK_STRUCTURE_ERROR")
 val App: VFC = FC {
     useOnce { initI18n() }
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
@@ -100,7 +101,9 @@ val App: VFC = FC {
                             this.userInfoSetter = setUserInfo
                         }
                     }
-                    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                        cookieBanner { }
+                    }
                     footer { }
                 }
             }

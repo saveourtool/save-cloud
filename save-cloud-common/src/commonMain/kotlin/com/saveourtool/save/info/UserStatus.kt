@@ -21,6 +21,11 @@ enum class UserStatus {
     ACTIVE,
 
     /**
+     * User not-approved
+     */
+    NOT_APPROVED,
+
+    /**
      * User deleted
      */
     DELETED,

@@ -1,8 +1,9 @@
 package com.saveourtool.save.frontend.externals.i18next
 
 import com.saveourtool.save.frontend.PlatformLanguages
-import com.saveourtool.save.frontend.components.basic.PREFERRED_LANGUAGE_COOKIE
 import com.saveourtool.save.frontend.externals.cookie.cookie
+import com.saveourtool.save.frontend.externals.cookie.isAccepted
+import com.saveourtool.save.frontend.externals.cookie.saveLanguageCode
 
 /**
  * Class that represents the return value of `useTranslation` hook
@@ -66,8 +67,11 @@ sealed class Translation {
  *
  * @param language [PlatformLanguages] enum entity corresponding to language to set
  */
-fun I18n.changeLanguage(language: PlatformLanguages) = changeLanguage(language.code)
-    .also { cookie.set(PREFERRED_LANGUAGE_COOKIE, language.code) }
+fun I18n.changeLanguage(language: PlatformLanguages) = changeLanguage(language.code).also {
+    if (cookie.isAccepted()) {
+        cookie.saveLanguageCode(language.code)
+    }
+}
 
 /**
  * @param namespace locale namespace

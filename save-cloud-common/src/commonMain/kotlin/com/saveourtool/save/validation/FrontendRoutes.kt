@@ -21,6 +21,7 @@ enum class FrontendRoutes(val path: String) {
     CONTESTS("contests"),
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
     CONTESTS_TEMPLATE("contest-template"),
+    COOKIE("cookie"),
     CREATE_CONTESTS_TEMPLATE("create-contest-template"),
     CREATE_ORGANIZATION("create-organization"),
     CREATE_PROJECT("create-project"),

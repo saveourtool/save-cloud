@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controllers.internal
 
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.Role
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 
-typealias AuthenticationUserDetailsResponse = ResponseEntity<AuthenticationUserDetails>
+typealias SaveUserDetailsResponse = ResponseEntity<SaveUserDetails>
 
 /**
  * Controller that handles operation with users
@@ -61,8 +61,8 @@ class UsersController(
     @GetMapping("/find-by-name/{userName}")
     fun findByName(
         @PathVariable userName: String,
-    ): Mono<AuthenticationUserDetailsResponse> = userService.findByName(userName).map {
-        ResponseEntity.ok().body(AuthenticationUserDetails(it))
+    ): Mono<SaveUserDetailsResponse> = userService.findByName(userName).map {
+        ResponseEntity.ok().body(SaveUserDetails(it))
     }
 
     /**
@@ -76,8 +76,8 @@ class UsersController(
     fun findByOriginalLogin(
         @PathVariable source: String,
         @PathVariable nameInSource: String,
-    ): Mono<AuthenticationUserDetailsResponse> = userService.findByOriginalLogin(nameInSource, source).map {
-        ResponseEntity.ok().body(AuthenticationUserDetails(it))
+    ): Mono<SaveUserDetailsResponse> = userService.findByOriginalLogin(nameInSource, source).map {
+        ResponseEntity.ok().body(SaveUserDetails(it))
     }
 
     companion object {
