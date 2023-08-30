@@ -83,6 +83,16 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
     }
     div {
         className = ClassName("col-8 mx-auto mt-1 mb-3")
+
+        div {
+            className = ClassName("d-flex justify-content-center mb-3")
+
+            withNavigate { navigateContext ->
+                buttonBuilder("Upload a new COSV files", style = "primary", isOutline = true) {
+                    navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
+                }
+            }
+        }
         if (vulnerabilities.isNotEmpty()) {
             vulnerabilityTable {
                 getData = { _, _ ->

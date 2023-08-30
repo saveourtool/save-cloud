@@ -42,6 +42,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_PROFILE("$SETTINGS/profile"),
     SETTINGS_TOKEN("$SETTINGS/token"),
     TERMS_OF_USE("terms-of-use"),
+    UPLOAD_VULNERABILITY("vuln/upload-vulnerability"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
     VULNERABILITY_SINGLE("$VULN/collection"),
