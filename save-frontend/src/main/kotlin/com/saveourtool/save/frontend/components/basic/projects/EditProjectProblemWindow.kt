@@ -72,9 +72,9 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name-and-status",
+            url = "$apiUrl/vulnerabilities/by-identifier-and-status",
             params = jso<dynamic> {
-                name = projectProblem.vulnerabilityName
+                identifier = projectProblem.identifier
                 status = VulnerabilityStatus.APPROVED
             },
             headers = jsonHeaders,
@@ -82,7 +82,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             responseHandler = ::noopResponseHandler,
         )
         if (!response.ok) {
-            setConflictErrorMessage("No vulnerability found with ${projectProblem.vulnerabilityName} CVE identifier")
+            setConflictErrorMessage("No vulnerability found with ${projectProblem.identifier} CVE identifier")
         } else {
             setConflictErrorMessage(null)
             enrollRequest()
@@ -165,13 +165,13 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
 
         inputTextFormOptional {
             form = InputTypes.CVE_NAME
-            textValue = projectProblem.vulnerabilityName
+            textValue = projectProblem.identifier
             validInput = conflictErrorMessage.isNullOrEmpty()
             classes = "col-12 pl-2 pr-2 mt-3 text-left"
             name = "CVE identifier"
             onChangeFun = { event ->
                 setConflictErrorMessage(null)
-                setProjectProblem { problem -> problem.copy(vulnerabilityName = event.target.value) }
+                setProjectProblem { problem -> problem.copy(identifier = event.target.value) }
             }
         }
 
@@ -179,7 +179,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
 
             buttonBuilder(label = "Save", classes = "mr-2") {
-                if (projectProblem.vulnerabilityName.isNullOrEmpty()) {
+                if (projectProblem.identifier.isNullOrEmpty()) {
                     enrollRequest()
                 } else {
                     enrollCheckVulnerabilityRequest()

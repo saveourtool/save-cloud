@@ -18,7 +18,7 @@ fun URLSearchParams.toVulnerabilitiesFilter(): VulnerabilityFilter {
     val status = VulnerabilityStatus.values().find { it.name == this.get("status")?.uppercase() } ?: VulnerabilityStatus.APPROVED
 
     return VulnerabilityFilter(
-        prefixName = prefix,
+        identifierPrefix = prefix,
         status = status,
         tags = tags
     )

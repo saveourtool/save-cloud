@@ -48,12 +48,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filter.prefixName
+                        value = filter.identifierPrefix
                         placeholder = "${"Name".t()}..."
                         required = false
                         onChange = { event ->
                             setFilter { oldFilter ->
-                                oldFilter.copy(prefixName = event.target.value)
+                                oldFilter.copy(identifierPrefix = event.target.value)
                             }
                         }
                     }
