@@ -8,6 +8,7 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
+import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
@@ -141,10 +142,8 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                             navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
                         }
                     }
-                    withNavigate { navigateContext ->
-                        buttonBuilder(faFile, style = "primary", isOutline = true) {
-                            navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
-                        }
+                    uploadCosvButton {
+                        isImage = true
                     }
                 }
             }

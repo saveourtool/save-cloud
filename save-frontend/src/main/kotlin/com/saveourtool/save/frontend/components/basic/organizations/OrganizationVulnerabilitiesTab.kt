@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
@@ -87,10 +88,8 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
         div {
             className = ClassName("d-flex justify-content-center mb-3")
 
-            withNavigate { navigateContext ->
-                buttonBuilder("Upload a new COSV files", style = "primary", isOutline = true) {
-                    navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
-                }
+            uploadCosvButton {
+                isImage = false
             }
         }
         if (vulnerabilities.isNotEmpty()) {

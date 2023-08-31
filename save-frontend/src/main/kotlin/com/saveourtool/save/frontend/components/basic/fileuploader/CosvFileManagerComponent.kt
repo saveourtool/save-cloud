@@ -4,23 +4,19 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faDownload
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.FILE_PART_NAME
 import js.core.asList
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.useState
 import web.cssom.ClassName
 import web.file.File
-import web.html.ButtonType
 import web.http.FormData
 
 val cosvFileManagerComponent: FC<Props> = FC { props ->
@@ -35,7 +31,8 @@ val cosvFileManagerComponent: FC<Props> = FC { props ->
             url = "$apiUrl/cosv/batch-upload",
             Headers(),
             FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler
         ).decodeFromJsonString()
         setCosvAvailableFiles { uploadedIds }
     }
@@ -47,11 +44,7 @@ val cosvFileManagerComponent: FC<Props> = FC { props ->
                 li {
                     className = ClassName("list-group-item")
                     a {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn")
-                            fontAwesomeIcon(icon = faDownload)
-                        }
+                        buttonBuilder(faDownload, "", isOutline = true) { }
                         download = file
                         href = "$apiUrl/cosv/get-by-id/$file"
                     }
