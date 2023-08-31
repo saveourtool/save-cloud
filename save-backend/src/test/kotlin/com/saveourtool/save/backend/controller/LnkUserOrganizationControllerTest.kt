@@ -34,6 +34,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
     MockBean(IVulnerabilityService::class),
+    MockBean(IUserService::class),
 )
 @AutoConfigureWebTestClient
 class LnkUserOrganizationControllerTest {

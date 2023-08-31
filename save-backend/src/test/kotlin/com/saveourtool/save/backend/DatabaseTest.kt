@@ -5,6 +5,8 @@ import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
+import com.saveourtool.save.backend.service.IOrganizationService
+import com.saveourtool.save.backend.service.IUserService
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.domain.TestResultStatus
@@ -24,6 +26,8 @@ import org.springframework.context.annotation.Import
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(IVulnerabilityService::class),
+    MockBean(IUserService::class),
+    MockBean(IOrganizationService::class),
 )
 class DatabaseTest {
     @Autowired
