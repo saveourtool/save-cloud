@@ -7,6 +7,7 @@ import com.saveourtool.save.backend.service.IOrganizationService
 import com.saveourtool.save.backend.service.IUserService
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.backend.utils.InfraExtension
+import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.Import
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(IVulnerabilityService::class),
+    MockBean(CosvMetadataRepository::class),
     MockBean(IUserService::class),
     MockBean(IOrganizationService::class),
 )
