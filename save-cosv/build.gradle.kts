@@ -9,4 +9,5 @@ dependencies {
     api(projects.saveCloudCommon)
     api(libs.cosv4k)
     implementation(libs.spring.security.core)
+    implementation(libs.spring.data.jpa)
 }
