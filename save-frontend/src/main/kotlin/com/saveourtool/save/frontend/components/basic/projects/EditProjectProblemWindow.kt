@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ProjectProblemCritical
 import com.saveourtool.save.entities.ProjectProblemDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
@@ -31,29 +30,7 @@ import kotlinx.serialization.json.Json
 /**
  * Component that allows to edit project problem
  */
-val editProjectProblemWindow = editProjectProblemWindow()
-
-/**
- * EditProjectProblemWindow component props
- */
-external interface EditProjectProblemWindowProps : Props {
-    /**
-     * Window openness
-     */
-    var windowOpenness: WindowOpenness
-
-    /**
-     * Project problem
-     */
-    var problem: ProjectProblemDto
-}
-
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-)
-private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { props ->
-
+val editProjectProblemWindow: FC<EditProjectProblemWindowProps> = FC { props ->
     val (projectProblem, setProjectProblem) = useStateFromProps(props.problem)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
@@ -72,10 +49,9 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-identifier-and-status",
+            url = "$apiUrl/vulnerabilities/by-identifier",
             params = jso<dynamic> {
                 identifier = projectProblem.identifier
-                status = VulnerabilityStatus.APPROVED
             },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
@@ -198,4 +174,19 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             }
         }
     }
+}
+
+/**
+ * EditProjectProblemWindow component props
+ */
+external interface EditProjectProblemWindowProps : Props {
+    /**
+     * Window openness
+     */
+    var windowOpenness: WindowOpenness
+
+    /**
+     * Project problem
+     */
+    var problem: ProjectProblemDto
 }
