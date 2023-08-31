@@ -1,28 +1,24 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.save.backend.service.IOrganizationService
-import com.saveourtool.save.backend.service.IUserService
-import com.saveourtool.save.backend.service.IVulnerabilityService
+import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
-
-import com.saveourtool.osv4k.RawOsvSchema
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
-
 import java.io.InputStream
-
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.*
-import kotlinx.serialization.serializer
 
 /**
  * Service for vulnerabilities
@@ -30,9 +26,7 @@ import kotlinx.serialization.serializer
 @Service
 class CosvService(
     private val cosvRepository: CosvRepository,
-    private val vulnerabilityService: IVulnerabilityService,
-    private val userService: IUserService,
-    private val organizationService: IOrganizationService,
+    private val backendService: IBackendService,
     private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
     private val json = Json {
@@ -55,8 +49,8 @@ class CosvService(
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
-        val user = userService.getByName(authentication.name)
-        val organization = organizationService.getByName(organizationName)
+        val user = backendService.getUserByName(authentication.name)
+        val organization = backendService.getOrganizationByName(organizationName)
         return inputStreams.flatMap { inputStream ->
             decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
         }.save(user)
@@ -77,8 +71,8 @@ class CosvService(
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
-        val user = userService.getByName(authentication.name)
-        val organization = organizationService.getByName(organizationName)
+        val user = backendService.getUserByName(authentication.name)
+        val organization = backendService.getOrganizationByName(organizationName)
         return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
     }
 
@@ -96,7 +90,7 @@ class CosvService(
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
-    ): Flux<VulnerabilityMetadata> = jsonElement.toMono()
+    ): Flux<VulnerabilityDto> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
         .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
 
@@ -107,24 +101,24 @@ class CosvService(
      * @param user who uploads
      * @return save's vulnerability names
      */
-    private fun Flux<VulnerabilityMetadata>.save(
+    private fun Flux<VulnerabilityDto>.save(
         user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
-            vulnerabilities.map { vulnerabilityService.save(it, user).name }
+            vulnerabilities.map { backendService.saveVulnerability(it, user).name }
         }
         .flatMapIterable { it }
 
     /**
-     * Finds OSV with validating save database
+     * Finds COSV with validating save database
      *
-     * @param id [VulnerabilityMetadata.name]
-     * @return found OSV
+     * @param id [VulnerabilityDto.name]
+     * @return found COSV
      */
     fun findById(
         id: String,
     ): Mono<RawOsvSchema> = blockingToMono {
-        vulnerabilityService.findByName(id)
+        backendService.findVulnerabilityByName(id)
     }
         .switchIfEmptyToNotFound {
             "Not found vulnerability $id in save database"
@@ -132,4 +126,14 @@ class CosvService(
         .flatMap { vulnerability ->
             cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
         }
+
+    /**
+     * Finds extended COSV
+     *
+     * @param id [RawOsvSchema.id]
+     * @return found [RawCosvExt]
+     */
+    fun findExtById(
+        id: String,
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(id)
 }

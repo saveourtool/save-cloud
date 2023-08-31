@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 
 import com.saveourtool.osv4k.OsvSchema
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.KSerializer
@@ -45,4 +46,13 @@ interface CosvRepository {
         id: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
     ): CosvSchemaMono<D, A_E, A_D, A_R_D>
+
+    /**
+     * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
+     * @param id
+     * @return [Mono] with [RawCosvExt]
+     */
+    fun findLatestRawExt(
+        id: String,
+    ): Mono<RawCosvExt>
 }

@@ -43,9 +43,8 @@ import reactor.util.function.Tuples
     MockBean(LnkUserOrganizationService::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
-    MockBean(IVulnerabilityService::class),
+    MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
-    MockBean(IUserService::class),
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {

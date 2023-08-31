@@ -10,6 +10,7 @@ import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
+import com.saveourtool.save.utils.getTimeline
 import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
@@ -52,33 +53,9 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
         language = VulnerabilityLanguage.OTHER,  // it seems to be removed, since language is invalid here and valid on package level (affected)
         userInfo = UserInfo(name = ""),  // will be set on saving to database
         organization = null,
-        dates = buildList {
-            osv.timeLine?.map { it.asVulnerabilityDateDto() }?.let { addAll(it) }
-            add(osv.modified.asVulnerabilityDateDto(VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
-            osv.published?.asVulnerabilityDateDto(VulnerabilityDateType.PUBLISHED)?.run { add(this) }
-            osv.withdrawn?.asVulnerabilityDateDto(VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
-        },
+        dates = osv.getTimeline(),
         participants = emptyList(),
         status = VulnerabilityStatus.CREATED,
         tags = setOf("cosv-schema")
     )
-
-    companion object {
-        private fun LocalDateTime.asVulnerabilityDateDto(type: VulnerabilityDateType) = VulnerabilityDateDto(
-            date = this,
-            type = type,
-            vulnerabilityName = "NOT_USED_WHEN_SAVING_IN_DATABASE",
-        )
-
-        private fun TimeLineEntry.asVulnerabilityDateDto() = VulnerabilityDateDto(
-            date = value,
-            type = when (type) {
-                TimeLineEntryType.introduced -> VulnerabilityDateType.INTRODUCED
-                TimeLineEntryType.found -> VulnerabilityDateType.FOUND
-                TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
-                TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
-            },
-            vulnerabilityName = "NOT_USED_WHEN_SAVING_IN_DATABASE",
-        )
-    }
 }

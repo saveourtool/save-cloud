@@ -2,6 +2,7 @@ package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import java.time.LocalDateTime
@@ -39,6 +40,7 @@ class CosvMetadata(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
+    var status: VulnerabilityStatus,
 ) : BaseEntityWithDto<CosvMetadataDto>() {
     override fun toDto(): CosvMetadataDto = CosvMetadataDto(
         cosvId = cosvId,
@@ -50,6 +52,7 @@ class CosvMetadata(
         published = published.toKotlinLocalDateTime(),
         userId = user.requiredId(),
         organizationId = organization.requiredId(),
+        status = status,
     )
 
     companion object {
@@ -72,6 +75,7 @@ class CosvMetadata(
             published = published.toJavaLocalDateTime(),
             user = userResolver(userId),
             organization = organizationResolver(organizationId),
+            status = status,
         )
     }
 }

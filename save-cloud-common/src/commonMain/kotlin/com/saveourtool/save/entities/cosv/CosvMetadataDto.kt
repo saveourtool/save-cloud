@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities.cosv
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import kotlinx.datetime.LocalDateTime
 
 /**
@@ -12,6 +13,7 @@ import kotlinx.datetime.LocalDateTime
  * @property published [com.saveourtool.osv4k.OsvSchema.published]
  * @property userId [com.saveourtool.save.entities.User.id]
  * @property organizationId [com.saveourtool.save.entities.Organization.id]
+ * @property status
  **/
 data class CosvMetadataDto(
     val cosvId: String,
@@ -23,4 +25,5 @@ data class CosvMetadataDto(
     val published: LocalDateTime,
     val userId: Long,
     val organizationId: Long,
+    val status: VulnerabilityStatus,
 )

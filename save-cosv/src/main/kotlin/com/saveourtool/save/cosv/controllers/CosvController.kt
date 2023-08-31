@@ -4,8 +4,15 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityMetadata
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -17,6 +24,10 @@ import reactor.core.publisher.Mono
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.springframework.http.HttpStatus
+import org.springframework.web.server.ResponseStatusException
+
+typealias CosvMetadataDtoList = List<CosvMetadataDto>
 
 /**
  * Rest controller for COSVs
@@ -27,6 +38,28 @@ import kotlinx.serialization.json.Json
 class CosvController(
     private val cosvService: CosvService,
 ) {
+    @PostMapping("/by-filters")
+    @Operation(
+        method = "POST",
+        summary = "Get all vulnerabilities with filters.",
+        description = "Get filtered vulnerabilities.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched all vulnerabilities by filters")
+    fun getAllVulnerabilities(
+        @RequestBody filters: VulnerabilityFilter,
+        authentication: Authentication?,
+    ): Mono<CosvMetadataDtoList> = blockingToMono {
+        if (
+        // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
+            filters.status != VulnerabilityStatus.APPROVED && authentication?.name != filters.authorName &&
+            // only if user is NOT admin, if admin - everything is fine
+            authentication?.hasRole(Role.SUPER_ADMIN) == false
+        ) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN)
+        }
+        vulnerabilityService.getFilteredWithUserInfos(filters, authentication)
+    }
+
     /**
      * @param id vulnerability name in save db
      * @return content of COSV

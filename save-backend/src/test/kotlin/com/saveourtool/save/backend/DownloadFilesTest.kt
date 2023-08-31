@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.controllers.FileController
 import com.saveourtool.save.backend.controllers.internal.FileInternalController
-import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
@@ -50,7 +49,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 
 import java.time.LocalDateTime
-import java.util.*
 import java.util.concurrent.Future
 import kotlin.io.path.*
 
@@ -71,7 +69,7 @@ import kotlin.io.path.*
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(DebugInfoStorage::class),
     MockBean(ExecutionInfoStorage::class),
-    MockBean(IVulnerabilityService::class),
+    MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
 )
 class DownloadFilesTest {

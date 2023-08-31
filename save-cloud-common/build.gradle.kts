@@ -53,6 +53,8 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
+
+                api(libs.cosv4k)
             }
         }
         commonTest {
@@ -72,6 +74,7 @@ kotlin {
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
                 implementation(libs.spring.data.jpa)
+                implementation(libs.spring.security.core)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
