@@ -1,9 +1,13 @@
 package com.saveourtool.save.cosv.service
 
+import com.saveourtool.save.backend.service.IOrganizationService
+import com.saveourtool.save.backend.service.IUserService
 import com.saveourtool.save.backend.service.IVulnerabilityService
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
@@ -27,6 +31,8 @@ import kotlinx.serialization.serializer
 class CosvService(
     private val cosvRepository: CosvRepository,
     private val vulnerabilityService: IVulnerabilityService,
+    private val userService: IUserService,
+    private val organizationService: IOrganizationService,
     private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
     private val json = Json {
@@ -39,6 +45,7 @@ class CosvService(
      * @param sourceId
      * @param inputStreams
      * @param authentication who uploads [inputStream]
+     * @param organizationName to which is uploaded
      * @return save's vulnerability names
      */
     @OptIn(ExperimentalSerializationApi::class)
@@ -46,9 +53,14 @@ class CosvService(
         sourceId: String,
         inputStreams: Flux<InputStream>,
         authentication: Authentication,
-    ): Flux<String> = inputStreams.flatMap { inputStream ->
-        decode(sourceId, json.decodeFromStream<JsonElement>(inputStream))
-    }.save(authentication)
+        organizationName: String,
+    ): Flux<String> {
+        val user = userService.getByName(authentication.name)
+        val organization = organizationService.getByName(organizationName)
+        return inputStreams.flatMap { inputStream ->
+            decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
+        }.save(user)
+    }
 
     /**
      * Decodes [content] and saves the result
@@ -56,40 +68,50 @@ class CosvService(
      * @param sourceId
      * @param content
      * @param authentication who uploads [content]
+     * @param organizationName to which is uploaded
      * @return save's vulnerability names
      */
     fun decodeAndSave(
         sourceId: String,
         content: String,
         authentication: Authentication,
-    ): Flux<String> = decode(sourceId, json.parseToJsonElement(content)).save(authentication)
+        organizationName: String,
+    ): Flux<String> {
+        val user = userService.getByName(authentication.name)
+        val organization = organizationService.getByName(organizationName)
+        return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
+    }
 
     /**
      * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
      *
      * @param sourceId
      * @param jsonElement
+     * @param user who uploads content
+     * @param organization to which is uploaded
      * @return save's vulnerability
      */
     private fun decode(
         sourceId: String,
         jsonElement: JsonElement,
+        user: User,
+        organization: Organization,
     ): Flux<VulnerabilityDto> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject) }
+        .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
 
     /**
      * Creates entities in save database
      *
      * @receiver save's vulnerability
-     * @param authentication who uploads
+     * @param user who uploads
      * @return save's vulnerability names
      */
     private fun Flux<VulnerabilityDto>.save(
-        authentication: Authentication,
+        user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
-            vulnerabilities.map { vulnerabilityService.save(it, authentication).name }
+            vulnerabilities.map { vulnerabilityService.save(it, user).name }
         }
         .flatMapIterable { it }
 

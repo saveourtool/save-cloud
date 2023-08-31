@@ -25,7 +25,7 @@ import kotlin.NoSuchElementException
 class OrganizationService(
     private val projectService: ProjectService,
     private val organizationRepository: OrganizationRepository,
-) {
+) : IOrganizationService {
     /**
      * Store [organization] in the database
      *
@@ -146,7 +146,7 @@ class OrganizationService(
      * @return organization by name
      * @throws NoSuchElementException
      */
-    fun getByName(name: String) = findByNameAndCreatedStatus(name)
+    override fun getByName(name: String) = findByNameAndCreatedStatus(name)
         ?: throw NoSuchElementException("There is no organization with name $name.")
 
     /**
