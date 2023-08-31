@@ -96,7 +96,7 @@ class CosvService(
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
-    ): Flux<VulnerabilityDto> = jsonElement.toMono()
+    ): Flux<VulnerabilityMetadata> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
         .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
 
@@ -107,7 +107,7 @@ class CosvService(
      * @param user who uploads
      * @return save's vulnerability names
      */
-    private fun Flux<VulnerabilityDto>.save(
+    private fun Flux<VulnerabilityMetadata>.save(
         user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
@@ -118,7 +118,7 @@ class CosvService(
     /**
      * Finds OSV with validating save database
      *
-     * @param id [VulnerabilityDto.name]
+     * @param id [VulnerabilityMetadata.name]
      * @return found OSV
      */
     fun findById(

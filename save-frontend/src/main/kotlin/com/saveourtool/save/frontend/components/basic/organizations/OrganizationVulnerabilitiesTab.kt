@@ -5,7 +5,7 @@
 
 package com.saveourtool.save.frontend.components.basic.organizations
 
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityMetadata
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -23,7 +23,7 @@ import react.router.dom.Link
 import web.cssom.ClassName
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
+private val vulnerabilityTable: FC<TableProps<VulnerabilityMetadata>> = tableComponent(
     columns = {
         columns {
             column(id = "name", header = "Name", { this.name }) { cellContext ->
@@ -65,9 +65,9 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
-    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
+    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityMetadata>>(emptyArray())
     useRequest {
-        val fetchedVulnerabilities: Array<VulnerabilityDto> = get(
+        val fetchedVulnerabilities: Array<VulnerabilityMetadata> = get(
             url = "$apiUrl/vulnerabilities/by-organization-and-status",
             params = jso<dynamic> {
                 organizationName = props.organizationName

@@ -1,9 +1,9 @@
 package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.cosv.repository.CosvRepository
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import org.springframework.stereotype.Component
 
 import kotlinx.serialization.json.JsonObject
