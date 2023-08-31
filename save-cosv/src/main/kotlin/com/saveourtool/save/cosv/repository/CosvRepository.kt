@@ -1,10 +1,15 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.osv4k.OsvSchema as CosvSchema
+import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
+
+import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.KSerializer
 
+typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
 typealias CosvSchemaMono<D, A_E, A_D, A_R_D> = Mono<CosvSchema<D, A_E, A_D, A_R_D>>
 @Suppress("TYPEALIAS_NAME_INCORRECT_CASE")
 typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, A_E, A_D, A_R_D>>
@@ -18,12 +23,16 @@ interface CosvRepository {
      *
      * @param entry
      * @param serializer [KSerializer] to encode [entry] to JSON
-     * @return empty [Mono]
+     * @param user [User] who saves COSV
+     * @param organization [Organization] to which COSV is uploaded
+     * @return [Mono] with metadata for save COSV
      */
     fun <D, A_E, A_D, A_R_D> save(
         entry: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
-    ): Mono<Unit>
+        user: User,
+        organization: Organization,
+    ): Mono<CosvMetadataDto>
 
     /**
      * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]

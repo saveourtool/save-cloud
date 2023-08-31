@@ -1,6 +1,6 @@
 package com.saveourtool.save.gateway.service
 
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.orNotFound
@@ -29,7 +29,7 @@ class BackendService(
      */
     fun findByName(
         username: String,
-    ): Mono<AuthenticationUserDetails> = findAuthenticationUserDetails("/internal/users/find-by-name/$username")
+    ): Mono<SaveUserDetails> = findAuthenticationUserDetails("/internal/users/find-by-name/$username")
 
     /**
      * @param source
@@ -39,15 +39,15 @@ class BackendService(
     fun findByOriginalLogin(
         source: String,
         nameInSource: String,
-    ): Mono<AuthenticationUserDetails> = findAuthenticationUserDetails("/internal/users/find-by-original-login/$source/$nameInSource")
+    ): Mono<SaveUserDetails> = findAuthenticationUserDetails("/internal/users/find-by-original-login/$source/$nameInSource")
 
-    private fun findAuthenticationUserDetails(uri: String): Mono<AuthenticationUserDetails> = webClient.get()
+    private fun findAuthenticationUserDetails(uri: String): Mono<SaveUserDetails> = webClient.get()
         .uri(uri)
         .retrieve()
         .onStatus({ it.is4xxClientError }) {
             Mono.error(ResponseStatusException(it.statusCode()))
         }
-        .toEntity<AuthenticationUserDetails>()
+        .toEntity<SaveUserDetails>()
         .flatMap { responseEntity ->
             responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
         }

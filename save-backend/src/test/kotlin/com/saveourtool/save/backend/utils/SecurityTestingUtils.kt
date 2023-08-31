@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.backend.utils
 
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 
@@ -13,10 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder
  */
 internal fun mutateMockedUser(id: Long) {
     SecurityContextHolder.getContext().apply {
-        authentication = AuthenticationUserDetails(
-            id,
-            authentication.name,
-            (authentication as UsernamePasswordAuthenticationToken).authorities.joinToString(",") { it.authority }
-        ).toAuthenticationToken()
+        authentication = SaveUserDetails(
+            id = id,
+            name = authentication.name,
+            role = (authentication as UsernamePasswordAuthenticationToken).authorities.joinToString(",") { it.authority },
+            token = null,
+        ).toPreAuthenticatedAuthenticationToken()
     }
 }

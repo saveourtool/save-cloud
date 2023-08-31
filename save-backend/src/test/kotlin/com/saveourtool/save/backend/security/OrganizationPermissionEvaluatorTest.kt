@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.authservice.utils.AuthenticationUserDetails
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -117,11 +117,12 @@ class OrganizationPermissionEvaluatorTest {
         }
     }
 
-    private fun mockAuth(principal: String, vararg roles: String, id: Long = 99) = AuthenticationUserDetails(
+    private fun mockAuth(principal: String, vararg roles: String, id: Long = 99) = SaveUserDetails(
         id = id,
         name = principal,
         role = roles.joinToString(","),
-    ).toAuthenticationToken()
+        token = null,
+    ).toPreAuthenticatedAuthenticationToken()
 
     private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }

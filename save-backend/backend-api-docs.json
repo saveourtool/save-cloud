@@ -9878,6 +9878,36 @@
         ]
       }
     },
+    "/api/v1/users/approve": {
+      "get": {
+        "operationId": "approveUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/ban": {
       "get": {
         "operationId": "banUser",
@@ -10028,6 +10058,29 @@
                     "SUPER_ADMIN",
                     "VIEWER"
                   ]
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/users/new-users": {
+      "get": {
+        "operationId": "findNewUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserInfo"
+                  }
                 }
               }
             },
@@ -13226,6 +13279,7 @@
             "enum": [
               "CREATED",
               "ACTIVE",
+              "NOT_APPROVED",
               "DELETED",
               "BANNED"
             ]
@@ -13311,8 +13365,8 @@
             }
           },
           "originalLogins": {
-            "type": "array",
-            "items": {
+            "type": "object",
+            "additionalProperties": {
               "type": "string"
             }
           },
@@ -13341,6 +13395,7 @@
             "enum": [
               "CREATED",
               "ACTIVE",
+              "NOT_APPROVED",
               "DELETED",
               "BANNED"
             ]

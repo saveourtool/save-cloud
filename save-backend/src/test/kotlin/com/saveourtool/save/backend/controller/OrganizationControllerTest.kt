@@ -11,6 +11,7 @@ import com.saveourtool.save.backend.S11nTestConfig
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
@@ -87,6 +88,7 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkExecutionTestSuiteService::class),
     MockBean(AvatarStorage::class),
     MockBean(IVulnerabilityService::class),
+    MockBean(CosvMetadataRepository::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
