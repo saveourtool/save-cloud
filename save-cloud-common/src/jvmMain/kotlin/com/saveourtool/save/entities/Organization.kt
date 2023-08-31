@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property description
  * @property canCreateContests
+ * @property canBulkUpload ability to bulk upload cosv files
  * @property rating
  */
 @Entity
@@ -29,6 +30,7 @@ data class Organization(
     var avatar: String? = null,
     var description: String? = null,
     var canCreateContests: Boolean = false,
+    var canBulkUpload: Boolean = false,
     var rating: Long = 0,
 ) : BaseEntityWithDto<OrganizationDto>() {
     /**

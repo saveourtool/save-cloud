@@ -8,6 +8,7 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
+import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
@@ -42,9 +43,9 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
             }
 
             div {
-                className = ClassName("row col-10 mb-1")
+                className = ClassName("row col-11 mb-1")
                 div {
-                    className = ClassName("col-3 px-1")
+                    className = ClassName("col-2 px-1")
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
@@ -76,7 +77,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 }
 
                 div {
-                    className = ClassName("col-3 px-1")
+                    className = ClassName("col-2 px-1")
                     inputWithDebounceForUserInfo {
                         isDisabled = filter.authorName != null
                         selectedOption = user
@@ -94,7 +95,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 }
 
                 div {
-                    className = ClassName("col-3 px-1")
+                    className = ClassName("col-2 px-1")
                     inputWithDebounceForOrganizationDto {
                         isDisabled = filter.organizationName != null
                         selectedOption = organization
@@ -112,7 +113,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                 }
 
                 div {
-                    className = ClassName("col-auto px-1")
+                    className = ClassName("col-2 px-1")
                     selectorBuilder(
                         filter.language?.value ?: languagePlaceholder,
                         VulnerabilityLanguage.values().map { it.value }.plus(languagePlaceholder),
@@ -122,24 +123,27 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         setFilter { oldFilter -> oldFilter.copy(language = newLanguage) }
                     }
                 }
-            }
 
-            div {
-                className = ClassName("my-auto align-items-center")
-                buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
-                    props.onChangeFilter(filter)
-                }
-                buttonBuilder(faWindowClose, classes = "btn mr-1", title = "Drop filters", isOutline = true, style = "secondary") {
-                    props.onChangeFilter(null)
-                    // need to drop all tags
-                    setFilter { props.filter.copy(tags = emptySet()) }
-                    setTagPrefix("")
-                    setOrganization(OrganizationDto.empty)
-                    setUser(UserInfo(""))
-                }
-                withNavigate { navigateContext ->
-                    buttonBuilder(faPlus, style = "primary", title = "Propose a new vulnerability", isOutline = true) {
-                        navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                div {
+                    className = ClassName("col-3 my-auto align-items-center")
+                    buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
+                        props.onChangeFilter(filter)
+                    }
+                    buttonBuilder(faWindowClose, classes = "btn mr-1", title = "Drop filters", isOutline = true, style = "secondary") {
+                        props.onChangeFilter(null)
+                        // need to drop all tags
+                        setFilter { props.filter.copy(tags = emptySet()) }
+                        setTagPrefix("")
+                        setOrganization(OrganizationDto.empty)
+                        setUser(UserInfo(""))
+                    }
+                    withNavigate { navigateContext ->
+                        buttonBuilder(faPlus, style = "primary mr-1", isOutline = true) {
+                            navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                        }
+                    }
+                    uploadCosvButton {
+                        isImage = true
                     }
                 }
             }

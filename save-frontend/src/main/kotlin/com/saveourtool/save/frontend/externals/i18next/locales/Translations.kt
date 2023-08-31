@@ -22,6 +22,18 @@ const val VULN_COLLECTION_EN = """
 }
 """
 
+const val VULN_UPLOAD_RU = """
+{
+  "Upload COSV files": "Загрузить COSV файлы"
+}
+"""
+
+const val VULN_UPLOAD_EN = """
+{
+  "Upload COSV files": "Upload COSV files"
+}
+"""
+
 const val TABLE_HEADERS_RU = """
 {
     "Name": "Имя",
