@@ -11,7 +11,7 @@ import react.FC
 import react.Props
 
 val uploadCosvButton: FC<UploadCosvButtonProps> = FC { props ->
-    val (t) = useTranslation("vulnerability-collection")
+    val (t) = useTranslation("vulnerability-upload")
 
     withNavigate { navigateContext ->
 
