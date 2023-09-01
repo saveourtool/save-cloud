@@ -68,6 +68,11 @@ external interface OrganizationSettingsMenuProps : Props {
      * Callback invoked in order to change canCreateContests flag
      */
     var onCanCreateContestsChange: (Boolean) -> Unit
+
+    /**
+     * Callback invoked in order to change canBulkUpload flag
+     */
+    var onCanBulkUploadCosvFilesChange: (Boolean) -> Unit
 }
 
 /**
@@ -155,6 +160,29 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
                                 className = ClassName("form-check-label")
                                 htmlFor = "canCreateContestsCheckbox"
                                 +"Can create contests"
+                            }
+                        }
+                    }
+
+                    div {
+                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
+                        div {
+                            input {
+                                className = ClassName("form-check-input")
+                                type = InputType.checkbox
+                                value = props.organization.canBulkUpload.toString()
+                                id = "canBulkUploadCosvFilesCheckbox"
+                                checked = props.organization.canBulkUpload
+                                onChange = {
+                                    props.onCanBulkUploadCosvFilesChange(!props.organization.canBulkUpload)
+                                }
+                            }
+                        }
+                        div {
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "canBulkUploadCosvFilesCheckbox"
+                                +"Can bulk upload COSV files"
                             }
                         }
                     }
