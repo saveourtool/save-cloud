@@ -6,9 +6,12 @@ import com.saveourtool.save.entities.cosv.CosvMetadataDto
 
 import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.save.filters.CosvFilter
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.KSerializer
+import reactor.core.publisher.Flux
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
 typealias CosvSchemaMono<D, A_E, A_D, A_R_D> = Mono<CosvSchema<D, A_E, A_D, A_R_D>>
@@ -38,21 +41,37 @@ interface CosvRepository {
     /**
      * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]
      *
-     * @param id
+     * @param cosvId
      * @param serializer [KSerializer] to decode entry from JSON
      * @return [Mono] with [CosvSchema]
      */
     fun <D, A_E, A_D, A_R_D> findLatestById(
-        id: String,
+        cosvId: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
     ): CosvSchemaMono<D, A_E, A_D, A_R_D>
 
     /**
      * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
-     * @param id
+     *
+     * @param cosvId
      * @return [Mono] with [RawCosvExt]
      */
     fun findLatestRawExt(
-        id: String,
+        cosvId: String,
+    ): Mono<RawCosvExt>
+
+    /**
+     * Finds metadata of cosv by [filter]
+     *
+     * @param filter
+     * @return [Flux] with [RawCosvExt]
+     */
+    fun findRawExtByFilter(
+        filter: CosvFilter,
+    ): Flux<RawCosvExt>
+
+    fun findLatestRawExtByCosvIdAndStatus(
+        cosvId: String,
+        status: VulnerabilityStatus,
     ): Mono<RawCosvExt>
 }

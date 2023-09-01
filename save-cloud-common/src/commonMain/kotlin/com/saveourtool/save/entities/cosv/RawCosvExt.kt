@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities.cosv
 
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 
 /**
@@ -11,6 +12,6 @@ import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 data class RawCosvExt(
     val metadata: CosvMetadataDto,
     val rawContent: RawCosvSchema,
-    val saveContributors: List<Long>,
+    val saveContributors: List<UserInfo>,
     val tags: Set<String>,
 )

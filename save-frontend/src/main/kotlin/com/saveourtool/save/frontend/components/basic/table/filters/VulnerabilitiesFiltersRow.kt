@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
@@ -48,12 +49,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     input {
                         type = InputType.text
                         className = ClassName("form-control")
-                        value = filter.prefixName
+                        value = filter.prefixId
                         placeholder = "${"Name".t()}..."
                         required = false
                         onChange = { event ->
                             setFilter { oldFilter ->
-                                oldFilter.copy(prefixName = event.target.value)
+                                oldFilter.copy(prefixId = event.target.value)
                             }
                         }
                     }
@@ -169,12 +170,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
  */
 external interface VulnerabilitiesFiltersProps : Props {
     /**
-     * All [VulnerabilityFilter]
+     * All [CosvFilter]
      */
-    var filter: VulnerabilityFilter
+    var filter: CosvFilter
 
     /**
-     * [StateSetter] for [VulnerabilityFilter]
+     * [StateSetter] for [CosvFilter]
      */
-    var onChangeFilter: (VulnerabilityFilter?) -> Unit
+    var onChangeFilter: (CosvFilter?) -> Unit
 }

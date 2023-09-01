@@ -8,6 +8,7 @@ import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 import kotlinx.datetime.LocalDateTime
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
@@ -48,3 +49,12 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
+
+/**
+ * @return language as [VulnerabilityLanguage]
+ */
+fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.firstNotNullOfOrNull { affected ->
+    affected.`package`?.language?.let { language ->
+        VulnerabilityLanguage.values().firstOrNull { it.value == language }
+    }
+}

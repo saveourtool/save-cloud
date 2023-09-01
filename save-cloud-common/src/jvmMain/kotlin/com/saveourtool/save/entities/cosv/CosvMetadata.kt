@@ -50,8 +50,8 @@ class CosvMetadata(
         severityNum = severityNum,
         modified = modified.toKotlinLocalDateTime(),
         published = published.toKotlinLocalDateTime(),
-        userId = user.requiredId(),
-        organizationId = organization.requiredId(),
+        user = user.toUserInfo(),
+        organization = organization.toDto(),
         status = status,
     )
 
@@ -63,8 +63,8 @@ class CosvMetadata(
          * @return [CosvMetadata] created from receiver
          */
         fun CosvMetadataDto.toEntity(
-            userResolver: (Long) -> User,
-            organizationResolver: (Long) -> Organization,
+            userResolver: (String) -> User,
+            organizationResolver: (String) -> Organization,
         ): CosvMetadata = CosvMetadata(
             cosvId = cosvId,
             summary = summary,
@@ -73,8 +73,8 @@ class CosvMetadata(
             severityNum = severityNum,
             modified = modified.toJavaLocalDateTime(),
             published = published.toJavaLocalDateTime(),
-            user = userResolver(userId),
-            organization = organizationResolver(organizationId),
+            user = userResolver(user.name),
+            organization = organizationResolver(organization.name),
             status = status,
         )
     }

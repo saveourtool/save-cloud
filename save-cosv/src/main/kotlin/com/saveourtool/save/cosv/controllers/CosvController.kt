@@ -6,9 +6,9 @@ import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityMetadata
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.VulnerabilityFilter
+import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation
@@ -38,27 +38,53 @@ typealias CosvMetadataDtoList = List<CosvMetadataDto>
 class CosvController(
     private val cosvService: CosvService,
 ) {
-    @PostMapping("/by-filters")
+    @PostMapping("/by-filter")
     @Operation(
         method = "POST",
         summary = "Get all vulnerabilities with filters.",
         description = "Get filtered vulnerabilities.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all vulnerabilities by filters")
-    fun getAllVulnerabilities(
-        @RequestBody filters: VulnerabilityFilter,
+    fun getByFilter(
+        @RequestBody filter: CosvFilter,
+        @RequestParam(required = false, defaultValue = "false") isOwner: Boolean,
         authentication: Authentication?,
-    ): Mono<CosvMetadataDtoList> = blockingToMono {
+    ): Flux<RawCosvExt> {
         if (
         // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
-            filters.status != VulnerabilityStatus.APPROVED && authentication?.name != filters.authorName &&
+            filter.status != VulnerabilityStatus.APPROVED && authentication?.name != filter.authorName &&
             // only if user is NOT admin, if admin - everything is fine
             authentication?.hasRole(Role.SUPER_ADMIN) == false
         ) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }
-        vulnerabilityService.getFilteredWithUserInfos(filters, authentication)
+        return cosvService.getByFilter(filter, isOwner, authentication)
     }
+
+    @GetMapping("/by-cosv-id-and-status")
+    @Operation(
+        method = "GET",
+        summary = "Get COSV by name.",
+        description = "Get COSV by name.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched vulnerability by name")
+    fun getByCosvIdAndActive(
+        @RequestParam cosvId: String,
+        @RequestParam status: VulnerabilityStatus,
+    ): Mono<RawCosvExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
+
+    /**
+     * @param id vulnerability name in save db
+     * @return content of COSV
+     */
+    @RequiresAuthorizationSourceHeader
+    @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getById(
+        @PathVariable id: String,
+    ): Mono<StringResponse> = cosvService.findById(id)
+        .map {
+            ResponseEntity.ok(Json.encodeToString(it))
+        }
 
     /**
      * @param id vulnerability name in save db

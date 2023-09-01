@@ -6,6 +6,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.filters.VulnerabilityFilter
 import org.w3c.dom.url.URLSearchParams
 
@@ -19,6 +20,21 @@ fun URLSearchParams.toVulnerabilitiesFilter(): VulnerabilityFilter {
 
     return VulnerabilityFilter(
         prefixName = prefix,
+        status = status,
+        tags = tags
+    )
+}
+
+/**
+ * @return CosvFilter that can be passed to a table
+ */
+fun URLSearchParams.toCosvFilter(): CosvFilter {
+    val tags = this.get("tags")?.split(",")?.toSet() ?: emptySet()
+    val prefix = this.get("prefix") ?: ""
+    val status = VulnerabilityStatus.values().find { it.name == this.get("status")?.uppercase() } ?: VulnerabilityStatus.APPROVED
+
+    return CosvFilter(
+        prefixId = prefix,
         status = status,
         tags = tags
     )

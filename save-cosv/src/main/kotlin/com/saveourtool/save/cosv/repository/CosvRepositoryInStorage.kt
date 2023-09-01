@@ -5,11 +5,14 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.utils.*
 
 import org.springframework.http.HttpStatus
@@ -22,6 +25,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.serializer
+import reactor.core.publisher.Flux
+import javax.persistence.criteria.*
 
 /**
  * Implementation of [CosvRepository] using [CosvStorage]
@@ -85,32 +90,106 @@ class CosvRepositoryInStorage(
     }
 
     override fun <D, A_E, A_D, A_R_D> findLatestById(
-        id: String,
+        cosvId: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>
-    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = doFindLatestById(id, serializer)
-        .map { (_, content) -> content }
+    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+        .flatMap { doDownload(it, serializer) }
 
-    override fun findLatestRawExt(id: String): Mono<RawCosvExt> = doFindLatestById(id, serializer<RawOsvSchema>())
-        .blockingMap { (metadata, content) ->
+    override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+        .flatMap { it.toRawCosvExt() }
+
+    override fun findRawExtByFilter(filter: CosvFilter): Flux<RawCosvExt> = blockingToFlux {
+        cosvMetadataRepository.findAll { root, cq, cb ->
+            with(filter) {
+                val namePredicate = if (prefixId.isBlank()) {
+                    cb.and()
+                } else {
+                    cb.like(root.get("cosvId"), "%$prefixId%")
+                }
+
+                val statusPredicate = status?.let { status ->
+                    cb.equal(root.get<VulnerabilityStatus>("status"), status)
+                } ?: cb.and()
+
+                val organizationPredicate = organizationName?.let { organization ->
+                    cb.equal(root.get<Organization>("organization").get<String>("name"), organization)
+                } ?: cb.and()
+
+                val authorPredicate = authorName?.let { author ->
+                    val subquery: Subquery<Long> = cq.subquery(Long::class.java)
+                    val userRoot = subquery.from(User::class.java)
+
+                    subquery.select(userRoot.get("id")).where(cb.equal(userRoot.get<String>("name"), author))
+
+                    cb.`in`(root.get<Long>("userId")).value(subquery)
+                } ?: cb.and()
+
+                cb.and(
+                    namePredicate,
+                    statusPredicate,
+                    authorPredicate,
+                    organizationPredicate,
+                    getPredicateForTags(root, cq, cb, tags),
+                )
+            }
+        }.distinctBy { it.requiredId() }
+    }
+        .flatMap { it.toRawCosvExt() }
+        .filter { rawCosvExt ->
+            filter.language?.let { rawCosvExt.rawContent.getLanguage() == it } ?: true
+        }
+
+    override fun findLatestRawExtByCosvIdAndStatus(
+        cosvId: String,
+        status: VulnerabilityStatus,
+    ): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
+        .flatMap { it.toRawCosvExt() }
+
+    private fun getPredicateForTags(
+        root: Root<CosvMetadata>,
+        cq: CriteriaQuery<*>,
+        cb: CriteriaBuilder,
+        tags: Set<String>
+    ): Predicate = if (tags.isEmpty()) {
+        cb.and()
+    } else {
+        val subquery = cq.subquery(Long::class.java)
+        val lnkVulnerabilityTagRoot = subquery.from(LnkCosvMetadataTag::class.java)
+        val tagJoin: Join<LnkCosvMetadataTag, Tag> = lnkVulnerabilityTagRoot.join("tag", JoinType.LEFT)
+
+        val cosvMetadataIdPath: Path<Long> = lnkVulnerabilityTagRoot.get<CosvMetadata>("cosv_metadata").get("id")
+
+        subquery.select(cosvMetadataIdPath)
+            .where(
+                cb.and(
+                    tagJoin.get<String>("name").`in`(tags),
+                    cb.equal(
+                        root.get<Long>("id"),
+                        cosvMetadataIdPath,
+                    )
+                )
+            )
+
+        cb.exists(subquery)
+    }
+
+    private fun CosvMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
+        .blockingMap { content ->
             RawCosvExt(
-                metadata = metadata.toDto(),
+                metadata = toDto(),
                 rawContent = content,
-                saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).requiredId() },
-                tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(metadata.requiredId()).map { it.tag.name }.toSet()
+                saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
+                tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet()
             )
         }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private fun <D, A_E, A_D, A_R_D> doFindLatestById(
-        id: String,
-        serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>
-    ) = blockingToMono { cosvMetadataRepository.findByCosvId(id) }
-        .flatMap { metadata ->
-            cosvStorage.download(metadata.toDto().toStorageKey())
-                .collectToInputStream()
-                .map { content -> json.decodeFromStream(serializer, content) }
-                .map { metadata to it }
-        }
+    private fun <D, A_E, A_D, A_R_D> doDownload(
+        metadata: CosvMetadata,
+        serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
+    ) = cosvStorage.download(metadata.toDto().toStorageKey())
+        .collectToInputStream()
+        .map { content -> json.decodeFromStream(serializer, content) }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(

@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.utils.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
@@ -112,16 +113,16 @@ class CosvService(
     /**
      * Finds COSV with validating save database
      *
-     * @param id [VulnerabilityDto.name]
+     * @param cosvId [VulnerabilityDto.name]
      * @return found COSV
      */
     fun findById(
-        id: String,
+        cosvId: String,
     ): Mono<RawOsvSchema> = blockingToMono {
-        backendService.findVulnerabilityByName(id)
+        backendService.findVulnerabilityByName(cosvId)
     }
         .switchIfEmptyToNotFound {
-            "Not found vulnerability $id in save database"
+            "Not found vulnerability $cosvId in save database"
         }
         .flatMap { vulnerability ->
             cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
@@ -130,10 +131,38 @@ class CosvService(
     /**
      * Finds extended COSV
      *
-     * @param id [RawOsvSchema.id]
+     * @param cosvId [RawOsvSchema.id]
      * @return found [RawCosvExt]
      */
     fun findExtById(
-        id: String,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(id)
+        cosvId: String,
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
+
+    /**
+     * @param filter filter for COSV
+     * @param isOwner
+     * @param authentication [Authentication] describing an authenticated request
+     * @return list of OSV with that match [filter]
+     */
+    fun getByFilter(
+        filter: CosvFilter,
+        isOwner: Boolean,
+        authentication: Authentication?,
+    ): Flux<RawCosvExt> = cosvRepository.findRawExtByFilter(
+        if (isOwner) {
+            authentication?.let { filter.copy(authorName = it.name) } ?: filter
+        } else {
+            filter
+        }
+    )
+
+    /**
+     * @param cosvId
+     * @param status
+     * @return found [RawCosvExt]
+     */
+    fun getByCosvIdAndStatus(
+        cosvId: String,
+        status: VulnerabilityStatus,
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
 }
