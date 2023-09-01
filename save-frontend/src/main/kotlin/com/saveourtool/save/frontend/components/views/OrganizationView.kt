@@ -421,6 +421,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             updateNotificationMessage = ::showNotification
             organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
+            onCanBulkUploadCosvFilesChange = ::onCanBulkUploadCosvFilesChange
         }
     }
 
@@ -451,6 +452,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             if (response.ok) {
                 setState {
                     organization = organization?.copy(canCreateContests = canCreateContests)
+                }
+            }
+        }
+    }
+
+    private fun onCanBulkUploadCosvFilesChange(canBulkUpload: Boolean) {
+        scope.launch {
+            val response = post(
+                "$apiUrl/organizations/${props.organizationName}/manage-bulk-upload-permission",
+                params = jso<dynamic> {
+                    isAbleToToBulkUpload = !state.organization!!.canBulkUpload
+                },
+                headers = jsonHeaders,
+                undefined,
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                setState {
+                    organization = organization?.copy(canBulkUpload = canBulkUpload)
                 }
             }
         }

@@ -226,6 +226,48 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
+    @PostMapping("/{organizationName}/manage-bulk-upload-permission")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+        method = "POST",
+        summary = "Make an organization to be able to bulk upload files.",
+        description = "Make an organization to be able to bulk upload files.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "isAbleToToBulkUpload", `in` = ParameterIn.QUERY, description = "new flag for bulk upload files ability", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully changed ability to bulk upload files.")
+    @ApiResponse(responseCode = "403", description = "Could not change ability to bulk upload files due to lack of permission.")
+    @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @Suppress("UnsafeCallOnNullableType")
+    fun setAbilityToBulkUpload(
+        @PathVariable organizationName: String,
+        @RequestParam isAbleToToBulkUpload: Boolean,
+        authentication: Authentication,
+    ): Mono<StringResponse> = Mono.just(
+        organizationName
+    )
+        .flatMap {
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "No organization with name $organizationName was found."
+        }
+        .filter {
+            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "Not enough permission for managing canBulkUpload flag."
+        }
+        .map { organization ->
+            organizationService.updateOrganization(
+                organization.copy(canBulkUpload = isAbleToToBulkUpload).apply { id = organization.id }
+            )
+            ResponseEntity.ok("Organization updated")
+        }
+
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
