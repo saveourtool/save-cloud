@@ -1,11 +1,16 @@
 package com.saveourtool.save.cosv.repository
 
+import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 
 import org.springframework.http.HttpStatus
@@ -17,6 +22,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.serializer
 
 /**
  * Implementation of [CosvRepository] using [CosvStorage]
@@ -25,6 +31,8 @@ import kotlinx.serialization.json.decodeFromStream
 class CosvRepositoryInStorage(
     private val cosvStorage: CosvStorage,
     private val cosvMetadataRepository: CosvMetadataRepository,
+    private val lnkCosvMetadataTagRepository: LnkCosvMetadataTagRepository,
+    private val backendService: IBackendService,
 ) : CosvRepository {
     private val json = Json {
         prettyPrint = false
@@ -65,10 +73,10 @@ class CosvRepositoryInStorage(
                         "${errorPrefix()} by userId=${user.requiredId()}: already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
                     )
                 }
-                if (existedMetadata.organization.requiredId() != organization.requiredId()) {
+                if (existedMetadata.organization?.requiredId() != organization.requiredId()) {
                     throw ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} to organizationId=${organization.requiredId()}: already existed in save in another userId=${existedMetadata.organization.requiredId()}",
+                        "${errorPrefix()} to organizationId=${organization.requiredId()}: already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
                     )
                 }
                 existedMetadata.updateBy(entry)
@@ -77,16 +85,33 @@ class CosvRepositoryInStorage(
         cosvMetadataRepository.save(metadata).toDto()
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun <D, A_E, A_D, A_R_D> findLatestById(
-        id: String,
+        cosvId: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>
-    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { cosvMetadataRepository.findByCosvId(id)?.toDto() }
-        .flatMap { metadata ->
-            cosvStorage.download(metadata.toStorageKey())
-                .collectToInputStream()
-                .map { content -> json.decodeFromStream(serializer, content) }
+    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+        .flatMap { doDownload(it, serializer) }
+
+    override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+        .flatMap { it.toRawCosvExt() }
+
+    private fun CosvMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
+        .blockingMap { content ->
+            RawCosvExt(
+                metadata = toDto(),
+                rawContent = content,
+                saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
+                tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet(),
+                timeline = content.getTimeline(),
+            )
         }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun <D, A_E, A_D, A_R_D> doDownload(
+        metadata: CosvMetadata,
+        serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
+    ) = cosvStorage.download(metadata.toDto().toStorageKey())
+        .collectToInputStream()
+        .map { content -> json.decodeFromStream(serializer, content) }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(
@@ -102,6 +127,8 @@ class CosvRepositoryInStorage(
             published = (published ?: modified).toJavaLocalDateTime(),
             user = user,
             organization = organization,
+            language = getLanguage() ?: VulnerabilityLanguage.OTHER,
+            status = VulnerabilityStatus.CREATED,
         )
 
         private fun CosvMetadata.updateBy(entry: CosvSchema<*, *, *, *>): CosvMetadata = apply {
@@ -113,6 +140,7 @@ class CosvRepositoryInStorage(
                 ?.toInt() ?: 0
             modified = entry.modified.toJavaLocalDateTime()
             published = (entry.published ?: entry.modified).toJavaLocalDateTime()
+            language = entry.getLanguage() ?: VulnerabilityLanguage.OTHER
         }
 
         private fun CosvMetadataDto.toStorageKey() = CosvKey(

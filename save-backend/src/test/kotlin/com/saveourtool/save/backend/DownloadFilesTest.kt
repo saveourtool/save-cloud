@@ -71,7 +71,7 @@ import kotlin.io.path.*
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(DebugInfoStorage::class),
     MockBean(ExecutionInfoStorage::class),
-    MockBean(IVulnerabilityService::class),
+    MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
 )
 class DownloadFilesTest {
