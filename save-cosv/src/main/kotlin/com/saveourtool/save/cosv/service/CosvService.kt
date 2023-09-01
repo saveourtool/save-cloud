@@ -43,7 +43,7 @@ class CosvService(
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability names
+     * @return save's vulnerability identifiers
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
@@ -66,7 +66,7 @@ class CosvService(
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability names
+     * @return save's vulnerability identifiers
      */
     fun decodeAndSave(
         sourceId: String,
@@ -101,21 +101,21 @@ class CosvService(
      * Creates entities in save database
      *
      * @receiver save's vulnerability
-     * @param user who uploads
-     * @return save's vulnerability names
+     * @param user [user] that uploads who uploads
+     * @return save's vulnerability identifiers
      */
     private fun Flux<VulnerabilityDto>.save(
         user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
-            vulnerabilities.map { backendService.saveVulnerability(it, user).name }
+            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
         }
         .flatMapIterable { it }
 
     /**
      * Finds OSV with validating save database
      *
-     * @param id [VulnerabilityDto.name]
+     * @param id [VulnerabilityDto.identifier]
      * @return found OSV
      */
     fun findById(
@@ -127,7 +127,7 @@ class CosvService(
             "Not found vulnerability $id in save database"
         }
         .flatMap { vulnerability ->
-            cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
+            cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
         }
 
     /**

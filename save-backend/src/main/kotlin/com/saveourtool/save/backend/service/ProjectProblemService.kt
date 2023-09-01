@@ -49,7 +49,7 @@ class ProjectProblemService(
      */
     @Transactional
     fun saveProjectProblem(problem: ProjectProblemDto, authentication: Authentication) {
-        val vulnerability = problem.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val vulnerability = problem.identifier?.let { vulnerabilityRepository.findByIdentifier(it) }
         val project = projectRepository.findByNameAndOrganizationName(problem.projectName, problem.organizationName).orNotFound()
         val userId = authentication.userId()
         val user = userRepository.getByIdOrNotFound(userId)
@@ -72,7 +72,7 @@ class ProjectProblemService(
     @Transactional
     fun updateProjectProblem(projectProblemDto: ProjectProblemDto) {
         val problem = projectProblemDto.id?.let { projectProblemRepository.getByIdOrNotFound(it) }.orNotFound()
-        val vulnerabilityNew = projectProblemDto.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val vulnerabilityNew = projectProblemDto.identifier?.let { vulnerabilityRepository.findByIdentifier(it) }
         problem.apply {
             name = projectProblemDto.name
             description = projectProblemDto.description

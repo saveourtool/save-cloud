@@ -41,7 +41,7 @@ class ProjectProblem(
         name = name,
         description = description,
         critical = critical,
-        vulnerabilityName = vulnerability?.name,
+        identifier = vulnerability?.identifier,
         organizationName = project.organization.name,
         projectName = project.name,
         isClosed = isClosed,
