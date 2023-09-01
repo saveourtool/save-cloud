@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.OauthProviderInfo
@@ -70,6 +71,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
 }
 
 val separator = VFC {
+    val (t) = useTranslation()
     div {
         className = ClassName("row mt-2")
         div {
@@ -81,7 +83,7 @@ val separator = VFC {
 
             div {
                 className = ClassName("separator text-black")
-                +"Sign in with"
+                +"Sign in with".t()
             }
         }
         div {
