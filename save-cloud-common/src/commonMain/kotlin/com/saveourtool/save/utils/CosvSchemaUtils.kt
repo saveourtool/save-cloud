@@ -49,7 +49,7 @@ fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.fir
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
-    vulnerabilityName = cosvId,
+    vulnerabilityIdentifier = cosvId,
 )
 
 private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulnerabilityDateDto(cosvId,
