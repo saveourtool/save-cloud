@@ -239,7 +239,6 @@ internal class OrganizationController(
         Parameter(name = "isAbleToToBulkUpload", `in` = ParameterIn.QUERY, description = "new flag for bulk upload files ability", required = true),
     )
     @ApiResponse(responseCode = "200", description = "Successfully changed ability to bulk upload files.")
-    @ApiResponse(responseCode = "403", description = "Could not change ability to bulk upload files due to lack of permission.")
     @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
     @Suppress("UnsafeCallOnNullableType")
     fun setAbilityToBulkUpload(
@@ -254,12 +253,6 @@ internal class OrganizationController(
         }
         .switchIfEmptyToNotFound {
             "No organization with name $organizationName was found."
-        }
-        .filter {
-            organizationPermissionEvaluator.hasGlobalRoleOrOrganizationRole(authentication, it.name, Role.SUPER_ADMIN)
-        }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "Not enough permission for managing canBulkUpload flag."
         }
         .map { organization ->
             organizationService.updateOrganization(
