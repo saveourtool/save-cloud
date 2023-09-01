@@ -27,18 +27,18 @@ class TagService(
     private val lnkVulnerabilityTagRepository: LnkVulnerabilityTagRepository,
 ) {
     /**
-     * @param vulnerabilityName [Vulnerability.name]
+     * @param identifier [Vulnerability.identifier]
      * @param tagName tag to add
      * @return new [LnkVulnerabilityTag]
      * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
      */
     @Transactional
-    fun addVulnerabilityTag(vulnerabilityName: String, tagName: String): LnkVulnerabilityTag {
+    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityTag {
         if (!tagName.isValidTag()) {
             throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
         }
-        val vulnerability = vulnerabilityRepository.findByName(vulnerabilityName).orNotFound {
-            "Could not find vulnerability $vulnerabilityName"
+        val vulnerability = vulnerabilityRepository.findByIdentifier(identifier).orNotFound {
+            "Could not find vulnerability $identifier"
         }
         val tag = tagRepository.findByName(tagName) ?: tagRepository.save(Tag(tagName))
 
@@ -48,20 +48,20 @@ class TagService(
     }
 
     /**
-     * @param vulnerabilityName [Vulnerability.name]
+     * @param identifier [Vulnerability.identifier]
      * @param tagName tag to delete
      * @return updated [Vulnerability]
      */
     @Transactional
-    fun deleteVulnerabilityTag(vulnerabilityName: String, tagName: String) {
-        val vulnerability = vulnerabilityRepository.findByName(vulnerabilityName).orNotFound {
-            "Could not find vulnerability $vulnerabilityName"
+    fun deleteVulnerabilityTag(identifier: String, tagName: String) {
+        val vulnerability = vulnerabilityRepository.findByIdentifier(identifier).orNotFound {
+            "Could not find vulnerability $identifier"
         }
 
         val link = lnkVulnerabilityTagRepository.findByVulnerabilityIdAndTagName(
             vulnerability.requiredId(),
             tagName
-        ).orNotFound { "Tag '$tagName' is not linked with vulnerability $vulnerabilityName." }
+        ).orNotFound { "Tag '$tagName' is not linked with vulnerability $identifier." }
 
         lnkVulnerabilityTagRepository.delete(link)
     }

@@ -53,9 +53,9 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name-and-status",
+            url = "$apiUrl/vulnerabilities/by-identifier-and-status",
             params = jso<dynamic> {
-                name = projectProblem.vulnerabilityName
+                name = projectProblem.identifier
                 status = VulnerabilityStatus.APPROVED
             },
             headers = jsonHeaders,
@@ -63,7 +63,7 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
             responseHandler = ::noopResponseHandler,
         )
         if (!response.ok) {
-            setConflictErrorMessage("No vulnerability found with ${projectProblem.vulnerabilityName} CVE identifier")
+            setConflictErrorMessage("No vulnerability found with ${projectProblem.identifier} CVE identifier")
         } else {
             setConflictErrorMessage(null)
             enrollRequest()
@@ -164,13 +164,13 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
 
                                 inputTextFormOptional {
                                     form = InputTypes.CVE_NAME
-                                    textValue = projectProblem.vulnerabilityName
+                                    textValue = projectProblem.identifier
                                     validInput = conflictErrorMessage.isNullOrEmpty()
                                     classes = "col-12 pl-2 pr-2 mt-3 text-left"
                                     name = "CVE identifier"
                                     onChangeFun = { event ->
                                         setConflictErrorMessage(null)
-                                        setProjectProblem { problem -> problem.copy(vulnerabilityName = event.target.value) }
+                                        setProjectProblem { problem -> problem.copy(identifier = event.target.value) }
                                     }
                                 }
                             }
@@ -182,7 +182,7 @@ val createProjectProblem: FC<CreateProjectProblemViewProps> = FC {props ->
                             classes = "mt-4",
                             isDisabled = projectProblem.name.isEmpty() || projectProblem.description.isEmpty() || conflictErrorMessage.isNotNull()
                         ) {
-                            if (projectProblem.vulnerabilityName.isNullOrEmpty()) {
+                            if (projectProblem.identifier.isNullOrEmpty()) {
                                 enrollRequest()
                             } else {
                                 enrollCheckVulnerabilityRequest()

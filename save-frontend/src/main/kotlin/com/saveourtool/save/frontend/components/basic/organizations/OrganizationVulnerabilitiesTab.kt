@@ -27,11 +27,11 @@ import web.cssom.ClassName
 private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
     columns = {
         columns {
-            column(id = "name", header = "Name", { this.name }) { cellContext ->
+            column(id = "name", header = "Name", { this.identifier }) { cellContext ->
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${FrontendRoutes.VULN}/${cellContext.row.original.name}"
+                            to = "/${FrontendRoutes.VULN}/${cellContext.row.original.identifier}"
                             +cellContext.value
                         }
                     }
