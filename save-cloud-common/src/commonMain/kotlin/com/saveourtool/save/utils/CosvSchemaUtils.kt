@@ -4,24 +4,26 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.osv4k.TimeLineEntry
-import com.saveourtool.osv4k.TimeLineEntryType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
-import kotlinx.datetime.LocalDateTime
-import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
-private const val saveourtoolProfilePrefix = "https://saveourtool.com/profile/"
+import com.saveourtool.osv4k.OsvSchema as CosvSchema
+import com.saveourtool.osv4k.TimeLineEntry
+import com.saveourtool.osv4k.TimeLineEntryType
+
+import kotlinx.datetime.LocalDateTime
+
+private const val SAVEOURTOOL_PROFILE_PREFIX = "https://saveourtool.com/profile/"
 
 /**
  * @return Save's contributors
  */
 fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
     ?.flatMap { credit -> credit.contact.orEmpty() }
-    ?.filter { it.startsWith(saveourtoolProfilePrefix) }
-    ?.map { it.removePrefix(saveourtoolProfilePrefix) }
+    ?.filter { it.startsWith(SAVEOURTOOL_PROFILE_PREFIX) }
+    ?.map { it.removePrefix(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { UserInfo(it) }
     .orEmpty()
 
@@ -33,6 +35,15 @@ fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList
     add(modified.asVulnerabilityDateDto(id, VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
+}
+
+/**
+ * @return language as [VulnerabilityLanguage]
+ */
+fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.firstNotNullOfOrNull { affected ->
+    affected.`package`?.language?.let { language ->
+        VulnerabilityLanguage.values().firstOrNull { it.value == language }
+    }
 }
 
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
@@ -49,12 +60,3 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
-
-/**
- * @return language as [VulnerabilityLanguage]
- */
-fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.firstNotNullOfOrNull { affected ->
-    affected.`package`?.language?.let { language ->
-        VulnerabilityLanguage.values().firstOrNull { it.value == language }
-    }
-}

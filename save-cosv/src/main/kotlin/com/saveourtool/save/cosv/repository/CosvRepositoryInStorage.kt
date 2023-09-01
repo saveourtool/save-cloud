@@ -1,6 +1,5 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
@@ -13,6 +12,7 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 
+import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
@@ -70,13 +70,15 @@ class CosvRepositoryInStorage(
                 if (existedMetadata.user.requiredId() != user.requiredId()) {
                     throw ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} by userId=${user.requiredId()}: already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
+                        "${errorPrefix()} by userId=${user.requiredId()}: " +
+                                "already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
                     )
                 }
                 if (existedMetadata.organization?.requiredId() != organization.requiredId()) {
                     throw ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} to organizationId=${organization.requiredId()}: already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
+                        "${errorPrefix()} to organizationId=${organization.requiredId()}: " +
+                                "already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
                     )
                 }
                 existedMetadata.updateBy(entry)

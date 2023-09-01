@@ -44,6 +44,10 @@ class UserDetailsService(
         userRepository.findByName(username)
     }
 
+    /**
+     * @param name
+     * @return found [User] or exception
+     */
     fun getByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
 
     /**
