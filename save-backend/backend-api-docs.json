@@ -2159,6 +2159,14 @@
             }
           },
           {
+            "in": "query",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "example": 123,
             "in": "header",
             "name": "X-Authorization-Id",
@@ -2287,6 +2295,14 @@
             "schema": {
               "type": "string",
               "default": "default"
+            }
+          },
+          {
+            "in": "query",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -12373,6 +12389,7 @@
       },
       "Organization": {
         "required": [
+          "canBulkUpload",
           "canCreateContests",
           "dateCreated",
           "name",
@@ -12383,6 +12400,9 @@
         "properties": {
           "avatar": {
             "type": "string"
+          },
+          "canBulkUpload": {
+            "type": "boolean"
           },
           "canCreateContests": {
             "type": "boolean"
@@ -12417,6 +12437,7 @@
       },
       "OrganizationDto": {
         "required": [
+          "canBulkUpload",
           "canCreateContests",
           "dateCreated",
           "description",
@@ -12428,6 +12449,9 @@
         "properties": {
           "avatar": {
             "type": "string"
+          },
+          "canBulkUpload": {
+            "type": "boolean"
           },
           "canCreateContests": {
             "type": "boolean"
