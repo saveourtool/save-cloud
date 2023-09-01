@@ -7,7 +7,6 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import react.*
 import react.dom.html.ReactHTML.td
@@ -22,7 +21,7 @@ val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProp
     val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Name", { this.name }) { cellContext ->
+                column(id = "name", header = "Name", { this.identifier }) { cellContext ->
                     Fragment.create {
                         td {
                             Link {

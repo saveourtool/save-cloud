@@ -153,7 +153,7 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     val vulnerabilityView: VFC = withRouter { _, params ->
         vulnerabilityView {
-            name = requireNotNull(params["vulnerabilityName"])
+            identifier = requireNotNull(params["identifier"])
             currentUserInfo = props.userInfo
         }
     }
@@ -211,7 +211,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
             uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,
-            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:vulnerabilityName",
+            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,

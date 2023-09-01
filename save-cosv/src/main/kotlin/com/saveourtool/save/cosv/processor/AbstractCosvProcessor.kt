@@ -42,8 +42,7 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
     protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: CosvSchema<D, A_E, A_D, A_R_D>): VulnerabilityDto
 
     private fun <T : AnyCosvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
-        name = osv.id,
-        vulnerabilityIdentifier = osv.id,  // should be replaced by alias
+        identifier = osv.id,
         progress = 0,  // TODO: it can be presented in two ways cvss v3 and cvss v2
         projects = emptyList(),  // TODO: need to refactor VulnerabilityProjectDto, COSV is basic
         description = osv.details,
@@ -67,7 +66,7 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
         private fun LocalDateTime.asVulnerabilityDateDto(type: VulnerabilityDateType) = VulnerabilityDateDto(
             date = this,
             type = type,
-            vulnerabilityName = "NOT_USED_WHEN_SAVING_IN_DATABASE",
+            vulnerabilityIdentifier = "NOT_USED_WHEN_SAVING_IN_DATABASE",
         )
 
         private fun TimeLineEntry.asVulnerabilityDateDto() = VulnerabilityDateDto(
@@ -78,7 +77,7 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
                 TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
                 TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
             },
-            vulnerabilityName = "NOT_USED_WHEN_SAVING_IN_DATABASE",
+            vulnerabilityIdentifier = "NOT_USED_WHEN_SAVING_IN_DATABASE",
         )
     }
 }

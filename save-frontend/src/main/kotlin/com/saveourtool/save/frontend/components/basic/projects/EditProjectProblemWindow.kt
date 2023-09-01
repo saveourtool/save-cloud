@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ProjectProblemCritical
 import com.saveourtool.save.entities.ProjectProblemDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
@@ -31,29 +30,7 @@ import kotlinx.serialization.json.Json
 /**
  * Component that allows to edit project problem
  */
-val editProjectProblemWindow = editProjectProblemWindow()
-
-/**
- * EditProjectProblemWindow component props
- */
-external interface EditProjectProblemWindowProps : Props {
-    /**
-     * Window openness
-     */
-    var windowOpenness: WindowOpenness
-
-    /**
-     * Project problem
-     */
-    var problem: ProjectProblemDto
-}
-
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-)
-private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { props ->
-
+val editProjectProblemWindow: FC<EditProjectProblemWindowProps> = FC { props ->
     val (projectProblem, setProjectProblem) = useStateFromProps(props.problem)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
 
@@ -72,17 +49,16 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
 
     val enrollCheckVulnerabilityRequest = useDeferredRequest {
         val response = get(
-            url = "$apiUrl/vulnerabilities/by-name-and-status",
+            url = "$apiUrl/vulnerabilities/by-identifier",
             params = jso<dynamic> {
-                name = projectProblem.vulnerabilityName
-                status = VulnerabilityStatus.APPROVED
+                identifier = projectProblem.identifier
             },
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         if (!response.ok) {
-            setConflictErrorMessage("No vulnerability found with ${projectProblem.vulnerabilityName} CVE identifier")
+            setConflictErrorMessage("No vulnerability found with ${projectProblem.identifier} CVE identifier")
         } else {
             setConflictErrorMessage(null)
             enrollRequest()
@@ -165,13 +141,13 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
 
         inputTextFormOptional {
             form = InputTypes.CVE_NAME
-            textValue = projectProblem.vulnerabilityName
+            textValue = projectProblem.identifier
             validInput = conflictErrorMessage.isNullOrEmpty()
             classes = "col-12 pl-2 pr-2 mt-3 text-left"
             name = "CVE identifier"
             onChangeFun = { event ->
                 setConflictErrorMessage(null)
-                setProjectProblem { problem -> problem.copy(vulnerabilityName = event.target.value) }
+                setProjectProblem { problem -> problem.copy(identifier = event.target.value) }
             }
         }
 
@@ -179,7 +155,7 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
 
             buttonBuilder(label = "Save", classes = "mr-2") {
-                if (projectProblem.vulnerabilityName.isNullOrEmpty()) {
+                if (projectProblem.identifier.isNullOrEmpty()) {
                     enrollRequest()
                 } else {
                     enrollCheckVulnerabilityRequest()
@@ -198,4 +174,19 @@ private fun editProjectProblemWindow() = FC<EditProjectProblemWindowProps> { pro
             }
         }
     }
+}
+
+/**
+ * EditProjectProblemWindow component props
+ */
+external interface EditProjectProblemWindowProps : Props {
+    /**
+     * Window openness
+     */
+    var windowOpenness: WindowOpenness
+
+    /**
+     * Project problem
+     */
+    var problem: ProjectProblemDto
 }

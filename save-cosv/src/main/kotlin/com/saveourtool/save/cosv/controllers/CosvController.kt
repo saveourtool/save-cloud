@@ -28,7 +28,7 @@ class CosvController(
     private val cosvService: CosvService,
 ) {
     /**
-     * @param id vulnerability name in save db
+     * @param id vulnerability identifier in save db
      * @return content of COSV
      */
     @RequiresAuthorizationSourceHeader
@@ -45,7 +45,7 @@ class CosvController(
      * @param content
      * @param authentication
      * @param organizationName
-     * @return list of save's vulnerability names
+     * @return list of save's vulnerability identifiers
      */
     @RequiresAuthorizationSourceHeader
     @PostMapping("/upload")
@@ -65,7 +65,7 @@ class CosvController(
      * @param filePartFlux
      * @param authentication
      * @param organizationName
-     * @return list of save's vulnerability names
+     * @return list of save's vulnerability identifiers
      */
     @RequiresAuthorizationSourceHeader
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

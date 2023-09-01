@@ -43,6 +43,7 @@ data class Organization(
         avatar = avatar,
         description = description.orEmpty(),
         canCreateContests = canCreateContests,
+        canBulkUpload = canBulkUpload,
         rating = rating,
     )
 
@@ -76,5 +77,6 @@ fun OrganizationDto.toOrganization() = Organization(
     avatar = avatar,
     description = description,
     canCreateContests = canCreateContests,
+    canBulkUpload = canBulkUpload,
     rating = rating,
 )
