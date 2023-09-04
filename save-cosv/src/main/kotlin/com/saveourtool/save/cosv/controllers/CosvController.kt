@@ -4,6 +4,7 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -28,17 +29,26 @@ class CosvController(
     private val cosvService: CosvService,
 ) {
     /**
-     * @param id vulnerability identifier in save db
+     * @param cosvId COSV identifier
      * @return content of COSV
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["/get-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getById(
-        @PathVariable id: String,
-    ): Mono<StringResponse> = cosvService.findById(id)
+        @PathVariable cosvId: String,
+    ): Mono<StringResponse> = cosvService.findById(cosvId)
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }
+
+    /**
+     * @param cosvId
+     * @return extended COSV
+     */
+    @GetMapping(path = ["/get-ext-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getRawById(
+        @PathVariable cosvId: String,
+    ): Mono<RawCosvExt> = cosvService.findExtByCosvId(cosvId)
 
     /**
      * @param sourceId

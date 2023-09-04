@@ -3,6 +3,7 @@ package com.saveourtool.save.cosv.repository
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.RawCosvExt
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Mono
@@ -37,12 +38,22 @@ interface CosvRepository {
     /**
      * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]
      *
-     * @param id
+     * @param cosvId
      * @param serializer [KSerializer] to decode entry from JSON
      * @return [Mono] with [CosvSchema]
      */
     fun <D, A_E, A_D, A_R_D> findLatestById(
-        id: String,
+        cosvId: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
     ): CosvSchemaMono<D, A_E, A_D, A_R_D>
+
+    /**
+     * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
+     *
+     * @param cosvId
+     * @return [Mono] with [RawCosvExt]
+     */
+    fun findLatestRawExt(
+        cosvId: String,
+    ): Mono<RawCosvExt>
 }
