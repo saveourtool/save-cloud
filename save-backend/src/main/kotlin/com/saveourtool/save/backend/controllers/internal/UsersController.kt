@@ -81,6 +81,6 @@ class UsersController(
     }
 
     companion object {
-        private val roleForNewUser = listOf(Role.VIEWER).joinToString(",")
+        private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
     }
 }

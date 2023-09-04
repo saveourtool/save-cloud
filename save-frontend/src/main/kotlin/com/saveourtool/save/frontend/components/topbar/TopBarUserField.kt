@@ -82,11 +82,10 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                             className = ClassName("mr-2 text-white-400")
                             +(props.userInfo?.name.orEmpty())
                         }
-                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
                         small {
                             className = ClassName("text-gray-400 text-justify")
                             props.userInfo?.let {
-                                if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
+                                if (props.userInfo.isSuperAdmin()) {
                                     +"Super user"
                                 } else {
                                     +"User settings"
