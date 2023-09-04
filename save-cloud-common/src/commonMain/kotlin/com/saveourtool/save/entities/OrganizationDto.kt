@@ -15,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @property avatar
  * @property description
  * @property canCreateContests
+ * @property canBulkUpload ability to bulk upload cosv files
  * @property rating
  */
 @Serializable
@@ -26,6 +27,7 @@ data class OrganizationDto(
     val avatar: String? = null,
     val description: String = "",
     val canCreateContests: Boolean = false,
+    val canBulkUpload: Boolean = false,
     val rating: Long = 0,
 ) : Validatable {
     /**

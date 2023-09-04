@@ -74,37 +74,33 @@ class CosvController(
     ): Mono<RawCosvExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
 
     /**
-     * @param id vulnerability name in save db
+     * @param cosvId COSV identifier
      * @return content of COSV
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["/get-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getById(
-        @PathVariable id: String,
-    ): Mono<StringResponse> = cosvService.findById(id)
+        @PathVariable cosvId: String,
+    ): Mono<StringResponse> = cosvService.findById(cosvId)
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }
 
     /**
-     * @param id vulnerability name in save db
-     * @return content of COSV
+     * @param cosvId
+     * @return extended COSV
      */
-    @RequiresAuthorizationSourceHeader
-    @GetMapping(path = ["/get-by-id/{id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getById(
-        @PathVariable id: String,
-    ): Mono<StringResponse> = cosvService.findById(id)
-        .map {
-            ResponseEntity.ok(Json.encodeToString(it))
-        }
+    @GetMapping(path = ["/get-ext-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun getRawById(
+        @PathVariable cosvId: String,
+    ): Mono<RawCosvExt> = cosvService.findExtByCosvId(cosvId)
 
     /**
      * @param sourceId
      * @param content
      * @param authentication
      * @param organizationName
-     * @return list of save's vulnerability names
+     * @return list of save's vulnerability identifiers
      */
     @RequiresAuthorizationSourceHeader
     @PostMapping("/upload")
@@ -124,7 +120,7 @@ class CosvController(
      * @param filePartFlux
      * @param authentication
      * @param organizationName
-     * @return list of save's vulnerability names
+     * @return list of save's vulnerability identifiers
      */
     @RequiresAuthorizationSourceHeader
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

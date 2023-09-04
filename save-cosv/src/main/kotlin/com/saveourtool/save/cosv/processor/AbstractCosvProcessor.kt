@@ -8,12 +8,11 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
-import com.saveourtool.osv4k.TimeLineEntry
-import com.saveourtool.osv4k.TimeLineEntryType
+import com.saveourtool.save.utils.getLanguage
+import com.saveourtool.save.utils.getSaveContributes
 import com.saveourtool.save.utils.getTimeline
 import reactor.core.publisher.Mono
 
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -43,18 +42,17 @@ abstract class AbstractCosvProcessor<D : Any, A_E : Any, A_D : Any, A_R_D : Any>
     protected abstract fun VulnerabilityDto.updateBySpecificFields(osv: CosvSchema<D, A_E, A_D, A_R_D>): VulnerabilityDto
 
     private fun <T : AnyCosvSchema> createFromCoreFields(osv: T): VulnerabilityDto = VulnerabilityDto(
-        name = osv.id,
-        vulnerabilityIdentifier = osv.id,  // should be replaced by alias
-        progress = 0,  // TODO: it can be presented in two ways cvss v3 and cvss v2
+        identifier = osv.id,
+        progress = osv.severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
         projects = emptyList(),  // TODO: need to refactor VulnerabilityProjectDto, COSV is basic
         description = osv.details,
         shortDescription = osv.summary.orEmpty(),
         relatedLink = null,
-        language = VulnerabilityLanguage.OTHER,  // it seems to be removed, since language is invalid here and valid on package level (affected)
+        language = osv.getLanguage() ?: VulnerabilityLanguage.OTHER,
         userInfo = UserInfo(name = ""),  // will be set on saving to database
         organization = null,
         dates = osv.getTimeline(),
-        participants = emptyList(),
+        participants = osv.getSaveContributes(),
         status = VulnerabilityStatus.CREATED,
         tags = setOf("cosv-schema")
     )

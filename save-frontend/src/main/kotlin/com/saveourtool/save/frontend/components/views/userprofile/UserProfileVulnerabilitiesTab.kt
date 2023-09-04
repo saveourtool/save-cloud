@@ -21,11 +21,11 @@ val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProp
     val vulnerabilityTable: FC<TableProps<VulnerabilityMetadata>> = tableComponent(
         columns = {
             columns {
-                column(id = "name", header = "Name", { this.name }) { cellContext ->
+                column(id = "name", header = "Name", { this.identifier }) { cellContext ->
                     Fragment.create {
                         td {
                             Link {
-                                to = "/${FrontendRoutes.VULN}/${cellContext.row.original.name}"
+                                to = "/${FrontendRoutes.VULNERABILITY_SINGLE}/${cellContext.row.original.identifier}"
                                 +cellContext.value
                             }
                         }

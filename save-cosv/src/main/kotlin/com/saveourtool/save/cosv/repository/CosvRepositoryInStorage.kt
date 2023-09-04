@@ -2,6 +2,7 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.backend.service.IBackendService
+import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
@@ -9,12 +10,16 @@ import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.utils.*
 
+import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
@@ -24,6 +29,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import kotlinx.serialization.serializer
 import kotlinx.serialization.serializer
 import reactor.core.publisher.Flux
 import javax.persistence.criteria.*
@@ -74,13 +80,15 @@ class CosvRepositoryInStorage(
                 if (existedMetadata.user.requiredId() != user.requiredId()) {
                     throw ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} by userId=${user.requiredId()}: already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
+                        "${errorPrefix()} by userId=${user.requiredId()}: " +
+                                "already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
                     )
                 }
-                if (existedMetadata.organization.requiredId() != organization.requiredId()) {
+                if (existedMetadata.organization?.requiredId() != organization.requiredId()) {
                     throw ResponseStatusException(
                         HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} to organizationId=${organization.requiredId()}: already existed in save in another userId=${existedMetadata.organization.requiredId()}",
+                        "${errorPrefix()} to organizationId=${organization.requiredId()}: " +
+                                "already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
                     )
                 }
                 existedMetadata.updateBy(entry)
@@ -205,6 +213,7 @@ class CosvRepositoryInStorage(
             published = (published ?: modified).toJavaLocalDateTime(),
             user = user,
             organization = organization,
+            language = getLanguage() ?: VulnerabilityLanguage.OTHER,
             status = VulnerabilityStatus.CREATED,
         )
 
@@ -217,6 +226,7 @@ class CosvRepositoryInStorage(
                 ?.toInt() ?: 0
             modified = entry.modified.toJavaLocalDateTime()
             published = (entry.published ?: entry.modified).toJavaLocalDateTime()
+            language = entry.getLanguage() ?: VulnerabilityLanguage.OTHER
         }
 
         private fun CosvMetadataDto.toStorageKey() = CosvKey(

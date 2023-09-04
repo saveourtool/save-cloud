@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
@@ -26,11 +27,11 @@ import web.cssom.ClassName
 private val vulnerabilityTable: FC<TableProps<VulnerabilityMetadata>> = tableComponent(
     columns = {
         columns {
-            column(id = "name", header = "Name", { this.name }) { cellContext ->
+            column(id = "name", header = "Name", { this.identifier }) { cellContext ->
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${FrontendRoutes.VULN}/${cellContext.row.original.name}"
+                            to = "/${FrontendRoutes.VULNERABILITY_SINGLE}/${cellContext.row.original.identifier}"
                             +cellContext.value
                         }
                     }
@@ -83,6 +84,14 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
     }
     div {
         className = ClassName("col-8 mx-auto mt-1 mb-3")
+
+        div {
+            className = ClassName("d-flex justify-content-center mb-3")
+
+            uploadCosvButton {
+                isImage = false
+            }
+        }
         if (vulnerabilities.isNotEmpty()) {
             vulnerabilityTable {
                 getData = { _, _ ->

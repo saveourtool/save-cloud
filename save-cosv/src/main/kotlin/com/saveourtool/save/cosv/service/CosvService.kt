@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.backend.service.IBackendService
+import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
@@ -41,7 +41,7 @@ class CosvService(
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability names
+     * @return save's vulnerability identifiers
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
@@ -64,7 +64,7 @@ class CosvService(
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability names
+     * @return save's vulnerability identifiers
      */
     fun decodeAndSave(
         sourceId: String,
@@ -99,21 +99,21 @@ class CosvService(
      * Creates entities in save database
      *
      * @receiver save's vulnerability
-     * @param user who uploads
-     * @return save's vulnerability names
+     * @param user [user] that uploads who uploads
+     * @return save's vulnerability identifiers
      */
     private fun Flux<VulnerabilityDto>.save(
         user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
-            vulnerabilities.map { backendService.saveVulnerability(it, user).name }
+            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
         }
         .flatMapIterable { it }
 
     /**
      * Finds COSV with validating save database
      *
-     * @param cosvId [VulnerabilityDto.name]
+     * @param cosvId [VulnerabilityDto.identifier]
      * @return found COSV
      */
     fun findById(
@@ -125,7 +125,7 @@ class CosvService(
             "Not found vulnerability $cosvId in save database"
         }
         .flatMap { vulnerability ->
-            cosvRepository.findLatestById(vulnerability.name, serializer<RawOsvSchema>())
+            cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
         }
 
     /**

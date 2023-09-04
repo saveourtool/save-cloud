@@ -2,6 +2,7 @@ package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
@@ -23,6 +24,8 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property published [com.saveourtool.osv4k.OsvSchema.published]
  * @property user [User] who uploaded COSV to save
  * @property organization [Organization] to which COSV was uploaded
+ * @property language
+ * @property status
  **/
 @Entity
 @Suppress("LongParameterList")
@@ -39,7 +42,8 @@ class CosvMetadata(
     var user: User,
     @ManyToOne
     @JoinColumn(name = "organization_id")
-    var organization: Organization,
+    var organization: Organization?,
+    var language: VulnerabilityLanguage,
     var status: VulnerabilityStatus,
 ) : BaseEntityWithDto<CosvMetadataDto>() {
     override fun toDto(): CosvMetadataDto = CosvMetadataDto(
@@ -51,7 +55,8 @@ class CosvMetadata(
         modified = modified.toKotlinLocalDateTime(),
         published = published.toKotlinLocalDateTime(),
         user = user.toUserInfo(),
-        organization = organization.toDto(),
+        organization = organization?.toDto(),
+        language = language,
         status = status,
     )
 
@@ -74,7 +79,8 @@ class CosvMetadata(
             modified = modified.toJavaLocalDateTime(),
             published = published.toJavaLocalDateTime(),
             user = userResolver(user.name),
-            organization = organizationResolver(organization.name),
+            organization = organization?.name?.let(organizationResolver),
+            language = language,
             status = status,
         )
     }

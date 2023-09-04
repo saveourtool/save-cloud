@@ -24,6 +24,7 @@ import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
+import com.saveourtool.save.frontend.components.views.vuln.uploadVulnerabilityView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
@@ -152,7 +153,7 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     val vulnerabilityView: VFC = withRouter { _, params ->
         vulnerabilityView {
-            name = requireNotNull(params["vulnerabilityName"])
+            identifier = requireNotNull(params["identifier"])
             currentUserInfo = props.userInfo
         }
     }
@@ -209,7 +210,8 @@ val basicRouting: FC<AppProps> = FC { props ->
             testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
             vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
-            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:vulnerabilityName",
+            uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,
+            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             demoCollectionView.create() to DEMO,
             userProfileView.create() to "$PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
