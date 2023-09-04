@@ -42,6 +42,6 @@
     </changeSet>
 
     <changeSet id="cosv-metadata-2" author="nulls">
-        <dropNotNullConstraint tableName="cosv_metadata" columnName="organization_id"/>
+        <dropNotNullConstraint tableName="cosv_metadata" columnName="organization_id" columnDataType="bigint"/>
     </changeSet>
 </databaseChangeLog>
