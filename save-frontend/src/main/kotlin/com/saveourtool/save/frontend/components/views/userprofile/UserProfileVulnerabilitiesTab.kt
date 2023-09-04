@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views.userprofile
 
-import com.saveourtool.save.entities.vulnerability.VulnerabilityMetadata
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
@@ -18,7 +18,7 @@ val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProp
         "TYPE_ALIAS",
         "MAGIC_NUMBER",
     )
-    val vulnerabilityTable: FC<TableProps<VulnerabilityMetadata>> = tableComponent(
+    val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "name", header = "Name", { this.identifier }) { cellContext ->
@@ -80,5 +80,5 @@ external interface UserProfileVulnerabilitiesTabProps : Props {
     /**
      * Just a list of vulnerabilities
      */
-    var vulnerabilities: Array<VulnerabilityMetadata>
+    var vulnerabilities: Array<VulnerabilityDto>
 }
