@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
 import com.saveourtool.save.domain.TestResultStatus
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Import
 @MockBeans(
     MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
+    MockBean(LnkCosvMetadataTagRepository::class),
 )
 class DatabaseTest {
     @Autowired
