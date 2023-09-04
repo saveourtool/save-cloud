@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
@@ -140,7 +140,7 @@ class CosvRepositoryInStorage(
     }
         .flatMap { it.toRawCosvExt() }
         .filter { rawCosvExt ->
-            filter.language?.let { rawCosvExt.cosv.getLanguage() == it } ?: true
+            filter.language?.let { rawCosvExt.language == it } ?: true
         }
 
     override fun findLatestRawExtByCosvIdAndStatus(
