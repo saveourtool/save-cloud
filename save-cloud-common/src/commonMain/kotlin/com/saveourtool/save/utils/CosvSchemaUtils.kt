@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.osv4k.ReferenceType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
@@ -60,3 +61,9 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
+
+/**
+ * @return relatedLink
+ */
+fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
+    ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()

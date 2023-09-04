@@ -6,7 +6,7 @@ import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
@@ -135,11 +135,11 @@ class CosvService(
      * Finds extended COSV
      *
      * @param cosvId [RawOsvSchema.id]
-     * @return found [RawCosvExt]
+     * @return found [VulnerabilityExt]
      */
     fun findExtById(
         cosvId: String,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExt(cosvId)
 
     /**
      * @param filter filter for COSV
@@ -151,7 +151,7 @@ class CosvService(
         filter: VulnerabilityFilter,
         isOwner: Boolean,
         authentication: Authentication?,
-    ): Flux<RawCosvExt> = cosvRepository.findRawExtByFilter(
+    ): Flux<VulnerabilityExt> = cosvRepository.findRawExtByFilter(
         if (isOwner) {
             authentication?.let { filter.copy(authorName = it.name) } ?: filter
         } else {
@@ -162,10 +162,10 @@ class CosvService(
     /**
      * @param cosvId
      * @param status
-     * @return found [RawCosvExt]
+     * @return found [VulnerabilityExt]
      */
     fun getByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
+    ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
 }

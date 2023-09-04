@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
@@ -99,16 +99,16 @@ class CosvRepositoryInStorage(
     ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { doDownload(it, serializer) }
 
-    override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+    override fun findLatestRawExt(cosvId: String): Mono<VulnerabilityExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
-    override fun findRawExtByFilter(filter: VulnerabilityFilter): Flux<RawCosvExt> = blockingToFlux {
+    override fun findRawExtByFilter(filter: VulnerabilityFilter): Flux<VulnerabilityExt> = blockingToFlux {
         cosvMetadataRepository.findAll { root, cq, cb ->
             with(filter) {
-                val namePredicate = if (prefixId.isBlank()) {
+                val namePredicate = if (identifierPrefix.isBlank()) {
                     cb.and()
                 } else {
-                    cb.like(root.get("cosvId"), "%$prefixId%")
+                    cb.like(root.get("cosvId"), "%$identifierPrefix%")
                 }
 
                 val statusPredicate = status?.let { status ->
@@ -140,13 +140,13 @@ class CosvRepositoryInStorage(
     }
         .flatMap { it.toRawCosvExt() }
         .filter { rawCosvExt ->
-            filter.language?.let { rawCosvExt.rawContent.getLanguage() == it } ?: true
+            filter.language?.let { rawCosvExt.cosv.getLanguage() == it } ?: true
         }
 
     override fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
+    ): Mono<VulnerabilityExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
         .flatMap { it.toRawCosvExt() }
 
     private fun getPredicateForTags(
@@ -179,11 +179,12 @@ class CosvRepositoryInStorage(
 
     private fun CosvMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
         .blockingMap { content ->
-            RawCosvExt(
+            VulnerabilityExt(
                 metadata = toDto(),
-                rawContent = content,
+                cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
-                tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet()
+                tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet(),
+                timeline = content.getTimeline(),
             )
         }
 

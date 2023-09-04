@@ -6,7 +6,7 @@ import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
@@ -49,7 +49,7 @@ class CosvController(
         @RequestBody filter: VulnerabilityFilter,
         @RequestParam(required = false, defaultValue = "false") isOwner: Boolean,
         authentication: Authentication?,
-    ): Flux<RawCosvExt> {
+    ): Flux<VulnerabilityExt> {
         if (
             // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
             filter.status != VulnerabilityStatus.APPROVED && authentication?.name != filter.authorName &&
@@ -71,7 +71,7 @@ class CosvController(
     fun getByCosvIdAndActive(
         @RequestParam cosvId: String,
         @RequestParam status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
+    ): Mono<VulnerabilityExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
 
     /**
      * @param cosvId COSV identifier
@@ -93,7 +93,7 @@ class CosvController(
     @GetMapping(path = ["/get-ext-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     fun getRawById(
         @PathVariable cosvId: String,
-    ): Mono<RawCosvExt> = cosvService.findExtByCosvId(cosvId)
+    ): Mono<VulnerabilityExt> = cosvService.findExtByCosvId(cosvId)
 
     /**
      * @param sourceId

@@ -3,7 +3,7 @@ package com.saveourtool.save.cosv.repository
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 
@@ -54,29 +54,29 @@ interface CosvRepository {
      * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
      *
      * @param cosvId
-     * @return [Mono] with [RawCosvExt]
+     * @return [Mono] with [VulnerabilityExt]
      */
     fun findLatestRawExt(
         cosvId: String,
-    ): Mono<RawCosvExt>
+    ): Mono<VulnerabilityExt>
 
     /**
      * Finds metadata of cosv by [filter]
      *
      * @param filter
-     * @return [Flux] with [RawCosvExt]
+     * @return [Flux] with [VulnerabilityExt]
      */
     fun findRawExtByFilter(
         filter: VulnerabilityFilter,
-    ): Flux<RawCosvExt>
+    ): Flux<VulnerabilityExt>
 
     /**
      * @param cosvId
      * @param status
-     * @return [RawCosvExt]
+     * @return [VulnerabilityExt]
      */
     fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<RawCosvExt>
+    ): Mono<VulnerabilityExt>
 }
