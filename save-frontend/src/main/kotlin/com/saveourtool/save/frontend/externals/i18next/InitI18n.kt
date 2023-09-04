@@ -36,7 +36,19 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     "Versions": "Versions",
                     "Sign in with": "Sign in with",
                     "Don't have an account?": "Don't have an account?",
-                    "with limited functionality": "with limited functionality"
+                    "with limited functionality": "with limited functionality",
+                    "Continue": "Continue",
+                    "Total number of submitted vulnerabilities": "Total number of submitted vulnerabilities",
+                    "Propose vulnerability": "Propose vulnerability",
+                    "Vulnerabilities": "Vulnerabilities",
+                    "Top Rating": "Top Rating",
+                    "No vulnerabilities were found for this organization.": "No vulnerabilities were found for this organization.",
+                    "You can be the first one to create vulnerability.": "You can be the first one to create vulnerability.",
+                    "Name": "Name",
+                    "Description": "Description",
+                    "Criticality": "Criticality",
+                    "Language": "Language"
+                    
                 },
                 "vulnerability-collection": $VULN_COLLECTION_EN,
                 "thanks-for-registration": $THANKS_FOR_REGISTRATION_EN,
@@ -63,8 +75,24 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     "Versions": "版本范围",
                     "Sign in with": "登录方式",
                     "Don't have an account?": "没有账户?",
-                    "with limited functionality": "部分功能使用受限"
-                }
+                    "with limited functionality": "部分功能使用受限",
+                    "Continue": "继续使用",
+                    "Total number of submitted vulnerabilities": "公开漏洞总数",
+                    "Propose vulnerability": "发布漏洞",
+                    "Vulnerabilities": "漏洞库",
+                    "Top Rating": "贡献排名",
+                    "No vulnerabilities were found for this organization.": "未找到当前组织提供的漏洞",
+                    "You can be the first one to create vulnerability.": "你可以成为第一位创建者",
+                    "Name": "漏洞名",
+                    "Description": "描述",
+                    "Criticality": "危险程度",
+                    "Language": "语言"
+                },
+                "vulnerability-collection": $VULN_COLLECTION_CN,
+                "vulnerability-upload": $VULN_UPLOAD_CN,
+                "table-headers": $TABLE_HEADERS_CN,
+                "topbar": $TOPBAR_CN,
+                "cookies": $COOKIES_CN,
             },
             ru: {
                 translation: {

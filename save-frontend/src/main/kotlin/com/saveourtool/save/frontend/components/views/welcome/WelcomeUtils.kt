@@ -85,7 +85,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
                         Link {
                             to = continueLink
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                            +"Continue "
+                            +"Continue".t()
                             fontAwesomeIcon(icon = faSignInAlt)
                         }
                     }
