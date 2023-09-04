@@ -152,6 +152,27 @@ internal class OrganizationController(
             it.organization.toDto()
         }
 
+    @GetMapping("/with-allow-bulk-upload")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get your organizations.",
+        description = "Get list of all organizations where current user is a participant.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationsByUserAndBulkUpload(
+        authentication: Authentication?,
+    ): Flux<OrganizationDto> = authentication.toMono()
+        .map { auth ->
+            auth.userId()
+        }
+        .flatMapMany {
+            lnkUserOrganizationService.findAllByAuthenticationAndStatusesAndBulkUpload(it)
+        }
+        .map {
+            it.organization.toDto()
+        }
+
     @GetMapping("/get/list-by-user-name")
     @PreAuthorize("permitAll()")
     @Operation(

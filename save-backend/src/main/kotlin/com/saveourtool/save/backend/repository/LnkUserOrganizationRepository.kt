@@ -77,6 +77,14 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     fun findByUserId(userId: Long): List<LnkUserOrganization>
 
     /**
+     * @param userId
+     * @param canBulkUpload
+     * @param statuses
+     * @return List of [LnkUserOrganization] in which user with [userId] participates
+     */
+    fun findByUserIdAndOrganizationCanBulkUploadAndOrganizationStatusIn(userId: Long, canBulkUpload: Boolean, statuses: Set<OrganizationStatus>): List<LnkUserOrganization>
+
+    /**
      * @param userName
      * @param status status of organization
      * @return List of [LnkUserOrganization] in which user with [userName] participates

@@ -37,7 +37,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     useRequest {
         val organizations = get(
-            url = "$apiUrl/organizations/get/list",
+            url = "$apiUrl/organizations/with-allow-bulk-upload",
             headers = jsonHeaders,
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
