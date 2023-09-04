@@ -4,13 +4,13 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.osv4k.ReferenceType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
+import com.saveourtool.osv4k.ReferenceType
 import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
 
@@ -47,6 +47,12 @@ fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.fir
     }
 }
 
+/**
+ * @return relatedLink
+ */
+fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
+    ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()
+
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
@@ -61,9 +67,3 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
-
-/**
- * @return relatedLink
- */
-fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
-    ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()
