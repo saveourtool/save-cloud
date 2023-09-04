@@ -6,8 +6,8 @@ import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
