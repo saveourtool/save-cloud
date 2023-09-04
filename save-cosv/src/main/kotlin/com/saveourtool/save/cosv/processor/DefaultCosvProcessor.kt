@@ -18,8 +18,6 @@ class DefaultCosvProcessor(
 ) : AbstractCosvProcessor<JsonObject, JsonObject, JsonObject, JsonObject>(cosvRepository, serializer()) {
     override val id: String = ID
 
-    override fun VulnerabilityDto.updateBySpecificFields(osv: RawOsvSchema): VulnerabilityDto = this
-
     companion object {
         /**
          * Identifier for [DefaultCosvProcessor]

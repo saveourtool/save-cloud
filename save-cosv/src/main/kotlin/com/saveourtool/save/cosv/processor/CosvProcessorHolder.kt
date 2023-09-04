@@ -2,6 +2,7 @@ package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -29,14 +30,14 @@ class CosvProcessorHolder(
      * @param id
      * @param user
      * @param organization
-     * @return [VulnerabilityDto] processed by [CosvProcessor] resolved by ID or [DefaultCosvProcessor]
+     * @return [CosvMetadataDto] processed by [CosvProcessor] resolved by ID or [DefaultCosvProcessor]
      */
     fun process(
         id: String = DefaultCosvProcessor.ID,
         jsonObject: JsonObject,
         user: User,
         organization: Organization,
-    ): Mono<VulnerabilityDto> {
+    ): Mono<CosvMetadataDto> {
         val cosvProcessor = cosvProcessors[id] ?: getDefaultOsvProcessorAsFallback(id)
         return cosvProcessor.process(jsonObject, user, organization)
     }

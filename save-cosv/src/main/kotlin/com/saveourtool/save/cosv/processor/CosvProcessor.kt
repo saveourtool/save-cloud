@@ -3,7 +3,7 @@ package com.saveourtool.save.cosv.processor
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 
 import reactor.core.publisher.Mono
 
@@ -13,7 +13,7 @@ import kotlinx.serialization.json.JsonObject
 typealias AnyCosvSchema = CosvSchema<out Any, out Any, out Any, out Any>
 
 /**
- * Processor of COSV entry which saves provided entry in save database.
+ * Processor of COSV entry which saves provided entry in saveourtool platform.
  */
 interface CosvProcessor {
     /**
@@ -25,11 +25,11 @@ interface CosvProcessor {
      * @param jsonObject should contain a single object only
      * @param user who uploads
      * @param organization to which is uploaded
-     * @return [VulnerabilityDto]
+     * @return [CosvMetadataDto]
      */
     fun process(
         jsonObject: JsonObject,
         user: User,
         organization: Organization,
-    ): Mono<VulnerabilityDto>
+    ): Mono<CosvMetadataDto>
 }

@@ -12,6 +12,7 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -44,7 +45,7 @@ class CosvService(
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
+     * @return vulnerability identifiers
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
@@ -57,7 +58,7 @@ class CosvService(
         val organization = backendService.getOrganizationByName(organizationName)
         return inputStreams.flatMap { inputStream ->
             decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
-        }.save(user)
+        }
     }
 
     /**
@@ -67,7 +68,7 @@ class CosvService(
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
+     * @return vulnerability identifiers
      */
     fun decodeAndSave(
         sourceId: String,
@@ -77,7 +78,7 @@ class CosvService(
     ): Flux<String> {
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
-        return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
+        return decode(sourceId, json.parseToJsonElement(content), user, organization)
     }
 
     /**
@@ -87,31 +88,17 @@ class CosvService(
      * @param jsonElement
      * @param user who uploads content
      * @param organization to which is uploaded
-     * @return save's vulnerability
+     * @return vulnerability identifier
      */
     private fun decode(
         sourceId: String,
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
-    ): Flux<VulnerabilityDto> = jsonElement.toMono()
+    ): Flux<String> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
         .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
-
-    /**
-     * Creates entities in save database
-     *
-     * @receiver save's vulnerability
-     * @param user [user] that uploads who uploads
-     * @return save's vulnerability identifiers
-     */
-    private fun Flux<VulnerabilityDto>.save(
-        user: User,
-    ): Flux<String> = collectList()
-        .blockingMap { vulnerabilities ->
-            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
-        }
-        .flatMapIterable { it }
+        .map { it.cosvId }
 
     /**
      * Finds COSV with validating save database
@@ -121,15 +108,7 @@ class CosvService(
      */
     fun findById(
         cosvId: String,
-    ): Mono<RawOsvSchema> = blockingToMono {
-        backendService.findVulnerabilityByName(cosvId)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found vulnerability $cosvId in save database"
-        }
-        .flatMap { vulnerability ->
-            cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
-        }
+    ): Mono<RawOsvSchema> = cosvRepository.findLatestById(cosvId, serializer<RawOsvSchema>())
 
     /**
      * Finds extended COSV

@@ -27,8 +27,6 @@ import reactor.core.publisher.Mono
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-typealias CosvMetadataDtoList = List<CosvMetadataDto>
-
 /**
  * Rest controller for COSVs
  */
@@ -85,15 +83,6 @@ class CosvController(
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }
-
-    /**
-     * @param cosvId
-     * @return extended COSV
-     */
-    @GetMapping(path = ["/get-ext-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getRawById(
-        @PathVariable cosvId: String,
-    ): Mono<VulnerabilityExt> = cosvService.findExtByCosvId(cosvId)
 
     /**
      * @param sourceId
