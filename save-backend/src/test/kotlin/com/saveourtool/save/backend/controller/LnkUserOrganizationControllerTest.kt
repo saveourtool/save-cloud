@@ -8,6 +8,7 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -34,9 +35,9 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @MockBeans(
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
-    MockBean(IVulnerabilityService::class),
+    MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
-    MockBean(IUserService::class),
+    MockBean(LnkCosvMetadataTagRepository::class),
 )
 @AutoConfigureWebTestClient
 class LnkUserOrganizationControllerTest {

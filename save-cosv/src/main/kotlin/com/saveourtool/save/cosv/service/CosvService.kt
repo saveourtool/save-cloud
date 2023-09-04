@@ -1,13 +1,12 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.save.backend.service.IOrganizationService
-import com.saveourtool.save.backend.service.IUserService
-import com.saveourtool.save.backend.service.IVulnerabilityService
+import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessorHolder
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
@@ -30,9 +29,7 @@ import kotlinx.serialization.serializer
 @Service
 class CosvService(
     private val cosvRepository: CosvRepository,
-    private val vulnerabilityService: IVulnerabilityService,
-    private val userService: IUserService,
-    private val organizationService: IOrganizationService,
+    private val backendService: IBackendService,
     private val cosvProcessorHolder: CosvProcessorHolder,
 ) {
     private val json = Json {
@@ -55,8 +52,8 @@ class CosvService(
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
-        val user = userService.getByName(authentication.name)
-        val organization = organizationService.getByName(organizationName)
+        val user = backendService.getUserByName(authentication.name)
+        val organization = backendService.getOrganizationByName(organizationName)
         return inputStreams.flatMap { inputStream ->
             decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
         }.save(user)
@@ -77,8 +74,8 @@ class CosvService(
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
-        val user = userService.getByName(authentication.name)
-        val organization = organizationService.getByName(organizationName)
+        val user = backendService.getUserByName(authentication.name)
+        val organization = backendService.getOrganizationByName(organizationName)
         return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
     }
 
@@ -111,7 +108,7 @@ class CosvService(
         user: User,
     ): Flux<String> = collectList()
         .blockingMap { vulnerabilities ->
-            vulnerabilities.map { vulnerabilityService.save(it, user).identifier }
+            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
         }
         .flatMapIterable { it }
 
@@ -124,7 +121,7 @@ class CosvService(
     fun findById(
         id: String,
     ): Mono<RawOsvSchema> = blockingToMono {
-        vulnerabilityService.findByName(id)
+        backendService.findVulnerabilityByName(id)
     }
         .switchIfEmptyToNotFound {
             "Not found vulnerability $id in save database"
@@ -132,4 +129,14 @@ class CosvService(
         .flatMap { vulnerability ->
             cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
         }
+
+    /**
+     * Finds extended OSV
+     *
+     * @param cosvId [RawOsvSchema.id]
+     * @return found extended OSV
+     */
+    fun findExtByCosvId(
+        cosvId: String,
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
 }
