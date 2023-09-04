@@ -160,6 +160,20 @@ class LnkUserOrganizationService(
     }
 
     /**
+     * @param userId ID of User
+     * @param statuses is set of [statuses], one of which a projects can have
+     * @param canBulkUpload ability to bulk upload cosv files
+     * @return Flux of [Organization]s in which user is in
+     */
+    fun findAllByAuthenticationAndStatusesAndBulkUpload(
+        userId: Long,
+        statuses: Set<OrganizationStatus> = setOf(OrganizationStatus.CREATED),
+        canBulkUpload: Boolean = true,
+    ) = blockingToFlux {
+        lnkUserOrganizationRepository.findByUserIdAndOrganizationCanBulkUploadAndOrganizationStatusIn(userId, canBulkUpload, statuses)
+    }
+
+    /**
      * @param userName name of User
      * @return list of lnkUserOrganization
      */
