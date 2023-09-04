@@ -2,7 +2,6 @@ package com.saveourtool.save.cosv.controllers
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.cosv.processor.DefaultCosvProcessor
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
@@ -84,7 +83,6 @@ class CosvController(
         }
 
     /**
-     * @param sourceId
      * @param content
      * @param authentication
      * @param organizationName
@@ -93,18 +91,16 @@ class CosvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping("/upload")
     fun upload(
-        @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
         @RequestParam organizationName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<StringListResponse> = cosvService.decodeAndSave(sourceId, content, authentication, organizationName)
+    ): Mono<StringListResponse> = cosvService.decodeAndSave(content, authentication, organizationName)
         .collectList()
         .map {
             ResponseEntity.ok(it)
         }
 
     /**
-     * @param sourceId
      * @param filePartFlux
      * @param authentication
      * @param organizationName
@@ -113,7 +109,6 @@ class CosvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
-        @RequestParam(required = false, defaultValue = DefaultCosvProcessor.ID) sourceId: String,
         @RequestParam organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
@@ -127,7 +122,7 @@ class CosvController(
                 .collectToInputStream()
         }
         .let { inputStreams ->
-            cosvService.decodeAndSave(sourceId, inputStreams, authentication, organizationName)
+            cosvService.decodeAndSave(inputStreams, authentication, organizationName)
         }
         .collectList()
         .map { ResponseEntity.ok(it) }
