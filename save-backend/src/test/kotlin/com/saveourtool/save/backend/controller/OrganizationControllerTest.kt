@@ -12,6 +12,7 @@ import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
@@ -89,6 +90,7 @@ import java.util.concurrent.TimeUnit
     MockBean(AvatarStorage::class),
     MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
+    MockBean(LnkCosvMetadataTagRepository::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

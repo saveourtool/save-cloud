@@ -13,6 +13,7 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -71,6 +72,7 @@ import kotlin.io.path.*
     MockBean(ExecutionInfoStorage::class),
     MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
+    MockBean(LnkCosvMetadataTagRepository::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {

@@ -1,7 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.backend.service.IBackendService
-import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
@@ -11,14 +10,11 @@ import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
 import com.saveourtool.save.entities.cosv.RawCosvExt
-import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -32,7 +28,6 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
-import kotlinx.serialization.serializer
 import kotlinx.serialization.serializer
 
 /**
