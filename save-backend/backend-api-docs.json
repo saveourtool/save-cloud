@@ -5369,6 +5369,101 @@
         ]
       }
     },
+    "/api/v1/organizations/{organizationName}/manage-bulk-upload-permission": {
+      "post": {
+        "description": "Make an organization to be able to bulk upload files.",
+        "operationId": "setAbilityToBulkUpload",
+        "parameters": [
+          {
+            "description": "name of an organization",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "new flag for bulk upload files ability",
+            "in": "query",
+            "name": "isAbleToToBulkUpload",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully changed ability to bulk upload files."
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Could not change ability to bulk upload files due to lack of permission."
+          },
+          "404": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Organization with such name was not found."
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Make an organization to be able to bulk upload files.",
+        "tags": [
+          "organizations"
+        ]
+      }
+    },
     "/api/v1/organizations/{organizationName}/manage-contest-permission": {
       "post": {
         "description": "Make an organization to be able to create contests.",
@@ -10328,31 +10423,17 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-id-name-and-status": {
+    "/api/v1/vulnerabilities/by-identifier": {
       "get": {
-        "description": "Get vulnerability by vulnerabilityIdentifier.",
-        "operationId": "getVulnerabilityByVulnerabilityIdentifierAndStatus",
+        "description": "Get vulnerability by identifier.",
+        "operationId": "getVulnerabilityByIdentifierAndActive",
         "parameters": [
           {
             "in": "query",
-            "name": "vulnerabilityIdentifier",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APPROVED",
-                "CREATED",
-                "REJECTED",
-                "REOPENED"
-              ]
             }
           }
         ],
@@ -10365,7 +10446,7 @@
                 }
               }
             },
-            "description": "Successfully fetched vulnerability by vulnerabilityIdentifier"
+            "description": "Successfully fetched vulnerability by identifier"
           },
           "401": {
             "content": {
@@ -10383,37 +10464,23 @@
             "basic": []
           }
         ],
-        "summary": "Get vulnerability by vulnerabilityIdentifier.",
+        "summary": "Get vulnerability by identifier.",
         "tags": [
           "vulnerabilities"
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-name-and-status": {
+    "/api/v1/vulnerabilities/by-identifier-with-description": {
       "get": {
-        "description": "Get vulnerability by name.",
-        "operationId": "getVulnerabilityByNameAndActive",
+        "description": "Get vulnerability by identifier with description.",
+        "operationId": "getVulnerabilityWithDescriptionByIdentifier",
         "parameters": [
           {
             "in": "query",
-            "name": "name",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APPROVED",
-                "CREATED",
-                "REJECTED",
-                "REOPENED"
-              ]
             }
           }
         ],
@@ -10426,7 +10493,7 @@
                 }
               }
             },
-            "description": "Successfully fetched vulnerability by name"
+            "description": "Successfully fetched vulnerability by identifier with description"
           },
           "401": {
             "content": {
@@ -10444,54 +10511,7 @@
             "basic": []
           }
         ],
-        "summary": "Get vulnerability by name.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/by-name-with-description": {
-      "get": {
-        "description": "Get vulnerability by name with description.",
-        "operationId": "getVulnerabilityWithDescriptionByName",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
-                }
-              }
-            },
-            "description": "Successfully fetched vulnerability by name with description"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get vulnerability by name with description.",
+        "summary": "Get vulnerability by identifier with description.",
         "tags": [
           "vulnerabilities"
         ]
@@ -10668,12 +10688,12 @@
     },
     "/api/v1/vulnerabilities/delete": {
       "delete": {
-        "description": "Deleted vulnerability.",
+        "description": "Deleted vulnerability by its identifier.",
         "operationId": "delete",
         "parameters": [
           {
             "in": "query",
-            "name": "name",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
@@ -10803,7 +10823,7 @@
           },
           {
             "in": "query",
-            "name": "vulnerabilityName",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
@@ -10850,7 +10870,7 @@
         "parameters": [
           {
             "in": "query",
-            "name": "vulnerabilityName",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
@@ -10928,10 +10948,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "userName": {
+                  "identifier": {
                     "type": "string"
                   },
-                  "vulnerabilityName": {
+                  "userName": {
                     "type": "string"
                   }
                 }
@@ -11271,7 +11291,7 @@
         "parameters": [
           {
             "in": "query",
-            "name": "vulnerabilityName",
+            "name": "identifier",
             "required": true,
             "schema": {
               "type": "string"
@@ -11349,10 +11369,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "userName": {
+                  "identifier": {
                     "type": "string"
                   },
-                  "vulnerabilityName": {
+                  "userName": {
                     "type": "string"
                   }
                 }
@@ -12720,6 +12740,9 @@
             "type": "integer",
             "format": "int64"
           },
+          "identifier": {
+            "type": "string"
+          },
           "isClosed": {
             "type": "boolean"
           },
@@ -12730,9 +12753,6 @@
             "type": "string"
           },
           "projectName": {
-            "type": "string"
-          },
-          "vulnerabilityName": {
             "type": "string"
           }
         }
@@ -13436,7 +13456,7 @@
         "required": [
           "date",
           "type",
-          "vulnerabilityName"
+          "vulnerabilityIdentifier"
         ],
         "type": "object",
         "properties": {
@@ -13455,7 +13475,7 @@
               "Withdrawn"
             ]
           },
-          "vulnerabilityName": {
+          "vulnerabilityIdentifier": {
             "type": "string"
           }
         }
@@ -13465,8 +13485,8 @@
           "allParticipants",
           "dates",
           "datesWithLabels",
+          "identifier",
           "language",
-          "name",
           "participants",
           "progress",
           "projects",
@@ -13501,6 +13521,9 @@
           "description": {
             "type": "string"
           },
+          "identifier": {
+            "type": "string"
+          },
           "language": {
             "type": "string",
             "enum": [
@@ -13521,9 +13544,6 @@
           },
           "lastUpdatedDateTime": {
             "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "name": {
-            "type": "string"
           },
           "organization": {
             "$ref": "#/components/schemas/OrganizationDto"
@@ -13568,21 +13588,21 @@
           },
           "userInfo": {
             "$ref": "#/components/schemas/UserInfo"
-          },
-          "vulnerabilityIdentifier": {
-            "type": "string"
           }
         }
       },
       "VulnerabilityFilter": {
         "required": [
+          "identifierPrefix",
           "isOwner",
-          "prefixName",
           "tags"
         ],
         "type": "object",
         "properties": {
           "authorName": {
+            "type": "string"
+          },
+          "identifierPrefix": {
             "type": "string"
           },
           "isOwner": {
@@ -13609,9 +13629,6 @@
           "organizationName": {
             "type": "string"
           },
-          "prefixName": {
-            "type": "string"
-          },
           "status": {
             "type": "string",
             "enum": [
@@ -13636,7 +13653,7 @@
           "type",
           "url",
           "versions",
-          "vulnerabilityName"
+          "vulnerabilityIdentifier"
         ],
         "type": "object",
         "properties": {
@@ -13657,7 +13674,7 @@
           "versions": {
             "type": "string"
           },
-          "vulnerabilityName": {
+          "vulnerabilityIdentifier": {
             "type": "string"
           }
         }
