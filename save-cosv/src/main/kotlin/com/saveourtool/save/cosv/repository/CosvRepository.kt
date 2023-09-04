@@ -5,7 +5,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.CosvFilter
+import com.saveourtool.save.filters.VulnerabilityFilter
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
@@ -67,7 +67,7 @@ interface CosvRepository {
      * @return [Flux] with [RawCosvExt]
      */
     fun findRawExtByFilter(
-        filter: CosvFilter,
+        filter: VulnerabilityFilter,
     ): Flux<RawCosvExt>
 
     /**

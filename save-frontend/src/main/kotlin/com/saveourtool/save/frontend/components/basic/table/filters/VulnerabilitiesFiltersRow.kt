@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.filters.CosvFilter
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.inputform.*
 import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
@@ -173,12 +173,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
  */
 external interface VulnerabilitiesFiltersProps : Props {
     /**
-     * All [CosvFilter]
+     * All [VulnerabilityFilter]
      */
-    var filter: CosvFilter
+    var filter: VulnerabilityFilter
 
     /**
-     * [StateSetter] for [CosvFilter]
+     * [StateSetter] for [VulnerabilityFilter]
      */
-    var onChangeFilter: (CosvFilter?) -> Unit
+    var onChangeFilter: (VulnerabilityFilter?) -> Unit
 }

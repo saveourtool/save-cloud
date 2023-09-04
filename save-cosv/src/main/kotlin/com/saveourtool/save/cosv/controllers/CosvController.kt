@@ -8,7 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.CosvFilter
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -46,7 +46,7 @@ class CosvController(
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all vulnerabilities by filters")
     fun getByFilter(
-        @RequestBody filter: CosvFilter,
+        @RequestBody filter: VulnerabilityFilter,
         @RequestParam(required = false, defaultValue = "false") isOwner: Boolean,
         authentication: Authentication?,
     ): Flux<RawCosvExt> {

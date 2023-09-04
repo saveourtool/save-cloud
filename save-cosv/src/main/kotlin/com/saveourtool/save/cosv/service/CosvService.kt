@@ -8,7 +8,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.filters.CosvFilter
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
@@ -148,7 +148,7 @@ class CosvService(
      * @return list of OSV with that match [filter]
      */
     fun getByFilter(
-        filter: CosvFilter,
+        filter: VulnerabilityFilter,
         isOwner: Boolean,
         authentication: Authentication?,
     ): Flux<RawCosvExt> = cosvRepository.findRawExtByFilter(

@@ -15,7 +15,7 @@ import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.CosvFilter
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
@@ -107,7 +107,7 @@ class CosvRepositoryInStorage(
     override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
-    override fun findRawExtByFilter(filter: CosvFilter): Flux<RawCosvExt> = blockingToFlux {
+    override fun findRawExtByFilter(filter: VulnerabilityFilter): Flux<RawCosvExt> = blockingToFlux {
         cosvMetadataRepository.findAll { root, cq, cb ->
             with(filter) {
                 val namePredicate = if (prefixId.isBlank()) {

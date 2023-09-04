@@ -147,7 +147,7 @@ val basicRouting: FC<AppProps> = FC { props ->
     val vulnerabilityCollectionView: VFC = withRouter { _, params ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
-            filter = URLSearchParams(useLocation().search).toCosvFilter()
+            filter = URLSearchParams(useLocation().search).toVulnerabilitiesFilter()
         }
     }
 
