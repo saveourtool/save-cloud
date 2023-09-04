@@ -11,21 +11,21 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.CosvFilter
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.springframework.http.HttpStatus
-import org.springframework.web.server.ResponseStatusException
 
 typealias CosvMetadataDtoList = List<CosvMetadataDto>
 
@@ -51,10 +51,10 @@ class CosvController(
         authentication: Authentication?,
     ): Flux<RawCosvExt> {
         if (
-        // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
+            // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
             filter.status != VulnerabilityStatus.APPROVED && authentication?.name != filter.authorName &&
-            // only if user is NOT admin, if admin - everything is fine
-            authentication?.hasRole(Role.SUPER_ADMIN) == false
+                    // only if user is NOT admin, if admin - everything is fine
+                    authentication?.hasRole(Role.SUPER_ADMIN) == false
         ) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN)
         }

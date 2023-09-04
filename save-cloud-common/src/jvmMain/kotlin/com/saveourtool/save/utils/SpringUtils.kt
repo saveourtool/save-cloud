@@ -63,6 +63,14 @@ inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotF
 }
 
 /**
+ * Check role out of [Authentication]
+ *
+ * @param role
+ * @return true if user with [Authentication] has [role], false otherwise
+ */
+fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
+
+/**
  * @param statusCode [HttpStatusCode] that should be set to [StringResponse]
  * @param loggingMethod method that should be used for logging e.g. logger::info
  * @param lazyMessage callback that generates a message
@@ -77,11 +85,3 @@ fun logAndRespond(
 }.let {
     ResponseEntity.status(statusCode.value).body(it)
 }
-
-/**
- * Check role out of [Authentication]
- *
- * @param role
- * @return true if user with [Authentication] has [role], false otherwise
- */
-fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }

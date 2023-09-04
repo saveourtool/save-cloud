@@ -4,14 +4,14 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
-
-import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.CosvFilter
+
+import com.saveourtool.osv4k.OsvSchema
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 import kotlinx.serialization.KSerializer
-import reactor.core.publisher.Flux
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
 typealias CosvSchemaMono<D, A_E, A_D, A_R_D> = Mono<CosvSchema<D, A_E, A_D, A_R_D>>
@@ -70,6 +70,11 @@ interface CosvRepository {
         filter: CosvFilter,
     ): Flux<RawCosvExt>
 
+    /**
+     * @param cosvId
+     * @param status
+     * @return [RawCosvExt]
+     */
     fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,

@@ -27,6 +27,7 @@ interface IBackendService {
         vulnerabilityDto: VulnerabilityDto,
         user: User,
     ): Vulnerability
+
     /**
      * @param name name of organization
      * @return found [Organization] by name

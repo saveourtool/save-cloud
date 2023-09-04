@@ -3,7 +3,6 @@ package com.saveourtool.save.cosv.processor
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityMetadata
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 
