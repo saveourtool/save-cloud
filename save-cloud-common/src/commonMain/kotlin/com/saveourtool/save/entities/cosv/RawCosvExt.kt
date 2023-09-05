@@ -12,7 +12,7 @@ import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
  * @property timeline
  **/
 data class RawCosvExt(
-    val metadata: CosvMetadataDto,
+    val metadata: VulnerabilityMetadataDto,
     val rawContent: RawCosvSchema,
     val saveContributors: List<UserInfo>,
     val tags: Set<String>,

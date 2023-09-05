@@ -2,7 +2,7 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
 
 import com.saveourtool.osv4k.OsvSchema
@@ -33,7 +33,7 @@ interface CosvRepository {
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
-    ): Mono<CosvMetadataDto>
+    ): Mono<VulnerabilityMetadataDto>
 
     /**
      * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]

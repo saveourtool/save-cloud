@@ -7,14 +7,14 @@ import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
 
 /**
- * @property cosvMetadata [CosvMetadata]
- * @property tag [Tag] associated with [cosvMetadata]
+ * @property vulnerabilityMetadata [VulnerabilityMetadata]
+ * @property tag [Tag] associated with [vulnerabilityMetadata]
  */
 @Entity
 class LnkCosvMetadataTag(
     @ManyToOne
     @JoinColumn(name = "cosv_metadata_id")
-    var cosvMetadata: CosvMetadata,
+    var vulnerabilityMetadata: VulnerabilityMetadata,
 
     @ManyToOne
     @JoinColumn(name = "tag_id")
