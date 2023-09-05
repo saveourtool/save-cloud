@@ -23,6 +23,7 @@ class UserPermissionController(
 ) {
     /**
      * @param authentication
+     * @return UserPermissions
      */
     @GetMapping("/users/permissions")
     fun getUserPermissions(
@@ -34,6 +35,7 @@ class UserPermissionController(
     /**
      * @param authentication
      * @param organizationName
+     * @return UserPermissions
      */
     @GetMapping("/users/permissions-by-organization")
     fun getUserPermissions(
