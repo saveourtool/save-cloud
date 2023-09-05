@@ -23,6 +23,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     "Notifications": "Notifications"
                 },
                 "vulnerability-collection": $VULN_COLLECTION_EN,
+                "thanks-for-registration": $THANKS_FOR_REGISTRATION_EN,
                 "vulnerability-upload": $VULN_UPLOAD_EN,
                 "table-headers": $TABLE_HEADERS_EN,
                 "topbar": $TOPBAR_EN,
@@ -38,6 +39,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     "Notifications": "Уведомления"
                 },
                 "vulnerability-collection": $VULN_COLLECTION_RU,
+                "thanks-for-registration": $THANKS_FOR_REGISTRATION_RU,
                 "vulnerability-upload": $VULN_UPLOAD_RU,
                 "table-headers": $TABLE_HEADERS_RU,
                 "topbar": $TOPBAR_RU,

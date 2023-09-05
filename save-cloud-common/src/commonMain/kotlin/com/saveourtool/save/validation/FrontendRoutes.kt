@@ -42,6 +42,7 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_PROFILE("$SETTINGS/profile"),
     SETTINGS_TOKEN("$SETTINGS/token"),
     TERMS_OF_USE("terms-of-use"),
+    THANKS_FOR_REGISTRATION("thanks-for-registration"),
     UPLOAD_VULNERABILITY("vuln/upload-vulnerability"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
@@ -60,6 +61,7 @@ enum class FrontendRoutes(val path: String) {
             INDEX,
             ERROR_404,
             TERMS_OF_USE,
+            THANKS_FOR_REGISTRATION,
         )
 
         /**

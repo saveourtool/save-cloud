@@ -217,6 +217,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
+            thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter
