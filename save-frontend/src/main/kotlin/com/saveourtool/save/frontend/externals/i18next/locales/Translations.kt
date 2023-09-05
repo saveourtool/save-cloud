@@ -120,3 +120,17 @@ const val COOKIES_RU = """
     "Read more": "Узнать больше"
 }
 """
+
+const val THANKS_FOR_REGISTRATION_EN = """
+{
+    "Thank you for registration": "Thank you for registration",
+    "Your request is pending review": "Right now the platform is still in development. Our admin team will soon review your request and approve it if everything is fine. Don't hesitate to contact us if you have any question:"
+}
+"""
+
+const val THANKS_FOR_REGISTRATION_RU = """
+{
+    "Thank you for registration": "Спасибо за регистрацию!",
+    "Your request is pending review": "SaveOurTool все еще находится на этапе разработки. Наша команда админов в скором времени рассмотрит Вашу заявку и одобрит ее в случае если все в порядке. Не стесняйтесь обращаться к нам по всем вопросам:"
+}
+"""

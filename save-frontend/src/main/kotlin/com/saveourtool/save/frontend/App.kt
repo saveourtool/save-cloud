@@ -86,6 +86,11 @@ val App: VFC = FC {
                     to = "/${FrontendRoutes.BAN}"
                     replace = false
                 }
+            } else if (userInfo?.status == UserStatus.NOT_APPROVED) {
+                Navigate {
+                    to = "/${FrontendRoutes.THANKS_FOR_REGISTRATION}"
+                    replace = false
+                }
             }
 
             div {

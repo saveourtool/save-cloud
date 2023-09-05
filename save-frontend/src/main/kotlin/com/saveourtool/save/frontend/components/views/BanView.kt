@@ -12,7 +12,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
 import react.FC
-import react.PropsWithChildren
+import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p
@@ -66,7 +66,7 @@ val banView: FC<BanProps> = FC { props ->
 /**
  * `Props` retrieved from router
  */
-external interface BanProps : PropsWithChildren {
+external interface BanProps : Props {
     /**
      * Currently logged-in user or null
      */
