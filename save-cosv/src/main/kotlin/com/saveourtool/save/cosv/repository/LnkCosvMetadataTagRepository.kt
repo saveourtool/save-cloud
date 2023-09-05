@@ -30,6 +30,12 @@ interface LnkCosvMetadataTagRepository : BaseEntityRepository<LnkCosvMetadataTag
     fun findByCosvMetadataId(cosvMetadataId: Long): List<LnkCosvMetadataTag>
 
     /**
+     * @param cosvId id of COSV
+     * @return list of [LnkCosvMetadataTag] links to COSV metadata
+     */
+    fun findAllByCosvMetadataCosvId(cosvId: String): List<LnkCosvMetadataTag>
+
+    /**
      * @param cosvMetadataIds [List] of [CosvMetadata.id]s
      * @return list of [LnkCosvMetadataTag] links to COSV metadata
      */

@@ -107,26 +107,4 @@ data class RawCosvExt(
     fun toVulnerabilityDtoWithDescription() = metadata.toVulnerabilityDto().copy(
         description = metadata.details
     )
-
-    companion object {
-        val empty = RawCosvExt(
-            metadata = CosvMetadataDto(
-                cosvId = "",
-                summary = "",
-                details = "",
-                severity = null,
-                severityNum = 0,
-                modified = getCurrentLocalDateTime(),
-                published = getCurrentLocalDateTime(),
-                user = UserInfo(name = ""),
-                organization = null,
-                language = VulnerabilityLanguage.OTHER,
-                status = VulnerabilityStatus.CREATED,
-            ),
-            cosv = RawOsvSchema(id = "", modified = getCurrentLocalDateTime()),
-            saveContributors = emptyList(),
-            tags = emptySet(),
-            timeline = emptyList(),
-        )
-    }
 }

@@ -51,10 +51,4 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
      * @return [Page] of users with names that start with [prefix]
      */
     fun findByNameStartingWith(prefix: String, page: Pageable): Page<User>
-
-    /**
-     * @param names
-     * @return list of users with [names]
-     */
-    fun findAllByNameIn(names: Collection<String>): List<User>
 }

@@ -159,9 +159,6 @@ class CosvRepositoryInStorage(
         }.distinctBy { it.requiredId() }
     }
         .flatMap { it.toRawCosvExt() }
-        .filter { rawCosvExt ->
-            filter.language?.let { rawCosvExt.language == it } ?: true
-        }
 
     override fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
@@ -219,6 +216,19 @@ class CosvRepositoryInStorage(
     override fun findAllLatestRawExtByUserName(userName: String): Flux<RawCosvExt> = blockingToFlux {
         cosvMetadataRepository.findAllByUserName(userName)
     }.flatMap { it.toRawCosvExt() }
+
+    override fun delete(cosvId: String): Mono<Unit> = blockingToMono {
+        cosvMetadataRepository.findByCosvId(cosvId)?.let {
+            cosvMetadataRepository.delete(it)
+        }
+    }.flatMap {
+        cosvStorage.list().filter { it.id == cosvId }
+            .flatMap { cosvStorage.delete(it) }
+            .collectList()
+            .map {
+                // all removed
+            }
+    }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(

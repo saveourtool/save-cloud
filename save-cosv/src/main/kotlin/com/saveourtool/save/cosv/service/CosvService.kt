@@ -13,6 +13,7 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import kotlinx.datetime.LocalDateTime
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -178,5 +179,37 @@ class CosvService(
             user = user,
             organization = organization,
         )
+    }
+
+    /**
+     * @param cosvId
+     * @param updater
+     * @return [Mono] with new metadata
+     */
+    fun update(
+        cosvId: String,
+        updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
+    ): Mono<CosvMetadataDto> {
+        return cosvRepository.findLatestRawExt(cosvId)
+            .blockingMap { rawCosvExt ->
+                rawCosvExt to Pair(
+                    backendService.getUserByName(rawCosvExt.metadata.user.name),
+                    rawCosvExt.metadata.organization?.name?.let { organizationName ->
+                        backendService.getOrganizationByName(organizationName)
+                    }
+                )
+            }
+            .flatMap { (rawCosvExt, infoFromDatabase) ->
+                val (owner, organization) = infoFromDatabase
+                updater(rawCosvExt.cosv)
+                    .flatMap { newCosv ->
+                        cosvRepository.save(
+                            entry = rawCosvExt.cosv.copy(modified = getCurrentLocalDateTime()),
+                            serializer = serializer(),
+                            user = owner,
+                            organization = organization,
+                        )
+                    }
+            }
     }
 }

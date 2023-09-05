@@ -89,4 +89,12 @@ interface CosvRepository {
     fun findAllLatestRawExtByUserName(
         userName: String,
     ): Flux<RawCosvExt>
+
+    /**
+     * @param cosvId
+     * @return empty [Mono]
+     */
+    fun delete(
+        cosvId: String,
+    ): Mono<Unit>
 }

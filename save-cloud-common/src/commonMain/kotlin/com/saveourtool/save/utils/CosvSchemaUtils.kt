@@ -31,9 +31,9 @@ fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
     .orEmpty()
 
 /**
- * @return list of [Credit]
+ * @return [Credit]
  */
-fun List<UserInfo>.asCredits(): List<Credit> = map {
+fun UserInfo.asCredit(): Credit = let {
     Credit(
         name = it.name,
         contact = listOf(
@@ -44,6 +44,11 @@ fun List<UserInfo>.asCredits(): List<Credit> = map {
 }
 
 /**
+ * @return list of [Credit]
+ */
+fun List<UserInfo>.asCredits(): List<Credit> = map { it.asCredit() }
+
+/**
  * @return timeline as [List] of [VulnerabilityDateDto]
  */
 fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList {
@@ -52,6 +57,22 @@ fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
 }
+
+/**
+ * @return [TimeLineEntry]
+ */
+fun VulnerabilityDateDto.asTimelineEntry(): TimeLineEntry =  TimeLineEntry(
+    value = date,
+    type = when (type) {
+        VulnerabilityDateType.DISCLOSED -> TimeLineEntryType.disclosed
+        VulnerabilityDateType.FIXED -> TimeLineEntryType.fixed
+        VulnerabilityDateType.FOUND -> TimeLineEntryType.found
+        VulnerabilityDateType.INTRODUCED -> TimeLineEntryType.introduced
+        VulnerabilityDateType.MODIFIED -> throw IllegalArgumentException("Not supported date change")
+        VulnerabilityDateType.PUBLISHED -> throw IllegalArgumentException("Not supported date change")
+        VulnerabilityDateType.WITHDRAWN -> throw IllegalArgumentException("Not supported date change")
+    }
+)
 
 /**
  * @return language as [VulnerabilityLanguage]
