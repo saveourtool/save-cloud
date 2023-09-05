@@ -1,6 +1,5 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.osv4k.*
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
@@ -13,6 +12,7 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.utils.*
 
+import com.saveourtool.osv4k.*
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux

@@ -5,14 +5,7 @@ import com.saveourtool.save.cosv.repository.CosvSchemaKSerializer
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.utils.getLanguage
-import com.saveourtool.save.utils.getSaveContributes
-import com.saveourtool.save.utils.getTimeline
 
-import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 

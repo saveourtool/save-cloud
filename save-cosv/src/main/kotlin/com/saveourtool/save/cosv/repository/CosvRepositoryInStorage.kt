@@ -9,6 +9,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
+import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
@@ -16,7 +17,6 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
-import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException

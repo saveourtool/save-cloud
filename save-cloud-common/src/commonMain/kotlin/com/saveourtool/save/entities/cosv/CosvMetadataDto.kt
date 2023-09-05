@@ -42,7 +42,7 @@ data class CosvMetadataDto(
         projects = emptyList(),  // TODO: not supported yet
         description = null,  // it's empty by old logic
         shortDescription = summary,
-        relatedLink = null, // FIXME: related link is not available here
+        relatedLink = null,  // FIXME: related link is not available here
         language = language,
         userInfo = user,  // it was empty in old logic, but will populate to simplify the logic
         organization = organization,

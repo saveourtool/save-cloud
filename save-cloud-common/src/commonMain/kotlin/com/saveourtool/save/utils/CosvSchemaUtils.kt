@@ -9,12 +9,12 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
-import com.saveourtool.osv4k.TimeLineEntry
-import com.saveourtool.osv4k.TimeLineEntryType
 import com.saveourtool.osv4k.Credit
 import com.saveourtool.osv4k.CreditType
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 import com.saveourtool.osv4k.ReferenceType
+import com.saveourtool.osv4k.TimeLineEntry
+import com.saveourtool.osv4k.TimeLineEntryType
 
 import kotlinx.datetime.LocalDateTime
 
