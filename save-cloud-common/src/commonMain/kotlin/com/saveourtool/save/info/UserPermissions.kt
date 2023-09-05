@@ -3,13 +3,11 @@ package com.saveourtool.save.info
 import kotlinx.serialization.Serializable
 
 /**
- * @property isPermittedCreateContest permission for create contests
- * @property isPermittedToBulkUpload permission for upload COSV files
- * @property organizationName name of organization
+ * @property isPermittedCreateContest permission for create contests in organizations
+ * @property isPermittedToBulkUpload permission for upload COSV files in organizations
  */
 @Serializable
 data class UserPermissions(
-    val isPermittedCreateContest: Boolean = false,
-    val isPermittedToBulkUpload: Boolean = false,
-    val organizationName: String? = null,
+    val isPermittedCreateContest: Map<String, Boolean> = emptyMap(),
+    val isPermittedToBulkUpload: Map<String, Boolean> = emptyMap(),
 )

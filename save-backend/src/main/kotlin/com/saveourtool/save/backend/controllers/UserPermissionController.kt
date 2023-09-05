@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.backend.security.UserPermissionEvaluator
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.info.UserPermissions
-import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.v1
 import org.springframework.security.core.Authentication
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 /**
@@ -29,7 +27,7 @@ class UserPermissionController(
     @GetMapping("/users/permissions")
     fun getUserPermissions(
         authentication: Authentication,
-    ): Flux<UserPermissions> = blockingToFlux {
+    ): Mono<UserPermissions> = blockingToMono {
         userPermissionEvaluator.getUserPermissions(authentication)
     }
 

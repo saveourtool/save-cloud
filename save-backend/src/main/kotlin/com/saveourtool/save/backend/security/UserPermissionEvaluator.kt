@@ -15,20 +15,20 @@ class UserPermissionEvaluator(
 ) {
     /**
      * @param authentication
-     * @return list of UserPermissions in organizations
+     * @return UserPermissions
      */
     fun getUserPermissions(
         authentication: Authentication,
-    ): List<UserPermissions> {
+    ): UserPermissions {
         val lnkOrganizations = lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(authentication.username())
 
-        return lnkOrganizations.map {
-            UserPermissions(
-                it.organization.canCreateContests,
-                it.organization.canBulkUpload,
-                it.organization.name,
-            )
-        }
+        val isPermittedCreateContest = lnkOrganizations.associate { it.organization.name to it.organization.canCreateContests }
+        val isPermittedToBulkUpload = lnkOrganizations.associate { it.organization.name to it.organization.canBulkUpload }
+
+        return UserPermissions(
+            isPermittedCreateContest,
+            isPermittedToBulkUpload,
+        )
     }
 
     /**
@@ -46,9 +46,8 @@ class UserPermissionEvaluator(
         val isPermittedToBulkUpload = lnkOrganization?.organization?.canBulkUpload ?: false
 
         return UserPermissions(
-            isPermittedCreateContest,
-            isPermittedToBulkUpload,
-            organizationName,
+            mapOf(organizationName to isPermittedCreateContest),
+            mapOf(organizationName to isPermittedToBulkUpload),
         )
     }
 }
