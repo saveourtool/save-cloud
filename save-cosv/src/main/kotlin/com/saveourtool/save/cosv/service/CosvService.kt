@@ -4,16 +4,17 @@ import com.saveourtool.osv4k.*
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
+import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.save.cosv.repository.CosvSchema
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.osv4k.*
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -25,6 +26,8 @@ import java.io.InputStream
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
+
+private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 /**
  * Service for vulnerabilities
@@ -152,14 +155,20 @@ class CosvService(
         status: VulnerabilityStatus,
     ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
 
-    fun save(
+    /**
+     * Generates COSV from [VulnerabilityDto] and saves it
+     *
+     * @param vulnerabilityDto as a source for COSV
+     * @return [CosvMetadataDto] saved metadata
+     */
+    fun generateAndSave(
         vulnerabilityDto: VulnerabilityDto,
     ): Mono<CosvMetadataDto> = blockingToMono {
         val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
         val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
         user to organization
     }.flatMap { (user, organization) ->
-        val osv = CosvSchema<Unit, Unit, Unit, Unit>(
+        val osv = ManualCosvSchema(
             id = vulnerabilityDto.identifier,
             published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
             modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),

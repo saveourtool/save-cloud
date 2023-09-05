@@ -10,6 +10,8 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
+import com.saveourtool.osv4k.Credit
+import com.saveourtool.osv4k.CreditType
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
@@ -38,6 +40,7 @@ fun List<UserInfo>.asCredits(): List<Credit> = map {
         type = CreditType.REPORTER,
     )
 }
+
 /**
  * @return timeline as [List] of [VulnerabilityDateDto]
  */
