@@ -99,7 +99,7 @@ class CosvService(
         .map { it.cosvId }
 
     /**
-     * Finds COSV with validating save database
+     * Finds COSV
      *
      * @param cosvId [VulnerabilityDto.identifier]
      * @return found COSV
