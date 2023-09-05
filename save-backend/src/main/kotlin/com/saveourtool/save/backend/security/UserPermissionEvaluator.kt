@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.security
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.info.UserPermissions
+import com.saveourtool.save.info.UserPermissionsInOrganization
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
@@ -22,12 +23,8 @@ class UserPermissionEvaluator(
     ): UserPermissions {
         val lnkOrganizations = lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(authentication.username())
 
-        val isPermittedCreateContest = lnkOrganizations.associate { it.organization.name to it.organization.canCreateContests }
-        val isPermittedToBulkUpload = lnkOrganizations.associate { it.organization.name to it.organization.canBulkUpload }
-
         return UserPermissions(
-            isPermittedCreateContest,
-            isPermittedToBulkUpload,
+            lnkOrganizations.associate { it.organization.name to UserPermissionsInOrganization(it.organization.canCreateContests, it.organization.canBulkUpload) },
         )
     }
 
@@ -36,7 +33,7 @@ class UserPermissionEvaluator(
      * @param organizationName
      * @return UserPermissions
      */
-    fun getUserPermissions(
+    fun getUserPermissionsByOrganizationName(
         authentication: Authentication,
         organizationName: String,
     ): UserPermissions {
@@ -46,8 +43,7 @@ class UserPermissionEvaluator(
         val isPermittedToBulkUpload = lnkOrganization?.organization?.canBulkUpload ?: false
 
         return UserPermissions(
-            mapOf(organizationName to isPermittedCreateContest),
-            mapOf(organizationName to isPermittedToBulkUpload),
+            mapOf(organizationName to UserPermissionsInOrganization(isPermittedCreateContest, isPermittedToBulkUpload)),
         )
     }
 }

@@ -40,6 +40,6 @@ class UserPermissionController(
         authentication: Authentication,
         @RequestParam organizationName: String,
     ): Mono<UserPermissions> = blockingToMono {
-        userPermissionEvaluator.getUserPermissions(authentication, organizationName)
+        userPermissionEvaluator.getUserPermissionsByOrganizationName(authentication, organizationName)
     }
 }
