@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
-import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
@@ -102,13 +102,13 @@ class CosvRepositoryInStorage(
     ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { doDownload(it, serializer) }
 
-    override fun findLatestRawExt(cosvId: String): Mono<VulnerabilityExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
+    override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
     override fun findRawExtByFilter(
         filter: VulnerabilityFilter,
         userId: Long?,
-    ): Flux<VulnerabilityExt> = blockingToFlux {
+    ): Flux<RawCosvExt> = blockingToFlux {
         cosvMetadataRepository.findAll { root, cq, cb ->
             with(filter) {
                 val namePredicate = if (identifierPrefix.isBlank()) {
@@ -166,7 +166,7 @@ class CosvRepositoryInStorage(
     override fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<VulnerabilityExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
+    ): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
         .flatMap { it.toRawCosvExt() }
 
     private fun getPredicateForTags(
@@ -199,7 +199,7 @@ class CosvRepositoryInStorage(
 
     private fun CosvMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
         .blockingMap { content ->
-            VulnerabilityExt(
+            RawCosvExt(
                 metadata = toDto(),
                 cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
@@ -216,7 +216,7 @@ class CosvRepositoryInStorage(
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
-    override fun findAllLatestRawExtByUserName(userName: String): Flux<VulnerabilityExt> = blockingToFlux {
+    override fun findAllLatestRawExtByUserName(userName: String): Flux<RawCosvExt> = blockingToFlux {
         cosvMetadataRepository.findAllByUserName(userName)
     }.flatMap { it.toRawCosvExt() }
 

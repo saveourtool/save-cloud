@@ -3,22 +3,18 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -44,7 +40,7 @@ class CosvController(
     fun getByCosvIdAndActive(
         @RequestParam cosvId: String,
         @RequestParam status: VulnerabilityStatus,
-    ): Mono<VulnerabilityExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
+    ): Mono<RawCosvExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
 
     /**
      * @param cosvId COSV identifier

@@ -10,11 +10,9 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
-import com.saveourtool.save.filters.VulnerabilityFilter
+import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.osv4k.*
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -112,31 +110,31 @@ class CosvService(
      * Finds extended COSV
      *
      * @param cosvId [RawOsvSchema.id]
-     * @return found [VulnerabilityExt]
+     * @return found [RawCosvExt]
      */
     fun findExtById(
         cosvId: String,
-    ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
 
     /**
      * Finds all extended vulnerabilities
      *
      * @param userName
-     * @return all found [VulnerabilityExt]
+     * @return all found [RawCosvExt]
      */
     fun findExtByUser(
         userName: String,
-    ): Flux<VulnerabilityExt> = cosvRepository.findAllLatestRawExtByUserName(userName)
+    ): Flux<RawCosvExt> = cosvRepository.findAllLatestRawExtByUserName(userName)
 
     /**
      * @param cosvId
      * @param status
-     * @return found [VulnerabilityExt]
+     * @return found [RawCosvExt]
      */
     fun getByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
+    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
 
     /**
      * Generates COSV from [VulnerabilityDto] and saves it

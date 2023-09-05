@@ -3,7 +3,7 @@ package com.saveourtool.save.cosv.repository
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 
@@ -54,35 +54,35 @@ interface CosvRepository {
      * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
      *
      * @param cosvId
-     * @return [Mono] with [VulnerabilityExt]
+     * @return [Mono] with [RawCosvExt]
      */
     fun findLatestRawExt(
         cosvId: String,
-    ): Mono<VulnerabilityExt>
+    ): Mono<RawCosvExt>
 
     /**
      * Finds metadata of cosv by [filter]
      *
      * @param filter
      * @param userId
-     * @return [Flux] with [VulnerabilityExt]
+     * @return [Flux] with [RawCosvExt]
      */
     fun findRawExtByFilter(
         filter: VulnerabilityFilter,
         userId: Long?,
-    ): Flux<VulnerabilityExt>
+    ): Flux<RawCosvExt>
 
     /**
      * @param cosvId
      * @param status
-     * @return [VulnerabilityExt]
+     * @return [RawCosvExt]
      */
     fun findLatestRawExtByCosvIdAndStatus(
         cosvId: String,
         status: VulnerabilityStatus,
-    ): Mono<VulnerabilityExt>
+    ): Mono<RawCosvExt>
 
     fun findAllLatestRawExtByUserName(
         userName: String,
-    ): Flux<VulnerabilityExt>
+    ): Flux<RawCosvExt>
 }
