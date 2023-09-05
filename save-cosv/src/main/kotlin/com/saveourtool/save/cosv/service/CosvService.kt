@@ -8,8 +8,8 @@ import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.entities.vulnerability.RawCosvExt
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*

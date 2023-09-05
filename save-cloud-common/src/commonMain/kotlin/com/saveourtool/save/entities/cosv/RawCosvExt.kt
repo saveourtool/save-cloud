@@ -1,6 +1,9 @@
-package com.saveourtool.save.entities.vulnerability
+package com.saveourtool.save.entities.cosv
 
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getCurrentLocalDateTime
 import com.saveourtool.save.utils.getRelatedLink

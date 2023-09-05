@@ -3,7 +3,7 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.entities.vulnerability.RawCosvExt
+import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
