@@ -199,7 +199,7 @@ class CosvRepositoryInStorage(
         .map { content -> json.decodeFromStream(serializer, content) }
 
     override fun findAllLatestRawExtByUserName(userName: String): Flux<VulnerabilityExt> = blockingToFlux {
-        cosvMetadataRepository.findAllByUser_Name(userName)
+        cosvMetadataRepository.findAllByUserName(userName)
     }.flatMap { it.toRawCosvExt() }
 
     companion object {

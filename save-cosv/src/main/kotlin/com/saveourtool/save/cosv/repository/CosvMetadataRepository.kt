@@ -27,5 +27,5 @@ interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata> {
      * @param userName
      * @return all found [CosvMetadata]
      */
-    fun findAllByUser_Name(userName: String): List<CosvMetadata>
+    fun findAllByUserName(userName: String): List<CosvMetadata>
 }
