@@ -35,7 +35,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
     primaryColor: Colors,
     continueLink: String,
 ) {
-    val (t) = useTranslation()
+    val (t) = useTranslation("welcome")
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
         style = jso {
