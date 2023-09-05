@@ -44,4 +44,15 @@
     <changeSet id="cosv-metadata-2" author="nulls">
         <dropNotNullConstraint tableName="cosv_metadata" columnName="organization_id" columnDataType="bigint"/>
     </changeSet>
+
+    <changeSet id="cosv-metadata-3" author="nulls">
+        <addColumn tableName="cosv_metadata">
+            <column name="language" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(64)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
