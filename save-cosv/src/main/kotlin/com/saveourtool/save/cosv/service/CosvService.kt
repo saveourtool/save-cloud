@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
-import com.saveourtool.save.cosv.processor.CosvProcessorHolder
+import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
@@ -30,7 +30,7 @@ import kotlinx.serialization.serializer
 class CosvService(
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
-    private val cosvProcessorHolder: CosvProcessorHolder,
+    private val cosvProcessor: CosvProcessor,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -39,7 +39,6 @@ class CosvService(
     /**
      * Decodes [inputStreams] and saves the result
      *
-     * @param sourceId
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
@@ -47,7 +46,6 @@ class CosvService(
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
-        sourceId: String,
         inputStreams: Flux<InputStream>,
         authentication: Authentication,
         organizationName: String,
@@ -55,47 +53,43 @@ class CosvService(
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
         return inputStreams.flatMap { inputStream ->
-            decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
+            decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
         }.save(user)
     }
 
     /**
      * Decodes [content] and saves the result
      *
-     * @param sourceId
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
      * @return save's vulnerability identifiers
      */
     fun decodeAndSave(
-        sourceId: String,
         content: String,
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
-        return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
+        return decode(json.parseToJsonElement(content), user, organization).save(user)
     }
 
     /**
      * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
      *
-     * @param sourceId
      * @param jsonElement
      * @param user who uploads content
      * @param organization to which is uploaded
      * @return save's vulnerability
      */
     private fun decode(
-        sourceId: String,
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
     ): Flux<VulnerabilityDto> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
+        .flatMap { cosvProcessor.process(it.jsonObject, user, organization) }
 
     /**
      * Creates entities in save database
