@@ -61,7 +61,7 @@ fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList
 /**
  * @return [TimeLineEntry]
  */
-fun VulnerabilityDateDto.asTimelineEntry(): TimeLineEntry =  TimeLineEntry(
+fun VulnerabilityDateDto.asTimelineEntry(): TimeLineEntry = TimeLineEntry(
     value = date,
     type = when (type) {
         VulnerabilityDateType.DISCLOSED -> TimeLineEntryType.disclosed
