@@ -44,7 +44,7 @@ data class CosvMetadataDto(
         shortDescription = summary,
         relatedLink = null, // FIXME: related link is not available here
         language = language,
-        userInfo = UserInfo(name = ""),
+        userInfo = user,  // it was empty in old logic, but will populate to simplify the logic
         organization = organization,
         dates = emptyList(),
         participants = emptyList(),

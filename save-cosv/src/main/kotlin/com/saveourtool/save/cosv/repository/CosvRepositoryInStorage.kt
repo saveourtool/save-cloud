@@ -105,7 +105,10 @@ class CosvRepositoryInStorage(
     override fun findLatestRawExt(cosvId: String): Mono<VulnerabilityExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
-    override fun findRawExtByFilter(filter: VulnerabilityFilter): Flux<VulnerabilityExt> = blockingToFlux {
+    override fun findRawExtByFilter(
+        filter: VulnerabilityFilter,
+        userId: Long?,
+    ): Flux<VulnerabilityExt> = blockingToFlux {
         cosvMetadataRepository.findAll { root, cq, cb ->
             with(filter) {
                 val namePredicate = if (identifierPrefix.isBlank()) {
@@ -113,6 +116,14 @@ class CosvRepositoryInStorage(
                 } else {
                     cb.like(root.get("cosvId"), "%$identifierPrefix%")
                 }
+
+                val ownerPredicate = userId?.let {
+                    if (isOwner) {
+                        cb.equal(root.get<Vulnerability>("userId"), userId)
+                    } else {
+                        cb.and()
+                    }
+                } ?: cb.and()
 
                 val statusPredicate = status?.let { status ->
                     cb.equal(root.get<VulnerabilityStatus>("status"), status)
@@ -137,6 +148,7 @@ class CosvRepositoryInStorage(
 
                 cb.and(
                     namePredicate,
+                    ownerPredicate,
                     statusPredicate,
                     languagePredicate,
                     authorPredicate,

@@ -129,23 +129,6 @@ class CosvService(
     ): Flux<VulnerabilityExt> = cosvRepository.findAllLatestRawExtByUserName(userName)
 
     /**
-     * @param filter filter for COSV
-     * @param isOwner
-     * @param authentication [Authentication] describing an authenticated request
-     * @return list of OSV with that match [filter]
-     */
-    fun getByFilter(
-        filter: VulnerabilityFilter,
-        authentication: Authentication?,
-    ): Flux<VulnerabilityExt> = cosvRepository.findRawExtByFilter(
-        if (filter.isOwner) {
-            authentication?.let { filter.copy(authorName = it.name) } ?: filter
-        } else {
-            filter
-        }
-    )
-
-    /**
      * @param cosvId
      * @param status
      * @return found [VulnerabilityExt]

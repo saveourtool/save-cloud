@@ -64,10 +64,12 @@ interface CosvRepository {
      * Finds metadata of cosv by [filter]
      *
      * @param filter
+     * @param userId
      * @return [Flux] with [VulnerabilityExt]
      */
     fun findRawExtByFilter(
         filter: VulnerabilityFilter,
+        userId: Long?,
     ): Flux<VulnerabilityExt>
 
     /**
