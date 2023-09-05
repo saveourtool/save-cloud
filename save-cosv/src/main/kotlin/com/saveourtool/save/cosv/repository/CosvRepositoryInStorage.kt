@@ -42,7 +42,7 @@ class CosvRepositoryInStorage(
         entry: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
-        organization: Organization
+        organization: Organization?,
     ): Mono<CosvMetadataDto> = saveMetadata(entry, user, organization).flatMap { metadata ->
         cosvStorage.upload(
             metadata.toStorageKey(),
@@ -53,7 +53,7 @@ class CosvRepositoryInStorage(
     private fun saveMetadata(
         entry: CosvSchema<*, *, *, *>,
         user: User,
-        organization: Organization,
+        organization: Organization?,
     ): Mono<CosvMetadataDto> = blockingToMono {
         val metadata = cosvMetadataRepository.findByCosvId(entry.id)
             ?.let { existedMetadata ->
@@ -74,12 +74,14 @@ class CosvRepositoryInStorage(
                                 "already existed in save uploaded by another userId=${existedMetadata.user.requiredId()}",
                     )
                 }
-                if (existedMetadata.organization?.requiredId() != organization.requiredId()) {
-                    throw ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "${errorPrefix()} to organizationId=${organization.requiredId()}: " +
-                                "already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
-                    )
+                existedMetadata.organization?.run {
+                    if (requiredId() != organization?.requiredId()) {
+                        throw ResponseStatusException(
+                            HttpStatus.FORBIDDEN,
+                            "${errorPrefix()} to organizationId=${requiredId()}: " +
+                                    "already existed in save in another organizationId=${existedMetadata.organization?.requiredId()}",
+                        )
+                    }
                 }
                 existedMetadata.updateBy(entry)
             }
@@ -118,7 +120,7 @@ class CosvRepositoryInStorage(
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(
             user: User,
-            organization: Organization,
+            organization: Organization?,
         ) = CosvMetadata(
             cosvId = id,
             summary = summary ?: "Summary not provided",

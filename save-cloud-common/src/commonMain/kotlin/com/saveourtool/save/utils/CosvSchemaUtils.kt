@@ -9,6 +9,8 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
+import com.saveourtool.osv4k.Credit
+import com.saveourtool.osv4k.CreditType
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 import com.saveourtool.osv4k.TimeLineEntry
 import com.saveourtool.osv4k.TimeLineEntryType
@@ -26,6 +28,19 @@ fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
     ?.map { it.removePrefix(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { UserInfo(it) }
     .orEmpty()
+
+/**
+ * @return list of [Credit]
+ */
+fun List<UserInfo>.asCredits(): List<Credit> = map {
+    Credit(
+        name = it.name,
+        contact = listOf(
+            SAVEOURTOOL_PROFILE_PREFIX + it.name
+        ),
+        type = CreditType.REPORTER,
+    )
+}
 
 /**
  * @return timeline as [List] of [VulnerabilityDateDto]

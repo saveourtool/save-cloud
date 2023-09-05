@@ -32,7 +32,7 @@ interface CosvRepository {
         entry: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
-        organization: Organization,
+        organization: Organization?,
     ): Mono<CosvMetadataDto>
 
     /**
