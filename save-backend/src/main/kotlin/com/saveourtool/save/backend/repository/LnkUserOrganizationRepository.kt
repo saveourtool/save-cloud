@@ -92,6 +92,14 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     fun findByUserNameAndOrganizationStatus(userName: String, status: OrganizationStatus): List<LnkUserOrganization>
 
     /**
+     * @param userName
+     * @param organizationName
+     * @param status status of organization
+     * @return List of [LnkUserOrganization] in which user with [userName] participates
+     */
+    fun findByUserNameAndOrganizationStatusAndOrganizationName(userName: String, status: OrganizationStatus, organizationName: String): LnkUserOrganization?
+
+    /**
      * @param userId id of user
      */
     fun deleteByUserId(userId: Long)
