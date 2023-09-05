@@ -22,4 +22,10 @@ interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata> {
      * @return found [CosvMetadata] or null
      */
     fun findByCosvIdAndStatus(cosvId: String, status: VulnerabilityStatus): CosvMetadata?
+
+    /**
+     * @param userName
+     * @return all found [CosvMetadata]
+     */
+    fun findAllByUser_Name(userName: String): List<CosvMetadata>
 }

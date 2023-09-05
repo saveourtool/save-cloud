@@ -1,5 +1,6 @@
 package com.saveourtool.save.cosv.service
 
+import com.saveourtool.osv4k.*
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
@@ -11,7 +12,8 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityExt
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.cosv.repository.CosvSchema
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -79,7 +81,6 @@ class CosvService(
     /**
      * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
      *
-     * @param sourceId
      * @param jsonElement
      * @param user who uploads content
      * @param organization to which is uploaded
@@ -115,6 +116,16 @@ class CosvService(
     ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExt(cosvId)
 
     /**
+     * Finds all extended vulnerabilities
+     *
+     * @param userName
+     * @return all found [VulnerabilityExt]
+     */
+    fun findExtByUser(
+        userName: String,
+    ): Flux<VulnerabilityExt> = cosvRepository.findAllLatestRawExtByUserName(userName)
+
+    /**
      * @param filter filter for COSV
      * @param isOwner
      * @param authentication [Authentication] describing an authenticated request
@@ -141,4 +152,42 @@ class CosvService(
         cosvId: String,
         status: VulnerabilityStatus,
     ): Mono<VulnerabilityExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
+
+    fun save(
+        vulnerabilityDto: VulnerabilityDto,
+    ): Mono<CosvMetadataDto> = blockingToMono {
+        val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
+        val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
+        user to organization
+    }.flatMap { (user, organization) ->
+        val osv = CosvSchema<Unit, Unit, Unit, Unit>(
+            id = vulnerabilityDto.identifier,
+            published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
+            modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),
+            severity = listOf(
+                Severity(
+                    type = SeverityType.CVSS_V3,
+                    score = "N/A",
+                    scoreNum = vulnerabilityDto.progress.toString(),
+                )
+            ),
+            summary = vulnerabilityDto.shortDescription,
+            details = vulnerabilityDto.description,
+            references = vulnerabilityDto.relatedLink?.let { relatedLink ->
+                listOf(
+                    Reference(
+                        type = ReferenceType.WEB,
+                        url = relatedLink,
+                    )
+                )
+            },
+            credits = vulnerabilityDto.participants.asCredits().takeUnless { it.isEmpty() },
+        )
+        cosvRepository.save(
+            entry = osv,
+            serializer = serializer(),
+            user = user,
+            organization = organization,
+        )
+    }
 }

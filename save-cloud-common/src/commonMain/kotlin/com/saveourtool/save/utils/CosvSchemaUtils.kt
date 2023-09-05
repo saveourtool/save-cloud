@@ -4,15 +4,13 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.osv4k.*
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
-import com.saveourtool.osv4k.ReferenceType
-import com.saveourtool.osv4k.TimeLineEntry
-import com.saveourtool.osv4k.TimeLineEntryType
 
 import kotlinx.datetime.LocalDateTime
 
@@ -29,6 +27,18 @@ fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
     .orEmpty()
 
 /**
+ * @return list of [Credit]
+ */
+fun List<UserInfo>.asCredits(): List<Credit> = map {
+    Credit(
+        name = it.name,
+        contact = listOf(
+            SAVEOURTOOL_PROFILE_PREFIX + it.name
+        ),
+        type = CreditType.REPORTER,
+    )
+}
+/**
  * @return timeline as [List] of [VulnerabilityDateDto]
  */
 fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList {
@@ -36,6 +46,10 @@ fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList
     add(modified.asVulnerabilityDateDto(id, VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
+}
+
+fun List<VulnerabilityDateDto>.asTimeline(): List<TimeLineEntry> = buildList {
+
 }
 
 /**

@@ -35,7 +35,7 @@ interface CosvRepository {
         entry: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
-        organization: Organization,
+        organization: Organization?,
     ): Mono<CosvMetadataDto>
 
     /**
@@ -79,4 +79,8 @@ interface CosvRepository {
         cosvId: String,
         status: VulnerabilityStatus,
     ): Mono<VulnerabilityExt>
+
+    fun findAllLatestRawExtByUserName(
+        userName: String,
+    ): Flux<VulnerabilityExt>
 }
