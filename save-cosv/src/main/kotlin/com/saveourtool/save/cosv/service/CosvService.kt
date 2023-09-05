@@ -1,16 +1,18 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
-import com.saveourtool.save.cosv.processor.CosvProcessorHolder
+import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
+import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.osv4k.*
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -23,6 +25,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
 
+private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
+
 /**
  * Service for vulnerabilities
  */
@@ -30,7 +34,7 @@ import kotlinx.serialization.serializer
 class CosvService(
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
-    private val cosvProcessorHolder: CosvProcessorHolder,
+    private val cosvProcessor: CosvProcessor,
 ) {
     private val json = Json {
         prettyPrint = false
@@ -39,7 +43,6 @@ class CosvService(
     /**
      * Decodes [inputStreams] and saves the result
      *
-     * @param sourceId
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
@@ -47,7 +50,6 @@ class CosvService(
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
-        sourceId: String,
         inputStreams: Flux<InputStream>,
         authentication: Authentication,
         organizationName: String,
@@ -55,47 +57,43 @@ class CosvService(
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
         return inputStreams.flatMap { inputStream ->
-            decode(sourceId, json.decodeFromStream<JsonElement>(inputStream), user, organization)
+            decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
         }.save(user)
     }
 
     /**
      * Decodes [content] and saves the result
      *
-     * @param sourceId
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
      * @return save's vulnerability identifiers
      */
     fun decodeAndSave(
-        sourceId: String,
         content: String,
         authentication: Authentication,
         organizationName: String,
     ): Flux<String> {
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
-        return decode(sourceId, json.parseToJsonElement(content), user, organization).save(user)
+        return decode(json.parseToJsonElement(content), user, organization).save(user)
     }
 
     /**
      * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
      *
-     * @param sourceId
      * @param jsonElement
      * @param user who uploads content
      * @param organization to which is uploaded
      * @return save's vulnerability
      */
     private fun decode(
-        sourceId: String,
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
     ): Flux<VulnerabilityDto> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { cosvProcessorHolder.process(sourceId, it.jsonObject, user, organization) }
+        .flatMap { cosvProcessor.process(it.jsonObject, user, organization) }
 
     /**
      * Creates entities in save database
@@ -139,4 +137,48 @@ class CosvService(
     fun findExtByCosvId(
         cosvId: String,
     ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
+
+    /**
+     * Generates COSV from [VulnerabilityDto] and saves it
+     *
+     * @param vulnerabilityDto as a source for COSV
+     * @return [CosvMetadataDto] saved metadata
+     */
+    fun generateAndSave(
+        vulnerabilityDto: VulnerabilityDto,
+    ): Mono<CosvMetadataDto> = blockingToMono {
+        val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
+        val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
+        user to organization
+    }.flatMap { (user, organization) ->
+        val osv = ManualCosvSchema(
+            id = vulnerabilityDto.identifier,
+            published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
+            modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),
+            severity = listOf(
+                Severity(
+                    type = SeverityType.CVSS_V3,
+                    score = "N/A",
+                    scoreNum = vulnerabilityDto.progress.toString(),
+                )
+            ),
+            summary = vulnerabilityDto.shortDescription,
+            details = vulnerabilityDto.description,
+            references = vulnerabilityDto.relatedLink?.let { relatedLink ->
+                listOf(
+                    Reference(
+                        type = ReferenceType.WEB,
+                        url = relatedLink,
+                    )
+                )
+            },
+            credits = vulnerabilityDto.participants.asCredits().takeUnless { it.isEmpty() },
+        )
+        cosvRepository.save(
+            entry = osv,
+            serializer = serializer(),
+            user = user,
+            organization = organization,
+        )
+    }
 }
