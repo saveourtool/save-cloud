@@ -16,6 +16,7 @@ import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
@@ -117,6 +118,10 @@ class CosvRepositoryInStorage(
                     cb.equal(root.get<VulnerabilityStatus>("status"), status)
                 } ?: cb.and()
 
+                val languagePredicate = language?.let { language ->
+                    cb.equal(root.get<VulnerabilityLanguage>("language"), language)
+                } ?: cb.and()
+
                 val organizationPredicate = organizationName?.let { organization ->
                     cb.equal(root.get<Organization>("organization").get<String>("name"), organization)
                 } ?: cb.and()
@@ -133,6 +138,7 @@ class CosvRepositoryInStorage(
                 cb.and(
                     namePredicate,
                     statusPredicate,
+                    languagePredicate,
                     authorPredicate,
                     organizationPredicate,
                     getPredicateForTags(root, cq, cb, tags),

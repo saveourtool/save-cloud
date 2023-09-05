@@ -34,29 +34,6 @@ import kotlinx.serialization.json.Json
 class CosvController(
     private val cosvService: CosvService,
 ) {
-    @PostMapping("/by-filter")
-    @Operation(
-        method = "POST",
-        summary = "Get all vulnerabilities with filters.",
-        description = "Get filtered vulnerabilities.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched all vulnerabilities by filters")
-    fun getByFilter(
-        @RequestBody filter: VulnerabilityFilter,
-        @RequestParam(required = false, defaultValue = "false") isOwner: Boolean,
-        authentication: Authentication?,
-    ): Flux<VulnerabilityExt> {
-        if (
-            // if user is not authenticated, he will have authentication = null and will not get other's submitted vulnerabilities
-            filter.status != VulnerabilityStatus.APPROVED && authentication?.name != filter.authorName &&
-                    // only if user is NOT admin, if admin - everything is fine
-                    authentication?.hasRole(Role.SUPER_ADMIN) == false
-        ) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN)
-        }
-        return cosvService.getByFilter(filter, isOwner, authentication)
-    }
-
     @GetMapping("/by-cosv-id-and-status")
     @Operation(
         method = "GET",

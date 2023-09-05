@@ -133,10 +133,9 @@ class CosvService(
      */
     fun getByFilter(
         filter: VulnerabilityFilter,
-        isOwner: Boolean,
         authentication: Authentication?,
     ): Flux<VulnerabilityExt> = cosvRepository.findRawExtByFilter(
-        if (isOwner) {
+        if (filter.isOwner) {
             authentication?.let { filter.copy(authorName = it.name) } ?: filter
         } else {
             filter
