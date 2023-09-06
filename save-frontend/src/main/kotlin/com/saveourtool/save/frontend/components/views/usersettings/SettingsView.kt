@@ -16,7 +16,6 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
-import kotlinx.browser.window
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -28,6 +27,7 @@ import web.cssom.*
 import web.html.ButtonType
 import web.html.InputType
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

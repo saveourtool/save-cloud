@@ -14,78 +14,71 @@ import kotlinx.datetime.LocalDateTime
 const val HOVERABLE_CONST = "hoverable"
 
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
-    console.log(props.dates)
-    if (props.dates != undefined) {
-        val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
+    val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
+
+    div {
+        className = ClassName("mb-3")
+        props.title?.let { title ->
+            div {
+                className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
+                +title
+            }
+        }
+
+        props.onAddClick?.let { onClickCallback ->
+            buttonBuilder(
+                label = "Add date",
+                style = "secondary",
+                isOutline = true,
+                classes = "btn btn-sm btn-primary"
+            ) {
+                onClickCallback()
+            }
+        }
 
         div {
-            className = ClassName("mb-3")
-            props.title?.let { title ->
-                div {
-                    className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
-                    +title
-                }
-            }
-
-            props.onAddClick?.let { onClickCallback ->
-                buttonBuilder(
-                    label = "Add date",
-                    style = "secondary",
-                    isOutline = true,
-                    classes = "btn btn-sm btn-primary"
-                ) {
-                    onClickCallback()
-                }
-            }
-
+            className = ClassName("p-0 timeline-container")
             div {
-                className = ClassName("p-0 timeline-container")
+                className = ClassName("steps-container")
                 div {
-                    className = ClassName("steps-container")
-                    div {
-                        className = ClassName("line")
-                    }
-                    props.dates
-                        .plus(
-                            VulnerabilityDateType.SUBMITTED.value to
-                                    (props.vulnerability.creationDateTime ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0))
-                        )
-                        .toList()
-                        .sortedBy { it.second }
-                        .forEach { (label, dateTime) ->
-                            div {
-                                className =
+                    className = ClassName("line")
+                }
+                props.dates
+                    .plus(
+                        VulnerabilityDateType.SUBMITTED.value to
+                                (props.vulnerability.creationDateTime ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0))
+                    )
+                    .toList()
+                    .sortedBy { it.second }
+                    .forEach { (label, dateTime) ->
+                        div {
+                            className =
                                     ClassName(if (!label.isSubmittedType()) "step $hoverable" else "step-non-editable")
-                                if (!label.isSubmittedType()) {
-                                    props.onNodeClick?.let { onClickCallback ->
-                                        onClick = { onClickCallback(dateTime, label) }
-                                    }
-                                }
-                                div {
-                                    className = ClassName("text-label")
-                                    +label
-                                }
-                                div {
-                                    className = ClassName("date-label")
-                                    +dateTime.date.toString()
+                            if (!label.isSubmittedType()) {
+                                props.onNodeClick?.let { onClickCallback ->
+                                    onClick = { onClickCallback(dateTime, label) }
                                 }
                             }
                             div {
-                                className = ClassName("line")
+                                className = ClassName("text-label")
+                                +label
+                            }
+                            div {
+                                className = ClassName("date-label")
+                                +dateTime.date.toString()
                             }
                         }
-                    div {
-                        className = ClassName("line-end")
+                        div {
+                            className = ClassName("line")
+                        }
                     }
+                div {
+                    className = ClassName("line-end")
                 }
             }
         }
-    } else {
-
     }
 }
-
-private fun String.isSubmittedType() = this == VulnerabilityDateType.SUBMITTED.value
 
 /**
  * [Props] of [timelineComponent]
@@ -117,3 +110,5 @@ external interface TimelineComponentProps : Props {
      */
     var vulnerability: VulnerabilityDto
 }
+
+private fun String.isSubmittedType() = this == VulnerabilityDateType.SUBMITTED.value
