@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.useBackground
+import com.saveourtool.save.frontend.utils.useRedirectToIndexIf
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
@@ -20,17 +21,15 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
-import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.rem
 
-val thanksForRegistrationView: FC<BanProps> = FC { props ->
+val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props ->
     useBackground(Style.INDEX)
-
-    val navigate = useNavigate()
     val (t) = useTranslation("thanks-for-registration")
-    if (props.userInfo?.status != UserStatus.NOT_APPROVED) {
-        navigate("/", jso { replace = true })
+
+    useRedirectToIndexIf(props.userInfo?.status) {
+        props.userInfo?.status != UserStatus.NOT_APPROVED
     }
 
     div {

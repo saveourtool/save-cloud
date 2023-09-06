@@ -103,46 +103,50 @@ class UsersDetailsController(
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
     @Suppress("MagicNumber")
-    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> =
-            Mono.just(newUserInfo)
-                .filter { newUserInfo.name.isValidLengthName() }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    UserSaveStatus.INVALID_NAME.message
+    fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
+        .filter { newUserInfo.name.isValidLengthName() }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.INVALID_NAME.message
+        }
+        .blockingMap {
+            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            val oldStatus = user.status
+            if (user.id == authentication.userId()) {
+                val newStatus = when (oldStatus) {
+                    UserStatus.CREATED -> UserStatus.NOT_APPROVED
+                    UserStatus.ACTIVE -> UserStatus.ACTIVE
+                    else -> null
                 }
-                .map {
-                    val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-                    val oldStatus = user.status
-                    if (user.id == authentication.userId()) {
-                        userDetailsService.saveUser(
-                            user.apply {
-                                name = newUserInfo.name
-                                email = newUserInfo.email
-                                company = newUserInfo.company
-                                location = newUserInfo.location
-                                gitHub = newUserInfo.gitHub
-                                linkedin = newUserInfo.linkedin
-                                twitter = newUserInfo.twitter
-                                status = newUserInfo.status
-                                website = newUserInfo.website
-                                realName = newUserInfo.realName
-                                freeText = newUserInfo.freeText
-                            },
-                            newUserInfo.oldName,
-                            oldStatus
-                        )
-                    } else {
-                        UserSaveStatus.HACKER
-                    }
-                }
-                .filter { status ->
-                    status == UserSaveStatus.UPDATE
-                }
-                .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-                    UserSaveStatus.CONFLICT.message
-                }
-                .map { status ->
-                    ResponseEntity.ok(status.message)
-                }
+                newStatus?.let {
+                    userDetailsService.saveUser(
+                        user.apply {
+                            name = newUserInfo.name
+                            email = newUserInfo.email
+                            company = newUserInfo.company
+                            location = newUserInfo.location
+                            gitHub = newUserInfo.gitHub
+                            linkedin = newUserInfo.linkedin
+                            twitter = newUserInfo.twitter
+                            status = newStatus
+                            website = newUserInfo.website
+                            realName = newUserInfo.realName
+                            freeText = newUserInfo.freeText
+                        },
+                        newUserInfo.oldName,
+                        oldStatus
+                    )
+                } ?: UserSaveStatus.FORBIDDEN
+            } else {
+                UserSaveStatus.HACKER
+            }
+        }
+        .filter { status -> status == UserSaveStatus.UPDATE }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
 
     /**
      * @param userName
