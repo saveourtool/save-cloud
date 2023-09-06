@@ -2151,15 +2151,6 @@
         "parameters": [
           {
             "in": "query",
-            "name": "sourceId",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            }
-          },
-          {
-            "in": "query",
             "name": "organizationName",
             "required": true,
             "schema": {
@@ -2323,15 +2314,6 @@
       "post": {
         "operationId": "upload_1",
         "parameters": [
-          {
-            "in": "query",
-            "name": "sourceId",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "default"
-            }
-          },
           {
             "in": "query",
             "name": "organizationName",
@@ -10281,6 +10263,66 @@
         ]
       }
     },
+    "/api/v1/users/permissions": {
+      "get": {
+        "operationId": "getUserPermissions",
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPermissions"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "user-permission-controller"
+        ]
+      }
+    },
+    "/api/v1/users/permissions-by-organization": {
+      "get": {
+        "operationId": "getUserPermissions_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPermissions"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "user-permission-controller"
+        ]
+      }
+    },
     "/api/v1/users/save": {
       "post": {
         "operationId": "saveUser_1",
@@ -10387,6 +10429,14 @@
         "operationId": "approve",
         "parameters": [
           {
+            "in": "query",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "example": 123,
             "in": "header",
             "name": "X-Authorization-Id",
@@ -10405,16 +10455,6 @@
             "required": true
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDto"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
@@ -10448,7 +10488,7 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-filters": {
+    "/api/v1/vulnerabilities/by-filter": {
       "post": {
         "description": "Get filtered vulnerabilities.",
         "operationId": "getAllVulnerabilities",
@@ -11087,6 +11127,14 @@
         "operationId": "reject",
         "parameters": [
           {
+            "in": "query",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "example": 123,
             "in": "header",
             "name": "X-Authorization-Id",
@@ -11105,16 +11153,6 @@
             "required": true
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDto"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
@@ -11201,56 +11239,6 @@
           }
         ],
         "summary": "Save vulnerability.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/save-all": {
-      "post": {
-        "description": "Save all vulnerabilities.",
-        "operationId": "saveAll",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully saved all vulnerabilities"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Save all vulnerabilities.",
         "tags": [
           "vulnerabilities"
         ]
@@ -14258,6 +14246,35 @@
           },
           "website": {
             "type": "string"
+          }
+        }
+      },
+      "UserPermissions": {
+        "required": [
+          "inOrganizations"
+        ],
+        "type": "object",
+        "properties": {
+          "inOrganizations": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/UserPermissionsInOrganization"
+            }
+          }
+        }
+      },
+      "UserPermissionsInOrganization": {
+        "required": [
+          "canCreateContest",
+          "canDoBulkUpload"
+        ],
+        "type": "object",
+        "properties": {
+          "canCreateContest": {
+            "type": "boolean"
+          },
+          "canDoBulkUpload": {
+            "type": "boolean"
           }
         }
       },
