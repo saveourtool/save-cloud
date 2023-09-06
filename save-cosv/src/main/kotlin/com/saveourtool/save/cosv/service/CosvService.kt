@@ -62,7 +62,7 @@ class CosvService(
         val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
 
         if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV files on behalf of this organization: $organizationName")
+            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV files on behalf of this organization: $organizationName"))
         }
 
         return inputStreams.flatMap { inputStream ->
@@ -89,7 +89,7 @@ class CosvService(
         val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
 
         if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV file on behalf of this organization: $organizationName")
+            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV file on behalf of this organization: $organizationName"))
         }
 
         return decode(json.parseToJsonElement(content), user, organization).save(user)
