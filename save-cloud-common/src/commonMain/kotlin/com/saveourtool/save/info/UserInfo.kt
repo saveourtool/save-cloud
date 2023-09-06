@@ -31,7 +31,6 @@ import kotlinx.serialization.Serializable
  * @property freeText
  * @property realName
  * @property createDate
- * @property userPermissions
  */
 @Serializable
 @JsExport
@@ -56,7 +55,6 @@ data class UserInfo(
     val freeText: String? = null,
     val realName: String? = null,
     val createDate: LocalDateTime? = null,
-    val userPermissions: UserPermissions = UserPermissions.empty,
 ) : Validatable {
     /**
      * Validation of organization name

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 @Component
 class UserPermissionEvaluator(
     private var lnkUserOrganizationRepository: LnkUserOrganizationRepository,
-    // private var lnkUserOrganizationService: LnkUserOrganizationService,
 ) {
     /**
      * @param authentication
