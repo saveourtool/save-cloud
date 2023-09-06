@@ -60,14 +60,6 @@ interface CosvRepository {
     ): Mono<RawCosvExt>
 
     /**
-     * @param userName
-     * @return all [RawCosvExt] created by [userName]
-     */
-    fun findAllLatestRawExtByUserName(
-        userName: String,
-    ): Flux<RawCosvExt>
-
-    /**
      * @param cosvId
      * @return [Flux] with removed versions
      */

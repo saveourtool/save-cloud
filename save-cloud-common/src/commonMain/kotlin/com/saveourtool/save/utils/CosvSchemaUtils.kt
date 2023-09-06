@@ -4,17 +4,13 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.osv4k.*
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
-import com.saveourtool.osv4k.Credit
-import com.saveourtool.osv4k.CreditType
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
-import com.saveourtool.osv4k.ReferenceType
-import com.saveourtool.osv4k.TimeLineEntry
-import com.saveourtool.osv4k.TimeLineEntryType
 
 import kotlinx.datetime.LocalDateTime
 
@@ -102,4 +98,13 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
+)
+
+/**
+ * @return Severity for a single progress
+ */
+fun Int.asSeverity(): Severity = Severity(
+    type = SeverityType.CVSS_V3,
+    score = "N/A",
+    scoreNum = toString(),
 )

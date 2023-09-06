@@ -119,10 +119,6 @@ class CosvRepositoryInStorage(
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
-    override fun findAllLatestRawExtByUserName(userName: String): Flux<RawCosvExt> = blockingToFlux {
-        cosvMetadataRepository.findAllByUserName(userName)
-    }.flatMap { it.toRawCosvExt() }
-
     override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
         cosvMetadataRepository.findByCosvId(cosvId)?.let {
             cosvMetadataRepository.delete(it)

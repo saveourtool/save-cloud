@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import com.fasterxml.jackson.annotation.JsonBackReference
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 
 import javax.persistence.*
 
@@ -33,11 +34,11 @@ class CosvMetadataProject(
     @Enumerated(EnumType.STRING)
     var type: VulnerabilityProjectType,
 
-) : BaseEntityWithDto<CosvMetadataProjectDto>() {
+) : BaseEntityWithDto<VulnerabilityProjectDto>() {
     /**
      * @return a dto
      */
-    override fun toDto() = CosvMetadataProjectDto(
+    override fun toDto() = VulnerabilityProjectDto(
         name = name,
         url = url,
         versions = versions.orEmpty(),

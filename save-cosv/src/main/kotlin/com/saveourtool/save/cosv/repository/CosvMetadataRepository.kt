@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.CosvMetadata
+import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
@@ -17,15 +18,23 @@ interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata> {
     fun findByCosvId(cosvId: String): CosvMetadata?
 
     /**
-     * @param cosvId [CosvMetadata.cosvId]
-     * @param status [CosvMetadata.status]
-     * @return found [CosvMetadata] or null
+     * @param userId creator of vulnerability
+     * @return list of metadata
      */
-    fun findByCosvIdAndStatus(cosvId: String, status: VulnerabilityStatus): CosvMetadata?
+    fun findByUserId(userId: Long): List<CosvMetadata>
 
     /**
-     * @param userName
-     * @return all found [CosvMetadata]
+     * @param userId id of user
+     * @param status status of vulnerability
+     * @return count of vulnerabilities
      */
-    fun findAllByUserName(userName: String): List<CosvMetadata>
+    fun countByUserIdAndStatus(userId: Long, status: VulnerabilityStatus): Int
+
+    /**
+     * @param organizationName name of organization
+     * @param status status of vulnerability
+     * @return list of metadata
+     */
+    fun findByOrganizationNameAndStatus(organizationName: String, status: VulnerabilityStatus): List<CosvMetadata>
+
 }
