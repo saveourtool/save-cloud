@@ -19,25 +19,28 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
         var reactI18n = require("react-i18next");
         var resources = {
             en: {
-                translation: {
-                    "Notifications": "Notifications"
-                },
                 "vulnerability-collection": $VULN_COLLECTION_EN,
                 "thanks-for-registration": $THANKS_FOR_REGISTRATION_EN,
                 "vulnerability-upload": $VULN_UPLOAD_EN,
                 "table-headers": $TABLE_HEADERS_EN,
                 "topbar": $TOPBAR_EN,
                 "cookies": $COOKIES_EN,
+                "proposing": $PROPOSING_VULN_EN,
+                "welcome": $WELCOME_EN,
+                "organization": $ORGANIZATION_EN
             },
             cn: {
-                translation: {
-                    "Notifications": "通知"
-                }
+                "vulnerability-collection": $VULN_COLLECTION_CN,
+                "thanks-for-registration": $THANKS_FOR_REGISTRATION_CN,
+                "vulnerability-upload": $VULN_UPLOAD_CN,
+                "table-headers": $TABLE_HEADERS_CN,
+                "topbar": $TOPBAR_CN,
+                "cookies": $COOKIES_CN,
+                "proposing": $PROPOSING_VULN_CN,
+                "welcome": $WELCOME_CN,
+                "organization": $ORGANIZATION_CN
             },
             ru: {
-                translation: {
-                    "Notifications": "Уведомления"
-                },
                 "vulnerability-collection": $VULN_COLLECTION_RU,
                 "thanks-for-registration": $THANKS_FOR_REGISTRATION_RU,
                 "vulnerability-upload": $VULN_UPLOAD_RU,
