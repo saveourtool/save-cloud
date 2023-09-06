@@ -26,8 +26,8 @@ class CosvStorage(
 ) {
     override fun doBuildKeyFromSuffix(s3KeySuffix: String): CosvKey {
         val (id, modified) = s3KeySuffix.s3KeyToParts()
-        return CosvKey(id, LocalDateTime.parse(modified))
+        return CosvKey(id, LocalDateTime.parse(modified.replace('_', ':')))
     }
 
-    override fun doBuildS3KeySuffix(key: CosvKey): String = concatS3Key(key.id, key.modified.toString())
+    override fun doBuildS3KeySuffix(key: CosvKey): String = concatS3Key(key.id, key.modified.toString().replace(':', '_'))
 }

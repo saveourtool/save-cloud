@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="cosv-metadata-project-insert" author="nulls" context="dev">
-        <loadData tableName="vulnerability_project" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/cosv-metadata-project.csv">
+        <loadData tableName="cosv_metadata_project" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/cosv-metadata-project.csv">
             <column header="id" name="id" type="bigint"/>
             <column header="name" name="name" type="varchar(250)"/>
             <column header="url" name="url" type="varchar(250)"/>

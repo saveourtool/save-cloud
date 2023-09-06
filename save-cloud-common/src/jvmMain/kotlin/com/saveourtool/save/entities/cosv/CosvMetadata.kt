@@ -7,9 +7,7 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import java.time.LocalDateTime
-import javax.persistence.Entity
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -43,7 +41,9 @@ class CosvMetadata(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization?,
+    @Enumerated(EnumType.STRING)
     var language: VulnerabilityLanguage,
+    @Enumerated(EnumType.STRING)
     var status: VulnerabilityStatus,
 ) : BaseEntityWithDto<CosvMetadataDto>() {
     override fun toDto(): CosvMetadataDto = CosvMetadataDto(
