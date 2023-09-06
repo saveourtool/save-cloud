@@ -1,10 +1,10 @@
 package com.saveourtool.save.entities.cosv
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
 import com.fasterxml.jackson.annotation.JsonBackReference
-import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 
 import javax.persistence.*
 

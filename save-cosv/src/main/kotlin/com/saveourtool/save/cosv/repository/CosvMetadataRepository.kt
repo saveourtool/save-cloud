@@ -35,5 +35,4 @@ interface CosvMetadataRepository : BaseEntityRepository<CosvMetadata> {
      * @return list of metadata
      */
     fun findByOrganizationNameAndStatus(organizationName: String, status: VulnerabilityStatus): List<CosvMetadata>
-
 }

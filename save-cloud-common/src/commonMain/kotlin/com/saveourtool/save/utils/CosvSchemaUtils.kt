@@ -4,12 +4,12 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.osv4k.*
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
+import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
@@ -85,6 +85,15 @@ fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.fir
 fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
     ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()
 
+/**
+ * @return Severity for a single progress
+ */
+fun Int.asSeverity(): Severity = Severity(
+    type = SeverityType.CVSS_V3,
+    score = "N/A",
+    scoreNum = toString(),
+)
+
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
@@ -98,13 +107,4 @@ private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
         TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
-)
-
-/**
- * @return Severity for a single progress
- */
-fun Int.asSeverity(): Severity = Severity(
-    type = SeverityType.CVSS_V3,
-    score = "N/A",
-    scoreNum = toString(),
 )
