@@ -30,6 +30,11 @@ enum class UserSaveStatus(val message: String) {
     DELETED("User successfully deleted"),
 
     /**
+     * User has conflicting name
+     */
+    FORBIDDEN("You are trying to update user, while it is not yet active"),
+
+    /**
      * currentUser.id != changedUser.id
      */
     HACKER("You are trying to update other user that is not you"),
