@@ -1,7 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.CosvMetadata
-import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
