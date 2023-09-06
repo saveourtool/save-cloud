@@ -29,7 +29,8 @@ val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props -
     val (t) = useTranslation("thanks-for-registration")
 
     useRedirectToIndexIf(props.userInfo?.status) {
-        props.userInfo?.status != UserStatus.NOT_APPROVED
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.NOT_APPROVED
     }
 
     div {

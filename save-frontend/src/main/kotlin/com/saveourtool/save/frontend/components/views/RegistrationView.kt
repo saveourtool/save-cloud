@@ -56,7 +56,8 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     particles()
 
     useRedirectToIndexIf(props.userInfo?.status) {
-        props.userInfo?.status != UserStatus.CREATED
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.CREATED
     }
 
     val avatarWindowOpen = useWindowOpenness()

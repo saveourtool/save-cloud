@@ -33,7 +33,8 @@ val banView: FC<BanProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
 
     useRedirectToIndexIf(props.userInfo?.status) {
-        props.userInfo?.status != UserStatus.BANNED
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.BANNED
     }
 
     div {
