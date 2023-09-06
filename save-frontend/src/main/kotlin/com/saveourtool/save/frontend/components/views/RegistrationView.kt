@@ -35,6 +35,7 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import web.cssom.*
 import web.file.File
@@ -230,6 +231,16 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                             setUserInfo { previousUserInfo -> previousUserInfo.copy(name = event.target.value) }
                                             setConflictErrorMessage(null)
                                         }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    textarea {
+                                        className = ClassName("form-control")
+                                        value = userInfo.freeText
+                                        placeholder = "Please enter some information about yourself so that it would be easier for us to approve."
+                                        onChange = { event -> setUserInfo { previousUserInfo -> previousUserInfo.copy(freeText = event.target.value) } }
                                     }
                                 }
 
