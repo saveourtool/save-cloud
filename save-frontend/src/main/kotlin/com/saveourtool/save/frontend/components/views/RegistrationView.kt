@@ -36,7 +36,6 @@ import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
-import react.router.useNavigate
 import web.cssom.*
 import web.file.File
 import web.html.InputType
@@ -55,6 +54,12 @@ import kotlinx.serialization.json.Json
 val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
+
+    useRedirectToIndexIf(props.userInfo?.status) {
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.CREATED
+    }
+
     val avatarWindowOpen = useWindowOpenness()
     val (selectedAvatar, setSelectedAvatar) = useState(props.userInfo?.avatar)
     val (avatar, setAvatar) = useState<File?>(null)
@@ -67,8 +72,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
         userInfo.copy(name = processedName)
     }
-
-    val navigate = useNavigate()
 
     val saveUser = useDeferredRequest {
         val newUserInfo = userInfo.copy(
@@ -112,10 +115,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                 loadingHandler = ::loadingHandler,
             )
         }
-    }
-
-    if (props.userInfo?.status != UserStatus.CREATED) {
-        navigate("/", jso { replace = true })
     }
 
     val saveAvatar = useDeferredRequest {

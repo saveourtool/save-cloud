@@ -117,8 +117,8 @@ class UserDetailsService(
     @Transactional
     fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
         val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
-        // if we are registering new user (updating just name and status to ACTIVE):
-        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.ACTIVE) {
+        // if we are registering new user (updating just name and status to NOT_APPROVED):
+        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.NOT_APPROVED) {
             // checking if the user with new name already exists (it's definitely not our user, so if found -> CONFLICT)
             if (isNameFreeAndNotTaken) {
                 userRepository.save(newUser)
