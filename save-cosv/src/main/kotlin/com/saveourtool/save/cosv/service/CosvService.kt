@@ -171,7 +171,7 @@ class CosvService(
             updater(rawCosvExt.cosv)
                 .flatMap { newCosv ->
                     cosvRepository.save(
-                        entry = rawCosvExt.cosv.copy(modified = getCurrentLocalDateTime()),
+                        entry = newCosv.copy(modified = getCurrentLocalDateTime()),
                         serializer = serializer(),
                         user = owner,
                         organization = organization,
