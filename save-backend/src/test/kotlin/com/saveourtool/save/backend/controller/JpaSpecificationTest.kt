@@ -5,8 +5,10 @@ import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.backend.utils.InfraExtension
+import com.saveourtool.save.cosv.repository.CosvMetadataProjectRepository
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataUserRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -25,6 +27,8 @@ import org.springframework.context.annotation.Import
     MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
     MockBean(LnkCosvMetadataTagRepository::class),
+    MockBean(LnkCosvMetadataUserRepository::class),
+    MockBean(CosvMetadataProjectRepository::class),
 )
 class JpaSpecificationTest {
     @Autowired
