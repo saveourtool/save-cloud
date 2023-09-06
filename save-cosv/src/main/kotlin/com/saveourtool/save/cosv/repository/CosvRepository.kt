@@ -4,13 +4,12 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.VulnerabilityFilter
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.KSerializer
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
@@ -61,28 +60,6 @@ interface CosvRepository {
     ): Mono<RawCosvExt>
 
     /**
-     * Finds metadata of cosv by [filter]
-     *
-     * @param filter
-     * @param userId
-     * @return [Flux] with [RawCosvExt]
-     */
-    fun findRawExtByFilter(
-        filter: VulnerabilityFilter,
-        userId: Long?,
-    ): Flux<RawCosvExt>
-
-    /**
-     * @param cosvId
-     * @param status
-     * @return [RawCosvExt]
-     */
-    fun findLatestRawExtByCosvIdAndStatus(
-        cosvId: String,
-        status: VulnerabilityStatus,
-    ): Mono<RawCosvExt>
-
-    /**
      * @param userName
      * @return all [RawCosvExt] created by [userName]
      */
@@ -92,9 +69,9 @@ interface CosvRepository {
 
     /**
      * @param cosvId
-     * @return empty [Mono]
+     * @return [Flux] with removed versions
      */
     fun delete(
         cosvId: String,
-    ): Mono<Unit>
+    ): Flux<LocalDateTime>
 }

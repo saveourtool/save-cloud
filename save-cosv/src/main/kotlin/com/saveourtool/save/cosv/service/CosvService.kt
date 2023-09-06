@@ -161,8 +161,8 @@ class CosvService(
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),
-                rawCosvExt.metadata.organization?.name?.let { organizationName ->
-                    backendService.getOrganizationByName(organizationName)
+                rawCosvExt.metadata.organization?.let { organization ->
+                    backendService.getOrganizationByName(organization.name)
                 }
             )
         }

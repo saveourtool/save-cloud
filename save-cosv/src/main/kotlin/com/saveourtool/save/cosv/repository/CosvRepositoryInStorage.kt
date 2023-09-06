@@ -4,16 +4,12 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadata
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
 import com.saveourtool.save.entities.cosv.RawCosvExt
-import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
@@ -23,8 +19,7 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-import javax.persistence.criteria.*
-
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -105,95 +100,6 @@ class CosvRepositoryInStorage(
     override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvId(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
-    override fun findRawExtByFilter(
-        filter: VulnerabilityFilter,
-        userId: Long?,
-    ): Flux<RawCosvExt> = blockingToFlux {
-        cosvMetadataRepository.findAll { root, cq, cb ->
-            with(filter) {
-                val namePredicate = if (identifierPrefix.isBlank()) {
-                    cb.and()
-                } else {
-                    cb.like(root.get("cosvId"), "%$identifierPrefix%")
-                }
-
-                val ownerPredicate = userId?.let {
-                    if (isOwner) {
-                        cb.equal(root.get<Vulnerability>("userId"), userId)
-                    } else {
-                        cb.and()
-                    }
-                } ?: cb.and()
-
-                val statusPredicate = status?.let { status ->
-                    cb.equal(root.get<VulnerabilityStatus>("status"), status)
-                } ?: cb.and()
-
-                val languagePredicate = language?.let { language ->
-                    cb.equal(root.get<VulnerabilityLanguage>("language"), language)
-                } ?: cb.and()
-
-                val organizationPredicate = organizationName?.let { organization ->
-                    cb.equal(root.get<Organization>("organization").get<String>("name"), organization)
-                } ?: cb.and()
-
-                val authorPredicate = authorName?.let { author ->
-                    val subquery: Subquery<Long> = cq.subquery(Long::class.java)
-                    val userRoot = subquery.from(User::class.java)
-
-                    subquery.select(userRoot.get("id")).where(cb.equal(userRoot.get<String>("name"), author))
-
-                    cb.`in`(root.get<Long>("userId")).value(subquery)
-                } ?: cb.and()
-
-                cb.and(
-                    namePredicate,
-                    ownerPredicate,
-                    statusPredicate,
-                    languagePredicate,
-                    authorPredicate,
-                    organizationPredicate,
-                    getPredicateForTags(root, cq, cb, tags),
-                )
-            }
-        }.distinctBy { it.requiredId() }
-    }
-        .flatMap { it.toRawCosvExt() }
-
-    override fun findLatestRawExtByCosvIdAndStatus(
-        cosvId: String,
-        status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = blockingToMono { cosvMetadataRepository.findByCosvIdAndStatus(cosvId, status) }
-        .flatMap { it.toRawCosvExt() }
-
-    private fun getPredicateForTags(
-        root: Root<CosvMetadata>,
-        cq: CriteriaQuery<*>,
-        cb: CriteriaBuilder,
-        tags: Set<String>
-    ): Predicate = if (tags.isEmpty()) {
-        cb.and()
-    } else {
-        val subquery = cq.subquery(Long::class.java)
-        val lnkVulnerabilityTagRoot = subquery.from(LnkCosvMetadataTag::class.java)
-        val tagJoin: Join<LnkCosvMetadataTag, Tag> = lnkVulnerabilityTagRoot.join("tag", JoinType.LEFT)
-
-        val cosvMetadataIdPath: Path<Long> = lnkVulnerabilityTagRoot.get<CosvMetadata>("cosv_metadata").get("id")
-
-        subquery.select(cosvMetadataIdPath)
-            .where(
-                cb.and(
-                    tagJoin.get<String>("name").`in`(tags),
-                    cb.equal(
-                        root.get<Long>("id"),
-                        cosvMetadataIdPath,
-                    )
-                )
-            )
-
-        cb.exists(subquery)
-    }
-
     private fun CosvMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
         .blockingMap { content ->
             RawCosvExt(
@@ -217,17 +123,13 @@ class CosvRepositoryInStorage(
         cosvMetadataRepository.findAllByUserName(userName)
     }.flatMap { it.toRawCosvExt() }
 
-    override fun delete(cosvId: String): Mono<Unit> = blockingToMono {
+    override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
         cosvMetadataRepository.findByCosvId(cosvId)?.let {
             cosvMetadataRepository.delete(it)
         }
-    }.flatMap {
-        cosvStorage.list().filter { it.id == cosvId }
-            .flatMap { cosvStorage.delete(it) }
-            .collectList()
-            .map {
-                // all removed
-            }
+    }.flatMapMany {
+        cosvStorage.list(cosvId)
+            .flatMap { key -> cosvStorage.delete(key).map { key.modified } }
     }
 
     companion object {
