@@ -1,23 +1,23 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.save.entities.vulnerabilities.LnkVulnerabilityUser
+import com.saveourtool.save.entities.cosv.LnkCosvMetadataUser
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**
- * Repository of lnkVulnerabilityUserRepository
+ * Repository of LnkCosvMetadataUser
  */
 @Repository
-interface LnkCosvMetadataUserRepository : BaseEntityRepository<LnkVulnerabilityUser> {
+interface LnkCosvMetadataUserRepository : BaseEntityRepository<LnkCosvMetadataUser> {
     /**
-     * @param id id of vulnerability
-     * @return list of LnkVulnerabilityUser link to vulnerability
+     * @param cosvMetadataId id of cosv metadata
+     * @return list of LnkCosvMetadataUser link to cosv metadata
      */
-    fun findByVulnerabilityId(id: Long): List<LnkVulnerabilityUser>
+    fun findByCosvMetadataId(cosvMetadataId: Long): List<LnkCosvMetadataUser>
 
     /**
      * @param userName name of user
-     * @param vulnerabilityId id of vulnerability
+     * @param cosvMetadataId id of cosv metadata
      */
-    fun deleteByUserNameAndVulnerabilityId(userName: String, vulnerabilityId: Long)
+    fun deleteByUserNameAndCosvMetadataId(userName: String, cosvMetadataId: Long)
 }
