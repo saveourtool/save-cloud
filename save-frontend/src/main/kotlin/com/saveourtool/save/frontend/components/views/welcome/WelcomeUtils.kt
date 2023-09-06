@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.OauthProvidersFeConfig
 import com.saveourtool.save.frontend.utils.processRegistrationId
@@ -34,6 +35,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
     primaryColor: Colors,
     continueLink: String,
 ) {
+    val (t) = useTranslation("welcome")
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
         style = jso {
@@ -47,7 +49,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
             }
             h4 {
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
-                +"Sign in with"
+                +"Sign in with".t()
             }
         }
         div {
@@ -71,7 +73,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
                 className = ClassName("mt-4 text-sm text-center")
                 p {
                     className = ClassName("mb-0")
-                    +"Don't have an account?"
+                    +"Don't have an account?".t()
                 }
 
                 div {
@@ -83,11 +85,11 @@ internal fun ChildrenBuilder.inputCredentialsView(
                         Link {
                             to = continueLink
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                            +"Continue "
+                            +"Continue".t()
                             fontAwesomeIcon(icon = faSignInAlt)
                         }
                     }
-                    +"with limited functionality"
+                    +"with limited functionality".t()
                 }
             }
         }
