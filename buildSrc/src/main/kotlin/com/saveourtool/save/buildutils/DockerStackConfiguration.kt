@@ -159,6 +159,23 @@ fun Project.createStackDeployTask(profile: String) {
                            |      MINIO_ROOT_USER: admin
                            |      MINIO_ROOT_PASSWORD: adminadmin
                            |
+                           |  minio-startup:
+                           |    image: minio/mc:latest
+                           |    depends_on:
+                           |      - minio
+                           |    entrypoint:
+                           |      - /bin/sh
+                           |      - -c
+                           |      - |
+                           |        /usr/bin/mc alias set minio http://minio:9000 admin adminadmin
+                           |        /usr/bin/mc mb --ignore-existing minio/cnb
+                           |        /usr/bin/mc policy set public minio/cnb
+                           |        /usr/bin/mc cp --recursive /data/ minio/cnb/cnb/files
+                           |    volumes:
+                           |      - type: bind
+                           |        source: ${project.rootProject.layout.projectDirectory.asFile}/save-backend/src/test/resources/minio
+                           |        target: /data
+                           |
                            |${declareDexService().prependIndent("  ")}
                            """.trimMargin()
                     } else if (profile == "dev" && it.trim().startsWith("logging:")) {
@@ -272,7 +289,7 @@ fun Project.createStackDeployTask(profile: String) {
         dependsOn(kafkaTaskName)
     }
 
-    val minioTaskName = registerService("minio", MINIO_STARTUP_DELAY_MILLIS)
+    val minioTaskName = registerService("minio-startup", MINIO_STARTUP_DELAY_MILLIS, "startMinioService")
     tasks.register("startMinio") {
         dependsOn(minioTaskName)
     }
