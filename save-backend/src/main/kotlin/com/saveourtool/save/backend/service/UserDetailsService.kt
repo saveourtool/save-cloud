@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository

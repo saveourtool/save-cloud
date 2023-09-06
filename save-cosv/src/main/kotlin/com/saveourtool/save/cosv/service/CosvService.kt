@@ -13,8 +13,10 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -47,6 +49,7 @@ class CosvService(
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
      * @return save's vulnerability identifiers
+     * @throws ResponseStatusException
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decodeAndSave(
@@ -56,6 +59,12 @@ class CosvService(
     ): Flux<String> {
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
+        val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
+
+        if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
+            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV files on behalf of this organization: $organizationName"))
+        }
+
         return inputStreams.flatMap { inputStream ->
             decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
         }.save(user)
@@ -68,6 +77,7 @@ class CosvService(
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
      * @return save's vulnerability identifiers
+     * @throws ResponseStatusException
      */
     fun decodeAndSave(
         content: String,
@@ -76,6 +86,12 @@ class CosvService(
     ): Flux<String> {
         val user = backendService.getUserByName(authentication.name)
         val organization = backendService.getOrganizationByName(organizationName)
+        val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
+
+        if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
+            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV file on behalf of this organization: $organizationName"))
+        }
+
         return decode(json.parseToJsonElement(content), user, organization).save(user)
     }
 

@@ -1,7 +1,8 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
+import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.info.UserPermissions
 import com.saveourtool.save.info.UserPermissionsInOrganization
 import org.springframework.security.core.Authentication
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class UserPermissionEvaluator(
-    private var lnkUserOrganizationService: LnkUserOrganizationService,
+    private var lnkUserOrganizationRepository: LnkUserOrganizationRepository,
 ) {
     /**
      * @param authentication
@@ -21,7 +22,21 @@ class UserPermissionEvaluator(
     fun getUserPermissions(
         authentication: Authentication,
     ): UserPermissions {
-        val lnkOrganizations = lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(authentication.username())
+        val lnkOrganizations = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatus(authentication.username(), OrganizationStatus.CREATED)
+
+        return UserPermissions(
+            lnkOrganizations.associate { it.organization.name to UserPermissionsInOrganization(it.organization.canCreateContests, it.organization.canBulkUpload) },
+        )
+    }
+
+    /**
+     * @param userName
+     * @return UserPermissions
+     */
+    fun getUserPermissionsByName(
+        userName: String,
+    ): UserPermissions {
+        val lnkOrganizations = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatus(userName, OrganizationStatus.CREATED)
 
         return UserPermissions(
             lnkOrganizations.associate { it.organization.name to UserPermissionsInOrganization(it.organization.canCreateContests, it.organization.canBulkUpload) },
@@ -37,7 +52,8 @@ class UserPermissionEvaluator(
         authentication: Authentication,
         organizationName: String,
     ): UserPermissions {
-        val lnkOrganization = lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatusAndOrganizationName(authentication.username(), organizationName)
+        val lnkOrganization = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatusAndOrganizationName(authentication.username(), OrganizationStatus.CREATED,
+            organizationName)
 
         val isPermittedCreateContest = lnkOrganization?.organization?.canCreateContests ?: false
         val isPermittedToBulkUpload = lnkOrganization?.organization?.canBulkUpload ?: false
