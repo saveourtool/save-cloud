@@ -16,6 +16,7 @@ import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
+import kotlinx.browser.window
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -54,6 +55,7 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 type = ButtonType.button
                 onClick = {
                     useNavigate(to = "/")
+                    window.location.reload()
                 }
                 +"Proceed to login page"
             }

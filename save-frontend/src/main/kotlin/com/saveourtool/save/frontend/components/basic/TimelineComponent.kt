@@ -2,6 +2,8 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
 import react.dom.html.ReactHTML.div
@@ -12,29 +14,30 @@ import kotlinx.datetime.LocalDateTime
 const val HOVERABLE_CONST = "hoverable"
 
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
-    val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
+    console.log(props.dates)
+    if (props.dates != undefined) {
+        val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
 
-    div {
-        className = ClassName("mb-3")
-        props.title?.let { title ->
-            div {
-                className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
-                +title
+        div {
+            className = ClassName("mb-3")
+            props.title?.let { title ->
+                div {
+                    className = ClassName("mt-3 mb-3 text-xs text-center font-weight-bold text-primary text-uppercase")
+                    +title
+                }
             }
-        }
 
-        props.onAddClick?.let { onClickCallback ->
-            buttonBuilder(
-                label = "Add date",
-                style = "secondary",
-                isOutline = true,
-                classes = "btn btn-primary"
-            ) {
-                onClickCallback()
+            props.onAddClick?.let { onClickCallback ->
+                buttonBuilder(
+                    label = "Add date",
+                    style = "secondary",
+                    isOutline = true,
+                    classes = "btn btn-sm btn-primary"
+                ) {
+                    onClickCallback()
+                }
             }
-        }
 
-        if (props.dates.isNotEmpty()) {
             div {
                 className = ClassName("p-0 timeline-container")
                 div {
@@ -42,15 +45,22 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                     div {
                         className = ClassName("line")
                     }
-                    props.dates.toList()
+                    props.dates
+                        .plus(
+                            VulnerabilityDateType.SUBMITTED.value to
+                                    (props.vulnerability.creationDateTime ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0))
+                        )
+                        .toList()
                         .sortedBy { it.second }
                         .forEach { (label, dateTime) ->
                             div {
-                                className = ClassName("step $hoverable")
-                                props.onNodeClick?.let { onClickCallback ->
-                                    onClick = { onClickCallback(dateTime, label) }
+                                className =
+                                    ClassName(if (!label.isSubmittedType()) "step $hoverable" else "step-non-editable")
+                                if (!label.isSubmittedType()) {
+                                    props.onNodeClick?.let { onClickCallback ->
+                                        onClick = { onClickCallback(dateTime, label) }
+                                    }
                                 }
-
                                 div {
                                     className = ClassName("text-label")
                                     +label
@@ -70,8 +80,12 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 }
             }
         }
+    } else {
+
     }
 }
+
+private fun String.isSubmittedType() = this == VulnerabilityDateType.SUBMITTED.value
 
 /**
  * [Props] of [timelineComponent]
@@ -97,4 +111,9 @@ external interface TimelineComponentProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var onNodeClick: ((LocalDateTime, String) -> Unit)?
+
+    /**
+     * Vulnerability dto of vulnerability
+     */
+    var vulnerability: VulnerabilityDto
 }

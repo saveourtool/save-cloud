@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.externals.animations.ringLoader
 import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
+import kotlinx.browser.window
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.button
@@ -102,7 +103,8 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 onClick = {
                     if (response?.status == 401.toShort()) {
                         // if 401 - change current URL to the main page (with login screen)
-                        navigate("/")
+                        navigate(to = "/")
+                        window.location.reload()
                     }
                     setResponse(null)
                     setModalState(modalState.copy(isErrorModalOpen = false))
