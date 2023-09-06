@@ -31,6 +31,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
             },
             cn: {
                 "vulnerability-collection": $VULN_COLLECTION_CN,
+                "thanks-for-registration": $THANKS_FOR_REGISTRATION_CN,
                 "vulnerability-upload": $VULN_UPLOAD_CN,
                 "table-headers": $TABLE_HEADERS_CN,
                 "topbar": $TOPBAR_CN,

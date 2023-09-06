@@ -286,6 +286,13 @@ const val THANKS_FOR_REGISTRATION_EN = """
 }
 """
 
+const val THANKS_FOR_REGISTRATION_CN = """
+{
+    "Thank you for registration": "感谢您的注册",
+    "Your request is pending review": "当前此平台尚在建设中，我们的管理团队会及时查看您的需求和建议，并且尽快给予反馈。无需犹豫，欢迎随时联系我们:"
+}
+"""
+
 const val THANKS_FOR_REGISTRATION_RU = """
 {
     "Thank you for registration": "Спасибо за регистрацию!",
