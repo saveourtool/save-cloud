@@ -8,12 +8,10 @@ import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
-import kotlinx.datetime.LocalDateTime
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -108,36 +106,6 @@ class CosvService(
     ): Mono<RawOsvSchema> = cosvRepository.findLatestById(cosvId, serializer<RawOsvSchema>())
 
     /**
-     * Finds extended COSV
-     *
-     * @param cosvId [RawOsvSchema.id]
-     * @return found [RawCosvExt]
-     */
-    fun findExtById(
-        cosvId: String,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
-
-    /**
-     * Finds all extended vulnerabilities
-     *
-     * @param userName
-     * @return all found [RawCosvExt]
-     */
-    fun findExtByUser(
-        userName: String,
-    ): Flux<RawCosvExt> = cosvRepository.findAllLatestRawExtByUserName(userName)
-
-    /**
-     * @param cosvId
-     * @param status
-     * @return found [RawCosvExt]
-     */
-    fun getByCosvIdAndStatus(
-        cosvId: String,
-        status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExtByCosvIdAndStatus(cosvId, status)
-
-    /**
      * Generates COSV from [VulnerabilityDto] and saves it
      *
      * @param vulnerabilityDto as a source for COSV
@@ -189,27 +157,25 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<CosvMetadataDto> {
-        return cosvRepository.findLatestRawExt(cosvId)
-            .blockingMap { rawCosvExt ->
-                rawCosvExt to Pair(
-                    backendService.getUserByName(rawCosvExt.metadata.user.name),
-                    rawCosvExt.metadata.organization?.name?.let { organizationName ->
-                        backendService.getOrganizationByName(organizationName)
-                    }
-                )
-            }
-            .flatMap { (rawCosvExt, infoFromDatabase) ->
-                val (owner, organization) = infoFromDatabase
-                updater(rawCosvExt.cosv)
-                    .flatMap { newCosv ->
-                        cosvRepository.save(
-                            entry = rawCosvExt.cosv.copy(modified = getCurrentLocalDateTime()),
-                            serializer = serializer(),
-                            user = owner,
-                            organization = organization,
-                        )
-                    }
-            }
-    }
+    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+        .blockingMap { rawCosvExt ->
+            rawCosvExt to Pair(
+                backendService.getUserByName(rawCosvExt.metadata.user.name),
+                rawCosvExt.metadata.organization?.name?.let { organizationName ->
+                    backendService.getOrganizationByName(organizationName)
+                }
+            )
+        }
+        .flatMap { (rawCosvExt, infoFromDatabase) ->
+            val (owner, organization) = infoFromDatabase
+            updater(rawCosvExt.cosv)
+                .flatMap { newCosv ->
+                    cosvRepository.save(
+                        entry = rawCosvExt.cosv.copy(modified = getCurrentLocalDateTime()),
+                        serializer = serializer(),
+                        user = owner,
+                        organization = organization,
+                    )
+                }
+        }
 }

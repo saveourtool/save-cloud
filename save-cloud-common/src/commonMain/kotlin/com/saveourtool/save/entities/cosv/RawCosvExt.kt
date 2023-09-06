@@ -101,6 +101,7 @@ data class RawCosvExt(
      * @return a vulnerability dto with description
      */
     fun toVulnerabilityDtoWithDescription() = metadata.toVulnerabilityDto().copy(
-        description = metadata.details
+        description = metadata.details,
+        relatedLink = cosv.getRelatedLink(),
     )
 }

@@ -3,13 +3,9 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.entities.cosv.RawCosvExt
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
@@ -30,18 +26,6 @@ import kotlinx.serialization.json.Json
 class CosvController(
     private val cosvService: CosvService,
 ) {
-    @GetMapping("/by-cosv-id-and-status")
-    @Operation(
-        method = "GET",
-        summary = "Get COSV by name.",
-        description = "Get COSV by name.",
-    )
-    @ApiResponse(responseCode = "200", description = "Successfully fetched vulnerability by name")
-    fun getByCosvIdAndActive(
-        @RequestParam cosvId: String,
-        @RequestParam status: VulnerabilityStatus,
-    ): Mono<RawCosvExt> = cosvService.getByCosvIdAndStatus(cosvId, status).switchIfEmptyToNotFound()
-
     /**
      * @param cosvId COSV identifier
      * @return content of COSV
