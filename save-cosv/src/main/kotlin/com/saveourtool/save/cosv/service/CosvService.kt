@@ -139,7 +139,7 @@ class CosvService(
                     )
                 )
             },
-            credits = vulnerabilityDto.participants.asCredits().takeUnless { it.isEmpty() },
+            credits = vulnerabilityDto.getAllParticipants().asCredits().takeUnless { it.isEmpty() },
         )
         cosvRepository.save(
             entry = osv,
