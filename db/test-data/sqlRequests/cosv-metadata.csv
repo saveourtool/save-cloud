@@ -1,0 +1,6 @@
+id;cosv_id;severity_num;published;modified;user_id;details;summary;language;related_link;organization_id;status
+1;"CVE-2022-22978";98;"2021-01-01 00:00:00";"2021-01-01 00:00:00";1;"In Spring Security versions 5.5.6 and 5.6.3 and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some servlet containers. Applications using RegexRequestMatcher with `.` in the regular expression are possibly vulnerable to an authorization bypass";Incorrect Authorization;JAVA;https://spring.io/security/cve-2022-22978;1;APPROVED
+2;"CVE-2022-44697";78;"2021-01-01 00:00:00";"2021-01-01 00:00:00";1;"New description";Short description;JAVA;;;APPROVED
+3;"CVE-2023-22475";61;"2021-01-01 00:00:00";"2021-01-01 00:00:00";1;"New description";Short description;JAVA;;;APPROVED
+4;"CVE-2022-25365";78;"2021-01-01 00:00:00";"2021-01-01 00:00:00";1;"New description";Short description;JAVA;;;APPROVED
+5;"CVE-2022-25296";73;"2021-01-01 00:00:00";"2021-01-01 00:00:00";1;"New description";Short description;JAVA;;;APPROVED
