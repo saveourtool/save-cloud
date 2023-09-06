@@ -6,6 +6,8 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.vulnerabilities.Vulnerability
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.info.UserPermissions
+import org.springframework.security.core.Authentication
 
 /**
  * Interface for service to get required info for COSV from backend
@@ -39,4 +41,11 @@ interface IBackendService {
      * @return found [User] by name
      */
     fun getUserByName(name: String): User
+
+    /**
+     * @param authentication
+     * @param organizationName name of organization
+     * @return found [UserPermissions] by organizationName
+     */
+    fun getUserPermissionsByOrganizationName(authentication: Authentication, organizationName: String): UserPermissions
 }

@@ -6,12 +6,14 @@ import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
 import com.saveourtool.save.backend.repository.UserRepository
+import com.saveourtool.save.backend.security.UserPermissionEvaluator
 import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType
@@ -35,6 +37,7 @@ class UserDetailsService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val avatarStorage: AvatarStorage,
+    private val userPermissionEvaluator: UserPermissionEvaluator,
 ) {
     /**
      * @param username
@@ -49,6 +52,17 @@ class UserDetailsService(
      * @return found [User] or exception
      */
     fun getByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
+
+    /**
+     * @param authentication
+     * @return [UserInfo] info about user's with permissions
+     */
+    fun findByNameWithPermissions(authentication: Authentication): UserInfo {
+        val user = getByName(authentication.username())
+        val permissions = userPermissionEvaluator.getUserPermissions(authentication)
+
+        return user.toUserInfo().copy(userPermissions = permissions)
+    }
 
     /**
      * @param username

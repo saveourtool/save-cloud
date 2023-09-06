@@ -50,6 +50,16 @@ class UsersDetailsController(
         .map { it.toUserInfo() }
         .orNotFound()
 
+    /**
+     * @param authentication
+     * @return [UserInfo] info about user's with permissions
+     */
+    @GetMapping("/with-permissions")
+    @PreAuthorize("permitAll()")
+    fun findByNameWithPermissions(
+        authentication: Authentication,
+    ): Mono<UserInfo> = blockingToMono { userDetailsService.findByNameWithPermissions(authentication) }
+
     @GetMapping("/by-prefix")
     @PreAuthorize("permitAll()")
     @Operation(
