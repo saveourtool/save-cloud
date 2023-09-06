@@ -46,6 +46,7 @@
     <include file="vulnerability-date.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-user.xml" relativeToChangelogFile="true"/>
     <include file="tags.xml" relativeToChangelogFile="true"/>
+    <include file="drop-old-vulnerability-tables.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-tag.xml" relativeToChangelogFile="true"/>
     <include file="lnk-cosv-metadata-tag.xml" relativeToChangelogFile="true"/>
     <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
