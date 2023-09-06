@@ -48,6 +48,7 @@
     <include file="tags.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-tag.xml" relativeToChangelogFile="true"/>
     <include file="lnk-cosv-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

@@ -120,8 +120,8 @@ class CosvService(
     }.flatMap { (user, organization) ->
         val osv = ManualCosvSchema(
             id = vulnerabilityDto.identifier,
-            published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
-            modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),
+            published = (vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
+            modified = (vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
             severity = listOf(
                 Severity(
                     type = SeverityType.CVSS_V3,
