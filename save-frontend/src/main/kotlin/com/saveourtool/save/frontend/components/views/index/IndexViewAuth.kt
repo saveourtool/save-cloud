@@ -71,7 +71,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
 }
 
 val separator = VFC {
-    val (t) = useTranslation()
+    val (t) = useTranslation("welcome")
     div {
         className = ClassName("row mt-2")
         div {

@@ -279,6 +279,13 @@ const val ORGANIZATION_CN = """
 }
 """
 
+const val THANKS_FOR_REGISTRATION_EN = """
+{
+    "Thank you for registration": "Thank you for registration",
+    "Your request is pending review": "Right now the platform is still in development. Our admin team will soon review your request and approve it if everything is fine. Don't hesitate to contact us if you have any question:"
+}
+"""
+
 const val THANKS_FOR_REGISTRATION_CN = """
 {
     "Thank you for registration": "感谢您的注册",
