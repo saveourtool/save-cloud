@@ -9,8 +9,10 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.cosv.repository.CosvMetadataProjectRepository
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
+import com.saveourtool.save.cosv.repository.LnkCosvMetadataUserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
@@ -47,6 +49,8 @@ import reactor.util.function.Tuples
     MockBean(IBackendService::class),
     MockBean(CosvMetadataRepository::class),
     MockBean(LnkCosvMetadataTagRepository::class),
+    MockBean(LnkCosvMetadataUserRepository::class),
+    MockBean(CosvMetadataProjectRepository::class),
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {
