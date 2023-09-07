@@ -143,7 +143,7 @@ class CosvRepositoryInStorage(
             user = user,
             organization = organization,
             language = getLanguage() ?: VulnerabilityLanguage.OTHER,
-            status = VulnerabilityStatus.REVIEW,
+            status = VulnerabilityStatus.PENDING_REVIEW,
         )
 
         private fun CosvMetadata.updateBy(entry: CosvSchema<*, *, *, *>): CosvMetadata = apply {
