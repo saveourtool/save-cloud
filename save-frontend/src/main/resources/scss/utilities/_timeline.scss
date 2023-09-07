@@ -23,6 +23,22 @@ $color-label-default: #0275d8;
     align-items: center;
     justify-content: center;
 
+
+    .step-non-editable {
+      transition: 0.4s;
+      z-index: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 0;
+      height: 1.5rem;
+      width: 1.5rem;
+      border: 0.2rem solid $color-line;
+      border-radius: 50%;
+      background: $color-line;
+    }
+
     .step {
       transition: 0.4s;
       z-index: 1;
@@ -31,8 +47,8 @@ $color-label-default: #0275d8;
       align-items: center;
       justify-content: center;
       flex-grow: 0;
-      height: 1.6rem;
-      width: 1.6rem;
+      height: 1.5rem;
+      width: 1.5rem;
       border: 0.2rem solid $color-step;
       border-radius: 50%;
       background: white;

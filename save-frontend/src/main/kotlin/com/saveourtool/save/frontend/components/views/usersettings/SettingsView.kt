@@ -27,6 +27,7 @@ import web.cssom.*
 import web.html.ButtonType
 import web.html.InputType
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -54,6 +55,7 @@ val userSettingsView: FC<SettingsProps> = FC { props ->
                 type = ButtonType.button
                 onClick = {
                     useNavigate(to = "/")
+                    window.location.reload()
                 }
                 +"Proceed to login page"
             }

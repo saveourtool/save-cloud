@@ -117,3 +117,8 @@ spring:
             scope:
               - user_info
 ---
+# logout timeout
+server:
+  servlet:
+    session:
+      timeout: 15m
