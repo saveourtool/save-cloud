@@ -57,6 +57,6 @@
     </changeSet>
 
     <changeSet id="cosv-metadata-4" author="nulls">
-        <renameColumn tableName="cosv_metadata" oldColumnName="published" newColumnName="submitted"/>
+        <renameColumn tableName="cosv_metadata" oldColumnName="published" newColumnName="submitted" columnDataType="DATETIME(3)"/>
     </changeSet>
 </databaseChangeLog>
