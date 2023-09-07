@@ -6,7 +6,6 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
 
-import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
