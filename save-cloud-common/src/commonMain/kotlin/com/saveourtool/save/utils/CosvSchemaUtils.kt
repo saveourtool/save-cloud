@@ -16,6 +16,13 @@ import kotlinx.datetime.LocalDateTime
 
 private const val SAVEOURTOOL_PROFILE_PREFIX = "https://saveourtool.com/profile/"
 
+private val timelineEntryTypeMapping = mapOf(
+    VulnerabilityDateType.DISCLOSED to TimelineEntryType.disclosed,
+    VulnerabilityDateType.FIXED to TimelineEntryType.fixed,
+    VulnerabilityDateType.FOUND to TimelineEntryType.found,
+    VulnerabilityDateType.INTRODUCED to TimelineEntryType.introduced,
+)
+
 /**
  * @return Save's contributors
  */
@@ -57,19 +64,14 @@ fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList
 /**
  * @return [TimelineEntry]
  */
-fun VulnerabilityDateDto.asTimelineEntry(): TimelineEntry = TimelineEntry(
-    value = date,
-    type = when (type) {
-        VulnerabilityDateType.DISCLOSED -> TimelineEntryType.disclosed
-        VulnerabilityDateType.FIXED -> TimelineEntryType.fixed
-        VulnerabilityDateType.FOUND -> TimelineEntryType.found
-        VulnerabilityDateType.INTRODUCED -> TimelineEntryType.introduced
-        VulnerabilityDateType.MODIFIED -> throw IllegalArgumentException("Not supported date change")
-        VulnerabilityDateType.PUBLISHED -> throw IllegalArgumentException("Not supported date change")
-        VulnerabilityDateType.WITHDRAWN -> throw IllegalArgumentException("Not supported date change")
-        VulnerabilityDateType.SUBMITTED -> throw IllegalArgumentException("Not supported date change")
+fun VulnerabilityDateDto.asTimelineEntry(): TimelineEntry = timelineEntryTypeMapping[type]
+    ?.let {
+        TimelineEntry(
+            value = date,
+            type = it,
+        )
     }
-)
+    ?: throw IllegalArgumentException("VulnerabilityDate $type cannot be saved in COSV timeline")
 
 /**
  * @return language as [VulnerabilityLanguage]
