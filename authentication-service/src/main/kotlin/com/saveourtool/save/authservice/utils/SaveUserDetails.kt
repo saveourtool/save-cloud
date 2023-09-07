@@ -52,11 +52,6 @@ class SaveUserDetails(
         httpHeaders.set(AUTHORIZATION_STATUS, status)
     }
 
-    /**
-     * @return true if [status] is [UserStatus.ACTIVE], false otherwise
-     */
-    fun isActive() = status == UserStatus.ACTIVE.toString()
-
     @JsonIgnore
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(role)
 
@@ -76,7 +71,7 @@ class SaveUserDetails(
     override fun isCredentialsNonExpired(): Boolean = true
 
     @JsonIgnore
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = status == UserStatus.ACTIVE.toString()
 
     override fun eraseCredentials() {
         token = null

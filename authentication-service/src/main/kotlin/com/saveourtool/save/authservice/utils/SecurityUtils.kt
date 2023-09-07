@@ -6,15 +6,10 @@ package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserStatus
-import org.springframework.http.HttpHeaders
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
-import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
-import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.core.Authentication
-import org.springframework.security.web.server.authorization.AuthorizationContext
-import reactor.core.publisher.Mono
 
 /**
  * Extract userId from this [Authentication]
@@ -64,26 +59,3 @@ fun roleHierarchy(): RoleHierarchy = mapOf(
     .let {
         RoleHierarchyImpl().apply { setHierarchy(it) }
     }
-
-/**
- * Get default [AuthorizationDecision] by [authentication] and [authorizationContext]
- *
- * @param authentication
- * @param authorizationContext
- * @return [Mono] of [AuthorizationDecision]
- */
-fun defaultAuthorizationDecision(
-    authentication: Mono<Authentication>,
-    authorizationContext: AuthorizationContext,
-): Mono<AuthorizationDecision> = AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
-    authentication, authorizationContext
-).map {
-    if (!it.isGranted) {
-        // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
-        // then backend will return 401, if endpoint is protected for anonymous access
-        val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
-        AuthorizationDecision(hasAuthorizationHeader)
-    } else {
-        it
-    }
-}
