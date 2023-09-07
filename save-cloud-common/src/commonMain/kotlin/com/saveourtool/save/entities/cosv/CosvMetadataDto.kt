@@ -14,7 +14,7 @@ import kotlinx.datetime.LocalDateTime
  * @property severity [com.saveourtool.osv4k.Severity.score]
  * @property severityNum [com.saveourtool.osv4k.Severity.scoreNum]
  * @property modified [com.saveourtool.osv4k.OsvSchema.modified]
- * @property published [com.saveourtool.osv4k.OsvSchema.published]
+ * @property submitted
  * @property user
  * @property organization
  * @property language
@@ -27,7 +27,7 @@ data class CosvMetadataDto(
     val severity: String?,
     val severityNum: Int,
     val modified: LocalDateTime,
-    val published: LocalDateTime,
+    val submitted: LocalDateTime,
     val user: UserInfo,
     val organization: OrganizationDto?,
     val language: VulnerabilityLanguage,
@@ -49,7 +49,7 @@ data class CosvMetadataDto(
         dates = emptyList(),
         participants = emptyList(),
         status = status,
-        creationDateTime = published,
+        creationDateTime = submitted,
         lastUpdatedDateTime = modified,
     )
 }

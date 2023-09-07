@@ -10,7 +10,7 @@
             <column header="id" name="id" type="bigint"/>
             <column header="cosv_id" name="cosv_id" type="varchar(100)"/>
             <column header="severity_num" name="severity_num" type="bigint"/>
-            <column header="published" name="published" type="DATETIME(3)"/>
+            <column header="submitted" name="submitted" type="DATETIME(3)"/>
             <column header="modified" name="modified" type="DATETIME(3)"/>
             <column header="user_id" name="user_id" type="bigint"/>
             <column header="details" name="details" type="TEXT"/>
