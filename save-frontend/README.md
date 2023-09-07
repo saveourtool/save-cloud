@@ -68,8 +68,10 @@ config.devServer = Object.assign(
         target: 'http://localhost:5400',
         logLevel: 'debug',
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader("Authorization", "Basic YWRtaW46");
-          proxyReq.setHeader("X-Authorization-Source", "basic");
+            proxyReq.setHeader("X-Authorization-Id", "1");
+            proxyReq.setHeader("X-Authorization-Name", "admin");
+            proxyReq.setHeader("X-Authorization-Roles", "ROLE_SUPER_ADMIN");
+            proxyReq.setHeader("X-Authorization-Status", "ACTIVE");
         }
       },
       {
@@ -77,8 +79,10 @@ config.devServer = Object.assign(
         target: 'http://localhost:5421',
         logLevel: 'debug',
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader("Authorization", "Basic YWRtaW46");
-          proxyReq.setHeader("X-Authorization-Source", "basic");
+            proxyReq.setHeader("X-Authorization-Id", "1");
+            proxyReq.setHeader("X-Authorization-Name", "admin");
+            proxyReq.setHeader("X-Authorization-Roles", "ROLE_SUPER_ADMIN");
+            proxyReq.setHeader("X-Authorization-Status", "ACTIVE");
         }
       },
       {
@@ -86,8 +90,10 @@ config.devServer = Object.assign(
         target: 'http://localhost:5500',
         logLevel: 'debug',
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader("Authorization", "Basic YWRtaW46");
-          proxyReq.setHeader("X-Authorization-Source", "basic");
+            proxyReq.setHeader("X-Authorization-Id", "1");
+            proxyReq.setHeader("X-Authorization-Name", "admin");
+            proxyReq.setHeader("X-Authorization-Roles", "ROLE_SUPER_ADMIN");
+            proxyReq.setHeader("X-Authorization-Status", "ACTIVE");
         }
       },
       {
@@ -95,8 +101,10 @@ config.devServer = Object.assign(
         target: 'http://localhost:5800',
         logLevel: 'debug',
         onProxyReq: function (proxyReq, req, res) {
-          proxyReq.setHeader("Authorization", "Basic YWRtaW46");
-          proxyReq.setHeader("X-Authorization-Source", "basic");
+            proxyReq.setHeader("X-Authorization-Id", "1");
+            proxyReq.setHeader("X-Authorization-Name", "admin");
+            proxyReq.setHeader("X-Authorization-Roles", "ROLE_SUPER_ADMIN");
+            proxyReq.setHeader("X-Authorization-Status", "ACTIVE");
         }
       }
     ],
@@ -113,8 +121,10 @@ Sometimes it is useful to add authorization headers when proxying to some Spring
 It can be done with setting `onPorxyReq`:
 ```javascript
 onProxyReq: (proxyReq, req, res) => {
-  proxyReq.setHeader("Authorization", "Basic YWRtaW46");
-  proxyReq.setHeader("X-Authorization-Source", "basic");
+    proxyReq.setHeader("X-Authorization-Id", "1");
+    proxyReq.setHeader("X-Authorization-Name", "admin");
+    proxyReq.setHeader("X-Authorization-Roles", "ROLE_SUPER_ADMIN");
+    proxyReq.setHeader("X-Authorization-Status", "ACTIVE");
 }
 ```
 Thus, we add `Authorization` and `X-Authorization-Source` headers that correspond with `admin` user headers.
@@ -130,8 +140,8 @@ Thus, we add `Authorization` and `X-Authorization-Source` headers that correspon
    * `target`: change to [`http://localhost:5300`](http://localhost:5300) (the
      default gateway URL);
    * `onProxyReq`: drop the entire callback, since all auth headers (`X-Authorization-Id`,
-     `X-Authorization-Name` and `X-Authorization-Roles`) will be set by the gateway now (the gateway
-     acts as a reverse proxy);
+     `X-Authorization-Name`, `X_Authorization-Status` and `X-Authorization-Roles`) will be set by the gateway now
+     (the gateway acts as a reverse proxy);
    * `bypass`: drop the entire callback.
 
   The resulting `dev-server.js` should look like this:
