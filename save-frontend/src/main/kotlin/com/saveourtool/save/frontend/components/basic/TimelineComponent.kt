@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType.Companion.isSystemDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
@@ -53,8 +54,8 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                     .forEach { (label, dateTime) ->
                         div {
                             className =
-                                    ClassName(if (!label.isSubmittedType()) "step $hoverable" else "step-non-editable")
-                            if (!label.isSubmittedType()) {
+                                    ClassName(if (!label.isSystemDateType()) "step $hoverable" else "step-non-editable")
+                            if (!label.isSystemDateType()) {
                                 props.onNodeClick?.let { onClickCallback ->
                                     onClick = { onClickCallback(dateTime, label) }
                                 }
@@ -110,5 +111,3 @@ external interface TimelineComponentProps : Props {
      */
     var vulnerability: VulnerabilityDto
 }
-
-private fun String.isSubmittedType() = this == VulnerabilityDateType.SUBMITTED.value
