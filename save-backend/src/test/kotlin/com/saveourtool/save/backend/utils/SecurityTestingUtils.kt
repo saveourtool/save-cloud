@@ -5,6 +5,7 @@
 package com.saveourtool.save.backend.utils
 
 import com.saveourtool.save.authservice.utils.SaveUserDetails
+import com.saveourtool.save.authservice.utils.status
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 
@@ -17,6 +18,7 @@ internal fun mutateMockedUser(id: Long) {
             id = id,
             name = authentication.name,
             role = (authentication as UsernamePasswordAuthenticationToken).authorities.joinToString(",") { it.authority },
+            status = authentication.status(),
             token = null,
         ).toPreAuthenticatedAuthenticationToken()
     }

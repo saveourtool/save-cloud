@@ -4,16 +4,16 @@
 
 package com.saveourtool.save.gateway.security
 
+import com.saveourtool.save.authservice.utils.*
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+import com.saveourtool.save.v1
 
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
-import org.springframework.security.authorization.AuthenticatedReactiveAuthorizationManager
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
@@ -26,13 +26,21 @@ import org.springframework.security.web.server.authentication.HttpStatusServerEn
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler
 import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler
-import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.util.matcher.AndServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import reactor.kotlin.core.publisher.cast
+import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
+
+/**
+ * List of endpoints allowed for users that do not have ACTIVE status
+ */
+internal val allowedForInactiveEndpoints = listOf(
+    "/api/$v1/users/*",
+)
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -69,20 +77,12 @@ class WebSecurityConfig(
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**")
-                .access { authentication, authorizationContext ->
-                    AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
-                        authentication, authorizationContext
-                    ).map {
-                        if (!it.isGranted) {
-                            // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
-                            // then backend will return 401, if endpoint is protected for anonymous access
-                            val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
-                            AuthorizationDecision(hasAuthorizationHeader)
-                        } else {
-                            it
-                        }
-                    }
+                .pathMatchers(*allowedForInactiveEndpoints.toTypedArray()).access(::defaultAuthorizationDecision)
+                .pathMatchers("/api/**").access { authorization, authorizationContext ->
+                    authorization.flatMap { backendService.findByName(it.name) }
+                        .filter { it.isActive() }
+                        .flatMap { defaultAuthorizationDecision(authorization, authorizationContext) }
+                        .switchIfEmpty { AuthorizationDecision(false).toMono() }
                 }
                 // resources for frontend
                 .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
