@@ -48,25 +48,26 @@ fun List<UserInfo>.asCredits(): List<Credit> = map { it.asCredit() }
  * @return timeline as [List] of [VulnerabilityDateDto]
  */
 fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList {
-    timeLine?.map { it.asVulnerabilityDateDto(id) }?.let { addAll(it) }
+    timeline?.map { it.asVulnerabilityDateDto(id) }?.let { addAll(it) }
     add(modified.asVulnerabilityDateDto(id, VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
 }
 
 /**
- * @return [TimeLineEntry]
+ * @return [TimelineEntry]
  */
-fun VulnerabilityDateDto.asTimelineEntry(): TimeLineEntry = TimeLineEntry(
+fun VulnerabilityDateDto.asTimelineEntry(): TimelineEntry = TimelineEntry(
     value = date,
     type = when (type) {
-        VulnerabilityDateType.DISCLOSED -> TimeLineEntryType.disclosed
-        VulnerabilityDateType.FIXED -> TimeLineEntryType.fixed
-        VulnerabilityDateType.FOUND -> TimeLineEntryType.found
-        VulnerabilityDateType.INTRODUCED -> TimeLineEntryType.introduced
+        VulnerabilityDateType.DISCLOSED -> TimelineEntryType.disclosed
+        VulnerabilityDateType.FIXED -> TimelineEntryType.fixed
+        VulnerabilityDateType.FOUND -> TimelineEntryType.found
+        VulnerabilityDateType.INTRODUCED -> TimelineEntryType.introduced
         VulnerabilityDateType.MODIFIED -> throw IllegalArgumentException("Not supported date change")
         VulnerabilityDateType.PUBLISHED -> throw IllegalArgumentException("Not supported date change")
         VulnerabilityDateType.WITHDRAWN -> throw IllegalArgumentException("Not supported date change")
+        VulnerabilityDateType.SUBMITTED -> throw IllegalArgumentException("Not supported date change")
     }
 )
 
@@ -100,11 +101,11 @@ private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: Vulnerabi
     vulnerabilityIdentifier = cosvId,
 )
 
-private fun TimeLineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulnerabilityDateDto(cosvId,
+private fun TimelineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulnerabilityDateDto(cosvId,
     when (type) {
-        TimeLineEntryType.introduced -> VulnerabilityDateType.INTRODUCED
-        TimeLineEntryType.found -> VulnerabilityDateType.FOUND
-        TimeLineEntryType.fixed -> VulnerabilityDateType.FIXED
-        TimeLineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
+        TimelineEntryType.introduced -> VulnerabilityDateType.INTRODUCED
+        TimelineEntryType.found -> VulnerabilityDateType.FOUND
+        TimelineEntryType.fixed -> VulnerabilityDateType.FIXED
+        TimelineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
