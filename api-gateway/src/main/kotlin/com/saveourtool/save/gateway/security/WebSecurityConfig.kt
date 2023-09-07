@@ -82,7 +82,7 @@ class WebSecurityConfig(
                     authorization.flatMap { backendService.findByName(it.name) }
                         .filter { it.isActive() }
                         .flatMap { defaultAuthorizationDecision(authorization, authorizationContext) }
-                        .switchIfEmpty { AuthorizationDecision(false).toMono() }
+                        .defaultIfEmpty(AuthorizationDecision(false))
                 }
                 // resources for frontend
                 .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
