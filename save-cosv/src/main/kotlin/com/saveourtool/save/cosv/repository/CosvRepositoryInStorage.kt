@@ -16,8 +16,10 @@ import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -102,7 +104,7 @@ class CosvRepositoryInStorage(
         .blockingMap { content ->
             RawCosvExt(
                 metadata = toDto(),
-                rawContent = content,
+                cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
                 tags = lnkCosvMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet(),
                 timeline = content.getTimeline(),
@@ -116,6 +118,15 @@ class CosvRepositoryInStorage(
     ) = cosvStorage.download(metadata.toDto().toStorageKey())
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
+
+    override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
+        cosvMetadataRepository.findByCosvId(cosvId)?.let {
+            cosvMetadataRepository.delete(it)
+        }
+    }.flatMapMany {
+        cosvStorage.list(cosvId)
+            .flatMap { key -> cosvStorage.delete(key).map { key.modified } }
+    }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(

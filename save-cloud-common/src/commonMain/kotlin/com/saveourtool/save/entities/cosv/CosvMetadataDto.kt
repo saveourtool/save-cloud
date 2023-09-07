@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.info.UserInfo
@@ -31,4 +32,24 @@ data class CosvMetadataDto(
     val organization: OrganizationDto?,
     val language: VulnerabilityLanguage,
     val status: VulnerabilityStatus,
-)
+) {
+    /**
+     * @return a vulnerability dto
+     */
+    fun toVulnerabilityDto() = VulnerabilityDto(
+        identifier = cosvId,
+        progress = severityNum,
+        projects = emptyList(),  // TODO: not supported yet
+        description = null,  // it's empty by old logic
+        shortDescription = summary,
+        relatedLink = null,  // FIXME: related link is not available here
+        language = language,
+        userInfo = user,  // it was empty in old logic, but will populate to simplify the logic
+        organization = organization,
+        dates = emptyList(),
+        participants = emptyList(),
+        status = status,
+        creationDateTime = published,
+        lastUpdatedDateTime = modified,
+    )
+}

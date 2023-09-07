@@ -3,7 +3,6 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
@@ -39,15 +38,6 @@ class CosvController(
         .map {
             ResponseEntity.ok(Json.encodeToString(it))
         }
-
-    /**
-     * @param cosvId
-     * @return extended COSV
-     */
-    @GetMapping(path = ["/get-ext-by-id/{cosvId}"], produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun getRawById(
-        @PathVariable cosvId: String,
-    ): Mono<RawCosvExt> = cosvService.findExtByCosvId(cosvId)
 
     /**
      * @param content

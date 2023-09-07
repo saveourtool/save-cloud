@@ -10,4 +10,5 @@ dependencies {
     api(libs.cosv4k)
     implementation(libs.spring.security.core)
     implementation(libs.spring.data.jpa)
+    implementation(libs.hibernate.jpa21.api)
 }

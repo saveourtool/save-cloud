@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities.cosv
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
 import com.saveourtool.save.spring.entity.BaseEntityWithDto
 
@@ -33,11 +34,11 @@ class CosvMetadataProject(
     @Enumerated(EnumType.STRING)
     var type: VulnerabilityProjectType,
 
-) : BaseEntityWithDto<CosvMetadataProjectDto>() {
+) : BaseEntityWithDto<VulnerabilityProjectDto>() {
     /**
      * @return a dto
      */
-    override fun toDto() = CosvMetadataProjectDto(
+    override fun toDto() = VulnerabilityProjectDto(
         name = name,
         url = url,
         versions = versions.orEmpty(),

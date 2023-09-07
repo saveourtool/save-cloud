@@ -1,7 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
-import com.saveourtool.save.entities.vulnerabilities.LnkVulnerabilityTag
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
@@ -30,6 +29,12 @@ interface LnkCosvMetadataTagRepository : BaseEntityRepository<LnkCosvMetadataTag
     fun findByCosvMetadataId(cosvMetadataId: Long): List<LnkCosvMetadataTag>
 
     /**
+     * @param cosvId id of COSV
+     * @return list of [LnkCosvMetadataTag] links to COSV metadata
+     */
+    fun findAllByCosvMetadataCosvId(cosvId: String): List<LnkCosvMetadataTag>
+
+    /**
      * @param cosvMetadataIds [List] of [CosvMetadata.id]s
      * @return list of [LnkCosvMetadataTag] links to COSV metadata
      */
@@ -43,7 +48,7 @@ interface LnkCosvMetadataTagRepository : BaseEntityRepository<LnkCosvMetadataTag
     fun findByCosvMetadataIdAndTagName(cosvMetadataId: Long, tagName: String): LnkCosvMetadataTag?
 
     /**
-     * @param prefix [LnkVulnerabilityTag.tag] name prefix
+     * @param prefix [LnkCosvMetadataTag.tag] name prefix
      * @param page
      * @return [List] of [LnkCosvMetadataTag]s with name that starts with [prefix]
      */

@@ -8,7 +8,6 @@ import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
 import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
@@ -48,7 +47,7 @@ class CosvService(
      * @param inputStreams
      * @param authentication who uploads [inputStream]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
+     * @return vulnerability identifiers
      * @throws ResponseStatusException
      */
     @OptIn(ExperimentalSerializationApi::class)
@@ -67,7 +66,7 @@ class CosvService(
 
         return inputStreams.flatMap { inputStream ->
             decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
-        }.save(user)
+        }
     }
 
     /**
@@ -76,7 +75,7 @@ class CosvService(
      * @param content
      * @param authentication who uploads [content]
      * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
+     * @return vulnerability identifiers
      * @throws ResponseStatusException
      */
     fun decodeAndSave(
@@ -92,7 +91,7 @@ class CosvService(
             return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV file on behalf of this organization: $organizationName"))
         }
 
-        return decode(json.parseToJsonElement(content), user, organization).save(user)
+        return decode(json.parseToJsonElement(content), user, organization)
     }
 
     /**
@@ -101,58 +100,26 @@ class CosvService(
      * @param jsonElement
      * @param user who uploads content
      * @param organization to which is uploaded
-     * @return save's vulnerability
+     * @return vulnerability identifier
      */
     private fun decode(
         jsonElement: JsonElement,
         user: User,
         organization: Organization,
-    ): Flux<VulnerabilityDto> = jsonElement.toMono()
+    ): Flux<String> = jsonElement.toMono()
         .flatMapIterable { it.toJsonArrayOrSingle() }
         .flatMap { cosvProcessor.process(it.jsonObject, user, organization) }
+        .map { it.cosvId }
 
     /**
-     * Creates entities in save database
+     * Finds COSV
      *
-     * @receiver save's vulnerability
-     * @param user [user] that uploads who uploads
-     * @return save's vulnerability identifiers
-     */
-    private fun Flux<VulnerabilityDto>.save(
-        user: User,
-    ): Flux<String> = collectList()
-        .blockingMap { vulnerabilities ->
-            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
-        }
-        .flatMapIterable { it }
-
-    /**
-     * Finds OSV with validating save database
-     *
-     * @param id [VulnerabilityDto.identifier]
-     * @return found OSV
+     * @param cosvId [VulnerabilityDto.identifier]
+     * @return found COSV
      */
     fun findById(
-        id: String,
-    ): Mono<RawOsvSchema> = blockingToMono {
-        backendService.findVulnerabilityByName(id)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found vulnerability $id in save database"
-        }
-        .flatMap { vulnerability ->
-            cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
-        }
-
-    /**
-     * Finds extended OSV
-     *
-     * @param cosvId [RawOsvSchema.id]
-     * @return found extended OSV
-     */
-    fun findExtByCosvId(
         cosvId: String,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<RawOsvSchema> = cosvRepository.findLatestById(cosvId, serializer<RawOsvSchema>())
 
     /**
      * Generates COSV from [VulnerabilityDto] and saves it
@@ -169,8 +136,8 @@ class CosvService(
     }.flatMap { (user, organization) ->
         val osv = ManualCosvSchema(
             id = vulnerabilityDto.identifier,
-            published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
-            modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),
+            published = (vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
+            modified = (vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
             severity = listOf(
                 Severity(
                     type = SeverityType.CVSS_V3,
@@ -188,7 +155,7 @@ class CosvService(
                     )
                 )
             },
-            credits = vulnerabilityDto.participants.asCredits().takeUnless { it.isEmpty() },
+            credits = vulnerabilityDto.getAllParticipants().asCredits().takeUnless { it.isEmpty() },
         )
         cosvRepository.save(
             entry = osv,
@@ -197,4 +164,34 @@ class CosvService(
             organization = organization,
         )
     }
+
+    /**
+     * @param cosvId
+     * @param updater
+     * @return [Mono] with new metadata
+     */
+    fun update(
+        cosvId: String,
+        updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
+    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+        .blockingMap { rawCosvExt ->
+            rawCosvExt to Pair(
+                backendService.getUserByName(rawCosvExt.metadata.user.name),
+                rawCosvExt.metadata.organization?.let { organization ->
+                    backendService.getOrganizationByName(organization.name)
+                }
+            )
+        }
+        .flatMap { (rawCosvExt, infoFromDatabase) ->
+            val (owner, organization) = infoFromDatabase
+            updater(rawCosvExt.cosv)
+                .flatMap { newCosv ->
+                    cosvRepository.save(
+                        entry = newCosv.copy(modified = getCurrentLocalDateTime()),
+                        serializer = serializer(),
+                        user = owner,
+                        organization = organization,
+                    )
+                }
+        }
 }
