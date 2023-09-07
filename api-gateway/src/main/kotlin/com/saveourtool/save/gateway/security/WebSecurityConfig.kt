@@ -177,7 +177,7 @@ fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegati
  * @param authorizationContext
  * @return [Mono] of [AuthorizationDecision]
  */
-fun defaultAuthorizationDecision(
+private fun defaultAuthorizationDecision(
     authentication: Mono<Authentication>,
     authorizationContext: AuthorizationContext,
 ): Mono<AuthorizationDecision> = AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
