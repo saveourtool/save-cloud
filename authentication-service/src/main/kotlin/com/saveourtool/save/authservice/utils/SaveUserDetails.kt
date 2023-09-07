@@ -1,6 +1,7 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -15,18 +16,21 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
  * @property id [com.saveourtool.save.entities.User.id]
  * @property name [com.saveourtool.save.entities.User.name]
  * @property role [com.saveourtool.save.entities.User.role]
+ * @property status [com.saveourtool.save.entities.User.status]
  * @property token [com.saveourtool.save.entities.User.password]
  */
 class SaveUserDetails(
     val id: Long,
     val name: String,
     val role: String,
+    val status: String,
     var token: String?,
 ) : UserDetails, CredentialsContainer {
     constructor(user: User) : this(
         user.requiredId(),
         user.name,
         user.role.orEmpty(),
+        user.status.toString(),
         user.password,
     )
 
@@ -45,6 +49,7 @@ class SaveUserDetails(
         httpHeaders.set(AUTHORIZATION_ID, id.toString())
         httpHeaders.set(AUTHORIZATION_NAME, name)
         httpHeaders.set(AUTHORIZATION_ROLES, role)
+        httpHeaders.set(AUTHORIZATION_STATUS, status)
     }
 
     @JsonIgnore
@@ -66,7 +71,7 @@ class SaveUserDetails(
     override fun isCredentialsNonExpired(): Boolean = true
 
     @JsonIgnore
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = status == UserStatus.ACTIVE.toString()
 
     override fun eraseCredentials() {
         token = null
@@ -84,6 +89,7 @@ class SaveUserDetails(
                 id = getSingleHeader(AUTHORIZATION_ID)?.toLong() ?: return logWarnAndReturnEmpty(AUTHORIZATION_ID),
                 name = getSingleHeader(AUTHORIZATION_NAME) ?: return logWarnAndReturnEmpty(AUTHORIZATION_NAME),
                 role = getSingleHeader(AUTHORIZATION_ROLES) ?: return logWarnAndReturnEmpty(AUTHORIZATION_ROLES),
+                status = getSingleHeader(AUTHORIZATION_STATUS) ?: return logWarnAndReturnEmpty(AUTHORIZATION_STATUS),
                 token = null,
             )
         }

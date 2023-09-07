@@ -43,6 +43,11 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
             token,
             loadingHandler = ::loadingHandler,
         )
+            .run {
+                if (!ok) {
+                    setToken(null)
+                }
+            }
     }
 
     div {
@@ -75,8 +80,7 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
                     style = "outline-secondary",
                     classes = "rounded-pill btn-sm",
                     isOutline = false
-                ) {
-                    }
+                ) { }
             }
         }
 
@@ -89,9 +93,7 @@ val tokenSettingsCard: FC<SettingsProps> = FC { props ->
                     style = "outline-secondary",
                     classes = "rounded-pill btn-sm",
                     isOutline = false
-                ) {
-
-                    }
+                ) { }
             }
         }
     }

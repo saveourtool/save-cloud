@@ -4,9 +4,11 @@
 
 package com.saveourtool.save.gateway.security
 
+import com.saveourtool.save.authservice.utils.*
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
+import com.saveourtool.save.v1
 
 import org.springframework.context.annotation.Bean
 import org.springframework.core.annotation.Order
@@ -17,6 +19,7 @@ import org.springframework.security.authorization.AuthenticatedReactiveAuthoriza
 import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.factory.PasswordEncoderFactories
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -32,7 +35,15 @@ import org.springframework.security.web.server.util.matcher.NegatedServerWebExch
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.cast
+
+/**
+ * List of endpoints allowed for users that do not have ACTIVE status
+ */
+internal val allowedForInactiveEndpoints = listOf(
+    "/api/$v1/users/*",
+)
 
 @EnableWebFluxSecurity
 @Suppress(
@@ -69,20 +80,12 @@ class WebSecurityConfig(
                 // all requests to backend are permitted on gateway, if user agent is authenticated in gateway or doesn't have
                 // any authentication data at all.
                 // backend returns 401 for those endpoints that require authentication
-                .pathMatchers("/api/**")
-                .access { authentication, authorizationContext ->
-                    AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
-                        authentication, authorizationContext
-                    ).map {
-                        if (!it.isGranted) {
-                            // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
-                            // then backend will return 401, if endpoint is protected for anonymous access
-                            val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
-                            AuthorizationDecision(hasAuthorizationHeader)
-                        } else {
-                            it
-                        }
-                    }
+                .pathMatchers(*allowedForInactiveEndpoints.toTypedArray()).access(::defaultAuthorizationDecision)
+                .pathMatchers("/api/**").access { authorization, authorizationContext ->
+                    authorization.flatMap { backendService.findByName(it.name) }
+                        .filter { it.isEnabled }
+                        .flatMap { defaultAuthorizationDecision(authorization, authorizationContext) }
+                        .defaultIfEmpty(AuthorizationDecision(false))
                 }
                 // resources for frontend
                 .pathMatchers("/*.html", "/*.js*", "/*.css", "/img/**", "/*.ico", "/*.png", "/particles.json")
@@ -166,3 +169,26 @@ class WebSecurityConfig(
  */
 @Bean
 fun passwordEncoder(): PasswordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder()
+
+/**
+ * Get default [AuthorizationDecision] by [authentication] and [authorizationContext]
+ *
+ * @param authentication
+ * @param authorizationContext
+ * @return [Mono] of [AuthorizationDecision]
+ */
+private fun defaultAuthorizationDecision(
+    authentication: Mono<Authentication>,
+    authorizationContext: AuthorizationContext,
+): Mono<AuthorizationDecision> = AuthenticatedReactiveAuthorizationManager.authenticated<AuthorizationContext>().check(
+    authentication, authorizationContext
+).map {
+    if (!it.isGranted) {
+        // if request is not authorized by configured authorization manager, then we allow only requests w/o Authorization header
+        // then backend will return 401, if endpoint is protected for anonymous access
+        val hasAuthorizationHeader = authorizationContext.exchange.request.headers[HttpHeaders.AUTHORIZATION].isNullOrEmpty()
+        AuthorizationDecision(hasAuthorizationHeader)
+    } else {
+        it
+    }
+}
