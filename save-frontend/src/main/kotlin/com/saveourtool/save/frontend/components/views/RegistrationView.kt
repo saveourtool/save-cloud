@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
@@ -23,6 +24,7 @@ import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
+import com.saveourtool.save.validation.isValidUrl
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -149,6 +151,9 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         )
     }
 
+    val isWebsiteValid = userInfo.website?.isValidUrl() ?: true
+    val isGithubProvided = !userInfo.gitHub.isNullOrBlank()
+
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
         title = AVATAR_TITLE
@@ -236,8 +241,46 @@ val registrationView: FC<RegistrationProps> = FC { props ->
 
                                 div {
                                     className = ClassName("pt-3")
+                                    inputTextFormRequired {
+                                        form = InputTypes.GITHUB
+                                        textValue = userInfo.gitHub
+                                        classes = ""
+                                        validInput = true
+                                        name = "GitHub"
+                                        onChangeFun = { event ->
+                                            setUserInfo { previousUserInfo ->
+                                                previousUserInfo.copy(gitHub = event.target.value.takeIf { it.isNotBlank() })
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    inputTextFormOptional {
+                                        form = InputTypes.WEBSITE
+                                        textValue = userInfo.website
+                                        classes = ""
+                                        validInput = userInfo.website?.isValidUrl()
+                                        name = "Website"
+                                        onChangeFun = { event ->
+                                            setUserInfo { previousUserInfo ->
+                                                previousUserInfo.copy(website = event.target.value.takeIf { it.isNotBlank() })
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    label {
+                                        className = ClassName("form-label mb-0")
+                                        htmlFor = "additional-info-id"
+                                        +"Additional info"
+                                    }
                                     textarea {
                                         className = ClassName("form-control")
+                                        id = "additional-info-id"
                                         value = userInfo.freeText
                                         placeholder = "Please enter some information about yourself so that it would be easier for us to approve."
                                         onChange = { event -> setUserInfo { previousUserInfo -> previousUserInfo.copy(freeText = event.target.value) } }
@@ -268,7 +311,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     "Sign up",
                                     "info",
                                     classes = "mt-4 mr-4",
-                                    isDisabled = !isTermsOfUseOk,
+                                    isDisabled = !isTermsOfUseOk || !isWebsiteValid || !isGithubProvided,
                                 ) { saveUser() }
 
                                 buttonBuilder(
