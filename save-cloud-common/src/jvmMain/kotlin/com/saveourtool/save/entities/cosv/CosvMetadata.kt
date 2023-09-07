@@ -19,7 +19,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property severity [com.saveourtool.osv4k.Severity.score]
  * @property severityNum [com.saveourtool.osv4k.Severity.scoreNum]
  * @property modified [com.saveourtool.osv4k.OsvSchema.modified]
- * @property published [com.saveourtool.osv4k.OsvSchema.published]
+ * @property submitted when vulnerability submitted to saveourtool platform
  * @property user [User] who uploaded COSV to save
  * @property organization [Organization] to which COSV was uploaded
  * @property language
@@ -34,7 +34,7 @@ class CosvMetadata(
     var severity: String?,
     var severityNum: Int,
     var modified: LocalDateTime,
-    var published: LocalDateTime,
+    var submitted: LocalDateTime,
     @ManyToOne
     @JoinColumn(name = "user_id")
     var user: User,
@@ -53,7 +53,7 @@ class CosvMetadata(
         severity = severity,
         severityNum = severityNum,
         modified = modified.toKotlinLocalDateTime(),
-        published = published.toKotlinLocalDateTime(),
+        submitted = submitted.toKotlinLocalDateTime(),
         user = user.toUserInfo(),
         organization = organization?.toDto(),
         language = language,
@@ -77,7 +77,7 @@ class CosvMetadata(
             severity = severity,
             severityNum = severityNum,
             modified = modified.toJavaLocalDateTime(),
-            published = published.toJavaLocalDateTime(),
+            submitted = submitted.toJavaLocalDateTime(),
             user = userResolver(user.name),
             organization = organization?.name?.let(organizationResolver),
             language = language,

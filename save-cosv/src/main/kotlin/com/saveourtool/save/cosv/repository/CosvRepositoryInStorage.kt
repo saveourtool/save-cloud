@@ -139,7 +139,7 @@ class CosvRepositoryInStorage(
             severity = severity?.firstOrNull()?.score,
             severityNum = severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
             modified = modified.toJavaLocalDateTime(),
-            published = (published ?: modified).toJavaLocalDateTime(),
+            submitted = getCurrentLocalDateTime().toJavaLocalDateTime(),
             user = user,
             organization = organization,
             language = getLanguage() ?: VulnerabilityLanguage.OTHER,
@@ -154,8 +154,6 @@ class CosvRepositoryInStorage(
                 ?.scoreNum
                 ?.toInt() ?: 0
             modified = entry.modified.toJavaLocalDateTime()
-            published = (entry.published ?: entry.modified).toJavaLocalDateTime()
-            language = entry.getLanguage() ?: VulnerabilityLanguage.OTHER
         }
 
         private fun CosvMetadataDto.toStorageKey() = CosvKey(
