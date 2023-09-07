@@ -32,8 +32,6 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher.MatchResult
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers
 import reactor.kotlin.core.publisher.cast
-import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * List of endpoints allowed for users that do not have ACTIVE status
