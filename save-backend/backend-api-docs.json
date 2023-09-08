@@ -110,16 +110,16 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": [
-                  "file"
-                ],
                 "type": "object",
                 "properties": {
                   "file": {
                     "type": "string",
                     "format": "binary"
                   }
-                }
+                },
+                "required": [
+                  "file"
+                ]
               }
             }
           }
@@ -2180,9 +2180,6 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": [
-                  "file"
-                ],
                 "type": "object",
                 "properties": {
                   "file": {
@@ -2192,7 +2189,10 @@
                       "format": "binary"
                     }
                   }
-                }
+                },
+                "required": [
+                  "file"
+                ]
               }
             }
           }
@@ -2259,41 +2259,6 @@
               "application/json": {
                 "schema": {
                   "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cosv-controller"
-        ]
-      }
-    },
-    "/api/v1/cosv/get-ext-by-id/{cosvId}": {
-      "get": {
-        "operationId": "getRawById",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "cosvId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RawCosvExt"
                 }
               }
             },
@@ -3216,9 +3181,6 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": [
-                  "file"
-                ],
                 "type": "object",
                 "properties": {
                   "file": {
@@ -3226,7 +3188,10 @@
                     "format": "binary",
                     "description": "a file to upload"
                   }
-                }
+                },
+                "required": [
+                  "file"
+                ]
               }
             }
           }
@@ -3948,16 +3913,16 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": [
-                  "file"
-                ],
                 "type": "object",
                 "properties": {
                   "file": {
                     "type": "string",
                     "format": "binary"
                   }
-                }
+                },
+                "required": [
+                  "file"
+                ]
               }
             }
           }
@@ -11580,16 +11545,15 @@
     },
     "/api/v1/vulnerabilities/user-in-vulnerability": {
       "get": {
-        "description": "Get list of user by vulnerability id.",
+        "description": "Get list of user by vulnerability identifier.",
         "operationId": "getUserInVulnerabilityByVulnerabilityId",
         "parameters": [
           {
             "in": "query",
-            "name": "vulnerabilityId",
+            "name": "identifier",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
             }
           }
         ],
@@ -11605,7 +11569,7 @@
                 }
               }
             },
-            "description": "Successfully fetched list of user by vulnerability id"
+            "description": "Successfully fetched list of user by vulnerability identifier"
           },
           "401": {
             "content": {
@@ -11626,7 +11590,7 @@
             "basic": []
           }
         ],
-        "summary": "Get list of user by vulnerability id.",
+        "summary": "Get list of user by vulnerability identifier.",
         "tags": [
           "vulnerabilities"
         ]
@@ -11635,98 +11599,6 @@
   },
   "components": {
     "schemas": {
-      "AffectedJsonObjectJsonObjectJsonObject": {
-        "type": "object",
-        "properties": {
-          "database_specific": {
-            "required": [
-              "entries",
-              "isEmpty",
-              "keys",
-              "size",
-              "values"
-            ],
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/JsonElement"
-                },
-                "writeOnly": true
-              },
-              "entries": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "key": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    }
-                  }
-                }
-              },
-              "isEmpty": {
-                "type": "boolean"
-              },
-              "keys": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              }
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            }
-          },
-          "ecosystem_specific": {
-            "$ref": "#/components/schemas/JsonObject"
-          },
-          "package": {
-            "$ref": "#/components/schemas/Package"
-          },
-          "patches_detail": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PatchDetail"
-            }
-          },
-          "ranges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RangeJsonObject"
-            }
-          },
-          "severity": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Severity"
-            }
-          },
-          "versions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "AnalysisResult": {
         "type": "object"
       },
@@ -11956,94 +11828,6 @@
           }
         }
       },
-      "Contributor": {
-        "type": "object",
-        "properties": {
-          "contributions": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "org": {
-            "type": "string"
-          }
-        }
-      },
-      "CosvMetadataDto": {
-        "required": [
-          "cosvId",
-          "details",
-          "language",
-          "modified",
-          "published",
-          "severityNum",
-          "status",
-          "summary",
-          "user"
-        ],
-        "type": "object",
-        "properties": {
-          "cosvId": {
-            "type": "string"
-          },
-          "details": {
-            "type": "string"
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "C",
-              "C++",
-              "C#",
-              "Go",
-              "Java",
-              "JavaScript",
-              "Kotlin",
-              "Other",
-              "PHP",
-              "Python",
-              "Rust",
-              "Sql",
-              "TypeScript"
-            ]
-          },
-          "modified": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/OrganizationDto"
-          },
-          "published": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "severity": {
-            "type": "string"
-          },
-          "severityNum": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "APPROVED",
-              "CREATED",
-              "REJECTED",
-              "REOPENED"
-            ]
-          },
-          "summary": {
-            "type": "string"
-          },
-          "user": {
-            "$ref": "#/components/schemas/UserInfo"
-          }
-        }
-      },
       "CreateExecutionRequest": {
         "required": [
           "fileIds",
@@ -12093,38 +11877,6 @@
           },
           "testsVersion": {
             "type": "string"
-          }
-        }
-      },
-      "Credit": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "contact": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "ANALYST",
-              "COORDINATOR",
-              "FINDER",
-              "OTHER",
-              "REMEDIATION_DEVELOPER",
-              "REMEDIATION_REVIEWER",
-              "REMEDIATION_VERIFIER",
-              "REPORTER",
-              "SPONSOR",
-              "TOOL"
-            ]
           }
         }
       },
@@ -12188,23 +11940,6 @@
             "$ref": "#/components/schemas/Sdk"
           },
           "vcsTagName": {
-            "type": "string"
-          }
-        }
-      },
-      "Event": {
-        "type": "object",
-        "properties": {
-          "fixed": {
-            "type": "string"
-          },
-          "introduced": {
-            "type": "string"
-          },
-          "last_affected": {
-            "type": "string"
-          },
-          "limit": {
             "type": "string"
           }
         }
@@ -12489,66 +12224,6 @@
           "username": {
             "type": "string"
           }
-        }
-      },
-      "JsonElement": {
-        "type": "object"
-      },
-      "JsonObject": {
-        "required": [
-          "entries",
-          "isEmpty",
-          "keys",
-          "size",
-          "values"
-        ],
-        "type": "object",
-        "properties": {
-          "content": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            },
-            "writeOnly": true
-          },
-          "entries": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "key": {
-                  "type": "string"
-                },
-                "value": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              }
-            }
-          },
-          "isEmpty": {
-            "type": "boolean"
-          },
-          "keys": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "values": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonElement"
-            }
-          }
-        },
-        "additionalProperties": {
-          "$ref": "#/components/schemas/JsonElement"
         }
       },
       "LnkOrganizationTestSuiteDto": {
@@ -12931,236 +12606,6 @@
           }
         }
       },
-      "OsvSchemaJsonObjectJsonObjectJsonObjectJsonObject": {
-        "required": [
-          "id",
-          "modified",
-          "schema_version"
-        ],
-        "type": "object",
-        "properties": {
-          "affected": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AffectedJsonObjectJsonObjectJsonObject"
-            }
-          },
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "confirm_type": {
-            "type": "string",
-            "enum": [
-              "manual_confirmed",
-              "algorithm_confirmed",
-              "double_confirmed"
-            ]
-          },
-          "contributors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Contributor"
-            }
-          },
-          "credits": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Credit"
-            }
-          },
-          "cwe_ids": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "cwe_names": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "database_specific": {
-            "required": [
-              "entries",
-              "isEmpty",
-              "keys",
-              "size",
-              "values"
-            ],
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/JsonElement"
-                },
-                "writeOnly": true
-              },
-              "entries": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "key": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    }
-                  }
-                }
-              },
-              "isEmpty": {
-                "type": "boolean"
-              },
-              "keys": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              }
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            }
-          },
-          "details": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "modified": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "published": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "references": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Reference"
-            }
-          },
-          "related": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "schema_version": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Severity"
-            }
-          },
-          "summary": {
-            "type": "string"
-          },
-          "time_line": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TimeLineEntry"
-            }
-          },
-          "withdrawn": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          }
-        }
-      },
-      "Package": {
-        "required": [
-          "ecosystem",
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "ecosystem": {
-            "type": "string"
-          },
-          "edition": {
-            "type": "string"
-          },
-          "fixed_commits": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "home_page": {
-            "type": "string"
-          },
-          "introduced_commits": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "language": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "purl": {
-            "type": "string"
-          },
-          "repository": {
-            "type": "string"
-          }
-        }
-      },
-      "PatchDetail": {
-        "type": "object",
-        "properties": {
-          "author": {
-            "type": "string"
-          },
-          "branches": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "committer": {
-            "type": "string"
-          },
-          "issue_url": {
-            "type": "string"
-          },
-          "main_language": {
-            "type": "string"
-          },
-          "patch_url": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
       "Project": {
         "required": [
           "contestRating",
@@ -13372,154 +12817,6 @@
           }
         }
       },
-      "RangeJsonObject": {
-        "required": [
-          "events",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "database_specific": {
-            "required": [
-              "entries",
-              "isEmpty",
-              "keys",
-              "size",
-              "values"
-            ],
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/JsonElement"
-                },
-                "writeOnly": true
-              },
-              "entries": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "key": {
-                      "type": "string"
-                    },
-                    "value": {
-                      "$ref": "#/components/schemas/JsonElement"
-                    }
-                  }
-                }
-              },
-              "isEmpty": {
-                "type": "boolean"
-              },
-              "keys": {
-                "uniqueItems": true,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "size": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "values": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/JsonElement"
-                }
-              }
-            },
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonElement"
-            }
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Event"
-            }
-          },
-          "repo": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "ECOSYSTEM",
-              "GIT",
-              "SEMVER"
-            ]
-          }
-        }
-      },
-      "RawCosvExt": {
-        "required": [
-          "metadata",
-          "rawContent",
-          "saveContributors",
-          "tags",
-          "timeline"
-        ],
-        "type": "object",
-        "properties": {
-          "metadata": {
-            "$ref": "#/components/schemas/CosvMetadataDto"
-          },
-          "rawContent": {
-            "$ref": "#/components/schemas/OsvSchemaJsonObjectJsonObjectJsonObjectJsonObject"
-          },
-          "saveContributors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserInfo"
-            }
-          },
-          "tags": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "timeline": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VulnerabilityDateDto"
-            }
-          }
-        }
-      },
-      "Reference": {
-        "required": [
-          "type",
-          "url"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "ADVISORY",
-              "ARTICLE",
-              "DETECTION",
-              "DISCUSSION",
-              "EVIDENCE",
-              "FIX",
-              "GIT",
-              "INTRODUCED",
-              "PACKAGE",
-              "REPORT",
-              "WEB"
-            ]
-          },
-          "url": {
-            "type": "string"
-          }
-        }
-      },
       "Sdk": {
         "required": [
           "name",
@@ -13589,38 +12886,6 @@
           }
         },
         "description": "pair of userName and role that is requested to be set"
-      },
-      "Severity": {
-        "required": [
-          "score",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "level": {
-            "type": "string",
-            "enum": [
-              "None",
-              "Low",
-              "Medium",
-              "High",
-              "Critical"
-            ]
-          },
-          "score": {
-            "type": "string"
-          },
-          "score_num": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "CVSS_V2",
-              "CVSS_V3"
-            ]
-          }
-        }
       },
       "TestExecutionDto": {
         "required": [
@@ -14038,27 +13303,6 @@
           }
         }
       },
-      "TimeLineEntry": {
-        "required": [
-          "type",
-          "value"
-        ],
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": [
-              "introduced",
-              "found",
-              "fixed",
-              "disclosed"
-            ]
-          },
-          "value": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          }
-        }
-      },
       "Unit": {
         "type": "object"
       },
@@ -14298,6 +13542,7 @@
               "Introduced",
               "Modified",
               "Published",
+              "Submitted",
               "Withdrawn"
             ]
           },
