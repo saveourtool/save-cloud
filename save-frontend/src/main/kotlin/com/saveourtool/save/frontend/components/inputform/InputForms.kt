@@ -10,7 +10,7 @@ import com.saveourtool.save.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
-private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.0/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
+private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
 
 private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
