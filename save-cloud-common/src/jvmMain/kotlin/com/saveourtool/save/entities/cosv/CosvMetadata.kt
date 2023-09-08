@@ -16,7 +16,6 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property cosvId [com.saveourtool.osv4k.OsvSchema.id]
  * @property summary [com.saveourtool.osv4k.OsvSchema.summary]
  * @property details [com.saveourtool.osv4k.OsvSchema.details]
- * @property severity [com.saveourtool.osv4k.Severity.score]
  * @property severityNum [com.saveourtool.osv4k.Severity.scoreNum]
  * @property modified [com.saveourtool.osv4k.OsvSchema.modified]
  * @property submitted when vulnerability submitted to saveourtool platform
@@ -31,7 +30,6 @@ class CosvMetadata(
     var cosvId: String,
     var summary: String,
     var details: String,
-    var severity: String?,
     var severityNum: Int,
     var modified: LocalDateTime,
     var submitted: LocalDateTime,
@@ -50,7 +48,6 @@ class CosvMetadata(
         cosvId = cosvId,
         summary = summary,
         details = details,
-        severity = severity,
         severityNum = severityNum,
         modified = modified.toKotlinLocalDateTime(),
         submitted = submitted.toKotlinLocalDateTime(),
@@ -74,7 +71,6 @@ class CosvMetadata(
             cosvId = cosvId,
             summary = summary,
             details = details,
-            severity = severity,
             severityNum = severityNum,
             modified = modified.toJavaLocalDateTime(),
             submitted = submitted.toJavaLocalDateTime(),
