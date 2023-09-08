@@ -44,7 +44,7 @@ val testExecutionDetailsView = testExecutionDetailsView()
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
-    // useUserStatusRedirects(props.userInfo?.status)
+    useUserStatusRedirects(props.userInfo?.status)
     val userProfileView: VFC = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
