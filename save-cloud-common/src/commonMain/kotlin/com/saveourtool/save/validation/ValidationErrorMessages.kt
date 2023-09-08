@@ -48,4 +48,4 @@ const val TAG_ERROR_MESSAGE = "Tag length should be in [3, 15] range, no commas 
 /**
  * Error message that is shown when severity score vector is invalid.
  */
-const val SEVERITY_VECTOR_ERROR_MESSAGE = "CVE identifier is invalid"
+const val SEVERITY_VECTOR_ERROR_MESSAGE = "Severity score vector is invalid"
