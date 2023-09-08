@@ -5,6 +5,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
+import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -16,6 +18,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 
 /**
  * Rest controller for COSVs
@@ -32,67 +35,98 @@ class CosvController(
      * @param organizationName
      * @param content
      * @param authentication
-     * @return list of save's vulnerability identifiers
+     * @return uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/upload")
+    @PostMapping("/upload", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun upload(
         @PathVariable organizationName: String,
         @RequestBody content: String,
         authentication: Authentication,
-    ): Mono<StringListResponse> = blockingToMono {
-        backendService.hasPermissionInOrganization(authentication, organizationName, Permission.WRITE)
-    }
-        .filter { it }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "${authentication.name} has no permission to upload raw COSV files from $organizationName"
-        }
+    ): Mono<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
         .flatMap {
-            cosvService.decodeAndSave(content, authentication, organizationName)
-                .collectList()
-                .map {
-                    ResponseEntity.ok(it)
-                }
+            rawCosvFileStorage.upload(
+                key = RawCosvFileDto(
+                    "manually_uploaded_${getCurrentLocalDateTime()}.json",
+                    organizationName = organizationName,
+                    userName = authentication.name,
+                ),
+                contentBytes = content.toByteArray(),
+            )
         }
 
     /**
      * @param organizationName
      * @param filePartFlux
      * @param authentication
-     * @return list of save's vulnerability identifiers
+     * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping(path = ["/batch-upload"], consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
-    ): Mono<StringListResponse> = blockingToMono {
-        backendService.hasPermissionInOrganization(authentication, organizationName, Permission.WRITE)
-    }
-        .filter { it }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "${authentication.name} has no permission to upload raw COSV files from $organizationName"
-        }
-        .flatMap {
+    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMapMany {
             filePartFlux
                 .flatMap { filePart ->
                     log.debug {
                         "Processing ${filePart.filename()}"
                     }
-                    filePart.content()
-                        .map { it.asByteBuffer() }
-                        .collectToInputStream()
+                    rawCosvFileStorage.upload(
+                        key = RawCosvFileDto(
+                            filePart.filename(),
+                            organizationName = organizationName,
+                            userName = authentication.name,
+                        ),
+                        content = filePart.content().map { it.asByteBuffer() },
+                    )
                 }
-                .let { inputStreams ->
-                    cosvService.decodeAndSave(inputStreams, authentication, organizationName)
-                }
-                .collectList()
-                .map { ResponseEntity.ok(it) }
         }
 
     /**
+     * @param organizationName
+     * @param ids
+     * @param authentication
+     * @return [StringResponse]
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/submit-to-process")
+    fun submitToProcess(
+        @PathVariable organizationName: String,
+        @RequestBody ids: List<Long>,
+        authentication: Authentication,
+    ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.WRITE, "submit to process")
+        .flatMap {
+            rawCosvFileStorage.markAs(ids, RawCosvFileStatus.IN_PROGRESS)
+        }
+        .thenReturn(ResponseEntity.ok("Submitted $ids to be processed"))
+        .doOnSuccess {
+            cosvService.process(ids)
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe()
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return list of uploaded raw cosv files in [organizationName]
+     */
+    @RequiresAuthorizationSourceHeader
+    @GetMapping("/list")
+    fun list(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
+        .flatMapMany {
+            rawCosvFileStorage.listByOrganization(organizationName)
+        }
+
+    /**
+     * @param organizationName
      * @param id ID of raw COSV file
+     * @param authentication
      * @return content of Raw COSV file
      */
     @RequiresAuthorizationSourceHeader
@@ -101,13 +135,7 @@ class CosvController(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): Mono<ByteBufferFluxResponse> = blockingToMono {
-        backendService.hasPermissionInOrganization(authentication, organizationName, Permission.READ)
-    }
-        .filter { it }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "${authentication.name} has no permission to download raw COSV files from $organizationName"
-        }
+    ): Mono<ByteBufferFluxResponse> = hasPermission(authentication, organizationName, Permission.READ, "download")
         .map {
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -115,7 +143,9 @@ class CosvController(
         }
 
     /**
+     * @param organizationName
      * @param id
+     * @param authentication
      * @return empty response
      */
     @RequiresAuthorizationSourceHeader
@@ -124,13 +154,7 @@ class CosvController(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): Mono<StringResponse> = blockingToMono {
-        backendService.hasPermissionInOrganization(authentication, organizationName, Permission.DELETE)
-    }
-        .filter { it }
-        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
-            "${authentication.name} has no permission to delete raw COSV files from $organizationName"
-        }
+    ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
         .flatMap {
             rawCosvFileStorage.deleteById(id)
                 .filter { it }
@@ -140,6 +164,36 @@ class CosvController(
                 .map {
                     ResponseEntity.ok("Raw COSV file deleted successfully")
                 }
+        }
+
+    private fun hasPermission(
+        authentication: Authentication,
+        organizationName: String,
+        permission: Permission,
+        operation: String,
+    ): Mono<Unit> = blockingToMono {
+        backendService.hasPermissionInOrganization(authentication, organizationName, permission)
+    }
+        .filter { it }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            "${authentication.name} has no permission to $operation raw COSV files from $organizationName"
+        }
+        .let { validated ->
+            validated.takeIf { permission == Permission.WRITE }
+                ?.validateCanDoBulkUpload(authentication, organizationName)
+                ?: validated
+        }
+        .thenReturn(Unit)
+
+    private fun Mono<*>.validateCanDoBulkUpload(
+        authentication: Authentication,
+        organizationName: String,
+    ) = blockingMap {
+        backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
+    }
+        .filter { it.inOrganizations[organizationName]?.canDoBulkUpload == true }
+        .orResponseStatusException(HttpStatus.FORBIDDEN) {
+            "You do not have permission to upload COSV files on behalf of this organization: $organizationName"
         }
 
     companion object {

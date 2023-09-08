@@ -17,6 +17,8 @@ import javax.persistence.ManyToOne
  * @property user
  * @property organization
  * @property status
+ * @property createDate
+ * @property updateDate
  */
 @Entity
 class RawCosvFile(
@@ -31,7 +33,7 @@ class RawCosvFile(
     var status: RawCosvFileStatus,
     override var createDate: LocalDateTime? = null,
     override var updateDate: LocalDateTime? = null,
-): BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
+) : BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
     override fun toDto(): RawCosvFileDto = RawCosvFileDto(
         fileName = fileName,
         userName = user.name,

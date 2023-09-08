@@ -1,3 +1,5 @@
+@file:Suppress("FILE_NAME_INCORRECT")
+
 package com.saveourtool.save.spring.entity
 
 import com.saveourtool.save.listeners.DateListener
@@ -10,11 +12,17 @@ import javax.persistence.MappedSuperclass
  */
 @MappedSuperclass
 @EntityListeners(DateListener::class)
+@Suppress("CLASS_NAME_INCORRECT")
 interface IBaseEntityWithDate {
     /**
      * Create date of entity
      **/
     var createDate: LocalDateTime?
+
+    /**
+     * Update date of entity
+     **/
+    var updateDate: LocalDateTime?
 
     /**
      * @return [createDate] as not null with validating
@@ -23,11 +31,6 @@ interface IBaseEntityWithDate {
     fun requiredCreateDate(): LocalDateTime = requireNotNull(createDate) {
         "Entity is not saved yet: $this"
     }
-
-    /**
-     * Update date of entity
-     **/
-    var updateDate: LocalDateTime?
 
     /**
      * @return [updateDate] as not null with validating

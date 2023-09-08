@@ -5,9 +5,14 @@ package com.saveourtool.save.entities.cosv
  */
 enum class RawCosvFileStatus {
     /**
-     * A raw cosv file only uploaded to the platform
+     * The platform failed to process a raw cosv file
      */
-    UPLOADED,
+    FAILED,
+
+    /**
+     * A raw cosv file is in progress of processing
+     */
+    IN_PROGRESS,
 
     /**
      * A raw cosv file processed by the platform
@@ -15,7 +20,8 @@ enum class RawCosvFileStatus {
     PROCESSED,
 
     /**
-     * The platform failed to process a raw cosv file
+     * A raw cosv file only uploaded to the platform
      */
-    FAILED,
+    UPLOADED,
+    ;
 }

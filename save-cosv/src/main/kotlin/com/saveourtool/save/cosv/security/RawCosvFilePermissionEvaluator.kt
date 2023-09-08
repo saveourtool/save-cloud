@@ -1,12 +1,9 @@
 package com.saveourtool.save.cosv.security
 
-
 import com.saveourtool.save.cosv.repository.RawCosvFileRepository
-import com.saveourtool.save.domain.Role
 
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.getByIdOrNotFound
-import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
@@ -16,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class RawCosvFilePermissionEvaluator(
     private val rawCosvFileRepository: RawCosvFileRepository,
-//    private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
+    // private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     /**
      * Check permission for user to read, write and delete raw COSV files by its [rawCosvFileId]
@@ -36,10 +33,10 @@ class RawCosvFilePermissionEvaluator(
         val organization = rawCosvFileRepository.getByIdOrNotFound(rawCosvFileId).organization
 
         return false
-//        return when {
-//            authentication.hasRole(Role.SUPER_ADMIN) -> true
-//            permission == Permission.READ -> organizationPermissionEvaluator.hasPermission()
-//            else -> hasFullPermission(vulnerabilityIdentifier, authentication)
-//        }
+        // return when {
+        // authentication.hasRole(Role.SUPER_ADMIN) -> true
+        // permission == Permission.READ -> organizationPermissionEvaluator.hasPermission()
+        // else -> hasFullPermission(vulnerabilityIdentifier, authentication)
+        // }
     }
 }

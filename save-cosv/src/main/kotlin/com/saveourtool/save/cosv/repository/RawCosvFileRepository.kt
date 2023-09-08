@@ -8,9 +8,16 @@ import com.saveourtool.save.spring.repository.BaseEntityRepository
  */
 interface RawCosvFileRepository : BaseEntityRepository<RawCosvFile> {
     /**
+     * @param organizationName name from [RawCosvFile.organization]
      * @param userName name from [RawCosvFile.user]
      * @param fileName [RawCosvFile.fileName]
      * @return found [RawCosvFile] by provided values
      */
-    fun findByUserNameAndFileName(userName: String, fileName: String): RawCosvFile?
+    fun findByOrganizationNameAndUserNameAndFileName(organizationName: String, userName: String, fileName: String): RawCosvFile?
+
+    /**
+     * @param organizationName name from [RawCosvFile.organization]
+     * @return all [RawCosvFile]s which has provided [RawCosvFile.organization]
+     */
+    fun findAllByOrganizationName(organizationName: String): Collection<RawCosvFile>
 }

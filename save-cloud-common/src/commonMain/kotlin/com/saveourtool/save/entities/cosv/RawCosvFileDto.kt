@@ -15,6 +15,6 @@ data class RawCosvFileDto(
     val fileName: String,
     val userName: String,
     val organizationName: String,
-    val status: RawCosvFileStatus,
-    override val id: Long?,
-): DtoWithId()
+    val status: RawCosvFileStatus = RawCosvFileStatus.UPLOADED,
+    override val id: Long? = null,
+) : DtoWithId()

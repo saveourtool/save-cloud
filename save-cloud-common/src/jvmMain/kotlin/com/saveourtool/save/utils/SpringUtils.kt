@@ -26,10 +26,18 @@ typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
  * @param contentBytes
  * @return count of written bytes
  */
-fun <K : Any> StorageProjectReactor<K>.upload(key: K, contentBytes: ByteArray): Mono<Long> = contentBytes.size.toLong()
-    .let { contentLength ->
-        upload(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes))).thenReturn(contentLength)
-    }
+fun <K : Any> StorageProjectReactor<K>.uploadAndReturnContentSize(key: K, contentBytes: ByteArray): Mono<Long> =
+        doUpload(key, contentBytes).map { it.second }
+
+/**
+ * upload [ByteArray] as content
+ *
+ * @param key a key for provided content
+ * @param contentBytes
+ * @return updated key [K]
+ */
+fun <K : Any> StorageProjectReactor<K>.upload(key: K, contentBytes: ByteArray): Mono<K> =
+        doUpload(key, contentBytes).map { it.first }
 
 /**
  * overwrite with [Part] as content
@@ -65,6 +73,20 @@ inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotF
 }
 
 /**
+ * Check role out of [Authentication]
+ *
+ * @param role
+ * @return true if user with [Authentication] has [role], false otherwise
+ */
+fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
+
+private fun <K : Any> StorageProjectReactor<K>.doUpload(key: K, contentBytes: ByteArray) = contentBytes.size.toLong()
+    .let { contentLength ->
+        upload(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes)))
+            .map { it to contentLength }
+    }
+
+/**
  * @param statusCode [HttpStatusCode] that should be set to [StringResponse]
  * @param loggingMethod method that should be used for logging e.g. logger::info
  * @param lazyMessage callback that generates a message
@@ -79,13 +101,3 @@ fun logAndRespond(
 }.let {
     ResponseEntity.status(statusCode.value).body(it)
 }
-
-/**
- * Check role out of [Authentication]
- *
- * @param role
- * @return true if user with [Authentication] has [role], false otherwise
- */
-fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
-
-
