@@ -13,7 +13,6 @@ import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
-import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
@@ -108,18 +107,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
-    val (newAvatar, setNewAvatar) = useState<File?>(null)
-    useRequest(dependencies = arrayOf(newAvatar)) {
-        newAvatar?.let { avatar ->
-            postImageUpload(
-                avatar,
-                props.userInfo?.name!!,
-                AvatarType.USER,
-                loadingHandler = ::loadingHandler,
-            )
-        }
-    }
-
     val saveAvatar = useDeferredRequest {
         avatar?.let {
             val response = post(
@@ -152,7 +139,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     }
 
     val isWebsiteValid = userInfo.website?.isValidUrl() ?: true
-    val isGithubProvided = !userInfo.gitHub.isNullOrBlank()
 
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
@@ -240,13 +226,17 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 }
 
                                 div {
+                                    className = ClassName("pt-3 font-weight-bold")
+                                    +"Please enter some information about yourself so that it would be easier for us to approve."
+                                }
+
+                                div {
                                     className = ClassName("pt-3")
-                                    inputTextFormRequired {
+                                    inputTextFormOptional {
                                         form = InputTypes.GITHUB
                                         textValue = userInfo.gitHub
                                         classes = ""
-                                        validInput = true
-                                        name = "GitHub"
+                                        validInput = null
                                         onChangeFun = { event ->
                                             setUserInfo { previousUserInfo ->
                                                 previousUserInfo.copy(gitHub = event.target.value.takeIf { it.isNotBlank() })
@@ -262,7 +252,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                         textValue = userInfo.website
                                         classes = ""
                                         validInput = userInfo.website?.isValidUrl()
-                                        name = "Website"
                                         onChangeFun = { event ->
                                             setUserInfo { previousUserInfo ->
                                                 previousUserInfo.copy(website = event.target.value.takeIf { it.isNotBlank() })
@@ -273,16 +262,10 @@ val registrationView: FC<RegistrationProps> = FC { props ->
 
                                 div {
                                     className = ClassName("pt-3")
-                                    label {
-                                        className = ClassName("form-label mb-0")
-                                        htmlFor = "additional-info-id"
-                                        +"Additional info"
-                                    }
                                     textarea {
                                         className = ClassName("form-control")
-                                        id = "additional-info-id"
                                         value = userInfo.freeText
-                                        placeholder = "Please enter some information about yourself so that it would be easier for us to approve."
+                                        placeholder = "Additional info"
                                         onChange = { event -> setUserInfo { previousUserInfo -> previousUserInfo.copy(freeText = event.target.value) } }
                                     }
                                 }
@@ -311,7 +294,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     "Sign up",
                                     "info",
                                     classes = "mt-4 mr-4",
-                                    isDisabled = !isTermsOfUseOk || !isWebsiteValid || !isGithubProvided,
+                                    isDisabled = !isTermsOfUseOk || !isWebsiteValid,
                                 ) { saveUser() }
 
                                 buttonBuilder(

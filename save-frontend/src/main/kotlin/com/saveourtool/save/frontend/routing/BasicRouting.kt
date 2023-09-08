@@ -144,10 +144,10 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: VFC = withRouter { _, params ->
+    val vulnerabilityCollectionView: VFC = withRouter { location, _ ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
-            filter = URLSearchParams(useLocation().search).toVulnerabilitiesFilter()
+            filter = URLSearchParams(location.search).toVulnerabilitiesFilter()
         }
     }
 
