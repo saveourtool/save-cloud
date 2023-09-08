@@ -46,7 +46,7 @@ class CosvRepositoryInStorage(
         user: User,
         organization: Organization?,
     ): Mono<CosvMetadataDto> = saveMetadata(entry, user, organization).flatMap { metadata ->
-        cosvStorage.uploadAndReturnContentSize(
+        cosvStorage.upload(
             metadata.toStorageKey(),
             json.encodeToString(serializer, entry).encodeToByteArray(),
         ).map { metadata }

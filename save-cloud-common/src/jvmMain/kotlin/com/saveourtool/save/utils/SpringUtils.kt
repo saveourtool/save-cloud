@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.StorageProjectReactor
@@ -12,7 +11,6 @@ import io.ktor.http.*
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
-import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
@@ -71,14 +69,6 @@ fun <K : Any> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray
 inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotFound(id: Long): T = findByIdOrNull(id).orNotFound {
     "Not found ${T::class.simpleName} by id = $id"
 }
-
-/**
- * Check role out of [Authentication]
- *
- * @param role
- * @return true if user with [Authentication] has [role], false otherwise
- */
-fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
 
 private fun <K : Any> StorageProjectReactor<K>.doUpload(key: K, contentBytes: ByteArray) = contentBytes.size.toLong()
     .let { contentLength ->
