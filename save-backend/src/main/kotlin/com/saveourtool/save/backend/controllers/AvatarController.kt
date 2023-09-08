@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.backend.ByteBufferFluxResponse
+import com.saveourtool.save.utils.ByteBufferFluxResponse
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.backend.storage.AvatarKey

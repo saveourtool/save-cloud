@@ -58,12 +58,4 @@ class FileS3KeyManager(
     fun listByProject(
         project: Project,
     ): Collection<FileDto> = repository.findAllByProject(project).map { it.toDto() }
-
-    /**
-     * @param fileId
-     * @return [FileDto] for [File] with provided [fileId]
-     */
-    fun findFileById(
-        fileId: Long,
-    ): FileDto? = repository.findByIdOrNull(fileId)?.toDto()
 }

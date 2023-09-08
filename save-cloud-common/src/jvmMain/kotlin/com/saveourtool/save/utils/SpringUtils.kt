@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.StorageProjectReactor
@@ -11,9 +12,12 @@ import io.ktor.http.*
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
+import org.springframework.security.core.Authentication
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
+
+typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
 
 /**
  * upload [ByteArray] as content
@@ -75,3 +79,13 @@ fun logAndRespond(
 }.let {
     ResponseEntity.status(statusCode.value).body(it)
 }
+
+/**
+ * Check role out of [Authentication]
+ *
+ * @param role
+ * @return true if user with [Authentication] has [role], false otherwise
+ */
+fun Authentication.hasRole(role: Role): Boolean = authorities.any { it.authority == role.asSpringSecurityRole() }
+
+

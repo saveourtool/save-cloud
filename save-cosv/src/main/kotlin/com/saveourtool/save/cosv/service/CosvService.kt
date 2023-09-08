@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -33,6 +34,7 @@ private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
  */
 @Service
 class CosvService(
+    private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,

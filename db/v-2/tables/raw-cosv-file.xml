@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="raw-cosv-file-1" author="nulls">
+        <createTable tableName="raw_osv_file">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="file_name" type="varchar(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_raw_cosv_file_user" references="user(id)" nullable="false"/>
+            </column>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_raw_cosv_organization" references="organization(id)" nullable="false"/>
+            </column>
+            <column name="status" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_date" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="raw_osv_file" columnNames="file_name,organization_id" constraintName="uq_raw_osv_file_file_name_per_organization"/>
+    </changeSet>
+</databaseChangeLog>
