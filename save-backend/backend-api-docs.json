@@ -10621,9 +10621,8 @@
               "type": "string",
               "enum": [
                 "APPROVED",
-                "CREATED",
-                "REJECTED",
-                "REOPENED"
+                "PENDING_REVIEW",
+                "REJECTED"
               ]
             }
           }
@@ -11471,6 +11470,71 @@
           }
         ],
         "summary": "Save new date.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/to-review": {
+      "post": {
+        "description": "Mark vulnerability as ready for review.",
+        "operationId": "toReview",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully sent vulnerability for review"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Mark vulnerability as ready for review.",
         "tags": [
           "vulnerabilities"
         ]
@@ -13645,9 +13709,8 @@
             "type": "string",
             "enum": [
               "APPROVED",
-              "CREATED",
-              "REJECTED",
-              "REOPENED"
+              "PENDING_REVIEW",
+              "REJECTED"
             ]
           },
           "tags": {
@@ -13704,9 +13767,8 @@
             "type": "string",
             "enum": [
               "APPROVED",
-              "CREATED",
-              "REJECTED",
-              "REOPENED"
+              "PENDING_REVIEW",
+              "REJECTED"
             ]
           },
           "tags": {
