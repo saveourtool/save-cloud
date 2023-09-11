@@ -70,7 +70,7 @@ class CosvService(
             cosvListOpt.toFlux()
                 .flatMap { cosvProcessor.save(it, user, organization) }
                 .collectList()
-                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED) }
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(CosvMetadataDto::cosvId)}") }
         }
 
     /**

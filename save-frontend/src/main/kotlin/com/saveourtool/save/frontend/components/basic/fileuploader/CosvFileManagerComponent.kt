@@ -164,11 +164,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         else -> ""
                     }
                     +"${file.fileName}$suffix"
-                    file.errorMessage?.let { errorMessage ->
+                    file.statusMessage?.let { statusMessage ->
                         span {
                             className = ClassName("text-gray-400 text-justify")
                             onClick = {
-                                window.alert(errorMessage)
+                                window.alert(statusMessage)
                             }
                             +"(with errors)"
                         }

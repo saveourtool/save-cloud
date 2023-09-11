@@ -54,14 +54,14 @@ class RawCosvFileStorage(
     /**
      * @param id
      * @param newStatus
-     * @param errorMessage
+     * @param statusMessage
      * @return empty [Mono]
      */
     fun update(
         id: Long,
         newStatus: RawCosvFileStatus,
-        errorMessage: String? = null,
-    ): Mono<Unit> = blockingToMono { s3KeyManager.update(id, newStatus, errorMessage) }
+        statusMessage: String,
+    ): Mono<Unit> = blockingToMono { s3KeyManager.update(id, newStatus, statusMessage) }
 
     /**
      * @param id

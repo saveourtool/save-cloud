@@ -22,14 +22,14 @@
             <column name="status" type="varchar(64)">
                 <constraints nullable="false"/>
             </column>
+            <column name="status_message" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
             <column name="update_date" type="DATETIME(3)">
                 <constraints nullable="false"/>
-            </column>
-            <column name="error_message" type="TEXT">
-                <constraints nullable="true"/>
             </column>
         </createTable>
         <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id" constraintName="uq_raw_osv_file_file_name_per_organization"/>

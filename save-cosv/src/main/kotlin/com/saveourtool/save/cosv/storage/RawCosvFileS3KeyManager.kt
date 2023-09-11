@@ -62,18 +62,18 @@ class RawCosvFileS3KeyManager(
     /**
      * @param id
      * @param newStatus
-     * @param errorMessage
+     * @param statusMessage
      */
     @Transactional
     fun update(
         id: Long,
         newStatus: RawCosvFileStatus,
-        errorMessage: String?,
+        statusMessage: String?,
     ) {
         repository.save(
             repository.getByIdOrNotFound(id).apply {
                 status = newStatus
-                errorMessage?.let { this.errorMessage = it }
+                statusMessage?.let { this.statusMessage = it }
             }
         )
     }

@@ -18,6 +18,6 @@ data class RawCosvFileDto(
     val userName: String,
     val organizationName: String,
     val status: RawCosvFileStatus = RawCosvFileStatus.UPLOADED,
-    val errorMessage: String? = null,
+    val statusMessage: String? = null,
     override val id: Long? = null,
 ) : DtoWithId()
