@@ -19,6 +19,9 @@ private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMI
         "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
+private const val SEVERITY_VECTOR_TOOLTIP = "It's a string representation of the Common Vulnerability Scoring System (CVSS)." +
+        "If you know it, please indicate in this field."
+
 /**
  * @property str
  * @property placeholder
@@ -149,7 +152,12 @@ enum class InputTypes(
         tooltip = "If you know the vulnerability identifier, you can enter it here",
     ),
     CVE_DATE("CVE date"),
-    COSV_VECTORE("Severity score vector", SEVERITY_VECTOR_ERROR_MESSAGE, SEVERITY_VECTOR_PLACEHOLDER),
+    COSV_VECTORE(
+        "Severity score vector",
+        SEVERITY_VECTOR_ERROR_MESSAGE,
+        placeholder = SEVERITY_VECTOR_PLACEHOLDER,
+        tooltip = SEVERITY_VECTOR_TOOLTIP,
+    ),
     ;
 }
 
