@@ -33,12 +33,14 @@ class RawCosvFile(
     var status: RawCosvFileStatus,
     override var createDate: LocalDateTime? = null,
     override var updateDate: LocalDateTime? = null,
+    var errorMessage: String? = null,
 ) : BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
     override fun toDto(): RawCosvFileDto = RawCosvFileDto(
         fileName = fileName,
         userName = user.name,
         organizationName = organization.name,
         status = status,
+        errorMessage = errorMessage,
         id = requiredId(),
     )
 

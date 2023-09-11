@@ -63,15 +63,14 @@ class CosvService(
             val cosvListOpt = try {
                 cosvProcessor.decode(inputStream)
             } catch (e: SerializationException) {
-                log.error(e) {
-                    "Failed to process raw COSV file with id: $rawCosvFileId"
-                }
-                return@flatMap rawCosvFileStorage.markAs(listOf(rawCosvFileId), RawCosvFileStatus.FAILED)
+                val errorMessage: () -> String = { "Failed to process raw COSV file with id: $rawCosvFileId" }
+                log.error(e, errorMessage)
+                return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
             }
             cosvListOpt.toFlux()
                 .flatMap { cosvProcessor.save(it, user, organization) }
                 .collectList()
-                .flatMap { rawCosvFileStorage.markAs(listOf(rawCosvFileId), RawCosvFileStatus.PROCESSED) }
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED) }
         }
 
     /**

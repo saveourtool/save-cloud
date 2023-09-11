@@ -52,11 +52,30 @@ class RawCosvFileS3KeyManager(
      * @param newStatus
      */
     @Transactional
-    fun markAs(
+    fun updateAll(
         ids: Collection<Long>,
         newStatus: RawCosvFileStatus,
     ) {
         repository.saveAll(repository.findAllById(ids).map { entry -> entry.apply { status = newStatus } })
+    }
+
+    /**
+     * @param id
+     * @param newStatus
+     * @param errorMessage
+     */
+    @Transactional
+    fun update(
+        id: Long,
+        newStatus: RawCosvFileStatus,
+        errorMessage: String?,
+    ) {
+        repository.save(
+            repository.getByIdOrNotFound(id).apply {
+                status = newStatus
+                errorMessage?.let { this.errorMessage = it }
+            }
+        )
     }
 
     /**

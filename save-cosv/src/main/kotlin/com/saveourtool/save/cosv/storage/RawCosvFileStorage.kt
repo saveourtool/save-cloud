@@ -46,10 +46,22 @@ class RawCosvFileStorage(
      * @param newStatus
      * @return empty [Mono]
      */
-    fun markAs(
+    fun updateAll(
         ids: Collection<Long>,
         newStatus: RawCosvFileStatus,
-    ): Mono<Unit> = blockingToMono { s3KeyManager.markAs(ids, newStatus) }
+    ): Mono<Unit> = blockingToMono { s3KeyManager.updateAll(ids, newStatus) }
+
+    /**
+     * @param id
+     * @param newStatus
+     * @param errorMessage
+     * @return empty [Mono]
+     */
+    fun update(
+        id: Long,
+        newStatus: RawCosvFileStatus,
+        errorMessage: String? = null,
+    ): Mono<Unit> = blockingToMono { s3KeyManager.update(id, newStatus, errorMessage) }
 
     /**
      * @param id

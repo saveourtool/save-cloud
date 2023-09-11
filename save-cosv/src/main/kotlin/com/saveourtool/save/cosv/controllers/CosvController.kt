@@ -100,7 +100,7 @@ class CosvController(
         authentication: Authentication,
     ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.WRITE, "submit to process")
         .flatMap {
-            rawCosvFileStorage.markAs(ids, RawCosvFileStatus.IN_PROGRESS)
+            rawCosvFileStorage.updateAll(ids, RawCosvFileStatus.IN_PROGRESS)
         }
         .thenReturn(ResponseEntity.ok("Submitted $ids to be processed"))
         .doOnSuccess {

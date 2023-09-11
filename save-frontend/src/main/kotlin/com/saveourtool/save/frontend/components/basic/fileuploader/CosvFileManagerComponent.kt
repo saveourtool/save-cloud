@@ -20,6 +20,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
+import react.dom.html.ReactHTML.span
 import react.useState
 import web.cssom.ClassName
 import web.file.File
@@ -27,6 +28,7 @@ import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window
+import kotlinx.coroutines.await
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -103,7 +105,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert(response.body as String)
+            window.alert(response.text().await())
         }
         setSelectedFiles(emptyList())
         fetchFiles()
@@ -132,12 +134,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // ===== SELECTED FILES =====
             availableFiles.map { file ->
                 li {
-                    className = ClassName("list-group-item")
+                    className = ClassName("list-group-item text-left")
                     input {
                         className = ClassName("mx-auto")
                         type = InputType.checkbox
                         id = "checkbox"
-                        defaultChecked = file in selectedFiles
                         checked = file in selectedFiles
                         disabled = file.status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
                         onChange = { event ->
@@ -159,10 +160,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     val suffix = when (file.status) {
                         RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
                         RawCosvFileStatus.PROCESSED -> " (processed)"
-                        RawCosvFileStatus.FAILED -> " (with errors)"
+                        RawCosvFileStatus.FAILED -> " "
                         else -> ""
                     }
                     +"${file.fileName}$suffix"
+                    file.errorMessage?.let { errorMessage ->
+                        span {
+                            className = ClassName("text-gray-400 text-justify")
+                            onClick = {
+                                window.alert(errorMessage)
+                            }
+                            +"(with errors)"
+                        }
+                    }
                 }
             }
 
@@ -180,8 +190,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             }
             // SUBMIT to process
             li {
-                className = ClassName("list-group-item p-0 d-flex bg-light")
-                buttonBuilder("Submit") {
+                className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
                 }
             }
