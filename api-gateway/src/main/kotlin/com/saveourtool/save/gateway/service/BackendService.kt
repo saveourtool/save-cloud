@@ -6,7 +6,10 @@ import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
@@ -51,6 +54,38 @@ class BackendService(
         .flatMap { responseEntity ->
             responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
         }
+
+    /**
+     * Find current user [SaveUserDetails] by [authentication].
+     *
+     * @param authentication current user [Authentication]
+     * @return current user [SaveUserDetails]
+     */
+    fun findByAuthentication(authentication: Authentication): Mono<SaveUserDetails> = when (authentication) {
+        is UsernamePasswordAuthenticationToken -> findByName(authentication.name)
+        is OAuth2AuthenticationToken -> {
+            val source = authentication.authorizedClientRegistrationId
+            val nameInSource = authentication.name
+            findByOriginalLogin(source, nameInSource)
+        }
+        else -> Mono.empty()
+    }
+
+    /**
+     * Find current username by [authentication].
+     *
+     * @param authentication current user [Authentication]
+     * @return current username
+     */
+    fun findNameByAuthentication(authentication: Authentication?): Mono<String> = when (authentication) {
+        is UsernamePasswordAuthenticationToken -> authentication.name.toMono()
+        is OAuth2AuthenticationToken -> {
+            val source = authentication.authorizedClientRegistrationId
+            val nameInSource = authentication.name
+            findByOriginalLogin(source, nameInSource).map { it.name }
+        }
+        else -> Mono.empty()
+    }
 
     /**
      * Saves a new [User] in DB
