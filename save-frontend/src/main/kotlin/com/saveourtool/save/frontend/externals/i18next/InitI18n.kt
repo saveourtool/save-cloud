@@ -47,6 +47,9 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                 "table-headers": $TABLE_HEADERS_RU,
                 "topbar": $TOPBAR_RU,
                 "cookies": $COOKIES_RU,
+                "proposing": $PROPOSING_VULN_RU,
+                "welcome": $WELCOME_RU,
+                "organization": $ORGANIZATION_RU
             }
         };
         
