@@ -2,16 +2,6 @@
 
 package com.saveourtool.save.frontend.externals.i18next.locales
 
-const val VULN_COLLECTION_RU = """
-{
-  "Introducing": "Представляем",
-  "introMd": "|## Международный Архив Уязвимостей\n    |Данная страница предоставляет список публично раскрытых уязвимостей и инцидентов в области информационной безопасности.",
-  "addNewMd": "|### Новые уязвимости\n    |Вы можете предложить свою [новую уязвимость](/vuln/create-vulnerability), если ее нет в нашем списке.\n    |После подтверждения со стороны администрации, она появится в архиве под уникальным ID.",
-  "howToMd": "|### Как добавить уязвимость в проект?\n    |1. Создайте saveourtool [организацию](/create-organization) и [проект](/create-project);\n    |2. Откройте вкладку security вашего проекта;\n    |3. Создайте новую проблему и добавьте ее уникальный ID;\n    |\n    |В случае любых ошибок не стесняйтесь [связываться с нами](https://github.com/saveourtool/save-cloud/issues/new).",
-  "topRatingMd": "|### Рейтинговая система\n    |За каждую принятую уязвимость вы получаете очки рейтинга. Здесь вы можете ознакомиться с [рейтингом](/vuln/top-rating) пользователей и организаций."
-}
-"""
-
 const val VULN_COLLECTION_EN = """
 {
   "Introducing": "Introducing",
@@ -19,6 +9,16 @@ const val VULN_COLLECTION_EN = """
   "addNewMd": "|### New vulnerability\n    |You can propose your own [new vulnerability](/vuln/create-vulnerability), if you didn't find it one in our list.\n    |After the review and approval, it will appear in the database under a special identifier.",
   "howToMd": "|### How to add vulnerability in project?\n    |1. Create saveourtool [organization](/create-organization) and [project](/create-project);\n    |2. Go to your project's security tab;\n    |3. Create new problem and add vulnerability number;\n    |\n    |In case of any error feel free to [contact us](https://github.com/saveourtool/save-cloud/issues/new).",
   "topRatingMd": "|### Top rating\n    |For each approved and accepted vulnerability you will get rating points. Here you can see the [top rating](/vuln/top-rating) of users and organizations."
+}
+"""
+
+const val VULN_COLLECTION_RU = """
+{
+  "Introducing": "Представляем",
+  "introMd": "|## Международный Архив Уязвимостей\n    |Данная страница предоставляет список публично раскрытых уязвимостей и инцидентов в области информационной безопасности.",
+  "addNewMd": "|### Новые уязвимости\n    |Вы можете предложить свою [новую уязвимость](/vuln/create-vulnerability), если ее нет в нашем списке.\n    |После подтверждения со стороны администрации, она появится в архиве под уникальным ID.",
+  "howToMd": "|### Как добавить уязвимость в проект?\n    |1. Создайте saveourtool [организацию](/create-organization) и [проект](/create-project);\n    |2. Откройте вкладку security вашего проекта;\n    |3. Создайте новую проблему и добавьте ее уникальный ID;\n    |\n    |В случае любых ошибок не стесняйтесь [связываться с нами](https://github.com/saveourtool/save-cloud/issues/new).",
+  "topRatingMd": "|### Рейтинговая система\n    |За каждую принятую уязвимость вы получаете очки рейтинга. Здесь вы можете ознакомиться с [рейтингом](/vuln/top-rating) пользователей и организаций."
 }
 """
 
@@ -32,35 +32,21 @@ const val VULN_COLLECTION_CN = """
 }
 """
 
-const val VULN_UPLOAD_RU = """
-{
-  "Upload COSV files": "Загрузить COSV файлы"
-}
-"""
-
 const val VULN_UPLOAD_EN = """
 {
   "Upload COSV files": "Upload COSV files"
 }
 """
 
-const val VULN_UPLOAD_CN = """
+const val VULN_UPLOAD_RU = """
 {
-  "Upload COSV files": "上传 COSV 格式文件"
+  "Upload COSV files": "Загрузить COSV файлы"
 }
 """
 
-const val TABLE_HEADERS_RU = """
+const val VULN_UPLOAD_CN = """
 {
-    "Name": "Имя",
-    "Identifier": "Идентификатор",
-    "Organization": "Организация",
-    "Description": "Описание",
-    "Author": "Автор",
-    "Criticality": "Критичность",
-    "Language": "Язык",
-    "Status": "Статус",
-    "Tag": "Тег"
+  "Upload COSV files": "上传 COSV 格式文件"
 }
 """
 
@@ -78,6 +64,20 @@ const val TABLE_HEADERS_EN = """
 }
 """
 
+const val TABLE_HEADERS_RU = """
+{
+    "Name": "Имя",
+    "Identifier": "Идентификатор",
+    "Organization": "Организация",
+    "Description": "Описание",
+    "Author": "Автор",
+    "Criticality": "Критичность",
+    "Language": "Язык",
+    "Status": "Статус",
+    "Tag": "Тег"
+}
+"""
+
 const val TABLE_HEADERS_CN = """
 {
     "Name": "漏洞名",
@@ -89,23 +89,6 @@ const val TABLE_HEADERS_CN = """
     "Language": "语言",
     "Status": "状态",
     "Tag": "标签"
-}
-"""
-
-const val TOPBAR_RU = """
-{
-    "Demo": "Демо",
-    "CPG": "CPG",
-    "Awesome Benchmarks": "Awesome Benchmarks",
-    "Try SAVE format": "Попробуйте SAVE-формат",
-    "Projects board": "Проекты",
-    "Contests": "Соревнования",
-    "About us": "О нас",
-    "Propose vulnerability": "Предложите уязвимость",
-    "Vulnerabilities": "Уязвимости",
-    "Top Rating": "Рейтинг",
-    "SAVE Projects list": "SAVE-проекты",
-    "Vulnerabilities list": "Список уязвимостей"
 }
 """
 
@@ -124,6 +107,23 @@ const val TOPBAR_EN = """
     "Awesome Benchmarks": "Awesome Benchmarks",
     "SAVE Projects list": "SAVE Projects list",
     "Vulnerabilities list": "Vulnerabilities list"
+}
+"""
+
+const val TOPBAR_RU = """
+{
+    "Demo": "Демо",
+    "CPG": "CPG",
+    "Awesome Benchmarks": "Awesome Benchmarks",
+    "Try SAVE format": "Попробуйте SAVE-формат",
+    "Projects board": "Проекты",
+    "Contests": "Соревнования",
+    "About us": "О нас",
+    "Propose vulnerability": "Предложите уязвимость",
+    "Vulnerabilities": "Уязвимости",
+    "Top Rating": "Рейтинг",
+    "SAVE Projects list": "SAVE-проекты",
+    "Vulnerabilities list": "Список уязвимостей"
 }
 """
 
@@ -157,18 +157,6 @@ const val COOKIES_EN = """
 }
 """
 
-const val COOKIES_CN = """
-{
-    "What are cookies": "### 什么是Cookie\n\n这个Cookie策略说明了什么是cookie, 我们如何使用它们, 我们使用哪些类型的cookie (例如, 我们收集哪些信息，以及我们如何使用这些信息), 以及如何管理这些cookies.\n\nCookies 是用于存储小块信息的小文本文件。当网站加载到您的浏览器中时，它们就会存储在您的设备上。这些 Cookie 帮助我们确保网站正常运行、增强其安全性、提供更好的用户体验、了解网站的运行情况、分析哪些内容有效并确定需要改进的领域。",
-    "How do we use cookies": "### 我们如何使用 cookie\n\n与大多数在线服务一样，我们的网站将第一方 cookie 用于各种目的。这些 cookie 对于网站的正常运行至关重要，并且不会收集您的任何个人身份数据。",
-    "What exactly do we store": "### 我们到底存储什么\n\n* 我们存储有关您的**首选语言**的信息，该信息将在 **1 年**后过期。这些数据是为了您的方便而需要的，不会传递到任何地方。\n\n* 如果您曾经在我们的网站上接受过 Cookie，我们会将其保存在我们的 Cookie 中（**1 年**后过期）。",
-    "We value your privacy": "### **我们重视您的隐私**\n\n我们使用 cookie 来增强您的浏览体验、提供个性化广告或内容以及分析我们的流量。单击“接受”即表示您同意我们使用 cookie。",
-    "Accept": "接受",
-    "Decline": "拒绝",
-    "Read more": "查看更多"
-}
-"""
-
 const val COOKIES_RU = """
 {
     "What are cookies": "### Что такое Cookie\n\nЭта Политика использования файлов cookie объясняет, что такое файлы cookie и как мы их используем, информацию, которую мы собираем с помощью файлов cookie, и как эта информация используется.\n\nФайлы cookie - это небольшие текстовые файлы, использующиеся для хранения небольших фрагментов информации. Они сохраняются на Вашем устройстве, когда веб-сайт загружается в браузере. Эти файлы cookie помогают правильно функционировать веб-сайту, обеспечивать его безопасность, повышать качество сервиса.",
@@ -181,6 +169,18 @@ const val COOKIES_RU = """
 }
 """
 
+const val COOKIES_CN = """
+{
+    "What are cookies": "### 什么是Cookie\n\n这个Cookie策略说明了什么是cookie, 我们如何使用它们, 我们使用哪些类型的cookie (例如, 我们收集哪些信息，以及我们如何使用这些信息), 以及如何管理这些cookies.\n\nCookies 是用于存储小块信息的小文本文件。当网站加载到您的浏览器中时，它们就会存储在您的设备上。这些 Cookie 帮助我们确保网站正常运行、增强其安全性、提供更好的用户体验、了解网站的运行情况、分析哪些内容有效并确定需要改进的领域。",
+    "How do we use cookies": "### 我们如何使用 cookie\n\n与大多数在线服务一样，我们的网站将第一方 cookie 用于各种目的。这些 cookie 对于网站的正常运行至关重要，并且不会收集您的任何个人身份数据。",
+    "What exactly do we store": "### 我们到底存储什么\n\n* 我们存储有关您的**首选语言**的信息，该信息将在 **1 年**后过期。这些数据是为了您的方便而需要的，不会传递到任何地方。\n\n* 如果您曾经在我们的网站上接受过 Cookie，我们会将其保存在我们的 Cookie 中（**1 年**后过期）。",
+    "We value your privacy": "### **我们重视您的隐私**\n\n我们使用 cookie 来增强您的浏览体验、提供个性化广告或内容以及分析我们的流量。单击“接受”即表示您同意我们使用 cookie。",
+    "Accept": "接受",
+    "Decline": "拒绝",
+    "Read more": "查看更多"
+}
+"""
+
 const val PROPOSING_VULN_EN = """
 {
     "Propose a new vulnerability": "Propose a new vulnerability",
@@ -188,13 +188,13 @@ const val PROPOSING_VULN_EN = """
     "Short description": "Short description",
     "Generate identifier": "Generate identifier",
     "Description": "Description",
-    "Original vulnerability identifier": "Original vulnerability identifier",
+    "Identifier": "Identifier",
     "Related link": "Related link",
     "Language": "Language",
     "Criticality": "Criticality",
     "Organization": "Organization",
     "Collaborators": "Collaborators",
-    "Affected projects:": "Affected projects:",
+    "Affected projects": "Affected projects",
     "Propose a vulnerability": "Propose a vulnerability",
     "Project type": "Project type",
     "Versions": "Versions",
@@ -213,6 +213,38 @@ const val PROPOSING_VULN_EN = """
 }
 """
 
+const val PROPOSING_VULN_RU = """
+{
+    "Propose a new vulnerability": "Предложите уязвимость",
+    "Vulnerability identifier": "Идентификатор уязвимости",
+    "Short description": "Краткое описание",
+    "Generate identifier": "Сгенерировать идентификатор",
+    "Description": "Описание",
+    "Identifier": "Идентификатор",
+    "Related link": "Ссылка",
+    "Language": "Язык",
+    "Criticality": "Критичность",
+    "Organization": "Организация",
+    "Collaborators": "Соавторы",
+    "Affected projects": "Уязвимые проекты",
+    "Propose a vulnerability": "Предложите уязвимость",
+    "Project type": "Тип проекта",
+    "Versions": "Версии",
+    "Add": "Добавить",
+    "Cancel": "Отменить",
+    "Project Name": "Имя проекта",
+    "Library Name": "Имя библиотеки",
+    "Library Url": "URL библиотеки",
+    "Commit Url": "URL коммита",
+    "Commit Hash": "Хэш коммита",
+    "Project Url": "URL проекта",
+    "Name must not be empty": "Имя должно быть непустым",
+    "Hash must not be empty": "Хэш должен быть непустым",
+    "Please input a valid name and URL": "Пожалуйста введите корректное имя и URL",
+    "Please input a valid hash and URL": "Пожалуйста введите корректный хэш и URL"
+}
+"""
+
 const val PROPOSING_VULN_CN = """
 {
     "Propose a new vulnerability": "创建一个新漏洞报告",
@@ -226,7 +258,7 @@ const val PROPOSING_VULN_CN = """
     "Criticality": "危险程度",
     "Organization": "组织",
     "Collaborators": "合作者",
-    "Affected projects:": "受影响项目",
+    "Affected projects": "受影响项目",
     "Propose a vulnerability": "提交",
     "Project type": "项目类型",
     "Versions": "版本范围",
@@ -256,6 +288,18 @@ const val WELCOME_EN = """
 }
 """
 
+const val WELCOME_RU = """
+{
+    "Sign in with": "Войдите через",
+    "Don't have an account?": "Нет аккаунта?",
+    "with limited functionality": "с ограниченной функциональностью",
+    "Continue": "Продолжить",
+    "Notifications": "Уведомления",
+    "Total number of submitted vulnerabilities": "Количество заявленных уязвимостей"
+    
+}
+"""
+
 const val WELCOME_CN = """
 {
     "Sign in with": "登录方式",
@@ -271,6 +315,13 @@ const val ORGANIZATION_EN = """
 {
     "No vulnerabilities were found for this organization.": "No vulnerabilities were found for this organization.",
     "You can be the first one to create vulnerability.": "You can be the first one to create vulnerability."
+}
+"""
+
+const val ORGANIZATION_RU = """
+{
+    "No vulnerabilities were found for this organization.": "Данная организация не предлагала уязвимости.",
+    "You can be the first one to create vulnerability.": "Вы можете быть первым, кто предложил уязвимость."
 }
 """
 
