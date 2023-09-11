@@ -22,6 +22,7 @@ import javax.persistence.ManyToOne
  * @property statusMessage
  */
 @Entity
+@Suppress("LongParameterList")
 class RawCosvFile(
     var fileName: String,
     @ManyToOne
