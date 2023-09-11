@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property organizationName
  * @property status
  * @property id
+ * @property statusMessage
  */
 @Serializable
 data class RawCosvFileDto(

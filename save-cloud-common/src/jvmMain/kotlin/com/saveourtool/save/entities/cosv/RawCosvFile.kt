@@ -19,6 +19,7 @@ import javax.persistence.ManyToOne
  * @property status
  * @property createDate
  * @property updateDate
+ * @property statusMessage
  */
 @Entity
 class RawCosvFile(
