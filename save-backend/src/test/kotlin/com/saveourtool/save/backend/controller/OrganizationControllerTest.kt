@@ -18,6 +18,7 @@ import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.v1
@@ -93,6 +94,7 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkCosvMetadataUserRepository::class),
     MockBean(CosvMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

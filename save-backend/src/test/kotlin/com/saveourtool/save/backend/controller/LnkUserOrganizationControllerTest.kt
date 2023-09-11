@@ -12,6 +12,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
@@ -40,6 +41,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
     MockBean(LnkCosvMetadataUserRepository::class),
     MockBean(CosvMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 @AutoConfigureWebTestClient
 class LnkUserOrganizationControllerTest {

@@ -16,6 +16,7 @@ import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
@@ -75,6 +76,7 @@ import kotlin.io.path.*
     MockBean(LnkCosvMetadataUserRepository::class),
     MockBean(CosvMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {

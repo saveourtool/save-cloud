@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.utils.BlockingBridge
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Import
     MockBean(LnkCosvMetadataUserRepository::class),
     MockBean(CosvMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 class DatabaseTest {
     @Autowired
