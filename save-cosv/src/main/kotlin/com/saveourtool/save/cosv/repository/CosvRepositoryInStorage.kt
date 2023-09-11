@@ -136,7 +136,6 @@ class CosvRepositoryInStorage(
             cosvId = id,
             summary = summary ?: "Summary not provided",
             details = details ?: "Details not provided",
-            severity = severity?.firstOrNull()?.score,
             severityNum = severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
             modified = modified.toJavaLocalDateTime(),
             submitted = getCurrentLocalDateTime().toJavaLocalDateTime(),
@@ -149,7 +148,6 @@ class CosvRepositoryInStorage(
         private fun CosvMetadata.updateBy(entry: CosvSchema<*, *, *, *>): CosvMetadata = apply {
             summary = entry.summary ?: "Summary not provided"
             details = entry.details ?: "Details not provided"
-            severity = entry.severity?.firstOrNull()?.score
             severityNum = entry.severity?.firstOrNull()
                 ?.scoreNum
                 ?.toInt() ?: 0
