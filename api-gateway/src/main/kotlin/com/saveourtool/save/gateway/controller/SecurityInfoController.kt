@@ -2,13 +2,10 @@ package com.saveourtool.save.gateway.controller
 
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.info.OauthProviderInfo
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 
 /**
  * Controller that returns various public information
@@ -39,13 +36,5 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(authentication: Authentication?): Mono<String> = when (authentication) {
-        is UsernamePasswordAuthenticationToken -> authentication.name.toMono()
-        is OAuth2AuthenticationToken -> {
-            val source = authentication.authorizedClientRegistrationId
-            val nameInSource = authentication.name
-            backendService.findByOriginalLogin(source, nameInSource).map { it.name }
-        }
-        else -> Mono.empty()
-    }
+    fun currentUserName(authentication: Authentication?): Mono<String> = backendService.findNameByAuthentication(authentication)
 }

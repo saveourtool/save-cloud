@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.gateway.security
 
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
@@ -195,7 +196,7 @@ private fun userStatusBasedAuthorizationDecision(
     backendService: BackendService,
     authentication: Mono<Authentication>,
     authorizationContext: AuthorizationContext,
-) = authentication.flatMap { backendService.findByName(it.name) }
+) = authentication.flatMap { backendService.findByAuthentication(it) }
     .filter { it.isEnabled }
     .flatMap { authorizationManagerAuthorizationDecision(authentication, authorizationContext) }
     .defaultIfEmpty(AuthorizationDecision(false))
