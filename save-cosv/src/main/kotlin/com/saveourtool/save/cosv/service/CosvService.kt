@@ -141,7 +141,7 @@ class CosvService(
             severity = listOf(
                 Severity(
                     type = SeverityType.CVSS_V3,
-                    score = "N/A",
+                    score = vulnerabilityDto.severity,
                     scoreNum = vulnerabilityDto.progress.toString(),
                 )
             ),
