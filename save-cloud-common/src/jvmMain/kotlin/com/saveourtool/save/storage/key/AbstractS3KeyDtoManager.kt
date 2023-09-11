@@ -41,12 +41,4 @@ abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDto<K>, 
      * @return a new [E] entity is created from provided [K] dto
      */
     abstract fun createNewEntityFromDto(dto: K): E
-
-    /**
-     * @param id
-     * @return [K] for [E] with provided [id]
-     */
-    fun findKeyById(
-        id: Long,
-    ): K? = repository.findByIdOrNull(id)?.toDto()
 }

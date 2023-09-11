@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,9 +27,9 @@ class RawCosvFileS3KeyManager(
     private val backendService: IBackendService,
     blockingBridge: BlockingBridge,
 ) : AbstractS3KeyDtoManager<RawCosvFileDto, RawCosvFile, RawCosvFileRepository>(
-    prefix = concatS3Key(s3OperationsPropertiesProvider.s3Storage.prefix, "raw-cosv"),
-    repository = rawCosvFileRepository,
-    blockingBridge = blockingBridge,
+    concatS3Key(s3OperationsPropertiesProvider.s3Storage.prefix, "raw-cosv"),
+    rawCosvFileRepository,
+    blockingBridge,
 ) {
     override fun findByDto(dto: RawCosvFileDto): RawCosvFile? = repository.findByOrganizationNameAndUserNameAndFileName(
         organizationName = dto.organizationName,
@@ -68,4 +69,14 @@ class RawCosvFileS3KeyManager(
     ): Pair<Organization, User> = repository.getByIdOrNotFound(id).let {
         it.organization to it.user
     }
+
+
+
+    /**
+     * @param id
+     * @return [K] for [E] with provided [id]
+     */
+    override fun findKeyByEntityId(
+        id: Long,
+    ): RawCosvFileDto? = super.findKeyByEntityId(id)
 }

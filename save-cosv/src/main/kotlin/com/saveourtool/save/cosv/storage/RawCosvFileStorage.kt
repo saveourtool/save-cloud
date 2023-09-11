@@ -11,6 +11,7 @@ import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -27,9 +28,9 @@ class RawCosvFileStorage(
     s3KeyManager: RawCosvFileS3KeyManager,
     repository: RawCosvFileRepository,
 ) : ReactiveStorageWithDatabase<RawCosvFileDto, RawCosvFile, RawCosvFileRepository, RawCosvFileS3KeyManager>(
-    s3Operations = s3Operations,
-    s3KeyManager = s3KeyManager,
-    repository = repository,
+    s3Operations,
+    s3KeyManager,
+    repository,
 ) {
     /**
      * @param organizationName
@@ -61,14 +62,20 @@ class RawCosvFileStorage(
 
     /**
      * @param id
+     * @return [RawCosvFileDto]
+     */
+    fun findById(
+        id: Long,
+    ): Mono<RawCosvFileDto> = blockingToMono { s3KeyManager.findKeyByEntityId(id) }
+        .switchIfEmptyToNotFound { "Not found raw COSV file id=$id" }
+
+    /**
+     * @param id
      * @return content of raw COSV file
      */
     fun downloadById(
         id: Long,
-    ): Flux<ByteBuffer> = blockingToMono {
-        s3KeyManager.findKeyById(id)
-    }
-        .orNotFound { "Not found raw COSV file id=$id" }
+    ): Flux<ByteBuffer> = findById(id)
         .flatMapMany { download(it) }
 
     /**
@@ -77,9 +84,6 @@ class RawCosvFileStorage(
      */
     fun deleteById(
         id: Long,
-    ): Mono<Boolean> = blockingToMono {
-        s3KeyManager.findKeyById(id)
-    }
-        .orNotFound { "Not found raw COSV file id=$id" }
+    ): Mono<Boolean> = findById(id)
         .flatMap { delete(it) }
 }

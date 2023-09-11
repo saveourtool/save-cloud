@@ -10,6 +10,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -136,10 +137,14 @@ class CosvController(
         @PathVariable id: Long,
         authentication: Authentication,
     ): Mono<ByteBufferFluxResponse> = hasPermission(authentication, organizationName, Permission.READ, "download")
+        .flatMap {
+            rawCosvFileStorage.findById(id)
+        }
         .map {
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(rawCosvFileStorage.downloadById(id))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${it.fileName}\"")
+                .body(rawCosvFileStorage.download(it))
         }
 
     /**
