@@ -4,26 +4,29 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
-import com.saveourtool.save.frontend.externals.fontawesome.faDownload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
-import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.validation.isValidName
+
 import js.core.asList
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import react.useState
 import web.cssom.ClassName
 import web.file.File
+import web.html.InputType
 import web.http.FormData
+
+import kotlinx.browser.window
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -31,12 +34,28 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
-    val (availableRawCosvFiles, setAvailableRawCosvFiles) = useState<List<RawCosvFileDto>>(emptyList())
-    val (selectedRawCosvFiles, setSelectedRawCosvFiles) = useState<List<RawCosvFileDto>>(emptyList())
+    val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
+    val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
+
+    val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+    val deleteFile = useDeferredRequest {
+        fileToDelete?.let { file ->
+            val response = delete(
+                "$apiUrl/cosv/$selectedOrganization/delete/${file.requiredId()}",
+                jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+            )
+
+            if (response.ok) {
+                setAvailableFiles { it.minus(file) }
+                setFileToDelete(null)
+            }
+        }
+    }
 
     useRequest {
         val organizations = get(
@@ -52,27 +71,42 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         setUserOrganizations(organizations)
     }
 
-    useRequest(dependencies = arrayOf(selectedOrganization)) {
+    val fetchFiles = useDeferredRequest {
         selectedOrganization?.let {
             val result: List<RawCosvFileDto> = get(
-                url = "$apiUrl/cosv/${selectedOrganization}/list",
+                url = "$apiUrl/cosv/$selectedOrganization/list",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
             ).decodeFromJsonString()
-            setAvailableRawCosvFiles(result)
+            setAvailableFiles(result)
         }
-
     }
 
-    val uploadCosvFiles = useDeferredRequest {
-        val response = post(
-            url = "$apiUrl/cosv/${selectedOrganization}/batch-upload",
+    val uploadFiles = useDeferredRequest {
+        post(
+            url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
             Headers(),
             FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
         )
+        fetchFiles()
+    }
+
+    val submitCosvFiles = useDeferredRequest {
+        val response = post(
+            url = "$apiUrl/cosv/$selectedOrganization/submit-to-process",
+            jsonHeaders,
+            body = selectedFiles.map { it.requiredId() },
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler
+        )
+        if (response.ok) {
+            window.alert(response.body as String)
+        }
+        setSelectedFiles(emptyList())
+        fetchFiles()
     }
 
     div {
@@ -88,38 +122,47 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             disabled = false
             onChangeFun = { value ->
                 setSelectedOrganization(value)
+                fetchFiles()
             }
         }
 
         ul {
             className = ClassName("list-group")
 
-            // ===== SELECTOR =====
-            li {
-                className = ClassName("list-group-item d-flex justify-content-between align-items-center")
-                selectorBuilder(
-                    "Select a file from existing",
-                    availableRawCosvFiles.map { it.fileName }.plus("Select a file from existing"),
-                    classes = "form-control custom-select",
-                    isDisabled = false,
-                ) { event ->
-                    val availableFile = availableRawCosvFiles.first { it.fileName == event.target.value }
-                    setSelectedRawCosvFiles { it.plus(availableFile) }
-                    setAvailableRawCosvFiles { it.minus(availableFile) }
-                }
-            }
-
             // ===== SELECTED FILES =====
-            selectedRawCosvFiles.map { file ->
+            availableFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    a {
-                        buttonBuilder(faDownload, "", isOutline = true) { }
-                        download = file
-                        href = "$apiUrl/cosv/${selectedOrganization}/download/${file.requiredId()}"
+                    input {
+                        className = ClassName("mx-auto")
+                        type = InputType.checkbox
+                        id = "checkbox"
+                        defaultChecked = file in selectedFiles
+                        checked = file in selectedFiles
+                        disabled = file.status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
+                        onChange = { event ->
+                            if (event.target.checked) {
+                                setSelectedFiles { it.plus(file) }
+                            } else {
+                                setSelectedFiles { it.minus(file) }
+                            }
+                        }
+                    }
+                    downloadFileButton(file, RawCosvFileDto::fileName) {
+                        "$apiUrl/cosv/$selectedOrganization/download/${file.requiredId()}"
+                    }
+                    deleteFileButton(file, RawCosvFileDto::fileName) {
+                        setFileToDelete(it)
+                        deleteFile()
                     }
 
-                    +file.fileName
+                    val suffix = when (file.status) {
+                        RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
+                        RawCosvFileStatus.PROCESSED -> " (processed)"
+                        RawCosvFileStatus.FAILED -> " (with errors)"
+                        else -> ""
+                    }
+                    +"${file.fileName}$suffix"
                 }
             }
 
@@ -131,8 +174,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     tooltipMessage = "Only JSON files"
                     onChangeEventHandler = { files ->
                         setFilesForUploading(files!!.asList())
-                        uploadCosvFiles()
+                        uploadFiles()
                     }
+                }
+            }
+            // SUBMIT to process
+            li {
+                className = ClassName("list-group-item p-0 d-flex bg-light")
+                buttonBuilder("Submit") {
+                    submitCosvFiles()
                 }
             }
         }

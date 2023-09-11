@@ -13,7 +13,6 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -69,8 +68,6 @@ class RawCosvFileS3KeyManager(
     ): Pair<Organization, User> = repository.getByIdOrNotFound(id).let {
         it.organization to it.user
     }
-
-
 
     /**
      * @param id
