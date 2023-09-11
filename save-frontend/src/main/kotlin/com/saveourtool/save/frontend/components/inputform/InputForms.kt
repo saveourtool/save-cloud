@@ -76,10 +76,10 @@ enum class InputTypes(
     COMPANY("Company/Affiliation"),
     REAL_NAME("Your name"),
     LOCATION("Location"),
-    GITHUB("GitHub"),
+    GITHUB("GitHub", placeholder = "GitHub"),
     LINKEDIN("Linkedin"),
     TWITTER("Twitter/X"),
-    WEBSITE("Website"),
+    WEBSITE("Website", placeholder = "Website"),
     FREE_TEXT("Info"),
 
     // ==== contest creation component
