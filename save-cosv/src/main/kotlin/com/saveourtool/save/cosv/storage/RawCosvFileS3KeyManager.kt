@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class RawCosvFileS3KeyManager(
     s3OperationsPropertiesProvider: S3OperationsProperties.Provider,
-    private val rawCosvFileRepository: RawCosvFileRepository,
+    rawCosvFileRepository: RawCosvFileRepository,
     private val backendService: IBackendService,
     blockingBridge: BlockingBridge,
 ) : AbstractS3KeyDtoManager<RawCosvFileDto, RawCosvFile, RawCosvFileRepository>(
@@ -30,7 +30,7 @@ class RawCosvFileS3KeyManager(
     repository = rawCosvFileRepository,
     blockingBridge = blockingBridge,
 ) {
-    override fun findByDto(dto: RawCosvFileDto): RawCosvFile? = rawCosvFileRepository.findByOrganizationNameAndUserNameAndFileName(
+    override fun findByDto(dto: RawCosvFileDto): RawCosvFile? = repository.findByOrganizationNameAndUserNameAndFileName(
         organizationName = dto.organizationName,
         userName = dto.userName,
         fileName = dto.fileName,

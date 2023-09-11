@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="raw-cosv-file-1" author="nulls">
-        <createTable tableName="raw_osv_file">
+        <createTable tableName="raw_cosv_file">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -29,6 +29,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="raw_osv_file" columnNames="file_name,organization_id" constraintName="uq_raw_osv_file_file_name_per_organization"/>
+        <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id" constraintName="uq_raw_osv_file_file_name_per_organization"/>
     </changeSet>
 </databaseChangeLog>

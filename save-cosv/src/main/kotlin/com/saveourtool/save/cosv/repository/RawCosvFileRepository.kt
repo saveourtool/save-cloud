@@ -2,10 +2,12 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import org.springframework.stereotype.Repository
 
 /**
  * A repository for [RawCosvFile]
  */
+@Repository
 interface RawCosvFileRepository : BaseEntityRepository<RawCosvFile> {
     /**
      * @param organizationName name from [RawCosvFile.organization]

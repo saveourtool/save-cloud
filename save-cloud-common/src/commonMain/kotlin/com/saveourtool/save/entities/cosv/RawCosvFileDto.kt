@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.DtoWithId
+import kotlinx.serialization.Serializable
 
 /**
  * DTO for raw cosv file
@@ -11,6 +12,7 @@ import com.saveourtool.save.entities.DtoWithId
  * @property status
  * @property id
  */
+@Serializable
 data class RawCosvFileDto(
     val fileName: String,
     val userName: String,

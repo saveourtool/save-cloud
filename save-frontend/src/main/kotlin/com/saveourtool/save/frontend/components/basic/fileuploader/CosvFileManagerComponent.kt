@@ -3,12 +3,14 @@
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faDownload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
+import com.saveourtool.save.utils.isNotNull
 import com.saveourtool.save.validation.isValidName
 import js.core.asList
 import org.w3c.fetch.Headers
@@ -29,11 +31,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
-    val (cosvAvailableFiles, setCosvAvailableFiles) = useState<List<String>>(emptyList())
+    val (availableRawCosvFiles, setAvailableRawCosvFiles) = useState<List<RawCosvFileDto>>(emptyList())
+    val (selectedRawCosvFiles, setSelectedRawCosvFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
-    val (selectOrganizations, setSelectOrganizations) = useState("")
+    val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     useRequest {
         val organizations = get(
@@ -49,45 +52,74 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         setUserOrganizations(organizations)
     }
 
+    useRequest(dependencies = arrayOf(selectedOrganization)) {
+        selectedOrganization?.let {
+            val result: List<RawCosvFileDto> = get(
+                url = "$apiUrl/cosv/${selectedOrganization}/list",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler
+            ).decodeFromJsonString()
+            setAvailableRawCosvFiles(result)
+        }
+
+    }
+
     val uploadCosvFiles = useDeferredRequest {
-        val uploadedIds: List<String> = post(
-            url = "$apiUrl/cosv/batch-upload?organizationName=$selectOrganizations",
+        val response = post(
+            url = "$apiUrl/cosv/${selectedOrganization}/batch-upload",
             Headers(),
             FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
-        ).decodeFromJsonString()
-        setCosvAvailableFiles { uploadedIds }
+        )
     }
 
     div {
         organizationSelectForm {
             selectClasses = "custom-select"
             formType = InputTypes.ORGANIZATION_NAME
-            validInput = selectOrganizations.isNotEmpty() && selectOrganizations.isValidName()
+            validInput = !selectedOrganization.isNullOrEmpty() && selectedOrganization.isValidName()
             classes = "mb-3"
             formName = "Organization"
             getData = { userOrganizations.map { it.name } }
             dataToString = { it }
-            selectedValue = selectOrganizations
+            selectedValue = selectedOrganization.orEmpty()
             disabled = false
             onChangeFun = { value ->
-                setSelectOrganizations(value ?: "")
+                setSelectedOrganization(value)
             }
         }
 
         ul {
             className = ClassName("list-group")
-            cosvAvailableFiles.map { file ->
+
+            // ===== SELECTOR =====
+            li {
+                className = ClassName("list-group-item d-flex justify-content-between align-items-center")
+                selectorBuilder(
+                    "Select a file from existing",
+                    availableRawCosvFiles.map { it.fileName }.plus("Select a file from existing"),
+                    classes = "form-control custom-select",
+                    isDisabled = false,
+                ) { event ->
+                    val availableFile = availableRawCosvFiles.first { it.fileName == event.target.value }
+                    setSelectedRawCosvFiles { it.plus(availableFile) }
+                    setAvailableRawCosvFiles { it.minus(availableFile) }
+                }
+            }
+
+            // ===== SELECTED FILES =====
+            selectedRawCosvFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
                     a {
                         buttonBuilder(faDownload, "", isOutline = true) { }
                         download = file
-                        href = "$apiUrl/cosv/get-by-id/$file"
+                        href = "$apiUrl/cosv/${selectedOrganization}/download/${file.requiredId()}"
                     }
 
-                    +file
+                    +file.fileName
                 }
             }
 
