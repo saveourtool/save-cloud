@@ -13,6 +13,7 @@ import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
+import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
@@ -29,6 +30,7 @@ import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import web.cssom.Cursor
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -157,20 +159,27 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         deleteFile()
                     }
 
-                    val suffix = when (file.status) {
-                        RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
-                        RawCosvFileStatus.PROCESSED -> " (processed)"
-                        RawCosvFileStatus.FAILED -> " "
-                        else -> ""
-                    }
-                    +"${file.fileName}$suffix"
-                    file.statusMessage?.let { statusMessage ->
-                        span {
-                            className = ClassName("text-gray-400 text-justify")
+                    +"${file.fileName} "
+                    span {
+                        style = jso {
+                            cursor = "pointer".unsafeCast<Cursor>()
+                        }
+                        val textColor = if (file.status == RawCosvFileStatus.FAILED) {
+                            "text-danger"
+                        } else {
+                            "text-gray-400"
+                        }
+                        className = ClassName("$textColor text-justify")
+                        file.statusMessage?.let { statusMessage ->
                             onClick = {
                                 window.alert(statusMessage)
                             }
-                            +"(with errors)"
+                        }
+                        +when (file.status) {
+                            RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
+                            RawCosvFileStatus.PROCESSED -> " (processed)"
+                            RawCosvFileStatus.FAILED -> " (with errors)"
+                            else -> " "
                         }
                     }
                 }
