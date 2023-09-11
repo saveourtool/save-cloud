@@ -6,7 +6,10 @@ import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.utils.orNotFound
 
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
@@ -40,6 +43,20 @@ class BackendService(
         source: String,
         nameInSource: String,
     ): Mono<SaveUserDetails> = findAuthenticationUserDetails("/internal/users/find-by-original-login/$source/$nameInSource")
+
+    /**
+     * @param authentication
+     * @return [UserDetails] found in DB by [authentication]
+     */
+    fun findByAuthentication(authentication: Authentication): Mono<SaveUserDetails> = when (authentication) {
+        is UsernamePasswordAuthenticationToken -> findByName(authentication.name)
+        is OAuth2AuthenticationToken -> {
+            val source = authentication.authorizedClientRegistrationId
+            val nameInSource = authentication.name
+            findByOriginalLogin(source, nameInSource)
+        }
+        else -> Mono.error(IllegalStateException("Not supported ${authentication::class.simpleName}"))
+    }
 
     private fun findAuthenticationUserDetails(uri: String): Mono<SaveUserDetails> = webClient.get()
         .uri(uri)

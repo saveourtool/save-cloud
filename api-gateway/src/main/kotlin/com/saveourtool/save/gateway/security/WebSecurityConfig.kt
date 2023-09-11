@@ -82,7 +82,7 @@ class WebSecurityConfig(
                 // backend returns 401 for those endpoints that require authentication
                 .pathMatchers(*allowedForInactiveEndpoints.toTypedArray()).access(::defaultAuthorizationDecision)
                 .pathMatchers("/api/**").access { authorization, authorizationContext ->
-                    authorization.flatMap { backendService.findByName(it.name) }
+                    authorization.flatMap { backendService.findByAuthentication(it) }
                         .filter { it.isEnabled }
                         .flatMap { defaultAuthorizationDecision(authorization, authorizationContext) }
                         .defaultIfEmpty(AuthorizationDecision(false))

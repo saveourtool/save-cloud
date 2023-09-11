@@ -39,13 +39,6 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(authentication: Authentication?): Mono<String> = when (authentication) {
-        is UsernamePasswordAuthenticationToken -> authentication.name.toMono()
-        is OAuth2AuthenticationToken -> {
-            val source = authentication.authorizedClientRegistrationId
-            val nameInSource = authentication.name
-            backendService.findByOriginalLogin(source, nameInSource).map { it.name }
-        }
-        else -> Mono.empty()
-    }
+    fun currentUserName(authentication: Authentication?): Mono<String> =
+            authentication?.let { backendService.findByAuthentication(authentication).map { it.name } } ?: Mono.empty()
 }
