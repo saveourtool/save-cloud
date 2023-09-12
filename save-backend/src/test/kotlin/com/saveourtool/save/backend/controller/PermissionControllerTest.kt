@@ -9,8 +9,6 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
-import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*

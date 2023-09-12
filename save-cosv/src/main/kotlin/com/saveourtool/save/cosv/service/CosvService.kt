@@ -7,8 +7,8 @@ import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 

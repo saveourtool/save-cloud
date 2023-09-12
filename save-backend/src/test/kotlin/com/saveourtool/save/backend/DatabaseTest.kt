@@ -7,8 +7,6 @@ import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
-import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.utils.BlockingBridge

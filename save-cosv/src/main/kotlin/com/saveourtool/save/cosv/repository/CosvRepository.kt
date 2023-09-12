@@ -2,8 +2,8 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux

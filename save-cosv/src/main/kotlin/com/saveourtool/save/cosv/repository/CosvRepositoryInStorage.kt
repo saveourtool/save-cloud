@@ -5,9 +5,9 @@ import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadata
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
