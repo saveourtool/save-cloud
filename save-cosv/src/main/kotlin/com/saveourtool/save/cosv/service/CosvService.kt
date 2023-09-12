@@ -70,7 +70,7 @@ class CosvService(
             cosvListOpt.toFlux()
                 .flatMap { cosvProcessor.save(it, user, organization) }
                 .collectList()
-                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(CosvMetadataDto::cosvId)}") }
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
         }
 
     /**
@@ -125,7 +125,7 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),

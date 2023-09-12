@@ -1,6 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.entities.cosv.CosvMetadata
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadata
 import com.saveourtool.save.spring.entity.BaseEntityWithDateAndDto
 import javax.persistence.*
 
@@ -8,7 +8,7 @@ import javax.persistence.*
  * @property name
  * @property description
  * @property critical
- * @property cosvMetadata
+ * @property vulnerabilityMetadata
  * @property project
  * @property userId
  * @property isClosed
@@ -25,8 +25,8 @@ class ProjectProblem(
     var critical: ProjectProblemCritical,
 
     @ManyToOne
-    @JoinColumn(name = "cosv_metadata_id")
-    var cosvMetadata: CosvMetadata?,
+    @JoinColumn(name = "vulnerability_metadata_id")
+    var vulnerabilityMetadata: VulnerabilityMetadata?,
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -36,12 +36,12 @@ class ProjectProblem(
 
     var isClosed: Boolean,
 
-) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
+    ) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
     override fun toDto() = ProjectProblemDto(
         name = name,
         description = description,
         critical = critical,
-        identifier = cosvMetadata?.cosvId,
+        identifier = vulnerabilityMetadata?.identifier,
         organizationName = project.organization.name,
         projectName = project.name,
         isClosed = isClosed,

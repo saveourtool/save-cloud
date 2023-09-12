@@ -4,7 +4,7 @@ import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 
 import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.stereotype.Component
@@ -45,11 +45,11 @@ class CosvProcessor(
      * @param cosv
      * @param user who uploads
      * @param organization to which is uploaded
-     * @return [CosvMetadataDto]
+     * @return [VulnerabilityMetadataDto]
      */
     fun save(
         cosv: RawOsvSchema,
         user: User,
         organization: Organization,
-    ): Mono<CosvMetadataDto> = cosvRepository.save(cosv, rawSerializer, user, organization)
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, rawSerializer, user, organization)
 }
