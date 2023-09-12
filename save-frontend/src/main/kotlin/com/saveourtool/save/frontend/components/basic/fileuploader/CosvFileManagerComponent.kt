@@ -24,13 +24,13 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.useState
 import web.cssom.ClassName
+import web.cssom.Cursor
 import web.file.File
 import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
-import web.cssom.Cursor
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
