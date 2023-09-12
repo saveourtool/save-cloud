@@ -77,4 +77,12 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
             }
             .toKey()
     }
+
+    /**
+     * @param id
+     * @return [K] for [E] with provided [id]
+     */
+    open fun findKeyByEntityId(
+        id: Long,
+    ): K? = repository.findByIdOrNull(id)?.toKey()
 }

@@ -3,19 +3,24 @@ package com.saveourtool.save.gateway.service
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.utils.SAVE_USER_DETAILS_ATTIBUTE
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.switchIfEmptyToResponseException
+import org.springframework.http.HttpStatus
 
 import org.springframework.http.MediaType
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.security.Principal
 
 /**
  * A service to backend to lookup users in DB
@@ -47,44 +52,27 @@ class BackendService(
     private fun findAuthenticationUserDetails(uri: String): Mono<SaveUserDetails> = webClient.get()
         .uri(uri)
         .retrieve()
-        .onStatus({ it.is4xxClientError }) {
-            Mono.error(ResponseStatusException(it.statusCode()))
-        }
-        .toEntity<SaveUserDetails>()
-        .flatMap { responseEntity ->
-            responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
-        }
+        .getSaveUserDetails()
 
     /**
-     * Find current user [SaveUserDetails] by [authentication].
+     * Find current user [SaveUserDetails] by [principal].
      *
-     * @param authentication current user [Authentication]
+     * @param principal current user [Principal]
+     * @param session current [WebSession]
      * @return current user [SaveUserDetails]
      */
-    fun findByAuthentication(authentication: Authentication): Mono<SaveUserDetails> = when (authentication) {
-        is UsernamePasswordAuthenticationToken -> findByName(authentication.name)
-        is OAuth2AuthenticationToken -> {
-            val source = authentication.authorizedClientRegistrationId
-            val nameInSource = authentication.name
-            findByOriginalLogin(source, nameInSource)
-        }
-        else -> Mono.empty()
-    }
-
-    /**
-     * Find current username by [authentication].
-     *
-     * @param authentication current user [Authentication]
-     * @return current username
-     */
-    fun findNameByAuthentication(authentication: Authentication?): Mono<String> = when (authentication) {
-        is UsernamePasswordAuthenticationToken -> authentication.name.toMono()
-        is OAuth2AuthenticationToken -> {
-            val source = authentication.authorizedClientRegistrationId
-            val nameInSource = authentication.name
-            findByOriginalLogin(source, nameInSource).map { it.name }
-        }
-        else -> Mono.empty()
+    fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
+        is OAuth2AuthenticationToken -> session.getAttribute<SaveUserDetails>(SAVE_USER_DETAILS_ATTIBUTE)
+            .toMono()
+            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                "Not found attribute $SAVE_USER_DETAILS_ATTIBUTE for ${OAuth2AuthenticationToken::class}"
+            }
+        is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
+            .toMono()
+            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                "Unexpected principal type ${principal.principal.javaClass} in ${UsernamePasswordAuthenticationToken::class}"
+            }
+        else -> Mono.error(BadCredentialsException("Unsupported authentication type: ${principal::class}"))
     }
 
     /**
@@ -94,13 +82,18 @@ class BackendService(
      * @param nameInSource
      * @return empty [Mono]
      */
-    fun createNewIfRequired(source: String, nameInSource: String): Mono<Void> = webClient.post()
+    fun createNewIfRequired(source: String, nameInSource: String): Mono<SaveUserDetails> = webClient.post()
         .uri("/internal/users/new/$source/$nameInSource")
         .contentType(MediaType.APPLICATION_JSON)
         .retrieve()
+        .getSaveUserDetails()
+
+    private fun WebClient.ResponseSpec.getSaveUserDetails(): Mono<SaveUserDetails> = this
         .onStatus({ it.is4xxClientError }) {
             Mono.error(ResponseStatusException(it.statusCode()))
         }
-        .toBodilessEntity()
-        .then()
+        .toEntity<SaveUserDetails>()
+        .flatMap { responseEntity ->
+            responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
+        }
 }

@@ -16,14 +16,11 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import js.core.asList
 import react.*
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.file.File
-import web.html.ButtonType
 
 import kotlinx.browser.window
 
@@ -91,26 +88,10 @@ val sandboxFileUploader: FC<SandboxFileUploaderProps> = FC { props ->
                 .map { file ->
                     li {
                         className = ClassName("list-group-item")
-                        a {
-                            button {
-                                type = ButtonType.button
-                                className = ClassName("btn")
-                                fontAwesomeIcon(icon = faDownload)
-                            }
-                            download = file.name
-                            href = props.getUrlForFileDownload(file)
-                        }
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn")
-                            fontAwesomeIcon(icon = faTimes)
-                            onClick = {
-                                val confirm = window.confirm("Are you sure you want to delete ${file.name} file?")
-                                if (confirm) {
-                                    setFileToDelete(file)
-                                    deleteFile()
-                                }
-                            }
+                        downloadFileButton(file, SandboxFileInfo::name, props.getUrlForFileDownload)
+                        deleteFileButton(file, SandboxFileInfo::name) {
+                            setFileToDelete(it)
+                            deleteFile()
                         }
                         +file.name
                     }

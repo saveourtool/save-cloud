@@ -16,16 +16,11 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import js.core.asList
 import react.*
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.file.File
-import web.html.ButtonType
-
-import kotlinx.browser.window
 
 /**
  * [FC] for file uploading
@@ -106,28 +101,12 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             availableFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    a {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn")
-                            fontAwesomeIcon(icon = faDownload)
-                        }
-                        download = file.name
-                        href = "$apiUrl/files/download?fileId=${file.requiredId()}"
+                    downloadFileButton(file, FileDto::name) {
+                        "$apiUrl/files/download?fileId=${it.requiredId()}"
                     }
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn")
-                        fontAwesomeIcon(icon = faTrash)
-                        onClick = {
-                            val confirm = window.confirm(
-                                "Are you sure you want to delete ${file.name} file?"
-                            )
-                            if (confirm) {
-                                setFileToDelete(file)
-                                deleteFile()
-                            }
-                        }
+                    deleteFileButton(file, FileDto::name) {
+                        setFileToDelete(it)
+                        deleteFile()
                     }
 
                     +file.prettyPrint()
