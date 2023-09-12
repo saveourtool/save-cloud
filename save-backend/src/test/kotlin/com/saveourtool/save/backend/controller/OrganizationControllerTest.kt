@@ -11,16 +11,14 @@ import com.saveourtool.save.backend.S11nTestConfig
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.cosv.repository.CosvMetadataProjectRepository
-import com.saveourtool.save.cosv.repository.CosvMetadataRepository
-import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
-import com.saveourtool.save.cosv.repository.LnkCosvMetadataUserRepository
+import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.v1
@@ -95,6 +93,8 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkCosvMetadataTagRepository::class),
     MockBean(LnkCosvMetadataUserRepository::class),
     MockBean(CosvMetadataProjectRepository::class),
+    MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

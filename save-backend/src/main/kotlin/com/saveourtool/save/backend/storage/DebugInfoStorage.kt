@@ -59,7 +59,7 @@ class DebugInfoStorage(
         }
         .flatMap { testExecutionId ->
             log.debug { "Writing debug info for $testExecutionId" }
-            upload(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
+            uploadAndReturnContentSize(testExecutionId, objectMapper.writeValueAsBytes(testResultDebugInfo))
         }
 
     override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()
