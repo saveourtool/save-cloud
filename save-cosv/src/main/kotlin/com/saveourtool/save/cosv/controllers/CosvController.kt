@@ -19,6 +19,7 @@ import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.ParallelFlux
 import reactor.core.scheduler.Schedulers
 
 /**
@@ -32,30 +33,6 @@ class CosvController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
-    /**
-     * @param organizationName
-     * @param content
-     * @param authentication
-     * @return uploaded [RawCosvFileDto]
-     */
-    @RequiresAuthorizationSourceHeader
-    @PostMapping("/upload", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun upload(
-        @PathVariable organizationName: String,
-        @RequestBody content: String,
-        authentication: Authentication,
-    ): Mono<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-        .flatMap {
-            rawCosvFileStorage.upload(
-                key = RawCosvFileDto(
-                    "manually_uploaded_${getCurrentLocalDateTime()}.json",
-                    organizationName = organizationName,
-                    userName = authentication.name,
-                ),
-                contentBytes = content.toByteArray(),
-            )
-        }
-
     /**
      * @param organizationName
      * @param filePartFlux
@@ -84,6 +61,7 @@ class CosvController(
                         content = filePart.content().map { it.asByteBuffer() },
                     )
                 }
+                .parallel()
         }
 
     /**
