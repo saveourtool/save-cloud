@@ -36,7 +36,7 @@ class ProjectProblem(
 
     var isClosed: Boolean,
 
-    ) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
+) : BaseEntityWithDateAndDto<ProjectProblemDto>() {
     override fun toDto() = ProjectProblemDto(
         name = name,
         description = description,

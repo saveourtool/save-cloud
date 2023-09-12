@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @property projectRepository
  * @property projectProblemRepository
- * @property cosvMetadataRepository
+ * @property vulnerabilityMetadataRepository
  * @property userRepository
  */
 @Service

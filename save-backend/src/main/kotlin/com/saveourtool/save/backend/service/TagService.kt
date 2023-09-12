@@ -1,8 +1,8 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.backend.repository.TagRepository
-import com.saveourtool.save.cosv.repository.CosvMetadataRepository
-import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
+import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.orNotFound
@@ -22,11 +22,11 @@ import org.springframework.web.server.ResponseStatusException
 @Service
 class TagService(
     private val tagRepository: TagRepository,
-    private val cosvMetadataRepository: CosvMetadataRepository,
-    private val lnkCosvMetadataTagRepository: LnkCosvMetadataTagRepository,
+    private val vulnerabilityMetadataRepository: VulnerabilityMetadataRepository,
+    private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
 ) {
     /**
-     * @param identifier [CosvMetadata.cosvId]
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
      * @param tagName tag to add
      * @return new [LnkVulnerabilityMetadataTag]
      * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
@@ -36,32 +36,32 @@ class TagService(
         if (!tagName.isValidTag()) {
             throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
         }
-        val metadata = cosvMetadataRepository.findByCosvId(identifier).orNotFound {
+        val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier).orNotFound {
             "Could not find metadata for vulnerability $identifier"
         }
         val tag = tagRepository.findByName(tagName) ?: tagRepository.save(Tag(tagName))
 
-        return lnkCosvMetadataTagRepository.save(
+        return lnkVulnerabilityMetadataTagRepository.save(
             LnkVulnerabilityMetadataTag(metadata, tag)
         )
     }
 
     /**
-     * @param identifier [CosvMetadata.cosvId]
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
      * @param tagName tag to delete
      */
     @Transactional
     fun deleteVulnerabilityTag(identifier: String, tagName: String) {
-        val metadata = cosvMetadataRepository.findByCosvId(identifier).orNotFound {
+        val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier).orNotFound {
             "Could not find metadata for vulnerability $identifier"
         }
 
-        val link = lnkCosvMetadataTagRepository.findByCosvMetadataIdAndTagName(
+        val link = lnkVulnerabilityMetadataTagRepository.findByCosvMetadataIdAndTagName(
             metadata.requiredId(),
             tagName
         ).orNotFound { "Tag '$tagName' is not linked with vulnerability $identifier." }
 
-        lnkCosvMetadataTagRepository.delete(link)
+        lnkVulnerabilityMetadataTagRepository.delete(link)
     }
 
     /**
@@ -72,5 +72,5 @@ class TagService(
     fun getVulnerabilityTagsByPrefix(
         prefix: String,
         page: Pageable,
-    ) = lnkCosvMetadataTagRepository.findAllByTagNameStartingWith(prefix, page).map { it.tag }
+    ) = lnkVulnerabilityMetadataTagRepository.findAllByTagNameStartingWith(prefix, page).map { it.tag }
 }
