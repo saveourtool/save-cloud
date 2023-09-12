@@ -7,7 +7,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadata
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
@@ -57,7 +57,7 @@ class CosvRepositoryInStorage(
         user: User,
         organization: Organization?,
     ): Mono<VulnerabilityMetadataDto> = blockingToMono {
-        val metadata = vulnerabilityMetadataRepository.findByCosvId(entry.id)
+        val metadata = vulnerabilityMetadataRepository.findByIdentifier(entry.id)
             ?.let { existedMetadata ->
                 val newModified = entry.modified.toJavaLocalDateTime()
                 val errorPrefix: () -> String = {
@@ -94,15 +94,15 @@ class CosvRepositoryInStorage(
     override fun <D, A_E, A_D, A_R_D> findLatestById(
         cosvId: String,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>
-    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { vulnerabilityMetadataRepository.findByCosvId(cosvId) }
+    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { vulnerabilityMetadataRepository.findByIdentifier(cosvId) }
         .flatMap { doDownload(it, serializer) }
 
-    override fun findLatestRawExt(cosvId: String): Mono<RawCosvExt> = blockingToMono { vulnerabilityMetadataRepository.findByCosvId(cosvId) }
+    override fun findLatestRawExt(cosvId: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataRepository.findByIdentifier(cosvId) }
         .flatMap { it.toRawCosvExt() }
 
     private fun VulnerabilityMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
         .blockingMap { content ->
-            RawCosvExt(
+            VulnerabilityExt(
                 metadata = toDto(),
                 cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
@@ -120,8 +120,8 @@ class CosvRepositoryInStorage(
         .map { content -> json.decodeFromStream(serializer, content) }
 
     override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
-        cosvMetadataRepository.findByCosvId(cosvId)?.let {
-            cosvMetadataRepository.delete(it)
+        vulnerabilityMetadataRepository.findByIdentifier(cosvId)?.let {
+            vulnerabilityMetadataRepository.delete(it)
         }
     }.flatMapMany {
         cosvStorage.list(cosvId)
@@ -133,7 +133,7 @@ class CosvRepositoryInStorage(
             user: User,
             organization: Organization?,
         ) = VulnerabilityMetadata(
-            cosvId = id,
+            identifier = id,
             summary = summary ?: "Summary not provided",
             details = details ?: "Details not provided",
             severityNum = severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
@@ -155,7 +155,7 @@ class CosvRepositoryInStorage(
         }
 
         private fun VulnerabilityMetadataDto.toStorageKey() = CosvKey(
-            id = cosvId,
+            id = identifier,
             modified = modified,
         )
     }

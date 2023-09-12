@@ -49,8 +49,8 @@ import reactor.util.function.Tuples
     MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
-    MockBean(LnkCosvMetadataUserRepository::class),
-    MockBean(CosvMetadataProjectRepository::class),
+    MockBean(LnkVulnerabilityMetadataUserRepository::class),
+    MockBean(VulnerabilityMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
     MockBean(BlockingBridge::class),
 )

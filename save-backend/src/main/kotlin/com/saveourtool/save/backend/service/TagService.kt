@@ -4,7 +4,7 @@ import com.saveourtool.save.backend.repository.TagRepository
 import com.saveourtool.save.cosv.repository.CosvMetadataRepository
 import com.saveourtool.save.cosv.repository.LnkCosvMetadataTagRepository
 import com.saveourtool.save.entities.Tag
-import com.saveourtool.save.entities.cosv.LnkCosvMetadataTag
+import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
@@ -28,11 +28,11 @@ class TagService(
     /**
      * @param identifier [CosvMetadata.cosvId]
      * @param tagName tag to add
-     * @return new [LnkCosvMetadataTag]
+     * @return new [LnkVulnerabilityMetadataTag]
      * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
      */
     @Transactional
-    fun addVulnerabilityTag(identifier: String, tagName: String): LnkCosvMetadataTag {
+    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag {
         if (!tagName.isValidTag()) {
             throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
         }
@@ -42,7 +42,7 @@ class TagService(
         val tag = tagRepository.findByName(tagName) ?: tagRepository.save(Tag(tagName))
 
         return lnkCosvMetadataTagRepository.save(
-            LnkCosvMetadataTag(metadata, tag)
+            LnkVulnerabilityMetadataTag(metadata, tag)
         )
     }
 
