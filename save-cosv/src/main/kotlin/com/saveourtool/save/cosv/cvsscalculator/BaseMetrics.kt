@@ -16,12 +16,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class BaseMetrics(
     var version: Float,
-    var attackVector: String,
-    var attackComplexity: String,
-    var privilegeRequired: String,
-    var userInteraction: String,
-    var scopeMetric: String,
-    var confidentiality: String,
-    var integrity: String,
-    var availability: String,
+    var attackVector: AttackVectorType,
+    var attackComplexity: AttackComplexityType,
+    var privilegeRequired: PrivilegesRequiredType,
+    var userInteraction: UserInteractionType,
+    var scopeMetric: ScopeType,
+    var confidentiality: CiaType,
+    var integrity: CiaType,
+    var availability: CiaType,
 )

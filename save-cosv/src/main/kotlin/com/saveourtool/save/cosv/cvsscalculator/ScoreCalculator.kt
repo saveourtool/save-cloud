@@ -31,14 +31,14 @@ private class CvssMetrics {
 
 private fun String.parsingVector(): BaseMetrics = BaseMetrics(
     version = this.getValue(CVSS_VERSION).toFloat(),
-    attackVector = this.getValue(ATTACK_VECTOR),
-    attackComplexity = this.getValue(ATTACK_COMPLEXITY),
-    privilegeRequired = this.getValue(PRIVILEGES_REQUIRED),
-    userInteraction = this.getValue(USER_INTERACTION),
-    scopeMetric = this.getValue(SCOPE),
-    confidentiality = this.getValue(CONFIDENTIALITY),
-    integrity = this.getValue(INTEGRITY),
-    availability = this.getValue(AVAILABILITY),
+    attackVector = AttackVectorType.values().find { it.value == this.getValue(ATTACK_VECTOR) }!!,
+    attackComplexity = AttackComplexityType.values().find { it.value == this.getValue(ATTACK_COMPLEXITY) }!!,
+    privilegeRequired = PrivilegesRequiredType.values().find { it.value == this.getValue(PRIVILEGES_REQUIRED) }!!,
+    userInteraction = UserInteractionType.values().find { it.value == this.getValue(USER_INTERACTION) }!!,
+    scopeMetric = ScopeType.values().find { it.value == this.getValue(SCOPE) }!!,
+    confidentiality = CiaType.values().find { it.value == this.getValue(CONFIDENTIALITY) }!!,
+    integrity = CiaType.values().find { it.value == this.getValue(INTEGRITY) }!!,
+    availability = CiaType.values().find { it.value == this.getValue(AVAILABILITY) }!!,
 )
 
 private fun String.getValue(index: String) = substringAfter(index).substringBefore("/")
@@ -54,18 +54,19 @@ fun scoreCalculator(vector: String): Float {
 
 @Suppress("FLOAT_IN_ACCURATE_CALCULATIONS")
 private fun calculate(baseMetrics: BaseMetrics): Float {
-    val iss = 1f - (1f - cia[baseMetrics.confidentiality]!!) * (1f - cia[baseMetrics.integrity]!!) * (1f - cia[baseMetrics.availability]!!)
-    val impact: Float = if (baseMetrics.scopeMetric == "C") {
+    val iss = 1f - (1f - cia[baseMetrics.confidentiality.value]!!) * (1f - cia[baseMetrics.integrity.value]!!) * (1f - cia[baseMetrics.availability.value]!!)
+    val impact: Float = if (baseMetrics.scopeMetric == ScopeType.CHANGED) {
         7.52f * (iss - 0.029f) - 3.25f * (iss - 0.02f).pow(15f)
     } else {
         6.42f * iss
     }
-    val pr = scope[baseMetrics.scopeMetric]!!
-    val exploitability = 8.22f * av[baseMetrics.attackVector]!! * ac[baseMetrics.attackComplexity]!! * pr[baseMetrics.privilegeRequired]!! * ui[baseMetrics.userInteraction]!!
+    val pr = scope[baseMetrics.scopeMetric.value]!!
+    val exploitability = 8.22f * av[baseMetrics.attackVector.value]!! * ac[baseMetrics.attackComplexity.value]!! * pr[baseMetrics.privilegeRequired.value]!! *
+            ui[baseMetrics.userInteraction.value]!!
 
     val baseScore: Float = if (impact <= 0) {
         0f
-    } else if (baseMetrics.scopeMetric == "U") {
+    } else if (baseMetrics.scopeMetric == ScopeType.UNCHANGED) {
         min(impact + exploitability, 10f)
     } else {
         min((impact + exploitability) * 1.08f, 10f)
