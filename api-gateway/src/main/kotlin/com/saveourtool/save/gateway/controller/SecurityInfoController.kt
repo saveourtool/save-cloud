@@ -36,5 +36,7 @@ class SecurityInfoController(
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(authentication: Authentication?): Mono<String> = backendService.findNameByAuthentication(authentication)
+    fun currentUserName(authentication: Authentication?): Mono<String> = authentication
+        ?.let { principal -> backendService.findByPrincipal(principal).map { it.name } }
+        ?: Mono.empty()
 }

@@ -1,6 +1,7 @@
 package com.saveourtool.save.gateway.utils
 
 import com.saveourtool.save.gateway.service.BackendService
+import com.saveourtool.save.utils.SAVE_USER_DETAILS_ATTIBUTE
 
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
@@ -29,6 +30,8 @@ class StoringServerAuthenticationSuccessHandler(
         } else {
             throw BadCredentialsException("Not supported authentication type ${authentication::class}")
         }
-        return backendService.createNewIfRequired(source, nameInSource)
+        return backendService.createNewIfRequired(source, nameInSource).map { saveUser ->
+            webFilterExchange.exchange.attributes[SAVE_USER_DETAILS_ATTIBUTE] = saveUser
+        }.then()
     }
 }

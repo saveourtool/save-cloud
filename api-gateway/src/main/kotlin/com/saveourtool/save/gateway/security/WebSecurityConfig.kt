@@ -196,7 +196,7 @@ private fun userStatusBasedAuthorizationDecision(
     backendService: BackendService,
     authentication: Mono<Authentication>,
     authorizationContext: AuthorizationContext,
-) = authentication.flatMap { backendService.findByAuthentication(it) }
+) = authentication.flatMap { backendService.findByPrincipal(it) }
     .filter { it.isEnabled }
     .flatMap { authorizationManagerAuthorizationDecision(authentication, authorizationContext) }
     .defaultIfEmpty(AuthorizationDecision(false))
