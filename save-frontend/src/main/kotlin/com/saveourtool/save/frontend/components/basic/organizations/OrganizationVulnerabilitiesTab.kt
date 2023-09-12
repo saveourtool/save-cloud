@@ -67,7 +67,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
-    val (t) = useTranslation()
+    val (t) = useTranslation("organization")
     val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
     useRequest {
         val fetchedVulnerabilities: Array<VulnerabilityDto> = get(
