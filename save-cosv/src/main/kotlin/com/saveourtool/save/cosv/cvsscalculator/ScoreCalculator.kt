@@ -66,10 +66,12 @@ private fun calculate(baseMetrics: BaseMetrics): Float {
 
     val baseScore: Float = if (impact <= 0) {
         0f
-    } else if (baseMetrics.scopeMetric == ScopeType.UNCHANGED) {
-        min(impact + exploitability, 10f)
     } else {
-        min((impact + exploitability) * 1.08f, 10f)
+        if (baseMetrics.scopeMetric == ScopeType.UNCHANGED) {
+            min(impact + exploitability, 10f)
+        } else {
+            min((impact + exploitability) * 1.08f, 10f)
+        }
     }
 
     return roundup(baseScore)
