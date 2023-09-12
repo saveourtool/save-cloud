@@ -279,9 +279,8 @@ class UserDetailsService(
     }
 
     companion object {
+        private val log: Logger = getLogger<UserDetailsService>()
         private const val UNIQUE_NAME_SEPARATOR = "_"
         private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
-
-        private val log: Logger = getLogger<UserDetailsService>()
     }
 }

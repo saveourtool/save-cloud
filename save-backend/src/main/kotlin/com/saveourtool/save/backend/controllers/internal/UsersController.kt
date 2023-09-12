@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.controllers.internal
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.blockingToMono
 
 import org.springframework.http.ResponseEntity
