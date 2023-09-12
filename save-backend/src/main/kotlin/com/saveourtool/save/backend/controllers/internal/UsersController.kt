@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers.internal
 
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.utils.blockingToMono
 
 import org.springframework.http.ResponseEntity
@@ -24,7 +23,7 @@ class UsersController(
     private val userService: UserDetailsService,
 ) {
     /**
-     * Stores user in the DB with provided [name] with [roleForNewUser] as role.
+     * Stores user in the DB with provided [name] with default role.
      * And add a link to [source] for created user
      *
      * @param source user source
@@ -68,8 +67,4 @@ class UsersController(
         .map {
             ResponseEntity.ok().body(SaveUserDetails(it))
         }
-
-    companion object {
-        private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
-    }
 }

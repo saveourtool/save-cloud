@@ -30,8 +30,10 @@ class StoringServerAuthenticationSuccessHandler(
         } else {
             throw BadCredentialsException("Not supported authentication type ${authentication::class}")
         }
-        return backendService.createNewIfRequired(source, nameInSource).map { saveUser ->
-            webFilterExchange.exchange.attributes[SAVE_USER_DETAILS_ATTIBUTE] = saveUser
+        return backendService.createNewIfRequired(source, nameInSource).flatMap { saveUser ->
+            webFilterExchange.exchange.session.map {
+                it.attributes[SAVE_USER_DETAILS_ATTIBUTE] = saveUser
+            }
         }.then()
     }
 }

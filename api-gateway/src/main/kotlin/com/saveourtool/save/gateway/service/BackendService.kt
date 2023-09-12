@@ -3,6 +3,7 @@ package com.saveourtool.save.gateway.service
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.utils.SAVE_USER_DETAILS_ATTIBUTE
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.http.HttpStatus
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.security.Principal
@@ -56,10 +58,15 @@ class BackendService(
      * Find current user [SaveUserDetails] by [principal].
      *
      * @param principal current user [Principal]
+     * @param session current [WebSession]
      * @return current user [SaveUserDetails]
      */
-    fun findByPrincipal(principal: Principal): Mono<SaveUserDetails> = when (principal) {
-        is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
+    fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
+        is OAuth2AuthenticationToken -> session.getAttribute<SaveUserDetails>(SAVE_USER_DETAILS_ATTIBUTE)
+            .toMono()
+            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                "Not found attribute $SAVE_USER_DETAILS_ATTIBUTE for ${OAuth2AuthenticationToken::class}"
+            }
         is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {

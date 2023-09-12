@@ -5,6 +5,7 @@ import com.saveourtool.save.info.OauthProviderInfo
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
 
 /**
@@ -33,10 +34,14 @@ class SecurityInfoController(
      * Endpoint that provides the information about the current logged-in user (powered by spring security and OAUTH)
      *
      * @param authentication
+     * @param session
      * @return user information
      */
     @GetMapping("/user")
-    fun currentUserName(authentication: Authentication?): Mono<String> = authentication
-        ?.let { principal -> backendService.findByPrincipal(principal).map { it.name } }
+    fun currentUserName(
+        authentication: Authentication?,
+        session: WebSession,
+    ): Mono<String> = authentication
+        ?.let { principal -> backendService.findByPrincipal(principal, session).map { it.name } }
         ?: Mono.empty()
 }
