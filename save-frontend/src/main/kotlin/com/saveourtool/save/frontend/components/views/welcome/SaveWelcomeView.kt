@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.components.views.welcome.pagers.save.render
 import com.saveourtool.save.frontend.components.views.welcome.pagers.save.renderReadMorePage
 import com.saveourtool.save.frontend.externals.animations.*
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.OauthProviderInfo
@@ -33,6 +34,7 @@ import web.cssom.*
 import kotlinx.browser.window
 
 val saveWelcomeView: FC<WelcomeProps> = FC { props ->
+    val (t) = useTranslation("welcome")
     useBackground(Style.SAVE_DARK)
     val (oauthProviders, setOauthProviders) = useState<List<OauthProviderInfo>>(emptyList())
 
@@ -91,7 +93,7 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
                                     menuTextAndLink("New project in organization", FrontendRoutes.CREATE_PROJECT, faPlus)
                                 }
                             }
-                        } ?: inputCredentialsView(oauthProviders, Colors.SAVE_PRIMARY, "/${FrontendRoutes.PROJECTS}")
+                        } ?: inputCredentialsView(oauthProviders, Colors.SAVE_PRIMARY, "/${FrontendRoutes.PROJECTS}", t)
                     }
                 }
             }
