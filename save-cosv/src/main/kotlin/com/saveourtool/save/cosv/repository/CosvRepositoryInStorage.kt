@@ -16,8 +16,10 @@ import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -102,7 +104,7 @@ class CosvRepositoryInStorage(
         .blockingMap { content ->
             RawCosvExt(
                 metadata = toDto(),
-                rawContent = content,
+                cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
                 tags = lnkVulnerabilityMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet(),
                 timeline = content.getTimeline(),
@@ -117,6 +119,15 @@ class CosvRepositoryInStorage(
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
+    override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
+        cosvMetadataRepository.findByCosvId(cosvId)?.let {
+            cosvMetadataRepository.delete(it)
+        }
+    }.flatMapMany {
+        cosvStorage.list(cosvId)
+            .flatMap { key -> cosvStorage.delete(key).map { key.modified } }
+    }
+
     companion object {
         private fun CosvSchema<*, *, *, *>.toMetadata(
             user: User,
@@ -125,26 +136,22 @@ class CosvRepositoryInStorage(
             cosvId = id,
             summary = summary ?: "Summary not provided",
             details = details ?: "Details not provided",
-            severity = severity?.firstOrNull()?.score,
             severityNum = severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
             modified = modified.toJavaLocalDateTime(),
-            published = (published ?: modified).toJavaLocalDateTime(),
+            submitted = getCurrentLocalDateTime().toJavaLocalDateTime(),
             user = user,
             organization = organization,
             language = getLanguage() ?: VulnerabilityLanguage.OTHER,
-            status = VulnerabilityStatus.CREATED,
+            status = VulnerabilityStatus.PENDING_REVIEW,
         )
 
         private fun VulnerabilityMetadata.updateBy(entry: CosvSchema<*, *, *, *>): VulnerabilityMetadata = apply {
             summary = entry.summary ?: "Summary not provided"
             details = entry.details ?: "Details not provided"
-            severity = entry.severity?.firstOrNull()?.score
             severityNum = entry.severity?.firstOrNull()
                 ?.scoreNum
                 ?.toInt() ?: 0
             modified = entry.modified.toJavaLocalDateTime()
-            published = (entry.published ?: entry.modified).toJavaLocalDateTime()
-            language = entry.getLanguage() ?: VulnerabilityLanguage.OTHER
         }
 
         private fun VulnerabilityMetadataDto.toStorageKey() = CosvKey(

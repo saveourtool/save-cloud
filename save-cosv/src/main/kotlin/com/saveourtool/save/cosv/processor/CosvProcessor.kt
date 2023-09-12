@@ -1,22 +1,22 @@
 package com.saveourtool.save.cosv.processor
 
 import com.saveourtool.save.cosv.repository.CosvRepository
-import com.saveourtool.save.cosv.repository.CosvSchemaKSerializer
+import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.utils.getLanguage
-import com.saveourtool.save.utils.getSaveContributes
-import com.saveourtool.save.utils.getTimeline
+import com.saveourtool.save.entities.cosv.CosvMetadataDto
 
 import com.saveourtool.osv4k.RawOsvSchema
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
+import java.io.InputStream
+
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.serializer
 
 /**
@@ -26,42 +26,30 @@ import kotlinx.serialization.serializer
 class CosvProcessor(
     private val cosvRepository: CosvRepository,
 ) {
-    private val rawSerializer: CosvSchemaKSerializer<JsonObject, JsonObject, JsonObject, JsonObject> = serializer()
+    private val rawSerializer: KSerializer<RawOsvSchema> = serializer()
 
     /**
-     * @param jsonObject should contain a single object only
+     * @param inputStream content of raw COSV file
+     * @return list of [RawOsvSchema]
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    fun decode(
+        inputStream: InputStream,
+    ): List<RawOsvSchema> = Json.decodeFromStream<JsonElement>(inputStream)
+        .toJsonArrayOrSingle()
+        .map { jsonElement ->
+            Json.decodeFromJsonElement(rawSerializer, jsonElement)
+        }
+
+    /**
+     * @param cosv
      * @param user who uploads
      * @param organization to which is uploaded
-     * @return [VulnerabilityDto]
+     * @return [CosvMetadataDto]
      */
-    fun process(
-        jsonObject: JsonObject,
+    fun save(
+        cosv: RawOsvSchema,
         user: User,
         organization: Organization,
-    ): Mono<VulnerabilityDto> {
-        val cosv = Json.decodeFromJsonElement(rawSerializer, jsonObject)
-        return cosvRepository.save(cosv, rawSerializer, user, organization).map {
-            createFromCoreFields(cosv, user, organization)
-        }
-    }
-
-    private fun createFromCoreFields(
-        osv: RawOsvSchema,
-        user: User,
-        organization: Organization,
-    ): VulnerabilityDto = VulnerabilityDto(
-        identifier = osv.id,
-        progress = osv.severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
-        projects = emptyList(),  // TODO: need to refactor VulnerabilityProjectDto, COSV is basic
-        description = osv.details,
-        shortDescription = osv.summary.orEmpty(),
-        relatedLink = null,
-        language = osv.getLanguage() ?: VulnerabilityLanguage.OTHER,
-        userInfo = user.toUserInfo(),
-        organization = organization.toDto(),
-        dates = osv.getTimeline(),
-        participants = osv.getSaveContributes(),
-        status = VulnerabilityStatus.CREATED,
-        tags = setOf("cosv-schema")
-    )
+    ): Mono<CosvMetadataDto> = cosvRepository.save(cosv, rawSerializer, user, organization)
 }

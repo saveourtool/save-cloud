@@ -5,12 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="vulnerability-project-insert" author="frolov" context="dev">
-        <loadData tableName="vulnerability_project" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/vulnerability-project.csv">
+    <changeSet id="cosv-metadata-project-insert" author="nulls" context="dev">
+        <loadData tableName="cosv_metadata_project" encoding="UTF-8" separator=";" quotchar="&quot;" file="db/test-data/sqlRequests/cosv-metadata-project.csv">
             <column header="id" name="id" type="bigint"/>
             <column header="name" name="name" type="varchar(250)"/>
             <column header="url" name="url" type="varchar(250)"/>
-            <column header="vulnerability_id" name="vulnerability_id" type="bigint"/>
+            <column header="cosv_metadata_id" name="cosv_metadata_id" type="bigint"/>
             <column header="versions" name="versions" type="varchar(250)"/>
             <column header="type" name="type" type="varchar(64)"/>
         </loadData>

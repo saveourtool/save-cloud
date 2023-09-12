@@ -4,25 +4,21 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
-import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
+import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
-import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
-import org.springframework.security.core.Authentication
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.publisher.toFlux
 
-import java.io.InputStream
-
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
@@ -32,111 +28,50 @@ private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
  */
 @Service
 class CosvService(
+    private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,
 ) {
-    private val json = Json {
-        prettyPrint = false
-    }
-
     /**
-     * Decodes [inputStreams] and saves the result
-     *
-     * @param inputStreams
-     * @param authentication who uploads [inputStream]
-     * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
+     * @param rawCosvFileIds
+     * @return empty [Mono]
      */
-    @OptIn(ExperimentalSerializationApi::class)
-    fun decodeAndSave(
-        inputStreams: Flux<InputStream>,
-        authentication: Authentication,
-        organizationName: String,
-    ): Flux<String> {
-        val user = backendService.getUserByName(authentication.name)
-        val organization = backendService.getOrganizationByName(organizationName)
-        return inputStreams.flatMap { inputStream ->
-            decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
-        }.save(user)
-    }
+    fun process(
+        rawCosvFileIds: Collection<Long>,
+    ): Mono<Unit> = rawCosvFileIds.toFlux()
+        .flatMap { rawCosvFileId ->
+            rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
+                .flatMap { (organization, user) ->
+                    doProcess(rawCosvFileId, user, organization)
+                }
+        }
+        .collectList()
+        .map {
+            log.debug {
+                "Finished processing raw COSV files $rawCosvFileIds"
+            }
+        }
 
-    /**
-     * Decodes [content] and saves the result
-     *
-     * @param content
-     * @param authentication who uploads [content]
-     * @param organizationName to which is uploaded
-     * @return save's vulnerability identifiers
-     */
-    fun decodeAndSave(
-        content: String,
-        authentication: Authentication,
-        organizationName: String,
-    ): Flux<String> {
-        val user = backendService.getUserByName(authentication.name)
-        val organization = backendService.getOrganizationByName(organizationName)
-        return decode(json.parseToJsonElement(content), user, organization).save(user)
-    }
-
-    /**
-     * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
-     *
-     * @param jsonElement
-     * @param user who uploads content
-     * @param organization to which is uploaded
-     * @return save's vulnerability
-     */
-    private fun decode(
-        jsonElement: JsonElement,
+    private fun doProcess(
+        rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Flux<VulnerabilityDto> = jsonElement.toMono()
-        .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { cosvProcessor.process(it.jsonObject, user, organization) }
-
-    /**
-     * Creates entities in save database
-     *
-     * @receiver save's vulnerability
-     * @param user [user] that uploads who uploads
-     * @return save's vulnerability identifiers
-     */
-    private fun Flux<VulnerabilityDto>.save(
-        user: User,
-    ): Flux<String> = collectList()
-        .blockingMap { vulnerabilities ->
-            vulnerabilities.map { backendService.saveVulnerability(it, user).identifier }
+    ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
+        .collectToInputStream()
+        .flatMap { inputStream ->
+            val cosvListOpt = try {
+                cosvProcessor.decode(inputStream)
+            } catch (e: SerializationException) {
+                val errorMessage: () -> String = { "Failed to process raw COSV file with id: $rawCosvFileId" }
+                log.error(e, errorMessage)
+                return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
+            }
+            cosvListOpt.toFlux()
+                .flatMap { cosvProcessor.save(it, user, organization) }
+                .collectList()
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(CosvMetadataDto::cosvId)}") }
         }
-        .flatMapIterable { it }
-
-    /**
-     * Finds OSV with validating save database
-     *
-     * @param id [VulnerabilityDto.identifier]
-     * @return found OSV
-     */
-    fun findById(
-        id: String,
-    ): Mono<RawOsvSchema> = blockingToMono {
-        backendService.findVulnerabilityByName(id)
-    }
-        .switchIfEmptyToNotFound {
-            "Not found vulnerability $id in save database"
-        }
-        .flatMap { vulnerability ->
-            cosvRepository.findLatestById(vulnerability.identifier, serializer<RawOsvSchema>())
-        }
-
-    /**
-     * Finds extended OSV
-     *
-     * @param cosvId [RawOsvSchema.id]
-     * @return found extended OSV
-     */
-    fun findExtByCosvId(
-        cosvId: String,
-    ): Mono<RawCosvExt> = cosvRepository.findLatestRawExt(cosvId)
 
     /**
      * Generates COSV from [VulnerabilityDto] and saves it
@@ -153,12 +88,12 @@ class CosvService(
     }.flatMap { (user, organization) ->
         val osv = ManualCosvSchema(
             id = vulnerabilityDto.identifier,
-            published = vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime(),
-            modified = vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime(),
+            published = (vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
+            modified = (vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
             severity = listOf(
                 Severity(
                     type = SeverityType.CVSS_V3,
-                    score = "N/A",
+                    score = vulnerabilityDto.severity,
                     scoreNum = vulnerabilityDto.progress.toString(),
                 )
             ),
@@ -172,7 +107,7 @@ class CosvService(
                     )
                 )
             },
-            credits = vulnerabilityDto.participants.asCredits().takeUnless { it.isEmpty() },
+            credits = vulnerabilityDto.getAllParticipants().asCredits().takeUnless { it.isEmpty() },
         )
         cosvRepository.save(
             entry = osv,
@@ -180,5 +115,39 @@ class CosvService(
             user = user,
             organization = organization,
         )
+    }
+
+    /**
+     * @param cosvId
+     * @param updater
+     * @return [Mono] with new metadata
+     */
+    fun update(
+        cosvId: String,
+        updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
+    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+        .blockingMap { rawCosvExt ->
+            rawCosvExt to Pair(
+                backendService.getUserByName(rawCosvExt.metadata.user.name),
+                rawCosvExt.metadata.organization?.let { organization ->
+                    backendService.getOrganizationByName(organization.name)
+                }
+            )
+        }
+        .flatMap { (rawCosvExt, infoFromDatabase) ->
+            val (owner, organization) = infoFromDatabase
+            updater(rawCosvExt.cosv)
+                .flatMap { newCosv ->
+                    cosvRepository.save(
+                        entry = newCosv.copy(modified = getCurrentLocalDateTime().truncatedToMills()),
+                        serializer = serializer(),
+                        user = owner,
+                        organization = organization,
+                    )
+                }
+        }
+
+    companion object {
+        private val log: Logger = getLogger<CosvService>()
     }
 }

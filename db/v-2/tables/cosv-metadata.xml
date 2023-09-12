@@ -55,4 +55,15 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="cosv-metadata-4" author="nulls">
+        <renameColumn tableName="cosv_metadata" oldColumnName="published" newColumnName="submitted" columnDataType="DATETIME(3)"/>
+    </changeSet>
+
+    <changeSet id="cosv-metadata-5" author="frolov">
+        <dropColumn tableName="cosv_metadata">
+            <column name="severity"/>
+        </dropColumn>
+    </changeSet>
+
 </databaseChangeLog>

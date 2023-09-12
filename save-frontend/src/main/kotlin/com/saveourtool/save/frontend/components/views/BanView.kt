@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.useBackground
+import com.saveourtool.save.frontend.utils.useRedirectToIndexIf
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
@@ -17,7 +18,6 @@ import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
-import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.rem
 
@@ -32,9 +32,9 @@ private const val SUPPORT = """
 val banView: FC<BanProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
 
-    val navigate = useNavigate()
-    if (props.userInfo?.status != UserStatus.BANNED) {
-        navigate("/", jso { replace = true })
+    useRedirectToIndexIf(props.userInfo?.status) {
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.BANNED
     }
 
     div {

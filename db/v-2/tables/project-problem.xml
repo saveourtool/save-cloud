@@ -47,4 +47,14 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-problem-3" author="nulls">
+        <dropForeignKeyConstraint baseTableName="project_problem" constraintName="fk_project_problem_vulnerability"/>
+        <dropColumn tableName="project_problem" columnName="vulnerability_id"/>
+        <addColumn tableName="project_problem">
+            <column name="cosv_metadata_id" type="bigint">
+                <constraints foreignKeyName="fk_project_problem_cosv_metadata" references="cosv_metadata(id)" nullable="true" deleteCascade="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

@@ -1,6 +1,8 @@
 package com.saveourtool.save.spring.entity
 
+import com.saveourtool.save.listeners.DateListener
 import com.saveourtool.save.validation.Validatable
+import javax.persistence.EntityListeners
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
@@ -9,6 +11,7 @@ import javax.persistence.MappedSuperclass
  * base class for all entities
  */
 @MappedSuperclass
+@EntityListeners(DateListener::class)
 @Suppress("CLASS_SHOULD_NOT_BE_ABSTRACT", "UnnecessaryAbstractClass")
 abstract class BaseEntity : Validatable {
     /**

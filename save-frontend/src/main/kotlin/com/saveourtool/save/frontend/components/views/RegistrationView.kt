@@ -9,10 +9,10 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.frontend.components.basic.avatarForm
 import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
 import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
 import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
-import com.saveourtool.save.frontend.http.postImageUpload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
@@ -23,6 +23,7 @@ import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName
+import com.saveourtool.save.validation.isValidUrl
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -35,8 +36,8 @@ import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
+import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
-import react.router.useNavigate
 import web.cssom.*
 import web.file.File
 import web.html.InputType
@@ -55,6 +56,12 @@ import kotlinx.serialization.json.Json
 val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
+
+    useRedirectToIndexIf(props.userInfo?.status) {
+        // life hack ot be sure that props are loaded
+        props.key != null && props.userInfo?.status != UserStatus.CREATED
+    }
+
     val avatarWindowOpen = useWindowOpenness()
     val (selectedAvatar, setSelectedAvatar) = useState(props.userInfo?.avatar)
     val (avatar, setAvatar) = useState<File?>(null)
@@ -67,8 +74,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
         userInfo.copy(name = processedName)
     }
-
-    val navigate = useNavigate()
 
     val saveUser = useDeferredRequest {
         val newUserInfo = userInfo.copy(
@@ -102,22 +107,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
         }
     }
 
-    val (newAvatar, setNewAvatar) = useState<File?>(null)
-    useRequest(dependencies = arrayOf(newAvatar)) {
-        newAvatar?.let { avatar ->
-            postImageUpload(
-                avatar,
-                props.userInfo?.name!!,
-                AvatarType.USER,
-                loadingHandler = ::loadingHandler,
-            )
-        }
-    }
-
-    if (props.userInfo?.status != UserStatus.CREATED) {
-        navigate("/", jso { replace = true })
-    }
-
     val saveAvatar = useDeferredRequest {
         avatar?.let {
             val response = post(
@@ -148,6 +137,8 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
     }
+
+    val isWebsiteValid = userInfo.website?.isValidUrl() ?: true
 
     avatarForm {
         isOpen = avatarWindowOpen.isOpen()
@@ -235,6 +226,51 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                 }
 
                                 div {
+                                    className = ClassName("pt-3 font-weight-bold")
+                                    +"Please enter some information about yourself so that it would be easier for us to approve."
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    inputTextFormOptional {
+                                        form = InputTypes.GITHUB
+                                        textValue = userInfo.gitHub
+                                        classes = ""
+                                        validInput = null
+                                        onChangeFun = { event ->
+                                            setUserInfo { previousUserInfo ->
+                                                previousUserInfo.copy(gitHub = event.target.value.takeIf { it.isNotBlank() })
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    inputTextFormOptional {
+                                        form = InputTypes.WEBSITE
+                                        textValue = userInfo.website
+                                        classes = ""
+                                        validInput = userInfo.website?.isValidUrl()
+                                        onChangeFun = { event ->
+                                            setUserInfo { previousUserInfo ->
+                                                previousUserInfo.copy(website = event.target.value.takeIf { it.isNotBlank() })
+                                            }
+                                        }
+                                    }
+                                }
+
+                                div {
+                                    className = ClassName("pt-3")
+                                    textarea {
+                                        className = ClassName("form-control")
+                                        value = userInfo.freeText
+                                        placeholder = "Additional info"
+                                        onChange = { event -> setUserInfo { previousUserInfo -> previousUserInfo.copy(freeText = event.target.value) } }
+                                    }
+                                }
+
+                                div {
                                     className = ClassName("mt-2 form-check row")
                                     input {
                                         className = ClassName("form-check-input")
@@ -258,7 +294,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                                     "Sign up",
                                     "info",
                                     classes = "mt-4 mr-4",
-                                    isDisabled = !isTermsOfUseOk,
+                                    isDisabled = !isTermsOfUseOk || !isWebsiteValid,
                                 ) { saveUser() }
 
                                 buttonBuilder(

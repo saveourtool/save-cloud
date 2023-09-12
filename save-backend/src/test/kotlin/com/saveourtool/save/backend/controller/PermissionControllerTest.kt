@@ -11,10 +11,12 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
+import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
@@ -47,6 +49,10 @@ import reactor.util.function.Tuples
     MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
+    MockBean(LnkCosvMetadataUserRepository::class),
+    MockBean(CosvMetadataProjectRepository::class),
+    MockBean(RawCosvFileRepository::class),
+    MockBean(BlockingBridge::class),
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {

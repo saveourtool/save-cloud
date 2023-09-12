@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.permission.Permission
 
 import org.junit.jupiter.api.Assertions
@@ -154,10 +155,16 @@ class ProjectPermissionEvaluatorTest {
         }
     }
 
-    private fun mockAuth(principal: String, vararg roles: String, id: Long = 99) = SaveUserDetails(
+    private fun mockAuth(
+        principal: String,
+        vararg roles: String,
+        id: Long = 99,
+        status: UserStatus = UserStatus.ACTIVE,
+    ) = SaveUserDetails(
         id = id,
         name = principal,
         role = roles.joinToString(","),
+        status = status.toString(),
         token = null,
     ).toPreAuthenticatedAuthenticationToken()
 

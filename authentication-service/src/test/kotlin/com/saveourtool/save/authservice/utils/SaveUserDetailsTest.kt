@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.utils.SaveUserDetails.Companion.toSaveUs
 import com.saveourtool.save.utils.AUTHORIZATION_ID
 import com.saveourtool.save.utils.AUTHORIZATION_NAME
 import com.saveourtool.save.utils.AUTHORIZATION_ROLES
+import com.saveourtool.save.utils.AUTHORIZATION_STATUS
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -16,12 +17,14 @@ class SaveUserDetailsTest {
         httpHeaders[AUTHORIZATION_ID] = "123"
         httpHeaders[AUTHORIZATION_NAME] = "name"
         httpHeaders[AUTHORIZATION_ROLES] = "ROLE"
+        httpHeaders[AUTHORIZATION_STATUS] = "ACTIVE"
         val result = httpHeaders.toSaveUserDetails()
 
         Assertions.assertNotNull(result)
         Assertions.assertEquals(123, result?.id)
         Assertions.assertEquals("name", result?.name)
         Assertions.assertEquals("ROLE", result?.role)
+        Assertions.assertEquals("ACTIVE", result?.status)
     }
 
     @Test
@@ -30,6 +33,7 @@ class SaveUserDetailsTest {
         httpHeaders[AUTHORIZATION_ID] = listOf("123", "321")
         httpHeaders[AUTHORIZATION_NAME] = "name"
         httpHeaders[AUTHORIZATION_ROLES] = "ROLE"
+        httpHeaders[AUTHORIZATION_STATUS] = "ACTIVE"
 
         Assertions.assertNull(httpHeaders.toSaveUserDetails())
     }
@@ -39,6 +43,7 @@ class SaveUserDetailsTest {
         val httpHeaders = HttpHeaders()
         httpHeaders[AUTHORIZATION_NAME] = "name"
         httpHeaders[AUTHORIZATION_ROLES] = "ROLE"
+        httpHeaders[AUTHORIZATION_STATUS] = "ACTIVE"
 
         Assertions.assertNull(httpHeaders.toSaveUserDetails())
     }
@@ -49,6 +54,7 @@ class SaveUserDetailsTest {
         httpHeaders[AUTHORIZATION_ID] = "not_integer"
         httpHeaders[AUTHORIZATION_NAME] = "name"
         httpHeaders[AUTHORIZATION_ROLES] = "ROLE"
+        httpHeaders[AUTHORIZATION_STATUS] = "ACTIVE"
 
         assertThrows<NumberFormatException> {
             httpHeaders.toSaveUserDetails()
@@ -61,6 +67,7 @@ class SaveUserDetailsTest {
             id = 123,
             name = "name",
             role = "ROLE",
+            status = "ACTIVE",
             token = "N/A",
         )
         val httpHeaders = HttpHeaders()
@@ -69,8 +76,9 @@ class SaveUserDetailsTest {
         Assertions.assertEquals(listOf("123"), httpHeaders[AUTHORIZATION_ID])
         Assertions.assertEquals(listOf("name"), httpHeaders[AUTHORIZATION_NAME])
         Assertions.assertEquals(listOf("ROLE"), httpHeaders[AUTHORIZATION_ROLES])
+        Assertions.assertEquals(listOf("ACTIVE"), httpHeaders[AUTHORIZATION_STATUS])
         Assertions.assertEquals(
-            setOf(AUTHORIZATION_ID, AUTHORIZATION_NAME, AUTHORIZATION_ROLES),
+            setOf(AUTHORIZATION_ID, AUTHORIZATION_NAME, AUTHORIZATION_ROLES, AUTHORIZATION_STATUS),
             httpHeaders.keys,
         )
     }

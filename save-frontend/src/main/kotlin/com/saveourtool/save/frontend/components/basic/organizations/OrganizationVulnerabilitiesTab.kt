@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.validation.FrontendRoutes
@@ -66,6 +67,7 @@ private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponen
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
+    val (t) = useTranslation()
     val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
     useRequest {
         val fetchedVulnerabilities: Array<VulnerabilityDto> = get(
@@ -100,12 +102,12 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
             }
         } else {
             renderTablePlaceholder("text-center p-4 bg-white", "dashed") {
-                +"No vulnerabilities were found for this organization."
+                +"No vulnerabilities were found for this organization.".t()
                 if (props.isMember) {
                     br { }
                     Link {
                         to = "/vuln/create-vulnerability"
-                        +"You can be the first one to create vulnerability."
+                        +"You can be the first one to create vulnerability.".t()
                     }
                 }
             }

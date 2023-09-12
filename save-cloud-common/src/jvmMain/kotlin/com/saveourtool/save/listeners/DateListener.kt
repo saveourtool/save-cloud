@@ -1,23 +1,27 @@
 package com.saveourtool.save.listeners
 
-import com.saveourtool.save.spring.entity.BaseEntityWithDate
+import com.saveourtool.save.spring.entity.BaseEntity
+import com.saveourtool.save.spring.entity.IBaseEntityWithDate
 import java.time.LocalDateTime
 import javax.persistence.PrePersist
 import javax.persistence.PreUpdate
 
-@Suppress("MISSING_KDOC_TOP_LEVEL")
+/**
+ * JPA listener which sets [IBaseEntityWithDate.createDate] and [IBaseEntityWithDate.updateDate]
+ */
 class DateListener {
     @PrePersist
-    private fun beforeSave(entity: BaseEntityWithDate) {
-        val date = LocalDateTime.now()
-        with(entity) {
+    private fun beforeSave(entity: BaseEntity) {
+        (entity as? IBaseEntityWithDate)?.apply {
+            val date = LocalDateTime.now()
             createDate = date
             updateDate = date
         }
     }
+
     @PreUpdate
-    private fun beforeUpdate(entity: BaseEntityWithDate) {
-        with(entity) {
+    private fun beforeUpdate(entity: BaseEntity) {
+        (entity as? IBaseEntityWithDate)?.apply {
             updateDate = LocalDateTime.now()
         }
     }

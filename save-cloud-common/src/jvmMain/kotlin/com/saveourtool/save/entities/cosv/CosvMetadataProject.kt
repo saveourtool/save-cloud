@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities.vulnerabilities
+package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityProjectType
@@ -15,10 +15,10 @@ import javax.persistence.*
  * @property url url of project
  * @property versions versions of project
  * @property type type of link
- * @property vulnerability id of vulnerability
+ * @property cosvMetadata
  **/
 @Entity
-class VulnerabilityProject(
+class CosvMetadataProject(
 
     var name: String,
 
@@ -27,22 +27,22 @@ class VulnerabilityProject(
     var versions: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "vulnerability_id")
+    @JoinColumn(name = "cosv_metadata_id")
     @JsonBackReference
-    var vulnerability: Vulnerability,
+    var cosvMetadata: CosvMetadata,
 
     @Enumerated(EnumType.STRING)
     var type: VulnerabilityProjectType,
 
 ) : BaseEntityWithDto<VulnerabilityProjectDto>() {
     /**
-     * @return a vulnerabilityProject dto
+     * @return a dto
      */
     override fun toDto() = VulnerabilityProjectDto(
         name = name,
         url = url,
         versions = versions.orEmpty(),
         type = type,
-        vulnerabilityIdentifier = vulnerability.identifier,
+        vulnerabilityIdentifier = cosvMetadata.cosvId,
     )
 }

@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
@@ -75,24 +74,6 @@ val App: VFC = FC {
         basename = "/"
         requestModalHandler {
             this.userInfo = userInfo
-
-            if (userInfo?.status == UserStatus.CREATED && kotlinx.browser.window.location.pathname != "/${FrontendRoutes.TERMS_OF_USE}") {
-                Navigate {
-                    to = "/${FrontendRoutes.REGISTRATION}"
-                    replace = false
-                }
-            } else if (userInfo?.status == UserStatus.BANNED) {
-                Navigate {
-                    to = "/${FrontendRoutes.BAN}"
-                    replace = false
-                }
-            } else if (userInfo?.status == UserStatus.NOT_APPROVED) {
-                Navigate {
-                    to = "/${FrontendRoutes.THANKS_FOR_REGISTRATION}"
-                    replace = false
-                }
-            }
-
             div {
                 className = ClassName("d-flex flex-column")
                 id = "content-wrapper"

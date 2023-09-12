@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType.Companion.isSystemDateType
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
 import react.dom.html.ReactHTML.div
@@ -28,45 +31,50 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 label = "Add date",
                 style = "secondary",
                 isOutline = true,
-                classes = "btn btn-primary"
+                classes = "btn btn-sm btn-primary"
             ) {
                 onClickCallback()
             }
         }
 
-        if (props.dates.isNotEmpty()) {
+        div {
+            className = ClassName("p-0 timeline-container")
             div {
-                className = ClassName("p-0 timeline-container")
+                className = ClassName("steps-container")
                 div {
-                    className = ClassName("steps-container")
-                    div {
-                        className = ClassName("line")
-                    }
-                    props.dates.toList()
-                        .sortedBy { it.second }
-                        .forEach { (label, dateTime) ->
-                            div {
-                                className = ClassName("step $hoverable")
+                    className = ClassName("line")
+                }
+                props.dates
+                    .plus(
+                        VulnerabilityDateType.SUBMITTED.value to
+                                (props.vulnerability.creationDateTime ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0))
+                    )
+                    .toList()
+                    .sortedBy { it.second }
+                    .forEach { (label, dateTime) ->
+                        div {
+                            className =
+                                    ClassName(if (!label.isSystemDateType()) "step $hoverable" else "step-non-editable")
+                            if (!label.isSystemDateType()) {
                                 props.onNodeClick?.let { onClickCallback ->
                                     onClick = { onClickCallback(dateTime, label) }
                                 }
-
-                                div {
-                                    className = ClassName("text-label")
-                                    +label
-                                }
-                                div {
-                                    className = ClassName("date-label")
-                                    +dateTime.date.toString()
-                                }
                             }
                             div {
-                                className = ClassName("line")
+                                className = ClassName("text-label")
+                                +label
+                            }
+                            div {
+                                className = ClassName("date-label")
+                                +dateTime.date.toString()
                             }
                         }
-                    div {
-                        className = ClassName("line-end")
+                        div {
+                            className = ClassName("line")
+                        }
                     }
+                div {
+                    className = ClassName("line-end")
                 }
             }
         }
@@ -97,4 +105,9 @@ external interface TimelineComponentProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var onNodeClick: ((LocalDateTime, String) -> Unit)?
+
+    /**
+     * Vulnerability dto of vulnerability
+     */
+    var vulnerability: VulnerabilityDto
 }

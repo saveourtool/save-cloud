@@ -180,6 +180,14 @@ class LnkUserOrganizationService(
     fun getOrganizationsByUserNameAndCreatedStatus(userName: String) = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatus(userName, OrganizationStatus.CREATED)
 
     /**
+     * @param userName name of User
+     * @param organizationName name of organization
+     * @return list of lnkUserOrganization
+     */
+    fun getOrganizationsByUserNameAndCreatedStatusAndOrganizationName(userName: String, organizationName: String) =
+            lnkUserOrganizationRepository.findByUserNameAndOrganizationStatusAndOrganizationName(userName, OrganizationStatus.CREATED, organizationName)
+
+    /**
      * @param authentication
      * @param organization
      * @return the highest of two roles: the one in [organization] and global one.

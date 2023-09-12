@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -13,10 +12,8 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.utils.AVATARS_PACKS_DIR
-import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -40,9 +37,7 @@ class UserDetailsService(
      * @param username
      * @return spring's UserDetails retrieved from save's user found by provided values
      */
-    fun findByName(username: String) = blockingToMono {
-        userRepository.findByName(username)
-    }
+    fun findByName(username: String) = userRepository.findByName(username)
 
     /**
      * @param name
@@ -55,9 +50,8 @@ class UserDetailsService(
      * @param source source (where the user identity is coming from)
      * @return spring's UserDetails retrieved from save's user found by provided values
      */
-    fun findByOriginalLogin(username: String, source: String) = blockingToMono {
-        originalLoginRepository.findByNameAndSource(username, source)?.user
-    }
+    fun findByOriginalLogin(username: String, source: String) =
+            originalLoginRepository.findByNameAndSource(username, source)?.user
 
     /**
      * We change the version just to work-around the caching on the frontend
@@ -117,8 +111,8 @@ class UserDetailsService(
     @Transactional
     fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
         val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
-        // if we are registering new user (updating just name and status to ACTIVE):
-        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.ACTIVE) {
+        // if we are registering new user (updating just name and status to NOT_APPROVED):
+        return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.NOT_APPROVED) {
             // checking if the user with new name already exists (it's definitely not our user, so if found -> CONFLICT)
             if (isNameFreeAndNotTaken) {
                 userRepository.save(newUser)
@@ -149,12 +143,31 @@ class UserDetailsService(
     }
 
     /**
-     * @param userNameCandidate
-     * @param userRole
-     * @return created [User]
+     * @param source
+     * @param name
+     * @return existed [User] or a new one
      */
     @Transactional
-    fun saveNewUser(userNameCandidate: String, userRole: String): User {
+    fun saveNewUserIfRequired(source: String, name: String): User =
+            originalLoginRepository.findByNameAndSource(name, source)
+                ?.user
+                ?.also {
+                    log.debug("User $name ($source) is already present in the DB")
+                }
+                ?: run {
+                    log.info {
+                        "Saving user $name ($source) with authorities $roleForNewUser to the DB"
+                    }
+                    saveNewUser(name).also { savedUser ->
+                        addSource(savedUser, name, source)
+                    }
+                }
+
+    /**
+     * @param userNameCandidate
+     * @return created [User]
+     */
+    private fun saveNewUser(userNameCandidate: String): User {
         val existedUser = userRepository.findByName(userNameCandidate)
         val name = existedUser?.let {
             val prefix = "$userNameCandidate$UNIQUE_NAME_SEPARATOR"
@@ -172,7 +185,7 @@ class UserDetailsService(
             User(
                 name = name,
                 password = null,
-                role = userRole,
+                role = roleForNewUser,
                 status = UserStatus.CREATED,
             )
         )
@@ -266,6 +279,8 @@ class UserDetailsService(
     }
 
     companion object {
+        private val log: Logger = getLogger<UserDetailsService>()
         private const val UNIQUE_NAME_SEPARATOR = "_"
+        private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
     }
 }

@@ -54,19 +54,29 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
- * `X-Authorization-Roles` used to specify save's user id
+ * `X-Authorization-Roles` used to specify SAVE user id
  */
 const val AUTHORIZATION_ID = "X-Authorization-Id"
 
 /**
- * `X-Authorization-Roles` used to specify save's username
+ * `X-Authorization-Status` used to specify SAVE user status
+ */
+const val AUTHORIZATION_STATUS = "X-Authorization-Status"
+
+/**
+ * `X-Authorization-Roles` used to specify SAVE username
  */
 const val AUTHORIZATION_NAME = "X-Authorization-Name"
 
 /**
- * `X-Authorization-Roles` used to specify save's user roles
+ * `X-Authorization-Roles` used to specify SAVE user roles
  */
 const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
+
+/**
+ * An attribute to store info about save user
+ */
+const val SAVE_USER_DETAILS_ATTIBUTE = "save-user-details"
 
 /**
  * Default time to execute setup.sh

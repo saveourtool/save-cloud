@@ -6,8 +6,10 @@ import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvExt
 
 import com.saveourtool.osv4k.OsvSchema
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.KSerializer
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
@@ -56,4 +58,12 @@ interface CosvRepository {
     fun findLatestRawExt(
         cosvId: String,
     ): Mono<RawCosvExt>
+
+    /**
+     * @param cosvId
+     * @return [Flux] with removed versions
+     */
+    fun delete(
+        cosvId: String,
+    ): Flux<LocalDateTime>
 }

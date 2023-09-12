@@ -8,6 +8,8 @@ import io.ktor.util.*
 import kotlin.time.Duration
 import kotlinx.datetime.*
 
+private const val MILLS_IN_NANOS = 1_000_000
+
 /**
  * @return [Instant] from epoch time in mills
  */
@@ -47,6 +49,13 @@ operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).pl
  * @param duration
  */
 operator fun LocalDateTime.minus(duration: Duration) = toInstant(TimeZone.UTC).minus(duration).toLocalDateTime(TimeZone.UTC)
+
+/**
+ * @return [LocalDateTime] truncated to mills
+ */
+fun LocalDateTime.truncatedToMills(): LocalDateTime = LocalDateTime(
+    year, month, dayOfMonth, hour, minute, second, nanosecond / MILLS_IN_NANOS * MILLS_IN_NANOS
+)
 
 @Suppress(
     "MAGIC_NUMBER",

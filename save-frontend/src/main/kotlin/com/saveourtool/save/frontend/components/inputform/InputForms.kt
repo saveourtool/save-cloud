@@ -10,6 +10,7 @@ import com.saveourtool.save.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
+private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
 
 private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
@@ -17,6 +18,9 @@ private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphen
 private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMING_MAX_LENGTH characters." +
         "Allowed symbols: letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
+
+private const val SEVERITY_VECTOR_TOOLTIP = "It's a string representation of the Common Vulnerability Scoring System (CVSS)." +
+        "If you know it, please indicate in this field."
 
 /**
  * @property str
@@ -76,10 +80,10 @@ enum class InputTypes(
     COMPANY("Company/Affiliation"),
     REAL_NAME("Your name"),
     LOCATION("Location"),
-    GITHUB("GitHub"),
+    GITHUB("GitHub", placeholder = "GitHub"),
     LINKEDIN("Linkedin"),
     TWITTER("Twitter/X"),
-    WEBSITE("Website"),
+    WEBSITE("Website", placeholder = "Website"),
     FREE_TEXT("Info"),
 
     // ==== contest creation component
@@ -148,6 +152,12 @@ enum class InputTypes(
         tooltip = "If you know the vulnerability identifier, you can enter it here",
     ),
     CVE_DATE("CVE date"),
+    COSV_VECTORE(
+        "Severity score vector",
+        SEVERITY_VECTOR_ERROR_MESSAGE,
+        placeholder = SEVERITY_VECTOR_PLACEHOLDER,
+        tooltip = SEVERITY_VECTOR_TOOLTIP,
+    ),
     ;
 }
 

@@ -13,7 +13,6 @@ import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
 
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 import kotlinx.datetime.toJavaLocalDateTime
@@ -58,12 +57,4 @@ class FileS3KeyManager(
     fun listByProject(
         project: Project,
     ): Collection<FileDto> = repository.findAllByProject(project).map { it.toDto() }
-
-    /**
-     * @param fileId
-     * @return [FileDto] for [File] with provided [fileId]
-     */
-    fun findFileById(
-        fileId: Long,
-    ): FileDto? = repository.findByIdOrNull(fileId)?.toDto()
 }
