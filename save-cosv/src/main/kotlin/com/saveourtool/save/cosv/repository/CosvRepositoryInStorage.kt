@@ -107,7 +107,6 @@ class CosvRepositoryInStorage(
                 cosv = content,
                 saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
                 tags = lnkVulnerabilityMetadataTagRepository.findByCosvMetadataId(requiredId()).map { it.tag.name }.toSet(),
-                timeline = content.getTimeline(),
             )
         }
 
