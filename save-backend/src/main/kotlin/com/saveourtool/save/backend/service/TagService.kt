@@ -56,7 +56,7 @@ class TagService(
             "Could not find metadata for vulnerability $identifier"
         }
 
-        val link = lnkVulnerabilityMetadataTagRepository.findByCosvMetadataIdAndTagName(
+        val link = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataIdAndTagName(
             metadata.requiredId(),
             tagName
         ).orNotFound { "Tag '$tagName' is not linked with vulnerability $identifier." }
