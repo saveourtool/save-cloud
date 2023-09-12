@@ -51,6 +51,7 @@
     <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
     <include file="cosv-metadata-project.xml" relativeToChangelogFile="true"/>
     <include file="drop-old-vulnerability-tables.xml" relativeToChangelogFile="true"/>
+    <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

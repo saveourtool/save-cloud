@@ -5,6 +5,8 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserPermissions
+import com.saveourtool.save.permission.Permission
+import org.jetbrains.annotations.Blocking
 import org.springframework.security.core.Authentication
 
 /**
@@ -30,4 +32,17 @@ interface IBackendService {
      * @return found [UserPermissions] by organizationName
      */
     fun getUserPermissionsByOrganizationName(authentication: Authentication, organizationName: String): UserPermissions
+
+    /**
+     * @param authentication
+     * @param organizationName name of organization
+     * @param permission
+     * @return true if [authentication] has [permission] in [organizationName], otherwise -- false
+     */
+    @Blocking
+    fun hasPermissionInOrganization(
+        authentication: Authentication,
+        organizationName: String,
+        permission: Permission,
+    ): Boolean
 }

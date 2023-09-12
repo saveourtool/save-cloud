@@ -40,7 +40,7 @@ class FileStorage(
     fun getFileById(
         fileId: Long,
     ): Mono<FileDto> = blockingToMono {
-        s3KeyManager.findFileById(fileId)
+        s3KeyManager.findKeyByEntityId(fileId)
     }
         .switchIfEmptyToNotFound { "Not found a file by id $fileId" }
 }
