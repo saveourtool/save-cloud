@@ -13625,6 +13625,7 @@
           "participants",
           "progress",
           "projects",
+          "severity",
           "shortDescription",
           "status",
           "tags",
@@ -13700,6 +13701,9 @@
             }
           },
           "relatedLink": {
+            "type": "string"
+          },
+          "severity": {
             "type": "string"
           },
           "shortDescription": {
