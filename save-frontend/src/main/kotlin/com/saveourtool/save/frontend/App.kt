@@ -37,7 +37,6 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE", "EMPTY_BLOCK_STRUCTURE_ERROR")
 val App: VFC = FC {
-    useOnce { initI18n() }
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
         val userName: String? = get(
@@ -109,6 +108,7 @@ fun main() {
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
+    initI18n()
     val mainDiv = document.getElementById("wrapper") as HTMLElement
     createRoot(mainDiv).render(App.create())
 }
