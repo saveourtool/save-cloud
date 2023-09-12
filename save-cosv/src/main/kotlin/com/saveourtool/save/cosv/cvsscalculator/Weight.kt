@@ -1,5 +1,6 @@
 @file:Suppress(
     "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+    "MagicNumber",
 )
 
 package com.saveourtool.save.cosv.cvsscalculator

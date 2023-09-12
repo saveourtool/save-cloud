@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.controllers
 
 import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.cosv.cvsscalculator.scoreCalculator
+import com.saveourtool.save.cosv.cvsscalculator.calculateScore
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.v1
@@ -31,7 +31,7 @@ class CvssController {
     fun getBaseScore(
         @RequestParam vector: String,
     ): Mono<StringResponse> = blockingToMono {
-        scoreCalculator(vector)
+        calculateScore(vector)
     }.map {
         ResponseEntity.ok(Json.encodeToString(it))
     }

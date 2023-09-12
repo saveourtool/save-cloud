@@ -29,6 +29,9 @@ private class CvssMetrics {
     }
 }
 
+@Suppress(
+    "UnsafeCallOnNullableType",
+)
 private fun String.parsingVector(): BaseMetrics = BaseMetrics(
     version = this.getValue(CVSS_VERSION).toFloat(),
     attackVector = AttackVectorType.values().find { it.value == this.getValue(ATTACK_VECTOR) }!!,
@@ -47,12 +50,16 @@ private fun String.getValue(index: String) = substringAfter(index).substringBefo
  * @param vector
  * @return base score criticality
  */
-fun scoreCalculator(vector: String): Float {
+fun calculateScore(vector: String): Float {
     val baseMetrics = vector.parsingVector()
     return calculate(baseMetrics)
 }
 
-@Suppress("FLOAT_IN_ACCURATE_CALCULATIONS")
+@Suppress(
+    "FLOAT_IN_ACCURATE_CALCULATIONS",
+    "MagicNumber",
+    "UnsafeCallOnNullableType",
+)
 private fun calculate(baseMetrics: BaseMetrics): Float {
     val iss = 1f - (1f - cia[baseMetrics.confidentiality.value]!!) * (1f - cia[baseMetrics.integrity.value]!!) * (1f - cia[baseMetrics.availability.value]!!)
     val impact: Float = if (baseMetrics.scopeMetric == ScopeType.CHANGED) {
@@ -77,7 +84,10 @@ private fun calculate(baseMetrics: BaseMetrics): Float {
     return roundup(baseScore)
 }
 
-@Suppress("FLOAT_IN_ACCURATE_CALCULATIONS")
+@Suppress(
+    "FLOAT_IN_ACCURATE_CALCULATIONS",
+    "MagicNumber",
+)
 private fun roundup(number: Float): Float {
     val value = (number * 100_000).roundToInt()
     return if (value % 10_000 == 0) {
