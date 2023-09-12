@@ -23,6 +23,7 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
             .init({
                 load: 'languageOnly',
                 initImmediate: false,
+                partialBundledLanguages: true,
                 ns: [
                     'cookies',
                     'topbar',
