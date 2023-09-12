@@ -1,0 +1,11 @@
+{
+  "Name": "Имя",
+  "Identifier": "Идентификатор",
+  "Organization": "Организация",
+  "Description": "Описание",
+  "Author": "Автор",
+  "Criticality": "Критичность",
+  "Language": "Язык",
+  "Status": "Статус",
+  "Tag": "Тег"
+}
