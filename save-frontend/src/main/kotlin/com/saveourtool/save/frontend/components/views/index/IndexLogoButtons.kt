@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
@@ -17,6 +18,7 @@ import react.router.dom.Link
 import web.cssom.*
 
 val logoButtons = VFC {
+    val (t) = useTranslation("index")
     div {
         className = ClassName("row logo-parent mb-5 d-flex justify-content-center")
         @Suppress("MAGIC_NUMBER")
@@ -31,14 +33,14 @@ val logoButtons = VFC {
         logo(
             "SAVE",
             "/${FrontendRoutes.SAVE}",
-            "Cloud Platform for CI and Benchmarking of Code Analyzers",
+            "Cloud Platform for CI and Benchmarking of Code Analyzers".t(),
             "/img/save-logo-bg.jpg"
         )
 
         logo(
             "VULN",
             "/${FrontendRoutes.VULN}",
-            "Archive of 1-Day Vulnerabilities Aggregated from Various Sources",
+            "Archive of 1-Day Vulnerabilities Aggregated from Various Sources".t(),
             "/img/vuln-logo-bg.png",
 
         )

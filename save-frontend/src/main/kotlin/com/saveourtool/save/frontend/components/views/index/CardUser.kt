@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.components.views.index
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.frontend.components.basic.renderAvatar
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -33,22 +34,12 @@ import kotlinx.datetime.toLocalDateTime
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
 // FixMe: Statistics about demo
 
-private const val REGISTER_NOW = """
-    For the better User Experience we recommend you to register or sign into the SaveOurTool platform 
-    using one of the supported Oauth Providers. Anyway, you can proceed without registration, 
-    but functionality will be limited.
-"""
-
-private const val START_NOW = """
-    The easiest way to start working with our Ecosystem is to create your organization, invite collaborators and 
-    start working with services that you like. 
-"""
-
 @Suppress(
     "PARAMETER_NAME_IN_OUTER_LAMBDA",
     "LONG_LINE",
 )
 val cardUser: FC<IndexViewProps> = FC { props ->
+    val (t) = useTranslation("index")
     val (organizations, setOrganizations) = useState(emptyList<OrganizationDto>())
     val (countVulnerability, setCountVulnerability) = useState(0)
     val navigate = useNavigate()
@@ -89,7 +80,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 style = jso {
                     textAlign = TextAlign.center
                 }
-                +"Welcome${props.userInfo?.name?.let { ", " } ?: ""}"
+                +"${"Welcome".t()}${props.userInfo?.name?.let { ", " } ?: ""}"
                 Link {
                     to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
                     b {
@@ -118,19 +109,19 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 className = ClassName("col-9")
                 props.userInfo?.let {
                     p {
-                        +"Registered since: ${it.createDate?.toInstant(TimeZone.UTC)?.toLocalDateTime(TimeZone.UTC)
+                        +"${"Registered since".t()}: ${it.createDate?.toInstant(TimeZone.UTC)?.toLocalDateTime(TimeZone.UTC)
                             .let { date ->
                                 "${date?.dayOfMonth} ${date?.month?.name?.toLowerCasePreservingASCIIRules()} ${date?.year}"
                             }} !"
                     }
                     p {
-                        +START_NOW
+                        +"The easiest way to start working with our Ecosystem is to create your organization.".t()
                     }
 
                     div {
                         className = ClassName("row d-flex justify-content-center mt-1")
                         buttonBuilder(
-                            "Profile Settings",
+                            "Profile Settings".t(),
                             style = "primary rounded-pill",
                             isOutline = false
                         ) {
@@ -140,14 +131,14 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 }
                     ?: run {
                         p {
-                            +REGISTER_NOW
+                            +"For the better User Experience we recommend you to register.".t()
                         }
 
                         div {
                             className = ClassName("row d-flex justify-content-center")
 
                             buttonBuilder(
-                                "Vulnerabilities Archive",
+                                "Vulnerabilities Archive".t(),
                                 style = "primary rounded-pill",
                                 isOutline = false
                             ) {
@@ -158,7 +149,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                         div {
                             className = ClassName("row d-flex justify-content-center mt-1")
                             buttonBuilder(
-                                "Save Cloud Platform",
+                                "Save Cloud Platform".t(),
                                 style = "primary rounded-pill",
                                 isOutline = false
                             ) {
@@ -182,14 +173,14 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                         style = jso {
                             textAlign = TextAlign.center
                         }
-                        +"Your organizations:"
+                        +"${"Your organizations".t()}:"
                     }
                 }
                 if (organizations.isEmpty()) {
                     div {
                         className = ClassName("row d-flex justify-content-center mt-1")
                         buttonBuilder(
-                            "Create",
+                            "Create".t(),
                             style = "primary rounded-pill",
                             isOutline = false
                         ) {
@@ -235,7 +226,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                         style = jso {
                             textAlign = TextAlign.center
                         }
-                        +"Your statistics:"
+                        +"${"Your statistics".t()}:"
                     }
                 }
                 div {
@@ -243,7 +234,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                     div {
                         className = ClassName("col-9")
                         p {
-                            +"Vulnerabilities: "
+                            +"${"Vulnerabilities".t()}: "
                         }
                     }
 
@@ -263,7 +254,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                     div {
                         className = ClassName("col-9")
                         p {
-                            +"Top rating: "
+                            +"${"Top rating".t()}: "
                         }
                     }
 
