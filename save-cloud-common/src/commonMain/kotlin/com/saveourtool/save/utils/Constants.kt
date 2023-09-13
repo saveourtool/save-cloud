@@ -74,6 +74,11 @@ const val AUTHORIZATION_NAME = "X-Authorization-Name"
 const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
 
 /**
+ * An attribute to store info about save user
+ */
+const val SAVE_USER_DETAILS_ATTIBUTE = "save-user-details"
+
+/**
  * Default time to execute setup.sh
  */
 @Suppress("NON_EXPORTABLE_TYPE")

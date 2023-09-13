@@ -5,7 +5,7 @@
 package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.OauthProvidersFeConfig
 import com.saveourtool.save.frontend.utils.processRegistrationId
@@ -28,14 +28,15 @@ const val INPUT_CREDENTIALS_VIEW_CUSTOM_BG = "rgb(240, 240, 240)"
  * @param oauthProviders
  * @param primaryColor color of a shield
  * @param continueLink link for `continue` button
+ * @param t [TranslationFunction] received from [com.saveourtool.save.frontend.externals.i18next.useTranslation] hook
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "IDENTIFIER_LENGTH")
 internal fun ChildrenBuilder.inputCredentialsView(
     oauthProviders: List<OauthProviderInfo>,
     primaryColor: Colors,
     continueLink: String,
+    t: TranslationFunction,
 ) {
-    val (t) = useTranslation("welcome")
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
         style = jso {

@@ -4,26 +4,21 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
-import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
+import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
-import org.springframework.http.HttpStatus
-import org.springframework.security.core.Authentication
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
-import org.springframework.web.server.ResponseStatusException
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.core.publisher.toFlux
 
-import java.io.InputStream
-
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
@@ -33,103 +28,60 @@ private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
  */
 @Service
 class CosvService(
+    private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,
 ) {
-    private val json = Json {
-        prettyPrint = false
-    }
-
     /**
-     * Decodes [inputStreams] and saves the result
-     *
-     * @param inputStreams
-     * @param authentication who uploads [inputStream]
-     * @param organizationName to which is uploaded
-     * @return vulnerability identifiers
-     * @throws ResponseStatusException
+     * @param rawCosvFileIds
+     * @return empty [Mono]
      */
-    @OptIn(ExperimentalSerializationApi::class)
-    fun decodeAndSave(
-        inputStreams: Flux<InputStream>,
-        authentication: Authentication,
-        organizationName: String,
-    ): Flux<String> {
-        val user = backendService.getUserByName(authentication.name)
-        val organization = backendService.getOrganizationByName(organizationName)
-        val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
-
-        if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
-            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV files on behalf of this organization: $organizationName"))
+    fun process(
+        rawCosvFileIds: Collection<Long>,
+    ): Mono<Unit> = rawCosvFileIds.toFlux()
+        .flatMap { rawCosvFileId ->
+            rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
+                .flatMap { (organization, user) ->
+                    doProcess(rawCosvFileId, user, organization)
+                }
+        }
+        .collectList()
+        .map {
+            log.debug {
+                "Finished processing raw COSV files $rawCosvFileIds"
+            }
         }
 
-        return inputStreams.flatMap { inputStream ->
-            decode(json.decodeFromStream<JsonElement>(inputStream), user, organization)
-        }
-    }
-
-    /**
-     * Decodes [content] and saves the result
-     *
-     * @param content
-     * @param authentication who uploads [content]
-     * @param organizationName to which is uploaded
-     * @return vulnerability identifiers
-     * @throws ResponseStatusException
-     */
-    fun decodeAndSave(
-        content: String,
-        authentication: Authentication,
-        organizationName: String,
-    ): Flux<String> {
-        val user = backendService.getUserByName(authentication.name)
-        val organization = backendService.getOrganizationByName(organizationName)
-        val userPermissions = backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
-
-        if (userPermissions.inOrganizations[organizationName]?.canDoBulkUpload != true) {
-            return Flux.error(ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to upload COSV file on behalf of this organization: $organizationName"))
-        }
-
-        return decode(json.parseToJsonElement(content), user, organization)
-    }
-
-    /**
-     * Saves OSVs from [jsonElement] in COSV repository (S3 storage)
-     *
-     * @param jsonElement
-     * @param user who uploads content
-     * @param organization to which is uploaded
-     * @return vulnerability identifier
-     */
-    private fun decode(
-        jsonElement: JsonElement,
+    private fun doProcess(
+        rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Flux<String> = jsonElement.toMono()
-        .flatMapIterable { it.toJsonArrayOrSingle() }
-        .flatMap { cosvProcessor.process(it.jsonObject, user, organization) }
-        .map { it.cosvId }
-
-    /**
-     * Finds COSV
-     *
-     * @param cosvId [VulnerabilityDto.identifier]
-     * @return found COSV
-     */
-    fun findById(
-        cosvId: String,
-    ): Mono<RawOsvSchema> = cosvRepository.findLatestById(cosvId, serializer<RawOsvSchema>())
+    ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
+        .collectToInputStream()
+        .flatMap { inputStream ->
+            val cosvListOpt = try {
+                cosvProcessor.decode(inputStream)
+            } catch (e: SerializationException) {
+                val errorMessage: () -> String = { "Failed to process raw COSV file with id: $rawCosvFileId" }
+                log.error(e, errorMessage)
+                return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
+            }
+            cosvListOpt.toFlux()
+                .flatMap { cosvProcessor.save(it, user, organization) }
+                .collectList()
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
+        }
 
     /**
      * Generates COSV from [VulnerabilityDto] and saves it
      *
      * @param vulnerabilityDto as a source for COSV
-     * @return [CosvMetadataDto] saved metadata
+     * @return [VulnerabilityMetadataDto] saved metadata
      */
     fun generateAndSave(
         vulnerabilityDto: VulnerabilityDto,
-    ): Mono<CosvMetadataDto> = blockingToMono {
+    ): Mono<VulnerabilityMetadataDto> = blockingToMono {
         val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
         val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
         user to organization
@@ -141,7 +93,7 @@ class CosvService(
             severity = listOf(
                 Severity(
                     type = SeverityType.CVSS_V3,
-                    score = "N/A",
+                    score = vulnerabilityDto.severity,
                     scoreNum = vulnerabilityDto.progress.toString(),
                 )
             ),
@@ -173,7 +125,7 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),
@@ -194,4 +146,8 @@ class CosvService(
                     )
                 }
         }
+
+    companion object {
+        private val log: Logger = getLogger<CosvService>()
+    }
 }

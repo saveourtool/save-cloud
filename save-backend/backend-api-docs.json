@@ -1001,7 +1001,7 @@
     "/api/v1/contests/sample/get": {
       "get": {
         "description": "Get contest sample by id.",
-        "operationId": "getById_1",
+        "operationId": "getById",
         "parameters": [
           {
             "in": "query",
@@ -2145,12 +2145,12 @@
         ]
       }
     },
-    "/api/v1/cosv/batch-upload": {
+    "/api/v1/cosv/{organizationName}/batch-upload": {
       "post": {
         "operationId": "batchUpload",
         "parameters": [
           {
-            "in": "query",
+            "in": "path",
             "name": "organizationName",
             "required": true,
             "schema": {
@@ -2204,7 +2204,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/components/schemas/RawCosvFileDto"
                   }
                 }
               }
@@ -2222,16 +2222,25 @@
         ]
       }
     },
-    "/api/v1/cosv/get-by-id/{cosvId}": {
-      "get": {
-        "operationId": "getById",
+    "/api/v1/cosv/{organizationName}/delete/{id}": {
+      "delete": {
+        "operationId": "delete_2",
         "parameters": [
           {
             "in": "path",
-            "name": "cosvId",
+            "name": "organizationName",
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
             }
           },
           {
@@ -2275,12 +2284,164 @@
         ]
       }
     },
-    "/api/v1/cosv/upload": {
-      "post": {
-        "operationId": "upload_1",
+    "/api/v1/cosv/{organizationName}/download/{id}": {
+      "get": {
+        "operationId": "download_1",
         "parameters": [
           {
-            "in": "query",
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
+    "/api/v1/cosv/{organizationName}/list": {
+      "get": {
+        "operationId": "list_2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
+    "/api/v1/cosv/{organizationName}/submit-to-process": {
+      "post": {
+        "operationId": "submitToProcess",
+        "parameters": [
+          {
+            "in": "path",
             "name": "organizationName",
             "required": true,
             "schema": {
@@ -2310,7 +2471,11 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "string"
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
               }
             }
           },
@@ -2321,10 +2486,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+                  "type": "string"
                 }
               }
             },
@@ -12881,6 +13043,42 @@
           }
         }
       },
+      "RawCosvFileDto": {
+        "required": [
+          "fileName",
+          "organizationName",
+          "status",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "organizationName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "FAILED",
+              "IN_PROGRESS",
+              "PROCESSED",
+              "UPLOADED"
+            ]
+          },
+          "statusMessage": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          }
+        }
+      },
       "Sdk": {
         "required": [
           "name",
@@ -13625,6 +13823,7 @@
           "participants",
           "progress",
           "projects",
+          "severity",
           "shortDescription",
           "status",
           "tags",
@@ -13700,6 +13899,9 @@
             }
           },
           "relatedLink": {
+            "type": "string"
+          },
+          "severity": {
             "type": "string"
           },
           "shortDescription": {

@@ -127,6 +127,7 @@ kotlin {
             // translation
             implementation(npm("i18next", "^23.4.5"))
             implementation(npm("react-i18next", "^13.2.0"))
+            implementation(npm("i18next-http-backend", "^2.2.2"))
             implementation(npm("js-cookie", "^3.0.5"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))

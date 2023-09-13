@@ -5,6 +5,8 @@ import com.saveourtool.save.frontend.externals.cookie.cookie
 import com.saveourtool.save.frontend.externals.cookie.isAccepted
 import com.saveourtool.save.frontend.externals.cookie.saveLanguageCode
 
+typealias TranslationFunction = String.() -> String
+
 /**
  * Class that represents the return value of `useTranslation` hook
  * @see useTranslation
@@ -22,7 +24,7 @@ sealed class Translation {
     /**
      * @return t-function that receives a key and returns a localized value
      */
-    inline operator fun component1(): String.() -> String = { translateLambda(this) }
+    inline operator fun component1(): TranslationFunction = { translateLambda(this) }
 
     /**
      * Get an i18n instance and use
