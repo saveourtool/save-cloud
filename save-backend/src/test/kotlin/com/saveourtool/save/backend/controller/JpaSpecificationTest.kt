@@ -23,10 +23,10 @@ import org.springframework.context.annotation.Import
 @ExtendWith(InfraExtension::class)
 @MockBeans(
     MockBean(IBackendService::class),
-    MockBean(CosvMetadataRepository::class),
-    MockBean(LnkCosvMetadataTagRepository::class),
-    MockBean(LnkCosvMetadataUserRepository::class),
-    MockBean(CosvMetadataProjectRepository::class),
+    MockBean(VulnerabilityMetadataRepository::class),
+    MockBean(LnkVulnerabilityMetadataTagRepository::class),
+    MockBean(LnkVulnerabilityMetadataUserRepository::class),
+    MockBean(VulnerabilityMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
     MockBean(BlockingBridge::class),
 )

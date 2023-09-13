@@ -2,8 +2,8 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
-import com.saveourtool.save.entities.cosv.RawCosvExt
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
@@ -35,7 +35,7 @@ interface CosvRepository {
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
-    ): Mono<CosvMetadataDto>
+    ): Mono<VulnerabilityMetadataDto>
 
     /**
      * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]
@@ -53,11 +53,11 @@ interface CosvRepository {
      * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
      *
      * @param cosvId
-     * @return [Mono] with [RawCosvExt]
+     * @return [Mono] with [VulnerabilityExt]
      */
     fun findLatestRawExt(
         cosvId: String,
-    ): Mono<RawCosvExt>
+    ): Mono<VulnerabilityExt>
 
     /**
      * @param cosvId
