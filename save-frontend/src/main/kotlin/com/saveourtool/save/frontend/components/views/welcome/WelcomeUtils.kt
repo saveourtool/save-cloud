@@ -102,12 +102,15 @@ internal fun ChildrenBuilder.inputCredentialsView(
  *
  * @param userInfo current [UserInfo]
  * @param primaryColor color of `Welcome, {username}` shield
+ * @param t [TranslationFunction] received from [com.saveourtool.save.frontend.externals.i18next.useTranslation] hook
  * @param renderMenu callback to render menu options
  */
+@Suppress("IDENTIFIER_LENGTH")
 internal fun ChildrenBuilder.welcomeUserMenu(
     userInfo: UserInfo?,
     primaryColor: Colors,
-    renderMenu: ChildrenBuilder.() -> Unit
+    t: TranslationFunction,
+    renderMenu: ChildrenBuilder.() -> Unit,
 ) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
@@ -131,7 +134,7 @@ internal fun ChildrenBuilder.welcomeUserMenu(
                         }
                     }
                 }
-                +"Welcome, ${userInfo?.name}!"
+                +"${"Welcome".t()}, ${userInfo?.name}!"
             }
         }
     }
@@ -142,7 +145,7 @@ internal fun ChildrenBuilder.welcomeUserMenu(
             className = ClassName("text-sm")
             renderMenu()
             hrNoMargin()
-            menuTextAndLink("Go to main page", FrontendRoutes.INDEX, faHome)
+            menuTextAndLink("Go to main page".t(), FrontendRoutes.INDEX, faHome)
         }
     }
 }

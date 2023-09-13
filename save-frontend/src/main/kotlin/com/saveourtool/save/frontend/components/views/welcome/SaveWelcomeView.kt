@@ -75,22 +75,22 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
                         className = ClassName("card z-index-0 fadeIn3 fadeInBottom")
                         // if user is not logged in - he needs to input credentials
                         props.userInfo?.let {
-                            welcomeUserMenu(props.userInfo, Colors.SAVE_PRIMARY) {
+                            welcomeUserMenu(props.userInfo, Colors.SAVE_PRIMARY, t) {
                                 div {
                                     className = ClassName("text-sm")
-                                    menuTextAndLink("Contests", FrontendRoutes.CONTESTS, faCode)
+                                    menuTextAndLink("Contests".t(), FrontendRoutes.CONTESTS, faCode)
                                     hrNoMargin()
-                                    menuTextAndLink("List of Projects", FrontendRoutes.PROJECTS, faExternalLinkAlt)
+                                    menuTextAndLink("List of Projects".t(), FrontendRoutes.PROJECTS, faExternalLinkAlt)
                                     hrNoMargin()
-                                    menuTextAndLink("Benchmarks Archive", FrontendRoutes.AWESOME_BENCHMARKS, faFolderOpen)
+                                    menuTextAndLink("Benchmarks Archive".t(), FrontendRoutes.AWESOME_BENCHMARKS, faFolderOpen)
                                     hrNoMargin()
-                                    menuTextAndLink("Create new organization", FrontendRoutes.CREATE_ORGANIZATION, faUser)
+                                    menuTextAndLink("Create new organization".t(), FrontendRoutes.CREATE_ORGANIZATION, faUser)
                                     if (props.userInfo.isSuperAdmin()) {
                                         hrNoMargin()
-                                        menuTextAndLink("Manage organizations", FrontendRoutes.MANAGE_ORGANIZATIONS, faUser)
+                                        menuTextAndLink("Manage organizations".t(), FrontendRoutes.MANAGE_ORGANIZATIONS, faUser)
                                     }
                                     hrNoMargin()
-                                    menuTextAndLink("New project in organization", FrontendRoutes.CREATE_PROJECT, faPlus)
+                                    menuTextAndLink("New project in organization".t(), FrontendRoutes.CREATE_PROJECT, faPlus)
                                 }
                             }
                         } ?: inputCredentialsView(oauthProviders, Colors.SAVE_PRIMARY, "/${FrontendRoutes.PROJECTS}", t)
