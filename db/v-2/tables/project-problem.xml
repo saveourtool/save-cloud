@@ -57,4 +57,9 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="project-problem-4" author="nulls">
+        <renameColumn tableName="project_problem" oldColumnName="cosv_metadata_id"
+                      newColumnName="vulnerability_metadata_id" columnDataType="bigint"/>
+    </changeSet>
+
 </databaseChangeLog>
