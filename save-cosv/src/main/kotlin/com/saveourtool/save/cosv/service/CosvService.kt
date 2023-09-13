@@ -7,8 +7,8 @@ import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvMetadataDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
@@ -70,18 +70,18 @@ class CosvService(
             cosvListOpt.toFlux()
                 .flatMap { cosvProcessor.save(it, user, organization) }
                 .collectList()
-                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(CosvMetadataDto::cosvId)}") }
+                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
         }
 
     /**
      * Generates COSV from [VulnerabilityDto] and saves it
      *
      * @param vulnerabilityDto as a source for COSV
-     * @return [CosvMetadataDto] saved metadata
+     * @return [VulnerabilityMetadataDto] saved metadata
      */
     fun generateAndSave(
         vulnerabilityDto: VulnerabilityDto,
-    ): Mono<CosvMetadataDto> = blockingToMono {
+    ): Mono<VulnerabilityMetadataDto> = blockingToMono {
         val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
         val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
         user to organization
@@ -125,7 +125,7 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<CosvMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),
