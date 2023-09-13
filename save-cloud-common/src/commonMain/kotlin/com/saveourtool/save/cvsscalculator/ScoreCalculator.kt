@@ -15,6 +15,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
+@Suppress("UtilityClassWithPublicConstructor")
 private class CvssMetrics {
     companion object {
         const val ATTACK_COMPLEXITY = "/AC:"
