@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
@@ -20,12 +21,11 @@ import web.cssom.ClassName
 import web.cssom.TextAlign
 
 private const val WHO_ARE_WE = """
-    We are just a group of several developers working on this community project. 
-    Our main idea is that we can unify together all routine work that is done in the area of code analysis and help 
-    developers of analyzers focus on their primary work: find bugs in code.
+    
 """
 
 val cardAboutUs: FC<IndexViewProps> = FC { props ->
+    val (t) = useTranslation("index")
     val navigate = useNavigate()
 
     div {
@@ -42,7 +42,7 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
                 style = jso {
                     textAlign = TextAlign.center
                 }
-                +"About Us"
+                +"About Us".t()
             }
         }
 
@@ -51,12 +51,12 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
             div {
                 className = ClassName("col-6")
                 p {
-                    +WHO_ARE_WE
+                    +"We are just a group of several developers working on this community project.".t()
                 }
                 div {
                     className = ClassName("row d-flex justify-content-center mt-1")
                     buttonBuilder(
-                        "About us",
+                        "About Us".t(),
                         style = "secondary rounded-pill",
                         isOutline = false
                     ) {
@@ -68,7 +68,7 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
             div {
                 className = ClassName("col-6")
                 p {
-                    +"We kindly ask you not to break this service and report any problems that you will find to our Github."
+                    +"We kindly ask you not to break this service and report any problems that you will find to our Github.".t()
                 }
                 a {
                     className = ClassName("btn btn-secondary rounded-pill")
@@ -83,14 +83,14 @@ val cardAboutUs: FC<IndexViewProps> = FC { props ->
                     +"  Save-cli  "
                 }
                 p {
-                    +"Please also read our"
+                    +"Please also read our".t()
                     Link {
-                        +" Terms of Usage"
+                        +" ${"Terms of Usage".t()}"
                         to = "/${FrontendRoutes.TERMS_OF_USE}"
                     }
-                    +" and "
+                    +" ${"and".t()} "
                     Link {
-                        +"Cookie policy"
+                        +"Cookie policy".t()
                         to = "/${FrontendRoutes.COOKIE}"
                     }
                     +"."

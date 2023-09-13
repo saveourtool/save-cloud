@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.components.basic.markdown
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.b
@@ -15,30 +16,14 @@ import react.dom.html.ReactHTML.p
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-private const val SERVICES = """
-    provides Intelligent Services for developers of code analysis tools. Our two main directions:
-"""
-
-private const val SAVE = """
-     - a platform for a distributed Cloud CI of code analyzers with a special test framework. With SAVE you can:
-"""
-
 private const val SAVE_POSSIBILITIES = """
     |- quickly establish testing and CI of your analyzer; 
     |- share your tests with community to compare other tools with your tool;
     |- using SAVE you can even create an online demo for your analyzer and setup it for your community.
 """
 
-private const val VULN = """
-    - a platform for reporting, aggregation and dedublication of 1-day Vulerabilities.
-"""
-
-private const val CONTESTS = """
-    Also we establish contests in the area of code analysis where you can propose your automated solutions for 
-    finding bugs and compete with other projects.
-"""
-
 val cardServiceInfo: FC<IndexViewProps> = FC { props ->
+    val (t) = useTranslation("index")
     div {
         className = ClassName("col-3 shadow mx-3 mt-2")
         div {
@@ -53,7 +38,7 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
                 style = jso {
                     textAlign = TextAlign.center
                 }
-                +"Multiple different services"
+                +"Multiple different services".t()
             }
         }
 
@@ -65,7 +50,7 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
                     b {
                         +"SaveOurTool "
                     }
-                    +SERVICES
+                    +"provides Intelligent Services for developers of code analysis tools. Our two main directions:".t()
                 }
                 p {
                     +"1. "
@@ -74,10 +59,10 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
                             +"SAVE "
                         }
                     }
-                    +SAVE
+                    +"- a platform for a distributed Cloud CI of code analyzers with a special test framework. With SAVE you can:".t()
                 }
                 p {
-                    markdown(SAVE_POSSIBILITIES.trimMargin())
+                    markdown("quickly establish testing and CI of your analyzer".t().trimMargin())
                 }
                 p {
                     +"2. "
@@ -86,11 +71,11 @@ val cardServiceInfo: FC<IndexViewProps> = FC { props ->
                             +"VULN "
                         }
                     }
-                    +VULN
+                    +"- a platform for reporting, aggregation and deduplication of 1-day Vulnerabilities.".t()
                 }
                 p {
                     className = ClassName("text-gray-700")
-                    +CONTESTS
+                    +"Also we establish contests in the area of code analysis.".t()
                 }
             }
         }
