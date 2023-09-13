@@ -18,15 +18,15 @@ import kotlin.math.roundToInt
 @Suppress("UtilityClassWithPublicConstructor")
 private class CvssMetrics {
     companion object {
-        const val ATTACK_COMPLEXITY = "/AC:"
-        const val ATTACK_VECTOR = "/AV:"
-        const val AVAILABILITY = "/A:"
-        const val CONFIDENTIALITY = "/C:"
-        const val CVSS_VERSION = "CVSS:"
-        const val INTEGRITY = "/I:"
-        const val PRIVILEGES_REQUIRED = "/PR:"
-        const val SCOPE = "/S:"
-        const val USER_INTERACTION = "/UI:"
+        const val ATTACK_COMPLEXITY = "AC"
+        const val ATTACK_VECTOR = "AV"
+        const val AVAILABILITY = "A"
+        const val CONFIDENTIALITY = "C"
+        const val CVSS_VERSION = "CVSS"
+        const val INTEGRITY = "I"
+        const val PRIVILEGES_REQUIRED = "PR"
+        const val SCOPE = "S"
+        const val USER_INTERACTION = "UI"
     }
 }
 
@@ -36,19 +36,21 @@ private class CvssMetrics {
 private fun String.parsingVector(): BaseMetrics {
     val values = this.toMap()
     return BaseMetrics(
-        version = values[CVSS_VERSION]!!.toFloat(),
-        attackVector = AttackVectorType.values().find { it.value == values[ATTACK_VECTOR] }!!,
-        attackComplexity = AttackComplexityType.values().findOrElseThrow(ATTACK_COMPLEXITY) { it.value == values[ATTACK_COMPLEXITY] },
-        privilegeRequired = PrivilegesRequiredType.values().findOrElseThrow(PRIVILEGES_REQUIRED) { it.value == values[PRIVILEGES_REQUIRED] },
-        userInteraction = UserInteractionType.values().findOrElseThrow(USER_INTERACTION) { it.value == values[USER_INTERACTION] },
-        scopeMetric = ScopeType.values().findOrElseThrow(SCOPE) { it.value == values[SCOPE] },
-        confidentiality = CiaType.values().findOrElseThrow(CONFIDENTIALITY) { it.value == values[CONFIDENTIALITY] },
-        integrity = CiaType.values().findOrElseThrow(INTEGRITY) { it.value == values[INTEGRITY] },
-        availability = CiaType.values().findOrElseThrow(AVAILABILITY) { it.value == values[AVAILABILITY] },
+        version = values.getValue(CVSS_VERSION).toFloat(),
+        attackVector = values.findOrElseThrow(ATTACK_VECTOR, AttackVectorType::value),
+        attackComplexity = values.findOrElseThrow(ATTACK_COMPLEXITY, AttackComplexityType::value),
+        privilegeRequired = values.findOrElseThrow(PRIVILEGES_REQUIRED, PrivilegesRequiredType::value),
+        userInteraction = values.findOrElseThrow(USER_INTERACTION, UserInteractionType::value),
+        scopeMetric = values.findOrElseThrow(SCOPE, ScopeType::value),
+        confidentiality = values.findOrElseThrow(CONFIDENTIALITY, CiaType::value),
+        integrity = values.findOrElseThrow(INTEGRITY, CiaType::value),
+        availability = values.findOrElseThrow(AVAILABILITY, CiaType::value),
     )
 }
 
-private fun <T> Array<out T>.findOrElseThrow(vector: String, predicate: (T) -> Boolean): T = this.find(predicate) ?: throw IllegalArgumentException("No such value for $vector.")
+private inline fun <reified T : Enum<T>> Map<String, String>.findOrElseThrow(vector: String, getValue: (T) -> String): T =
+        get(vector)?.let { value -> enumValues<T>().find { getValue(it) == value } }
+            ?: throw IllegalArgumentException("No such value for $vector.")
 
 @Suppress("MagicNumber")
 private fun String.toMap() = split("/").associate { value ->
