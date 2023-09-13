@@ -124,7 +124,7 @@ class StorageInitializer(
 
     companion object {
         private val log: Logger = getLogger<StorageInitializer>()
-        private val initScheduler: Scheduler = Schedulers.boundedElastic()
+        private val initScheduler: Scheduler = Schedulers.newBoundedElastic(5, Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE, "storage-init-")
         private val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
     }
 }

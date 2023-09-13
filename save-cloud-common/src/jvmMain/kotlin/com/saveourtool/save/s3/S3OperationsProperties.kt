@@ -54,7 +54,7 @@ data class S3OperationsProperties(
     data class HttpClientProperties(
         val maxConcurrency: Int = 5,
         val connectionTimeout: Duration = 30.seconds.toJavaDuration(),
-        val connectionAcquisitionTimeout: Duration = 1.minutes.toJavaDuration(),
+        val connectionAcquisitionTimeout: Duration = 5.minutes.toJavaDuration(),
     )
 
     /**

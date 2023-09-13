@@ -11,4 +11,8 @@ import javax.persistence.Entity
 class CosvFile(
     var identifier: String,
     var modified: LocalDateTime,
-): BaseEntity()
+): BaseEntity() {
+    override fun toString(): String {
+        return "CosvFile(identifier=$identifier, modified=$modified)"
+    }
+}
