@@ -1,4 +1,4 @@
-package com.saveourtool.save.cosv.cvsscalculator
+package com.saveourtool.save.cvsscalculator
 
 import kotlinx.serialization.Serializable
 
