@@ -91,7 +91,7 @@ fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
 /**
  * @return Severity for a single progress
  */
-fun Int.asSeverity(): Severity = Severity(
+fun Float.asSeverity(): Severity = Severity(
     type = SeverityType.CVSS_V3,
     score = "N/A",
     scoreNum = toString(),
