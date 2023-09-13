@@ -135,7 +135,7 @@ class CosvRepositoryInStorage(
             identifier = id,
             summary = summary ?: "Summary not provided",
             details = details ?: "Details not provided",
-            severityNum = severity?.firstOrNull()?.scoreNum?.toInt() ?: 0,
+            severityNum = severity?.firstOrNull()?.scoreNum?.toFloat() ?: 0f,
             modified = modified.toJavaLocalDateTime(),
             submitted = getCurrentLocalDateTime().toJavaLocalDateTime(),
             user = user,
@@ -149,7 +149,7 @@ class CosvRepositoryInStorage(
             details = entry.details ?: "Details not provided"
             severityNum = entry.severity?.firstOrNull()
                 ?.scoreNum
-                ?.toInt() ?: 0
+                ?.toFloat() ?: 0f
             modified = entry.modified.toJavaLocalDateTime()
         }
 
