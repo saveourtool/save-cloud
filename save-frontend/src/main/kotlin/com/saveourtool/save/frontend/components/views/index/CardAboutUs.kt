@@ -20,10 +20,6 @@ import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-private const val WHO_ARE_WE = """
-    
-"""
-
 val cardAboutUs: FC<IndexViewProps> = FC { props ->
     val (t) = useTranslation("index")
     val navigate = useNavigate()

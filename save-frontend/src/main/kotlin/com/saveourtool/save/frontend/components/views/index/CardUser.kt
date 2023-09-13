@@ -34,7 +34,6 @@ import kotlinx.datetime.toLocalDateTime
 // FixMe: Some statistics: may be how many users used your demo or how many contests you created,
 // FixMe: Statistics about demo
 
-
 @Suppress(
     "PARAMETER_NAME_IN_OUTER_LAMBDA",
     "LONG_LINE",

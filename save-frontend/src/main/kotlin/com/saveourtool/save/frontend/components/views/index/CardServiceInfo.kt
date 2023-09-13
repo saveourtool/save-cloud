@@ -16,12 +16,6 @@ import react.dom.html.ReactHTML.p
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-private const val SAVE_POSSIBILITIES = """
-    |- quickly establish testing and CI of your analyzer; 
-    |- share your tests with community to compare other tools with your tool;
-    |- using SAVE you can even create an online demo for your analyzer and setup it for your community.
-"""
-
 val cardServiceInfo: FC<IndexViewProps> = FC { props ->
     val (t) = useTranslation("index")
     div {
