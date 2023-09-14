@@ -9,7 +9,7 @@ import java.time.LocalDateTime
  * Repository for [CosvFile]
  */
 @Repository
-interface CosvObjectRepository : BaseEntityRepository<CosvFile> {
+interface CosvFileRepository : BaseEntityRepository<CosvFile> {
     /**
      * @param identifier
      * @param modifier

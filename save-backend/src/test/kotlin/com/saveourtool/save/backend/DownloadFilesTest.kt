@@ -76,6 +76,7 @@ import kotlin.io.path.*
     MockBean(LnkVulnerabilityMetadataUserRepository::class),
     MockBean(VulnerabilityMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
 )
 class DownloadFilesTest {

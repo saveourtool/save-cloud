@@ -1,6 +1,6 @@
 package com.saveourtool.save.cosv.storage
 
-import com.saveourtool.save.cosv.repository.CosvObjectRepository
+import com.saveourtool.save.cosv.repository.CosvFileRepository
 import com.saveourtool.save.entities.cosv.CosvFile
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component
 @Component
 class CosvFileS3KeyManager(
     s3OperationsPropertiesProvider: S3OperationsProperties.Provider,
-    cosvObjectRepository: CosvObjectRepository,
+    cosvFileRepository: CosvFileRepository,
     blockingBridge: BlockingBridge,
-) : AbstractS3KeyEntityManager<CosvFile, CosvObjectRepository>(
+) : AbstractS3KeyEntityManager<CosvFile, CosvFileRepository>(
     prefix = concatS3Key(s3OperationsPropertiesProvider.s3Storage.prefix, "cosv"),
-    repository = cosvObjectRepository,
+    repository = cosvFileRepository,
     blockingBridge = blockingBridge,
 ) {
     override fun findByContent(key: CosvFile): CosvFile? = repository.findByIdentifierAndModified(key.identifier, key.modified)
