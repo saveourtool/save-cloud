@@ -16,7 +16,7 @@ import react.react
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.progressBar(
-    progress: Int,
+    progress: Float,
     size: String = "10rem",
     lineWidth: String = "5rem",
     color: String = Colors.SUCCESS.value,
