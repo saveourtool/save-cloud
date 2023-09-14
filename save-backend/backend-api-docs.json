@@ -13889,8 +13889,8 @@
             }
           },
           "progress": {
-            "type": "integer",
-            "format": "int32"
+            "type": "number",
+            "format": "float"
           },
           "projects": {
             "type": "array",
