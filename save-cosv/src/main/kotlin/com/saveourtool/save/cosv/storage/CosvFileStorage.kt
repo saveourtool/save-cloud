@@ -20,9 +20,4 @@ class CosvFileStorage(
 ) : ReactiveStorageWithDatabase<CosvFile, CosvFile, CosvFileS3KeyManager>(
     s3Operations,
     s3KeyManager
-) {
-    override fun doInit(underlying: DefaultStorageProjectReactor<CosvFile>): Mono<Unit> {
-        // do nothing till migration is done
-        return Mono.just(Unit)
-    }
-}
+)

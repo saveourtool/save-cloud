@@ -1,9 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.backend.service.IBackendService
-import com.saveourtool.save.cosv.storage.CosvKey
-import com.saveourtool.save.cosv.storage.CosvStorage
-import com.saveourtool.save.cosv.storage.MigrationCosvObjectStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
@@ -14,6 +11,8 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.cosv.storage.CosvFileStorage
+import com.saveourtool.save.entities.cosv.CosvFile
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ResponseStatusException
@@ -22,17 +21,18 @@ import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.serializer
 
 /**
- * Implementation of [CosvRepository] using [CosvStorage]
+ * Implementation of [CosvRepository] using [CosvFileStorage]
  */
 @Component
 class CosvRepositoryInStorage(
-    private val cosvFileStorage: MigrationCosvObjectStorage,
+    private val cosvFileStorage: CosvFileStorage,
     private val vulnerabilityMetadataRepository: VulnerabilityMetadataRepository,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val backendService: IBackendService,
@@ -125,7 +125,7 @@ class CosvRepositoryInStorage(
         }
     }.flatMapMany {
         cosvFileStorage.list(cosvId)
-            .flatMap { key -> cosvFileStorage.delete(key).map { key.modified } }
+            .flatMap { key -> cosvFileStorage.delete(key).map { key.modified.toKotlinLocalDateTime() } }
     }
 
     companion object {
@@ -154,9 +154,9 @@ class CosvRepositoryInStorage(
             modified = entry.modified.toJavaLocalDateTime()
         }
 
-        private fun VulnerabilityMetadataDto.toStorageKey() = CosvKey(
-            id = identifier,
-            modified = modified,
+        private fun VulnerabilityMetadataDto.toStorageKey() = CosvFile(
+            identifier = identifier,
+            modified = modified.toJavaLocalDateTime(),
         )
     }
 }
