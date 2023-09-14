@@ -11,6 +11,8 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.save.cosv.processor.CosvProcessor
+import com.saveourtool.save.cosv.repository.CosvRepositoryInStorage.Companion.toStorageKey
 import com.saveourtool.save.cosv.storage.CosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFile
 import org.springframework.http.HttpStatus
@@ -26,6 +28,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.serializer
+import org.slf4j.Logger
 
 /**
  * Implementation of [CosvRepository] using [CosvFileStorage]
@@ -46,18 +49,25 @@ class CosvRepositoryInStorage(
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
-    ): Mono<VulnerabilityMetadataDto> = saveMetadata(entry, user, organization).flatMap { metadata ->
-        cosvFileStorage.upload(
-            metadata.toStorageKey(),
-            json.encodeToString(serializer, entry).encodeToByteArray(),
-        ).map { metadata }
+    ): Mono<VulnerabilityMetadataDto> = cosvFileStorage.upload(
+        entry.toCosvFile(),
+        json.encodeToString(serializer, entry).encodeToByteArray(),
+    ).flatMap { cosvFile ->
+        saveMetadata(entry, user, organization)
+            .doOnError { e ->
+                log.error(e) {
+                    "Failed to save metadata for $cosvFile, cleaning up"
+                }
+                cosvFileStorage.delete(cosvFile)
+            }
+            .map { it.toDto() }
     }
 
     private fun saveMetadata(
         entry: CosvSchema<*, *, *, *>,
         user: User,
         organization: Organization?,
-    ): Mono<VulnerabilityMetadataDto> = blockingToMono {
+    ): Mono<VulnerabilityMetadata> = blockingToMono {
         val metadata = vulnerabilityMetadataRepository.findByIdentifier(entry.id)
             ?.let { existedMetadata ->
                 val newModified = entry.modified.toJavaLocalDateTime()
@@ -89,19 +99,13 @@ class CosvRepositoryInStorage(
                 existedMetadata.updateBy(entry)
             }
             ?: entry.toMetadata(user, organization)
-        vulnerabilityMetadataRepository.save(metadata).toDto()
+        vulnerabilityMetadataRepository.save(metadata)
     }
 
-    override fun <D, A_E, A_D, A_R_D> findLatestById(
-        cosvId: String,
-        serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>
-    ): CosvSchemaMono<D, A_E, A_D, A_R_D> = blockingToMono { vulnerabilityMetadataRepository.findByIdentifier(cosvId) }
-        .flatMap { doDownload(it, serializer) }
+    override fun findLatestExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataRepository.findByIdentifier(identifier) }
+        .flatMap { it.toVulnerabilityExt() }
 
-    override fun findLatestRawExt(cosvId: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataRepository.findByIdentifier(cosvId) }
-        .flatMap { it.toRawCosvExt() }
-
-    private fun VulnerabilityMetadata.toRawCosvExt() = doDownload(this, serializer<RawOsvSchema>())
+    private fun VulnerabilityMetadata.toVulnerabilityExt() = doDownload(this, CosvProcessor.rawSerializer)
         .blockingMap { content ->
             VulnerabilityExt(
                 metadata = toDto(),
@@ -115,20 +119,21 @@ class CosvRepositoryInStorage(
     private fun <D, A_E, A_D, A_R_D> doDownload(
         metadata: VulnerabilityMetadata,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
-    ) = cosvFileStorage.download(metadata.toDto().toStorageKey())
+    ) = cosvFileStorage.download(metadata.toStorageKey())
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
-    override fun delete(cosvId: String): Flux<LocalDateTime> = blockingToMono {
-        vulnerabilityMetadataRepository.findByIdentifier(cosvId)?.let {
+    override fun delete(identifier: String): Flux<LocalDateTime> = blockingToMono {
+        vulnerabilityMetadataRepository.findByIdentifier(identifier)?.let {
             vulnerabilityMetadataRepository.delete(it)
         }
     }.flatMapMany {
-        cosvFileStorage.list(cosvId)
+        cosvFileStorage.list(identifier)
             .flatMap { key -> cosvFileStorage.delete(key).map { key.modified.toKotlinLocalDateTime() } }
     }
 
     companion object {
+        private val log: Logger = getLogger<CosvRepositoryInStorage>()
         private fun CosvSchema<*, *, *, *>.toMetadata(
             user: User,
             organization: Organization?,
@@ -154,9 +159,14 @@ class CosvRepositoryInStorage(
             modified = entry.modified.toJavaLocalDateTime()
         }
 
-        private fun VulnerabilityMetadataDto.toStorageKey() = CosvFile(
-            identifier = identifier,
+        private fun CosvSchema<*, *, *, *>.toCosvFile() = CosvFile(
+            identifier = id,
             modified = modified.toJavaLocalDateTime(),
+        )
+
+        private fun VulnerabilityMetadata.toStorageKey() = CosvFile(
+            identifier = identifier,
+            modified = modified,
         )
     }
 }

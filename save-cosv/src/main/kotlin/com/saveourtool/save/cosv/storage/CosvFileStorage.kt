@@ -4,8 +4,11 @@ import com.saveourtool.save.entities.cosv.CosvFile
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
+import com.saveourtool.save.utils.blockingToMono
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.nio.ByteBuffer
 
 /**
  * Storage for COSV files.
@@ -20,4 +23,11 @@ class CosvFileStorage(
 ) : ReactiveStorageWithDatabase<CosvFile, CosvFile, CosvFileS3KeyManager>(
     s3Operations,
     s3KeyManager
-)
+) {
+    /**
+     * @param identifier
+     * @return content of latest COSV file found by [identifier]
+     */
+    fun downloadLatest(identifier: String): Flux<ByteBuffer> = blockingToMono { s3KeyManager.findLatest(identifier) }
+        .flatMapMany { download(it) }
+}

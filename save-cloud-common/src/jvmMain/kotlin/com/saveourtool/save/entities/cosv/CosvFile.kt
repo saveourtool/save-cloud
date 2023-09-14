@@ -15,9 +15,6 @@ import javax.persistence.ManyToOne
 class CosvFile(
     var identifier: String,
     var modified: LocalDateTime,
-    @ManyToOne
-    @JoinColumn(name = "vulnerability_metadata_id")
-    var metadata: VulnerabilityMetadata,
 ) : BaseEntity() {
     override fun toString(): String = "CosvFile(identifier=$identifier, modified=$modified)"
 }

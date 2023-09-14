@@ -125,7 +125,7 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestRawExt(cosvId)
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),

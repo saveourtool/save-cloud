@@ -52,4 +52,11 @@ class CosvProcessor(
         user: User,
         organization: Organization,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, rawSerializer, user, organization)
+
+    companion object {
+        /**
+         * [KSerializer] for [RawOsvSchema]
+         */
+        val rawSerializer: KSerializer<RawOsvSchema> = serializer()
+    }
 }

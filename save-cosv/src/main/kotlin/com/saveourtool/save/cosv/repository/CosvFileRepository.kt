@@ -16,4 +16,10 @@ interface CosvFileRepository : BaseEntityRepository<CosvFile> {
      * @return [CosvFile] found by provided values
      */
     fun findByIdentifierAndModified(identifier: String, modifier: LocalDateTime): CosvFile?
+
+    /**
+     * @param identifier
+     * @return [CosvFile] found by [CosvFile.identifier] and with max [CosvFile.modified]
+     */
+    fun findByIdentifierAndTopByModified(identifier: String): CosvFile?
 }

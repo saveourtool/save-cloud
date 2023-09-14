@@ -13,7 +13,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.KSerializer
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
-typealias CosvSchemaMono<D, A_E, A_D, A_R_D> = Mono<CosvSchema<D, A_E, A_D, A_R_D>>
 @Suppress("TYPEALIAS_NAME_INCORRECT_CASE")
 typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, A_E, A_D, A_R_D>>
 
@@ -38,32 +37,20 @@ interface CosvRepository {
     ): Mono<VulnerabilityMetadataDto>
 
     /**
-     * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]
-     *
-     * @param cosvId
-     * @param serializer [KSerializer] to decode entry from JSON
-     * @return [Mono] with [CosvSchema]
-     */
-    fun <D, A_E, A_D, A_R_D> findLatestById(
-        cosvId: String,
-        serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
-    ): CosvSchemaMono<D, A_E, A_D, A_R_D>
-
-    /**
      * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
      *
-     * @param cosvId
+     * @param identifier
      * @return [Mono] with [VulnerabilityExt]
      */
-    fun findLatestRawExt(
-        cosvId: String,
+    fun findLatestExt(
+        identifier: String,
     ): Mono<VulnerabilityExt>
 
     /**
-     * @param cosvId
+     * @param identifier
      * @return [Flux] with removed versions
      */
     fun delete(
-        cosvId: String,
+        identifier: String,
     ): Flux<LocalDateTime>
 }
