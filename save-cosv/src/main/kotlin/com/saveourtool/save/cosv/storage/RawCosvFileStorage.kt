@@ -6,7 +6,9 @@ import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
+import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
@@ -22,12 +24,22 @@ typealias OrganizationAndOwner = Pair<Organization, User>
  */
 @Component
 class RawCosvFileStorage(
-    s3Operations: S3Operations,
+    private val s3Operations: S3Operations,
     s3KeyManager: RawCosvFileS3KeyManager,
 ) : ReactiveStorageWithDatabase<RawCosvFileDto, RawCosvFile, RawCosvFileS3KeyManager>(
     s3Operations,
     s3KeyManager,
 ) {
+    /**
+     * Init method to remove deleted (unexpected) ids which are detected in storage, but missed in database
+     */
+    override fun doInit(underlying: DefaultStorageProjectReactor<RawCosvFileDto>): Mono<Unit> = Mono.fromFuture {
+        s3Operations.deleteUnexpectedKeys(
+            storageName = "${this::class.simpleName}",
+            s3KeyManager = s3KeyManager,
+        )
+    }.publishOn(s3Operations.scheduler)
+
     /**
      * @param organizationName
      * @return all [RawCosvFileDto]s which has provided [RawCosvFile.organization]

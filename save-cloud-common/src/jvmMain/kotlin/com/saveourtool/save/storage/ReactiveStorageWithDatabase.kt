@@ -21,10 +21,7 @@ open class ReactiveStorageWithDatabase<K : Any, E : BaseEntity, M : AbstractS3Ke
     override fun doInit(underlying: DefaultStorageProjectReactor<K>): Mono<Unit> = Mono.fromFuture {
         s3Operations.backupUnexpectedKeys(
             storageName = "${this::class.simpleName}",
-            commonPrefix = s3KeyManager.commonPrefix,
-        ) { s3Key ->
-            val id = s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()
-            s3KeyManager.findKeyByEntityId(id)?.let { true } ?: false
-        }
+            s3KeyManager = s3KeyManager,
+        )
     }.publishOn(s3Operations.scheduler)
 }

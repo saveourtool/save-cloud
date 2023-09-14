@@ -177,7 +177,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                         +when (file.status) {
                             RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
-                            RawCosvFileStatus.PROCESSED -> " (processed)"
+                            RawCosvFileStatus.PROCESSED -> " (processed, will be deleted after ${file.updateDate?.date})"
                             RawCosvFileStatus.FAILED -> " (with errors)"
                             else -> " "
                         }
