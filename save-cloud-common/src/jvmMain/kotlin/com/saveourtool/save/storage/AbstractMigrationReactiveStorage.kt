@@ -46,7 +46,6 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
                         .thenJust(Unit)
                         .defaultIfEmpty(Unit)
                 }
-
         }
     }
 

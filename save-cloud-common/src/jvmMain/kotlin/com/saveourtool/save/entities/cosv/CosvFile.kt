@@ -6,13 +6,13 @@ import javax.persistence.Entity
 
 /**
  * Entity for COSV repository
+ * @property identifier
+ * @property modified
  */
 @Entity
 class CosvFile(
     var identifier: String,
     var modified: LocalDateTime,
-): BaseEntity() {
-    override fun toString(): String {
-        return "CosvFile(identifier=$identifier, modified=$modified)"
-    }
+) : BaseEntity() {
+    override fun toString(): String = "CosvFile(identifier=$identifier, modified=$modified)"
 }
