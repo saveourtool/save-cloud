@@ -26,11 +26,8 @@ open class SuspendingStorageWithDatabase<K : Any, E : BaseEntity, R : BaseEntity
         withContext(s3Operations.coroutineDispatcher) {
             s3Operations.backupUnexpectedKeys(
                 storageName = "${this::class.simpleName}",
-                commonPrefix = s3KeyManager.commonPrefix,
-            ) { s3Key ->
-                val id = s3Key.removePrefix(s3KeyManager.commonPrefix).toLong()
-                repository.findById(id).isEmpty
-            }
+                s3KeyManager = s3KeyManager,
+            )
                 .asDeferred()
                 .await()
         }

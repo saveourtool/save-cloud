@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.entity.IBaseEntityWithDate
+import kotlinx.datetime.toKotlinLocalDateTime
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.Enumerated
@@ -33,9 +34,9 @@ class RawCosvFile(
     var organization: Organization,
     @Enumerated
     var status: RawCosvFileStatus,
+    var statusMessage: String? = null,
     override var createDate: LocalDateTime? = null,
     override var updateDate: LocalDateTime? = null,
-    var statusMessage: String? = null,
 ) : BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
     override fun toDto(): RawCosvFileDto = RawCosvFileDto(
         fileName = fileName,
@@ -43,6 +44,7 @@ class RawCosvFile(
         organizationName = organization.name,
         status = status,
         statusMessage = statusMessage,
+        updateDate = requiredUpdateDate().toKotlinLocalDateTime(),
         id = requiredId(),
     )
 

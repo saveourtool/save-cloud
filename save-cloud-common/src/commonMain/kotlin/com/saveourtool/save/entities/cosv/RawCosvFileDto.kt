@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.DtoWithId
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -10,8 +11,9 @@ import kotlinx.serialization.Serializable
  * @property userName
  * @property organizationName
  * @property status
- * @property id
  * @property statusMessage
+ * @property updateDate
+ * @property id
  */
 @Serializable
 data class RawCosvFileDto(
@@ -20,5 +22,6 @@ data class RawCosvFileDto(
     val organizationName: String,
     val status: RawCosvFileStatus = RawCosvFileStatus.UPLOADED,
     val statusMessage: String? = null,
+    val updateDate: LocalDateTime? = null,
     override val id: Long? = null,
 ) : DtoWithId()
