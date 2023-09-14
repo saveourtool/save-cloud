@@ -1,6 +1,5 @@
 package com.saveourtool.save.cosv.storage
 
-import com.saveourtool.save.cosv.repository.RawCosvFileRepository
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
@@ -25,11 +24,9 @@ typealias OrganizationAndOwner = Pair<Organization, User>
 class RawCosvFileStorage(
     s3Operations: S3Operations,
     s3KeyManager: RawCosvFileS3KeyManager,
-    repository: RawCosvFileRepository,
-) : ReactiveStorageWithDatabase<RawCosvFileDto, RawCosvFile, RawCosvFileRepository, RawCosvFileS3KeyManager>(
+) : ReactiveStorageWithDatabase<RawCosvFileDto, RawCosvFile, RawCosvFileS3KeyManager>(
     s3Operations,
     s3KeyManager,
-    repository,
 ) {
     /**
      * @param organizationName

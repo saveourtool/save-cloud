@@ -12,6 +12,11 @@ import java.time.Instant
  */
 interface StorageProjectReactor<K> {
     /**
+     * @return true if init is done already
+     */
+    fun isInitDone(): Boolean = true
+
+    /**
      * @return list of keys in storage
      */
     @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")

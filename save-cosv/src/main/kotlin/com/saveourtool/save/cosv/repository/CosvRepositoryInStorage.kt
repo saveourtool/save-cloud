@@ -3,6 +3,7 @@ package com.saveourtool.save.cosv.repository
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.storage.CosvKey
 import com.saveourtool.save.cosv.storage.CosvStorage
+import com.saveourtool.save.cosv.storage.MigrationCosvObjectStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
@@ -31,7 +32,7 @@ import kotlinx.serialization.serializer
  */
 @Component
 class CosvRepositoryInStorage(
-    private val cosvStorage: CosvStorage,
+    private val cosvFileStorage: MigrationCosvObjectStorage,
     private val vulnerabilityMetadataRepository: VulnerabilityMetadataRepository,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val backendService: IBackendService,
@@ -46,7 +47,7 @@ class CosvRepositoryInStorage(
         user: User,
         organization: Organization?,
     ): Mono<VulnerabilityMetadataDto> = saveMetadata(entry, user, organization).flatMap { metadata ->
-        cosvStorage.upload(
+        cosvFileStorage.upload(
             metadata.toStorageKey(),
             json.encodeToString(serializer, entry).encodeToByteArray(),
         ).map { metadata }
@@ -114,7 +115,7 @@ class CosvRepositoryInStorage(
     private fun <D, A_E, A_D, A_R_D> doDownload(
         metadata: VulnerabilityMetadata,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
-    ) = cosvStorage.download(metadata.toDto().toStorageKey())
+    ) = cosvFileStorage.download(metadata.toDto().toStorageKey())
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
@@ -123,8 +124,8 @@ class CosvRepositoryInStorage(
             vulnerabilityMetadataRepository.delete(it)
         }
     }.flatMapMany {
-        cosvStorage.list(cosvId)
-            .flatMap { key -> cosvStorage.delete(key).map { key.modified } }
+        cosvFileStorage.list(cosvId)
+            .flatMap { key -> cosvFileStorage.delete(key).map { key.modified } }
     }
 
     companion object {

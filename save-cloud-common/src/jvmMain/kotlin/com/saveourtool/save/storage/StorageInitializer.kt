@@ -37,6 +37,11 @@ class StorageInitializer(
     constructor(clazz: KClass<*>) : this(clazz.simpleName ?: clazz.java.simpleName)
 
     /**
+     * @return true if initializer is done already
+     */
+    fun isDone(): Boolean = isInitStarted.get() && isInitFinishedCount.get() == 0
+
+    /**
      * Init method using method that returns [Mono] and suspend function together
      * Both function can be empty
      *
@@ -119,7 +124,7 @@ class StorageInitializer(
 
     companion object {
         private val log: Logger = getLogger<StorageInitializer>()
-        private val initScheduler: Scheduler = Schedulers.boundedElastic()
+        private val initScheduler: Scheduler = Schedulers.newBoundedElastic(5, Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE, "storage-init-")
         private val initCoroutineDispatcher: CoroutineDispatcher = initScheduler.asCoroutineDispatcher()
     }
 }

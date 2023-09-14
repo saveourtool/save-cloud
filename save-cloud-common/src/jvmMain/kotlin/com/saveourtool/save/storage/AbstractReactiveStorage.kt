@@ -38,6 +38,8 @@ abstract class AbstractReactiveStorage<K : Any>(
         }
     }
 
+    override fun isInitDone() = initializer.isDone()
+
     /**
      * @param underlying
      * @return result of init method as [Mono] without body, it's [Mono.empty] by default
