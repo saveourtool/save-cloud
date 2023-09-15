@@ -19,17 +19,4 @@
         </createTable>
         <addUniqueConstraint tableName="cosv_file" columnNames="identifier,modified" constraintName="uq_osv_file"/>
     </changeSet>
-
-    <changeSet id="cosv-file-2" author="nulls">
-        <addColumn tableName="cosv_file">
-            <column name="prev_cosv_file_id" type="bigint">
-                <constraints foreignKeyName="fk_cosv_file_prev_cosv_file" references="cosv_file(id)"
-                             deleteCascade="true" nullable="true"/>
-            </column>
-            <column name="vulnerability_metadata_id" type="bigint">
-                <constraints foreignKeyName="fk_cosv_file_vulnerability_metdata" references="vulnerability_metadata(id)"
-                             deleteCascade="true" nullable="true"/>
-            </column>
-        </addColumn>
-    </changeSet>
 </databaseChangeLog>
