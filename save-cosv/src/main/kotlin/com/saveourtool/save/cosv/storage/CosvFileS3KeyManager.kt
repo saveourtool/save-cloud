@@ -26,12 +26,6 @@ class CosvFileS3KeyManager(
     override fun findByContent(key: CosvFile): CosvFile? = repository.findByIdentifierAndModified(key.identifier, key.modified)
 
     /**
-     * @param identifier
-     * @return latest [CosvFile] by [identifier]
-     */
-    fun findLatest(identifier: String): CosvFile? = repository.findByIdentifierAndTopByModified(identifier)
-
-    /**
      * Updates [cosvFile] by setting a link to prev cosv file and to [vulnerabilityMetadata]
      *
      * @param cosvFile

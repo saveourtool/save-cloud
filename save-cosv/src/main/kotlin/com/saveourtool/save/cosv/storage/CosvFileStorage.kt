@@ -21,11 +21,4 @@ class CosvFileStorage(
 ) : ReactiveStorageWithDatabase<CosvFile, CosvFile, CosvFileS3KeyManager>(
     s3Operations,
     s3KeyManager
-) {
-    /**
-     * @param identifier
-     * @return content of latest COSV file found by [identifier]
-     */
-    fun downloadLatest(identifier: String): Flux<ByteBuffer> = blockingToMono { s3KeyManager.findLatest(identifier) }
-        .flatMapMany { download(it) }
-}
+)
