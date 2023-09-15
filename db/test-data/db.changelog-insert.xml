@@ -33,6 +33,7 @@
     <include file="vulnerability-metadata-insert.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-metadata-project-insert.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-metadata-user-insert.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-file-insert.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="add-tests-data" author="nulls">
         <tagDatabase tag="test-data-insert"/>
