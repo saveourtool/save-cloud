@@ -13,6 +13,9 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
+import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -20,6 +23,7 @@ import reactor.kotlin.core.publisher.toFlux
 
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
+import org.springframework.expression.spel.ast.Identifier
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
@@ -32,6 +36,8 @@ class CosvService(
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,
+    private val vulnerabilityMetadataService: VulnerabilityMetadataService,
+    private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
 ) {
     /**
      * @param rawCosvFileIds
@@ -86,7 +92,7 @@ class CosvService(
         val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
         user to organization
     }.flatMap { (user, organization) ->
-        val osv = ManualCosvSchema(
+        val generatedCosv = ManualCosvSchema(
             id = vulnerabilityDto.identifier,
             published = (vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
             modified = (vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
@@ -109,9 +115,8 @@ class CosvService(
             },
             credits = vulnerabilityDto.getAllParticipants().asCredits().takeUnless { it.isEmpty() },
         )
-        cosvRepository.save(
-            entry = osv,
-            serializer = serializer(),
+        save(
+            cosv = generatedCosv,
             user = user,
             organization = organization,
         )
@@ -124,8 +129,8 @@ class CosvService(
      */
     fun update(
         cosvId: String,
-        updater: (RawOsvSchema) -> Mono<RawOsvSchema>,
-    ): Mono<VulnerabilityMetadataDto> = cosvRepository.findLatestExt(cosvId)
+        updater: (RawCosvSchema) -> Mono<RawCosvSchema>,
+    ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 backendService.getUserByName(rawCosvExt.metadata.user.name),
@@ -138,14 +143,49 @@ class CosvService(
             val (owner, organization) = infoFromDatabase
             updater(rawCosvExt.cosv)
                 .flatMap { newCosv ->
-                    cosvRepository.save(
-                        entry = newCosv.copy(modified = getCurrentLocalDateTime().truncatedToMills()),
-                        serializer = serializer(),
+                    save(
+                        cosv = newCosv.copy(modified = getCurrentLocalDateTime().truncatedToMills()),
                         user = owner,
                         organization = organization,
                     )
                 }
         }
+
+    private inline fun <reified D, reified A_E, reified A_D, reified A_R_D> save(
+        cosv: CosvSchema<D, A_E, A_D, A_R_D>,
+        user: User,
+        organization: Organization?,
+    ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
+        .flatMap { key ->
+            blockingToMono {
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization).toDto()
+            }
+                .onErrorResume { error ->
+                    log.error(error) {
+                        "Failed to save/update metadata for $key, cleaning up"
+                    }
+                    cosvRepository.delete(key).then(Mono.error(error))
+                }
+        }
+
+    /**
+     * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
+     *
+     * @param identifier
+     * @return [Mono] with [VulnerabilityExt]
+     */
+    fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
+        .flatMap { metadata ->
+            cosvRepository.download(metadata.requiredLatestCosvFile(), serializer<RawCosvSchema>()).blockingMap { content ->
+                VulnerabilityExt(
+                    metadata = metadata.toDto(),
+                    cosv = content,
+                    saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
+                    tags = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataId(metadata.requiredId()).map { it.tag.name }.toSet(),
+                )
+            }
+        }
+
 
     companion object {
         private val log: Logger = getLogger<CosvService>()

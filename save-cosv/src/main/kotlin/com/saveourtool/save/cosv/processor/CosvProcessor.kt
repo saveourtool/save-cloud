@@ -6,7 +6,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 
-import com.saveourtool.osv4k.RawOsvSchema
+import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
@@ -26,16 +26,16 @@ import kotlinx.serialization.serializer
 class CosvProcessor(
     private val cosvRepository: CosvRepository,
 ) {
-    private val rawSerializer: KSerializer<RawOsvSchema> = serializer()
+    private val rawSerializer: KSerializer<RawCosvSchema> = serializer()
 
     /**
      * @param inputStream content of raw COSV file
-     * @return list of [RawOsvSchema]
+     * @return list of [RawCosvSchema]
      */
     @OptIn(ExperimentalSerializationApi::class)
     fun decode(
         inputStream: InputStream,
-    ): List<RawOsvSchema> = Json.decodeFromStream<JsonElement>(inputStream)
+    ): List<RawCosvSchema> = Json.decodeFromStream<JsonElement>(inputStream)
         .toJsonArrayOrSingle()
         .map { jsonElement ->
             Json.decodeFromJsonElement(rawSerializer, jsonElement)
@@ -48,15 +48,15 @@ class CosvProcessor(
      * @return [VulnerabilityMetadataDto]
      */
     fun save(
-        cosv: RawOsvSchema,
+        cosv: RawCosvSchema,
         user: User,
         organization: Organization,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, rawSerializer, user, organization)
 
     companion object {
         /**
-         * [KSerializer] for [RawOsvSchema]
+         * [KSerializer] for [RawCosvSchema]
          */
-        val rawSerializer: KSerializer<RawOsvSchema> = serializer()
+        val rawSerializer: KSerializer<RawCosvSchema> = serializer()
     }
 }
