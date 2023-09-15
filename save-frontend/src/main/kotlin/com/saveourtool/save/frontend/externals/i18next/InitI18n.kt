@@ -32,7 +32,10 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     'table-headers',
                     'thanks-for-registration',
                     'vulnerability-collection',
-                    'welcome'
+                    'welcome',
+                    'vulnerability',
+                    'comments',
+                    'dates'
                 ],
                 backend: {
                     loadPath: '/locales/{{lng}}/{{ns}}.json'

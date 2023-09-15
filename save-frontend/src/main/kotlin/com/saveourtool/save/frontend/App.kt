@@ -108,7 +108,7 @@ fun main() {
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
-    initI18n()
+    initI18n(true)
     val mainDiv = document.getElementById("wrapper") as HTMLElement
     createRoot(mainDiv).render(App.create())
 }
