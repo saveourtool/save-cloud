@@ -13074,6 +13074,9 @@
           "statusMessage": {
             "type": "string"
           },
+          "updateDate": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
           "userName": {
             "type": "string"
           }
