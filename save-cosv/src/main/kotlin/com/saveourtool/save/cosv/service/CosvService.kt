@@ -74,7 +74,7 @@ class CosvService(
                 return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
             }
             cosvListOpt.toFlux()
-                .flatMap { cosvProcessor.save(it, user, organization) }
+                .flatMap { save(it, user, organization) }
                 .collectList()
                 .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
         }

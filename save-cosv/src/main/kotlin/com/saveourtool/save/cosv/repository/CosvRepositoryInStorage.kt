@@ -42,6 +42,8 @@ class CosvRepositoryInStorage(
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
 
+    override fun delete(key: CosvFile): Mono<Unit> = cosvFileStorage.delete(key).filter { it }.thenReturn(Unit)
+
     override fun deleteAll(identifier: String): Flux<LocalDateTime> = cosvFileStorage.list(identifier)
         .flatMap { key -> cosvFileStorage.delete(key).map { key.modified.toKotlinLocalDateTime() } }
 
