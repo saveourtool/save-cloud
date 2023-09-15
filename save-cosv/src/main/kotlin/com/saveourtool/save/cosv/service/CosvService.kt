@@ -4,18 +4,18 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
-import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -23,7 +23,6 @@ import reactor.kotlin.core.publisher.toFlux
 
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
-import org.springframework.expression.spel.ast.Identifier
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
@@ -185,7 +184,6 @@ class CosvService(
                 )
             }
         }
-
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
