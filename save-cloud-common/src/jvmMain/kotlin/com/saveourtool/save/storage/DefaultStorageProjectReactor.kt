@@ -32,16 +32,11 @@ class DefaultStorageProjectReactor<K : Any>(
 ) : StorageProjectReactor<K> {
     private val log: Logger = getLogger(this::class)
 
-    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
-    override fun list(): Flux<K> = doList(s3KeyManager.commonPrefix)
-
-    override fun list(prefix: String): Flux<K> = doList(s3KeyManager.commonPrefix + prefix.removePrefix(PATH_DELIMITER))
-
-    private fun doList(prefix: String): Flux<K> = s3Operations.listObjectsV2(prefix)
+    override fun list(): Flux<K> = s3Operations.listObjectsV2(s3KeyManager.commonPrefix)
         .toMonoAndPublishOn()
         .expand { lastResponse ->
             if (lastResponse.isTruncated) {
-                s3Operations.listObjectsV2(prefix, lastResponse.nextContinuationToken())
+                s3Operations.listObjectsV2(s3KeyManager.commonPrefix, lastResponse.nextContinuationToken())
                     .toMonoAndPublishOn()
             } else {
                 Mono.empty()
@@ -128,6 +123,15 @@ class DefaultStorageProjectReactor<K : Any>(
         .thenReturn(true)
         .defaultIfEmpty(false)
 
+    override fun deleteAll(keys: Collection<K>): Mono<Boolean> = keys.toFlux()
+        .flatMap { findExistedS3Key(it) }
+        .flatMap { s3Key ->
+            s3Operations.deleteObject(s3Key).toMonoAndPublishOn()
+        }
+        .flatMap { deleteKeys(keys) }
+        .thenJust(true)
+        .defaultIfEmpty(false)
+
     override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.headObject(s3Key)
             .toMonoAndPublishOn()
@@ -154,6 +158,8 @@ class DefaultStorageProjectReactor<K : Any>(
     private fun <T : Any> CompletableFuture<out T?>.toMonoAndPublishOn(): Mono<T> = toMono().publishOn(s3Operations.scheduler)
 
     private fun deleteKey(key: K): Mono<Unit> = s3KeyManager.callAsMono { delete(key) }
+
+    private fun deleteKeys(keys: Collection<K>): Mono<Unit> = s3KeyManager.callAsMono { deleteAll(keys) }
 
     private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
 

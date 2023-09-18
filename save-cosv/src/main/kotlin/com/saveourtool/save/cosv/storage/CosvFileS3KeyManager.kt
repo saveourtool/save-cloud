@@ -7,6 +7,7 @@ import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
 import com.saveourtool.save.utils.BlockingBridge
+import org.springframework.expression.spel.ast.Identifier
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,20 +27,25 @@ class CosvFileS3KeyManager(
     override fun findByContent(key: CosvFile): CosvFile? = repository.findByIdentifierAndModified(key.identifier, key.modified)
 
     /**
-     * Updates [cosvFile] by setting a link to prev cosv file and to [vulnerabilityMetadata]
+     * @param identifier
+     * @return all [CosvFile] found by provided [identifier]
+     */
+    fun findAllByIdentifier(identifier: String): Collection<CosvFile> = repository.findAllByIdentifier(identifier)
+
+    /**
+     * Updates [cosvFile] by setting a link to prev cosv file
      *
      * @param cosvFile
      * @param vulnerabilityMetadata
      * @return updated [cosvFile]
      */
     @Transactional
-    fun updateByVulnerabilityMetadata(
+    fun setPrevCosvFile(
         cosvFile: CosvFile,
         vulnerabilityMetadata: VulnerabilityMetadata,
     ): CosvFile = repository.save(
         cosvFile.apply {
             this.prevCosvFile = vulnerabilityMetadata.requiredLatestCosvFile()
-            this.vulnerabilityMetadata = vulnerabilityMetadata
         }
     )
 }

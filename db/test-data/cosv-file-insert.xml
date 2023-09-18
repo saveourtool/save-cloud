@@ -10,12 +10,8 @@
             <column header="id" name="id" type="NUMERIC" />
             <column header="identifier" name="identifier" type="varchar(250)" />
             <column header="modified" name="modified" type="DATE" />
-            <column header="vulnerability_metadata_id" type="NUMERIC"/>
+            <column header="prev_cosv_file_id" name="prev_cosv_file_id" type="NUMERIC"/>
         </loadData>
-        <sql>
-            update vulnerability_metadata
-            set vulnerability_metadata.latest_cosv_file_id = (select cosv_file.id from cosv_file where cosv_file.identifier = vulnerability_metadata.identifier)
-        </sql>
     </changeSet>
 
 </databaseChangeLog>

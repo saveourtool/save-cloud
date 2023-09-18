@@ -44,8 +44,13 @@ class CosvRepositoryInStorage(
 
     override fun delete(key: CosvFile): Mono<Unit> = cosvFileStorage.delete(key).filter { it }.thenReturn(Unit)
 
-    override fun deleteAll(identifier: String): Flux<LocalDateTime> = cosvFileStorage.list(identifier)
-        .flatMap { key -> cosvFileStorage.delete(key).map { key.modified.toKotlinLocalDateTime() } }
+    override fun deleteAll(identifier: String): Flux<LocalDateTime> = cosvFileStorage.listByIdentifier(identifier)
+        .collectList()
+        .flatMapMany { keys ->
+            cosvFileStorage.deleteAll(keys).flatMapIterable {
+                keys.map { it.modified.toKotlinLocalDateTime() }
+            }
+        }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toCosvFile() = CosvFile(
