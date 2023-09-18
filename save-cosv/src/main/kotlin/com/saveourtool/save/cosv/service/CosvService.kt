@@ -65,17 +65,25 @@ class CosvService(
     ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
-            val cosvListOpt = try {
-                cosvProcessor.decode(inputStream)
-            } catch (e: SerializationException) {
-                val errorMessage: () -> String = { "Failed to process raw COSV file with id: $rawCosvFileId" }
-                log.error(e, errorMessage)
-                return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
+            val errorMessage by lazy {
+                "Failed to process raw COSV file with id: $rawCosvFileId"
             }
-            cosvListOpt.toFlux()
-                .flatMap { save(it, user, organization) }
+            Mono.fromCallable {
+                cosvProcessor.decode(inputStream)
+            }
+                .flatMapIterable { it }
+                .flatMap { save(it, user, organization, isBulkUpload = true) }
+                .onErrorResume { error ->
+                    val cause = error.firstCauseOrThis()
+                    rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${cause.message}")
+                        .then(Mono.error(error))
+                }
                 .collectList()
                 .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
+                .onErrorResume { error ->
+                    log.error(error) { errorMessage }
+                    Mono.just(Unit)
+                }
         }
 
     /**
@@ -154,10 +162,11 @@ class CosvService(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
+        isBulkUpload: Boolean = false,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
         .flatMap { key ->
             blockingToMono {
-                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization).toDto()
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isBulkUpload).toDto()
             }
                 .onErrorResume { error ->
                     log.error(error) {
@@ -187,5 +196,6 @@ class CosvService(
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
+        private fun Throwable.firstCauseOrThis(): Throwable = generateSequence(this, Throwable::cause).last()
     }
 }
