@@ -7,7 +7,6 @@ import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
 import com.saveourtool.save.utils.BlockingBridge
-import org.springframework.expression.spel.ast.Identifier
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
