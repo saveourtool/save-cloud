@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
