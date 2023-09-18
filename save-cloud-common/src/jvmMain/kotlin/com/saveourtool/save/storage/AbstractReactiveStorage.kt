@@ -46,10 +46,7 @@ abstract class AbstractReactiveStorage<K : Any>(
      */
     protected open fun doInit(underlying: DefaultStorageProjectReactor<K>): Mono<Unit> = Mono.empty()
 
-    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     override fun list(): Flux<K> = initializer.validateAndRun { storageProjectReactor.list() }
-
-    override fun list(prefix: String): Flux<K> = initializer.validateAndRun { storageProjectReactor.list(prefix) }
 
     override fun download(key: K): Flux<ByteBuffer> = initializer.validateAndRun { storageProjectReactor.download(key) }
 
@@ -58,6 +55,8 @@ abstract class AbstractReactiveStorage<K : Any>(
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = initializer.validateAndRun { storageProjectReactor.upload(key, contentLength, content) }
 
     override fun delete(key: K): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.delete(key) }
+
+    override fun deleteAll(keys: Collection<K>): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.deleteAll(keys) }
 
     override fun lastModified(key: K): Mono<Instant> = initializer.validateAndRun { storageProjectReactor.lastModified(key) }
 

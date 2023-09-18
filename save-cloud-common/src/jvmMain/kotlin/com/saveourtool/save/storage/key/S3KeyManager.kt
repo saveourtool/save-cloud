@@ -10,9 +10,14 @@ interface S3KeyManager<K : Any> {
     val commonPrefix: String
 
     /**
-     * @param key key which needs to delete
+     * @param key key which needs to be deleted
      */
     fun delete(key: K)
+
+    /**
+     * @param keys keys which need to be deleted
+     */
+    fun deleteAll(keys: Collection<K>)
 
     /**
      * @param s3Key cannot start with [com.saveourtool.save.storage.PATH_DELIMITER]
