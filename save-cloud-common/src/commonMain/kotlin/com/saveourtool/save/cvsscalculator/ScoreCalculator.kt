@@ -2,33 +2,18 @@
 
 package com.saveourtool.save.cvsscalculator
 
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.ATTACK_COMPLEXITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.ATTACK_VECTOR
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.AVAILABILITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.CONFIDENTIALITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.CVSS_VERSION
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.INTEGRITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.PRIVILEGES_REQUIRED
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.SCOPE
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.USER_INTERACTION
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.ATTACK_COMPLEXITY
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.ATTACK_VECTOR
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.AVAILABILITY
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.CONFIDENTIALITY
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.CVSS_VERSION
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.INTEGRITY
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.PRIVILEGES_REQUIRED
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.SCOPE
+import com.saveourtool.save.cvsscalculator.BaseMetrics.Companion.USER_INTERACTION
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
-
-@Suppress("UtilityClassWithPublicConstructor")
-private class CvssMetrics {
-    companion object {
-        const val ATTACK_COMPLEXITY = "AC"
-        const val ATTACK_VECTOR = "AV"
-        const val AVAILABILITY = "A"
-        const val CONFIDENTIALITY = "C"
-        const val CVSS_VERSION = "CVSS"
-        const val INTEGRITY = "I"
-        const val PRIVILEGES_REQUIRED = "PR"
-        const val SCOPE = "S"
-        const val USER_INTERACTION = "UI"
-    }
-}
 
 @Suppress(
     "UnsafeCallOnNullableType",
@@ -36,7 +21,7 @@ private class CvssMetrics {
 private fun String.parsingVector(): BaseMetrics {
     val values = this.toMap()
     return BaseMetrics(
-        version = values.getValue(CVSS_VERSION).toFloat(),
+        version = values.findOrElseThrow(CVSS_VERSION, CvssVersion::value),
         attackVector = values.findOrElseThrow(ATTACK_VECTOR, AttackVectorType::value),
         attackComplexity = values.findOrElseThrow(ATTACK_COMPLEXITY, AttackComplexityType::value),
         privilegeRequired = values.findOrElseThrow(PRIVILEGES_REQUIRED, PrivilegesRequiredType::value),
@@ -71,6 +56,12 @@ fun calculateScore(vector: String): Float {
     val baseMetrics = vector.parsingVector()
     return calculate(baseMetrics)
 }
+
+/**
+ * @param baseMetrics
+ * @return base score criticality
+ */
+fun calculateScore(baseMetrics: BaseMetrics): Float = calculate(baseMetrics)
 
 @Suppress(
     "FLOAT_IN_ACCURATE_CALCULATIONS",
