@@ -18,8 +18,11 @@ import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+
+import java.nio.ByteBuffer
 
 import kotlinx.serialization.serializer
 
@@ -192,6 +195,13 @@ class CosvService(
                 )
             }
         }
+
+    /**
+     * @param identifier
+     * @return [Flux] of [ByteBuffer] with COSV's content
+     */
+    fun getVulnerabilityAsCosvStream(identifier: String): Flux<ByteBuffer> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
+        .flatMapMany { metadata -> cosvRepository.downloadAsStream(metadata.latestCosvFile) }
 
     companion object {
         private val log: Logger = getLogger<CosvService>()

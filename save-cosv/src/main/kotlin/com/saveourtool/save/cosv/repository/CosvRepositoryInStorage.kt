@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import java.nio.ByteBuffer
+
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
@@ -41,6 +43,8 @@ class CosvRepositoryInStorage(
     ): CosvSchemaMono<D, A_E, A_D, A_R_D> = cosvFileStorage.download(key)
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
+
+    override fun downloadAsStream(key: CosvFile): Flux<ByteBuffer> = cosvFileStorage.download(key)
 
     override fun delete(key: CosvFile): Mono<Unit> = cosvFileStorage.delete(key).filter { it }.thenReturn(Unit)
 
