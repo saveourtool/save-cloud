@@ -162,10 +162,11 @@ class CosvService(
         user: User,
         organization: Organization?,
         isBulkUpload: Boolean = false,
+        isGeneratedIdentifier: Boolean = false,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
         .flatMap { key ->
             blockingToMono {
-                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isBulkUpload).toDto()
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isBulkUpload, isGeneratedIdentifier).toDto()
             }
                 .onErrorResume { error ->
                     log.error(error) {
