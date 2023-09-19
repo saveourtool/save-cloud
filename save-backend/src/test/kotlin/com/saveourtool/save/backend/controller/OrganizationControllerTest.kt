@@ -95,6 +95,7 @@ import java.util.concurrent.TimeUnit
     MockBean(RawCosvFileRepository::class),
     MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
+    MockBean(VulnerabilityGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.serializer
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
@@ -65,17 +64,25 @@ class CosvService(
     ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
-            val cosvListOpt = try {
-                cosvProcessor.decode(inputStream)
-            } catch (e: SerializationException) {
-                val errorMessage: () -> String = { "Failed to process raw COSV file with id: $rawCosvFileId" }
-                log.error(e, errorMessage)
-                return@flatMap rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${e.message}")
+            val errorMessage by lazy {
+                "Failed to process raw COSV file with id: $rawCosvFileId"
             }
-            cosvListOpt.toFlux()
-                .flatMap { save(it, user, organization) }
+            Mono.fromCallable {
+                cosvProcessor.decode(inputStream)
+            }
+                .flatMapIterable { it }
+                .flatMap { save(it, user, organization, isAutoApprove = true) }
+                .onErrorResume { error ->
+                    val cause = error.firstCauseOrThis()
+                    rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${cause.message}")
+                        .then(Mono.error(error))
+                }
                 .collectList()
                 .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
+                .onErrorResume { error ->
+                    log.error(error) { errorMessage }
+                    Mono.just(Unit)
+                }
         }
 
     /**
@@ -154,10 +161,11 @@ class CosvService(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
+        isAutoApprove: Boolean = false,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
         .flatMap { key ->
             blockingToMono {
-                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization).toDto()
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isAutoApprove).toDto()
             }
                 .onErrorResume { error ->
                     log.error(error) {
@@ -175,7 +183,7 @@ class CosvService(
      */
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
-            cosvRepository.download(metadata.requiredLatestCosvFile(), serializer<RawCosvSchema>()).blockingMap { content ->
+            cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
                 VulnerabilityExt(
                     metadata = metadata.toDto(),
                     cosv = content,
@@ -187,5 +195,6 @@ class CosvService(
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
+        private fun Throwable.firstCauseOrThis(): Throwable = generateSequence(this, Throwable::cause).last()
     }
 }
