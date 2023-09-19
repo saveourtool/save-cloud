@@ -183,7 +183,7 @@ class CosvService(
      */
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
-            cosvRepository.download(metadata.requiredLatestCosvFile(), serializer<RawCosvSchema>()).blockingMap { content ->
+            cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
                 VulnerabilityExt(
                     metadata = metadata.toDto(),
                     cosv = content,
