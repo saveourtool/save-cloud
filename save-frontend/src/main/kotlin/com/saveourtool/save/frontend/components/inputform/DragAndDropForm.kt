@@ -63,6 +63,7 @@ val dragAndDropForm: FC<DragAndDropFormProps> = FC { props ->
                 multiple = props.isMultipleFilesSupported
                 hidden = true
                 onChange = { props.onChangeEventHandler(it.target.files) }
+                disabled = props.isDisabled
             }
             strong { +" Click or drag'n'drop a file " }
             onClick = { onButtonClick() }
@@ -91,4 +92,9 @@ external interface DragAndDropFormProps : Props {
      * Tooltip message that should be displayed
      */
     var tooltipMessage: String?
+
+    /**
+     * Flag that defines if the form is enabled
+     */
+    var isDisabled: Boolean
 }

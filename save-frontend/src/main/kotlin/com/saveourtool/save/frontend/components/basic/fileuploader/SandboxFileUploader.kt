@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
-import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
@@ -101,6 +100,7 @@ val sandboxFileUploader: FC<SandboxFileUploaderProps> = FC { props ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
+                    isDisabled = false
                     isMultipleFilesSupported = false
                     tooltipMessage = "upload your tested tool and all other needed files"
                     onChangeEventHandler = { files ->

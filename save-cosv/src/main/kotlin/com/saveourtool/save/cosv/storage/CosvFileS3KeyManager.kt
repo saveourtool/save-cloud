@@ -44,7 +44,7 @@ class CosvFileS3KeyManager(
         vulnerabilityMetadata: VulnerabilityMetadata,
     ): CosvFile = repository.save(
         cosvFile.apply {
-            this.prevCosvFile = vulnerabilityMetadata.requiredLatestCosvFile()
+            this.prevCosvFile = vulnerabilityMetadata.latestCosvFile
         }
     )
 }
