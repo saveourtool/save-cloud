@@ -71,7 +71,7 @@ class CosvService(
                 cosvProcessor.decode(inputStream)
             }
                 .flatMapIterable { it }
-                .flatMap { save(it, user, organization, isBulkUpload = true) }
+                .flatMap { save(it, user, organization, isAutoApprove = true) }
                 .onErrorResume { error ->
                     val cause = error.firstCauseOrThis()
                     rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.FAILED, "$errorMessage is due to ${cause.message}")
@@ -161,12 +161,11 @@ class CosvService(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
-        isBulkUpload: Boolean = false,
-        isGeneratedIdentifier: Boolean = false,
+        isAutoApprove: Boolean = false,
     ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
         .flatMap { key ->
             blockingToMono {
-                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isBulkUpload, isGeneratedIdentifier).toDto()
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isAutoApprove).toDto()
             }
                 .onErrorResume { error ->
                     log.error(error) {
