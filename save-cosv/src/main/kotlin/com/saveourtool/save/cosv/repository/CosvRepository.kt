@@ -8,6 +8,7 @@ import reactor.core.publisher.Mono
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.KSerializer
+import java.nio.ByteBuffer
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
 typealias AnyCosvSchema = CosvSchema<*, *, *, *>
@@ -42,6 +43,16 @@ interface CosvRepository {
         key: CosvFile,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
     ): CosvSchemaMono<D, A_E, A_D, A_R_D>
+
+    /**
+     * Downloads COSV from repository as [Flux] of [ByteBuffer] (stream)
+     *
+     * @param key
+     * @return [Flux] of [ByteBuffer] with content of COSV
+     */
+    fun downloadAsStream(
+        key: CosvFile,
+    ): Flux<ByteBuffer>
 
     /**
      * Deletes provided version

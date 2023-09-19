@@ -14,6 +14,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import java.nio.ByteBuffer
 
 /**
  * Implementation of [CosvRepository] using [CosvFileStorage]
@@ -41,6 +42,8 @@ class CosvRepositoryInStorage(
     ): CosvSchemaMono<D, A_E, A_D, A_R_D> = cosvFileStorage.download(key)
         .collectToInputStream()
         .map { content -> json.decodeFromStream(serializer, content) }
+
+    override fun downloadAsStream(key: CosvFile): Flux<ByteBuffer> = cosvFileStorage.download(key)
 
     override fun delete(key: CosvFile): Mono<Unit> = cosvFileStorage.delete(key).filter { it }.thenReturn(Unit)
 

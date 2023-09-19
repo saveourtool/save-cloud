@@ -22,6 +22,8 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 
 import kotlinx.serialization.serializer
+import reactor.core.publisher.Flux
+import java.nio.ByteBuffer
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
@@ -192,6 +194,13 @@ class CosvService(
                 )
             }
         }
+
+    /**
+     * @param identifier
+     * @return [Flux] of [ByteBuffer] with COSV's content
+     */
+    fun getVulnerabilityAsCosvStream(identifier: String): Flux<ByteBuffer> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
+        .flatMapMany { metadata -> cosvRepository.downloadAsStream(metadata.latestCosvFile) }
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
