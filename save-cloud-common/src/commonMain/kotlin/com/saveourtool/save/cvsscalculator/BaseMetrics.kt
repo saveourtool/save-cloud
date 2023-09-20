@@ -28,8 +28,10 @@ data class BaseMetrics(
     /**
      * @return true if BaseMetrics is valid, false otherwise
      */
-    fun isValid(): Boolean = attackVector != AttackVectorType.NOT_DEFINED && attackComplexity != AttackComplexityType.NOT_DEFINED && privilegeRequired != PrivilegesRequiredType.NOT_DEFINED &&
-            userInteraction != UserInteractionType.NOT_DEFINED && scopeMetric != ScopeType.NOT_DEFINED && confidentiality != CiaType.NOT_DEFINED && integrity != CiaType.NOT_DEFINED && availability != CiaType.NOT_DEFINED
+    fun isValid(): Boolean = attackVector != AttackVectorType.NOT_DEFINED && attackComplexity != AttackComplexityType.NOT_DEFINED &&
+            privilegeRequired != PrivilegesRequiredType.NOT_DEFINED && userInteraction != UserInteractionType.NOT_DEFINED &&
+            scopeMetric != ScopeType.NOT_DEFINED && confidentiality != CiaType.NOT_DEFINED &&
+            integrity != CiaType.NOT_DEFINED && availability != CiaType.NOT_DEFINED
 
     /**
      * @return severity score vector

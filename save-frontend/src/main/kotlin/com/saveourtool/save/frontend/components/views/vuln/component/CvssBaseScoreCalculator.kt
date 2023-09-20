@@ -1,7 +1,9 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.frontend.components.views.vuln.component
 
 import com.saveourtool.save.cvsscalculator.*
-import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -26,23 +28,6 @@ val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
 
     div {
         className = ClassName("col-12 text-center")
-
-        div {
-            className = ClassName("row justify-content-center")
-            div {
-                className = ClassName("col-4 px-2 my-2 align-self-center")
-
-                header("CVSS Version")
-                selectorBuilder(
-                    baseMetrics.version.value,
-                    CvssVersion.values().map { it.value },
-                    classes = "input-group form-control custom-select",
-                ) { event ->
-                    val entries = event.target.value
-                    setBaseMetrics { it.copy(version = CvssVersion.values().find { version -> version.value == entries }!!) }
-                }
-            }
-        }
 
         div {
             className = ClassName("row mt-4")
@@ -265,6 +250,17 @@ val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
                 }
             }
         }
+
+        div {
+            className = ClassName("mt-4 modal-footer")
+            buttonBuilder("Ok", "success", classes = "mr-2", isDisabled = !baseMetrics.isValid()) {
+                props.onCloseButtonPassed(baseMetrics)
+                props.onCloseButton()
+            }
+            buttonBuilder("Close", "secondary") {
+                props.onCloseButton()
+            }
+        }
     }
 }
 
@@ -273,9 +269,14 @@ val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
  */
 external interface CvssBaseScoreCalculatorProps : Props {
     /**
-     * Callback invoked on user click
+     * Callback to close window
      */
-    // var isImage: Boolean
+    var onCloseButton: () -> Unit
+
+    /**
+     * Callback to update base metrics
+     */
+    var onCloseButtonPassed: (BaseMetrics) -> Unit
 }
 
 private fun ChildrenBuilder.radioButton(
