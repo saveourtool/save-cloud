@@ -327,7 +327,8 @@ private fun ChildrenBuilder.header(
 }
 
 private fun getCriticality(value: Float): String = when (value) {
-    in 0f..3.9f -> "Low"
+    0f -> "None"
+    in 0.1f..3.9f -> "Low"
     in 3.9f..6.9f -> "Medium"
     in 6.9f..8.9f -> "High"
     in 8.9f..10f -> "Critical"

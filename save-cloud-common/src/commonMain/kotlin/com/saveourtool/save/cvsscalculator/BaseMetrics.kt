@@ -1,3 +1,5 @@
+@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
+
 package com.saveourtool.save.cvsscalculator
 
 import kotlinx.serialization.Serializable
@@ -37,21 +39,13 @@ data class BaseMetrics(
      * @return severity score vector
      */
     fun scoreVectorString() =
-            "$CVSS_VERSION:${version.value}/$ATTACK_VECTOR:${attackVector.value}/" +
-                    "$ATTACK_COMPLEXITY:${attackComplexity.value}/$PRIVILEGES_REQUIRED:${privilegeRequired.value}/" +
-                    "$USER_INTERACTION:${userInteraction.value}/$SCOPE:${scopeMetric.value}/" +
-                    "$CONFIDENTIALITY:${confidentiality.value}/$INTEGRITY:${integrity.value}/$AVAILABILITY:${availability.value}"
+            "${BaseMetricsNames.CVSS_VERSION.value}:${version.value}/${BaseMetricsNames.ATTACK_VECTOR.value}:${attackVector.value}/" +
+                    "${BaseMetricsNames.ATTACK_COMPLEXITY.value}:${attackComplexity.value}/${BaseMetricsNames.PRIVILEGES_REQUIRED.value}:" +
+                    "${privilegeRequired.value}/${BaseMetricsNames.USER_INTERACTION.value}:${userInteraction.value}/${BaseMetricsNames.SCOPE.value}:" +
+                    "${scopeMetric.value}/${BaseMetricsNames.CONFIDENTIALITY.value}:${confidentiality.value}/${BaseMetricsNames.INTEGRITY.value}:" +
+                    "${integrity.value}/${BaseMetricsNames.AVAILABILITY.value}:${availability.value}"
 
     companion object {
-        const val ATTACK_COMPLEXITY = "AC"
-        const val ATTACK_VECTOR = "AV"
-        const val AVAILABILITY = "A"
-        const val CONFIDENTIALITY = "C"
-        const val CVSS_VERSION = "CVSS"
-        const val INTEGRITY = "I"
-        const val PRIVILEGES_REQUIRED = "PR"
-        const val SCOPE = "S"
-        const val USER_INTERACTION = "UI"
         val empty = BaseMetrics(
             version = CvssVersion.THREE_ONE,
             attackVector = AttackVectorType.NOT_DEFINED,
@@ -64,4 +58,23 @@ data class BaseMetrics(
             availability = CiaType.NOT_DEFINED,
         )
     }
+}
+
+/**
+ * Names of base metrics
+ *
+ * @property value abbreviated value
+ */
+@Serializable
+enum class BaseMetricsNames(val value: String) {
+    ATTACK_COMPLEXITY("AC"),
+    ATTACK_VECTOR("AV"),
+    AVAILABILITY("A"),
+    CONFIDENTIALITY("C"),
+    CVSS_VERSION("CVSS"),
+    INTEGRITY("I"),
+    PRIVILEGES_REQUIRED("PR"),
+    SCOPE("S"),
+    USER_INTERACTION("UI"),
+    ;
 }

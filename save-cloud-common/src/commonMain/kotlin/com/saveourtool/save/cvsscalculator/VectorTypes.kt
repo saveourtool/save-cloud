@@ -93,8 +93,8 @@ enum class CiaType(val value: String) {
  */
 @Serializable
 enum class CvssVersion(val value: String) {
-    FOUR("4.0"),
     THREE("3.0"),
     THREE_ONE("3.1"),
+    TWO("2.0"),
     ;
 }
