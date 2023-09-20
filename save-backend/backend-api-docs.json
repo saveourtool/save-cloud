@@ -2286,7 +2286,7 @@
     },
     "/api/v1/cosv/{organizationName}/download/{id}": {
       "get": {
-        "operationId": "download_1",
+        "operationId": "download_2",
         "parameters": [
           {
             "in": "path",
@@ -3657,7 +3657,7 @@
     "/api/v1/files/download": {
       "get": {
         "description": "Download a file by id.",
-        "operationId": "download",
+        "operationId": "download_1",
         "parameters": [
           {
             "description": "ID of additional file",
@@ -11242,6 +11242,121 @@
           }
         ],
         "summary": "Delete user.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/download": {
+      "get": {
+        "description": "Download vulnerability in COSV.",
+        "operationId": "download",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Content of vulnerability in COSV format"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Download vulnerability in COSV.",
         "tags": [
           "vulnerabilities"
         ]
