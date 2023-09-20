@@ -14,6 +14,7 @@ enum class AttackVectorType(val value: String) {
     ADJACENT_NETWORK("A"),
     LOCAL("L"),
     NETWORK("N"),
+    NOT_DEFINED("_"),
     PHYSICAL("P"),
     ;
 }
@@ -27,6 +28,7 @@ enum class AttackVectorType(val value: String) {
 enum class AttackComplexityType(val value: String) {
     HIGH("H"),
     LOW("L"),
+    NOT_DEFINED("_"),
     ;
 }
 
@@ -40,6 +42,7 @@ enum class PrivilegesRequiredType(val value: String) {
     HIGH("H"),
     LOW("L"),
     NONE("N"),
+    NOT_DEFINED("_"),
     ;
 }
 
@@ -51,6 +54,7 @@ enum class PrivilegesRequiredType(val value: String) {
 @Serializable
 enum class UserInteractionType(val value: String) {
     NONE("N"),
+    NOT_DEFINED("_"),
     REQUIRED("R"),
     ;
 }
@@ -63,6 +67,7 @@ enum class UserInteractionType(val value: String) {
 @Serializable
 enum class ScopeType(val value: String) {
     CHANGED("C"),
+    NOT_DEFINED("_"),
     UNCHANGED("U"),
     ;
 }
@@ -77,5 +82,19 @@ enum class CiaType(val value: String) {
     HIGH("H"),
     LOW("L"),
     NONE("N"),
+    NOT_DEFINED("_"),
+    ;
+}
+
+/**
+ * Version of CVSS
+ *
+ * @property value abbreviated value from the cvss version
+ */
+@Serializable
+enum class CvssVersion(val value: String) {
+    THREE("3.0"),
+    THREE_ONE("3.1"),
+    TWO("2.0"),
     ;
 }

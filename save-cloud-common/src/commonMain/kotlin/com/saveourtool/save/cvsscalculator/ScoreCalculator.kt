@@ -1,34 +1,13 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+@file:Suppress(
+    "FILE_NAME_MATCH_CLASS",
+    "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
+)
 
 package com.saveourtool.save.cvsscalculator
 
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.ATTACK_COMPLEXITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.ATTACK_VECTOR
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.AVAILABILITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.CONFIDENTIALITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.CVSS_VERSION
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.INTEGRITY
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.PRIVILEGES_REQUIRED
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.SCOPE
-import com.saveourtool.save.cvsscalculator.CvssMetrics.Companion.USER_INTERACTION
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
-
-@Suppress("UtilityClassWithPublicConstructor")
-private class CvssMetrics {
-    companion object {
-        const val ATTACK_COMPLEXITY = "AC"
-        const val ATTACK_VECTOR = "AV"
-        const val AVAILABILITY = "A"
-        const val CONFIDENTIALITY = "C"
-        const val CVSS_VERSION = "CVSS"
-        const val INTEGRITY = "I"
-        const val PRIVILEGES_REQUIRED = "PR"
-        const val SCOPE = "S"
-        const val USER_INTERACTION = "UI"
-    }
-}
 
 @Suppress(
     "UnsafeCallOnNullableType",
@@ -36,15 +15,15 @@ private class CvssMetrics {
 private fun String.parsingVector(): BaseMetrics {
     val values = this.toMap()
     return BaseMetrics(
-        version = values.getValue(CVSS_VERSION).toFloat(),
-        attackVector = values.findOrElseThrow(ATTACK_VECTOR, AttackVectorType::value),
-        attackComplexity = values.findOrElseThrow(ATTACK_COMPLEXITY, AttackComplexityType::value),
-        privilegeRequired = values.findOrElseThrow(PRIVILEGES_REQUIRED, PrivilegesRequiredType::value),
-        userInteraction = values.findOrElseThrow(USER_INTERACTION, UserInteractionType::value),
-        scopeMetric = values.findOrElseThrow(SCOPE, ScopeType::value),
-        confidentiality = values.findOrElseThrow(CONFIDENTIALITY, CiaType::value),
-        integrity = values.findOrElseThrow(INTEGRITY, CiaType::value),
-        availability = values.findOrElseThrow(AVAILABILITY, CiaType::value),
+        version = values.findOrElseThrow(BaseMetricsNames.CVSS_VERSION.value, CvssVersion::value),
+        attackVector = values.findOrElseThrow(BaseMetricsNames.ATTACK_VECTOR.value, AttackVectorType::value),
+        attackComplexity = values.findOrElseThrow(BaseMetricsNames.ATTACK_COMPLEXITY.value, AttackComplexityType::value),
+        privilegeRequired = values.findOrElseThrow(BaseMetricsNames.PRIVILEGES_REQUIRED.value, PrivilegesRequiredType::value),
+        userInteraction = values.findOrElseThrow(BaseMetricsNames.USER_INTERACTION.value, UserInteractionType::value),
+        scopeMetric = values.findOrElseThrow(BaseMetricsNames.SCOPE.value, ScopeType::value),
+        confidentiality = values.findOrElseThrow(BaseMetricsNames.CONFIDENTIALITY.value, CiaType::value),
+        integrity = values.findOrElseThrow(BaseMetricsNames.INTEGRITY.value, CiaType::value),
+        availability = values.findOrElseThrow(BaseMetricsNames.AVAILABILITY.value, CiaType::value),
     )
 }
 
@@ -71,6 +50,12 @@ fun calculateScore(vector: String): Float {
     val baseMetrics = vector.parsingVector()
     return calculate(baseMetrics)
 }
+
+/**
+ * @param baseMetrics
+ * @return base score criticality
+ */
+fun calculateScore(baseMetrics: BaseMetrics): Float = calculate(baseMetrics)
 
 @Suppress(
     "FLOAT_IN_ACCURATE_CALCULATIONS",
@@ -107,6 +92,7 @@ private fun calculate(baseMetrics: BaseMetrics): Float {
     "FLOAT_IN_ACCURATE_CALCULATIONS",
     "MagicNumber",
 )
+// https://www.first.org/cvss/v3.1/specification-document#Appendix-A---Floating-Point-Rounding
 private fun roundup(number: Float): Float {
     val value = (number * 100_000).roundToInt()
     return if (value % 10_000 == 0) {
