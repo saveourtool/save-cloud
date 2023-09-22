@@ -62,7 +62,6 @@ private fun getBaseMetricsV2(map: Map<String, String>): BaseMetricsV2 = BaseMetr
 @Suppress(
     "FLOAT_IN_ACCURATE_CALCULATIONS",
     "MagicNumber",
-    "UnsafeCallOnNullableType",
 )
 private fun calculate(baseMetricsV3: BaseMetricsV3): Float {
     val iss = 1f - (1f - cia.getWeight(baseMetricsV3.confidentiality.value)) * (1f - cia.getWeight(baseMetricsV3.integrity.value)) * (1f -
@@ -93,7 +92,7 @@ private fun calculate(baseMetricsV3: BaseMetricsV3): Float {
 @Suppress(
     "FLOAT_IN_ACCURATE_CALCULATIONS",
     "MagicNumber",
-    "UnsafeCallOnNullableType",
+    "VARIABLE_HAS_PREFIX",
 )
 private fun calculate(baseMetricsV2: BaseMetricsV2): Float {
     val impact = 10.41f * (1f - (1f - ciaImpact.getWeight(baseMetricsV2.confidentiality.value)) * (1f - ciaImpact.getWeight(baseMetricsV2.integrity.value)) * (1f -
