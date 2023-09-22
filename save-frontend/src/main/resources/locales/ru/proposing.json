@@ -1,4 +1,5 @@
 {
+  "Base Score Calculator": "Калькулятор базовой оценки",
   "Propose a new vulnerability": "Предложить уязвимость",
   "Vulnerability identifier": "Идентификатор уязвимости",
   "Short description": "Краткое описание",
@@ -7,7 +8,7 @@
   "Identifier": "Идентификатор",
   "Related link": "Ссылка",
   "Language": "Язык",
-  "Criticality": "Критичность",
+  "Severity score vector": "Вектор оценки уязвимости",
   "Organization": "Организация",
   "Collaborators": "Соавторы",
   "Affected projects": "Уязвимые проекты",
