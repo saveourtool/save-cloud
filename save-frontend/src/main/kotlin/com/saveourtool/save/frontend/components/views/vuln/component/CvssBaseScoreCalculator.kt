@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.views.vuln.component
 
 import com.saveourtool.save.cvsscalculator.*
+import com.saveourtool.save.cvsscalculator.v3.*
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import js.core.jso
 import react.ChildrenBuilder
@@ -24,7 +25,7 @@ import kotlin.Float
 
 val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
 
-    val (baseMetrics, setBaseMetrics) = useState(BaseMetrics.empty)
+    val (baseMetrics, setBaseMetrics) = useState(BaseMetricsV3.empty)
 
     div {
         className = ClassName("col-12 text-center")
@@ -276,7 +277,7 @@ external interface CvssBaseScoreCalculatorProps : Props {
     /**
      * Callback to update base metrics
      */
-    var onCloseButtonPassed: (BaseMetrics) -> Unit
+    var onCloseButtonPassed: (BaseMetricsV3) -> Unit
 }
 
 private fun ChildrenBuilder.radioButton(

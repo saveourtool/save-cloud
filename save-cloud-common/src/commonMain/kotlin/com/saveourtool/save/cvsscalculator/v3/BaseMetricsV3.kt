@@ -1,7 +1,8 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.cvsscalculator
+package com.saveourtool.save.cvsscalculator.v3
 
+import com.saveourtool.save.cvsscalculator.*
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,8 +17,8 @@ import kotlinx.serialization.Serializable
  * @property availability
  */
 @Serializable
-data class BaseMetrics(
-    var version: CvssVersion,
+data class BaseMetricsV3(
+    override var version: CvssVersion,
     var attackVector: AttackVectorType,
     var attackComplexity: AttackComplexityType,
     var privilegeRequired: PrivilegesRequiredType,
@@ -26,11 +27,11 @@ data class BaseMetrics(
     var confidentiality: CiaType,
     var integrity: CiaType,
     var availability: CiaType,
-) {
+) : IBaseMetrics {
     /**
      * @return true if BaseMetrics is valid, false otherwise
      */
-    fun isValid(): Boolean = attackVector != AttackVectorType.NOT_DEFINED && attackComplexity != AttackComplexityType.NOT_DEFINED &&
+    override fun isValid(): Boolean = attackVector != AttackVectorType.NOT_DEFINED && attackComplexity != AttackComplexityType.NOT_DEFINED &&
             privilegeRequired != PrivilegesRequiredType.NOT_DEFINED && userInteraction != UserInteractionType.NOT_DEFINED &&
             scopeMetric != ScopeType.NOT_DEFINED && confidentiality != CiaType.NOT_DEFINED &&
             integrity != CiaType.NOT_DEFINED && availability != CiaType.NOT_DEFINED
@@ -38,16 +39,16 @@ data class BaseMetrics(
     /**
      * @return severity score vector
      */
-    fun scoreVectorString() =
-            "${BaseMetricsNames.CVSS_VERSION.value}:${version.value}/${BaseMetricsNames.ATTACK_VECTOR.value}:${attackVector.value}/" +
-                    "${BaseMetricsNames.ATTACK_COMPLEXITY.value}:${attackComplexity.value}/${BaseMetricsNames.PRIVILEGES_REQUIRED.value}:" +
-                    "${privilegeRequired.value}/${BaseMetricsNames.USER_INTERACTION.value}:${userInteraction.value}/${BaseMetricsNames.SCOPE.value}:" +
-                    "${scopeMetric.value}/${BaseMetricsNames.CONFIDENTIALITY.value}:${confidentiality.value}/${BaseMetricsNames.INTEGRITY.value}:" +
-                    "${integrity.value}/${BaseMetricsNames.AVAILABILITY.value}:${availability.value}"
+    override fun scoreVectorString() =
+            "${BaseMetricsV3Names.CVSS_VERSION.value}:${version.value}/${BaseMetricsV3Names.ATTACK_VECTOR.value}:${attackVector.value}/" +
+                    "${BaseMetricsV3Names.ATTACK_COMPLEXITY.value}:${attackComplexity.value}/${BaseMetricsV3Names.PRIVILEGES_REQUIRED.value}:" +
+                    "${privilegeRequired.value}/${BaseMetricsV3Names.USER_INTERACTION.value}:${userInteraction.value}/${BaseMetricsV3Names.SCOPE.value}:" +
+                    "${scopeMetric.value}/${BaseMetricsV3Names.CONFIDENTIALITY.value}:${confidentiality.value}/${BaseMetricsV3Names.INTEGRITY.value}:" +
+                    "${integrity.value}/${BaseMetricsV3Names.AVAILABILITY.value}:${availability.value}"
 
     companion object {
-        val empty = BaseMetrics(
-            version = CvssVersion.THREE_ONE,
+        val empty = BaseMetricsV3(
+            version = CvssVersion.CVSS_V3_1,
             attackVector = AttackVectorType.NOT_DEFINED,
             attackComplexity = AttackComplexityType.NOT_DEFINED,
             privilegeRequired = PrivilegesRequiredType.NOT_DEFINED,
@@ -66,7 +67,7 @@ data class BaseMetrics(
  * @property value abbreviated value
  */
 @Serializable
-enum class BaseMetricsNames(val value: String) {
+enum class BaseMetricsV3Names(val value: String) {
     ATTACK_COMPLEXITY("AC"),
     ATTACK_VECTOR("AV"),
     AVAILABILITY("A"),
