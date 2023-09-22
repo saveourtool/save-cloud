@@ -37,9 +37,6 @@ fun calculateScore(baseMetricsV3: BaseMetricsV3): Float = calculate(baseMetricsV
  */
 fun calculateScore(baseMetricsV2: BaseMetricsV2): Float = calculate(baseMetricsV2)
 
-@Suppress(
-    "UnsafeCallOnNullableType",
-)
 private fun getBaseMetricsV3(map: Map<String, String>): BaseMetricsV3 = BaseMetricsV3(
     version = map.findOrElseThrow(BaseMetricsV3Names.CVSS_VERSION.value, CvssVersion::value),
     attackVector = map.findOrElseThrow(BaseMetricsV3Names.ATTACK_VECTOR.value, AttackVectorType::value),
@@ -52,9 +49,6 @@ private fun getBaseMetricsV3(map: Map<String, String>): BaseMetricsV3 = BaseMetr
     availability = map.findOrElseThrow(BaseMetricsV3Names.AVAILABILITY.value, CiaType::value),
 )
 
-@Suppress(
-    "UnsafeCallOnNullableType",
-)
 private fun getBaseMetricsV2(map: Map<String, String>): BaseMetricsV2 = BaseMetricsV2(
     version = map.findOrElseThrow(BaseMetricsV2Names.CVSS_VERSION.value, CvssVersion::value),
     accessVector = map.findOrElseThrow(BaseMetricsV2Names.ACCESS_VECTOR.value, AccessVectorType::value),
@@ -108,7 +102,7 @@ private fun calculate(baseMetricsV2: BaseMetricsV2): Float {
     val exploitability = 20f * accessV.getWeight(baseMetricsV2.accessVector.value) * accessC.getWeight(baseMetricsV2.accessComplexity.value) *
             auth.getWeight(baseMetricsV2.authentication.value)
 
-    val impact = if (impact == 0f) 0f else 1.176f
+    val fImpact = if (impact == 0f) 0f else 1.176f
 
     val baseScore: Float = ((0.6f * impact) + (0.4f * exploitability) - 1.5f) * fImpact
 
