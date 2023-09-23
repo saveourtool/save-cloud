@@ -53,6 +53,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import web.cssom.Overflow
 
 const val TABLE_HEADERS_LOCALE_NAMESPACE = "table-headers"
 
@@ -244,6 +245,10 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             className = ClassName("${props.cardBodyClassName} card-body")
             div {
                 className = ClassName("table-responsive")
+                // we sometimes have strange overflow with some monitor resolution in chrome
+                style = jso {
+                    overflowX = Overflow.hidden
+                }
                 table {
                     className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"} mb-0")
                     width = 100.0
