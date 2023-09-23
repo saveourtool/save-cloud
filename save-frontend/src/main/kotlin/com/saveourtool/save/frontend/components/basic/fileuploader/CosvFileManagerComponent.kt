@@ -142,7 +142,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         type = InputType.checkbox
                         id = "checkbox"
                         checked = file in selectedFiles
-                        disabled = file.status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
+                        disabled = file.isNotSelectable()
                         onChange = { event ->
                             if (event.target.checked) {
                                 setSelectedFiles { it.plus(file) }
@@ -177,7 +177,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                         +when (file.status) {
                             RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
-                            RawCosvFileStatus.PROCESSED -> " (processed)"
+                            RawCosvFileStatus.PROCESSED -> " (processed, will be deleted after ${file.updateDate?.date})"
                             RawCosvFileStatus.FAILED -> " (with errors)"
                             else -> " "
                         }
@@ -189,6 +189,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
+                    isDisabled = selectedOrganization.isNullOrEmpty()
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files"
                     onChangeEventHandler = { files ->
@@ -200,6 +201,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
+                    setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
+                }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
                 }
@@ -207,3 +211,5 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         }
     }
 }
+
+private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)

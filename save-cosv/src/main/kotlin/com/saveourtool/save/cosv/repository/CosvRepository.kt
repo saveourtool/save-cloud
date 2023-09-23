@@ -1,18 +1,18 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
+import com.saveourtool.save.entities.cosv.CosvFile
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+import java.nio.ByteBuffer
+
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.KSerializer
 
 typealias CosvSchema<D, A_E, A_D, A_R_D> = OsvSchema<D, A_E, A_D, A_R_D>
+typealias AnyCosvSchema = CosvSchema<*, *, *, *>
 typealias CosvSchemaMono<D, A_E, A_D, A_R_D> = Mono<CosvSchema<D, A_E, A_D, A_R_D>>
 @Suppress("TYPEALIAS_NAME_INCORRECT_CASE")
 typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, A_E, A_D, A_R_D>>
@@ -22,48 +22,56 @@ typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, 
  */
 interface CosvRepository {
     /**
-     * Saves [entry] in repository
+     * Saves [content] in repository
      *
-     * @param entry
-     * @param serializer [KSerializer] to encode [entry] to JSON
-     * @param user [User] who saves COSV
-     * @param organization [Organization] to which COSV is uploaded
-     * @return [Mono] with metadata for save COSV
+     * @param content
+     * @param serializer [KSerializer] to encode [content] to JSON
+     * @return [Mono] with key for saved COSV
      */
     fun <D, A_E, A_D, A_R_D> save(
-        entry: CosvSchema<D, A_E, A_D, A_R_D>,
+        content: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
-        user: User,
-        organization: Organization?,
-    ): Mono<VulnerabilityMetadataDto>
+    ): Mono<CosvFile>
 
     /**
-     * Finds entry with provided [CosvSchema.id] and max [CosvSchema.modified]
+     * Downloads COSV from repository
      *
-     * @param cosvId
-     * @param serializer [KSerializer] to decode entry from JSON
-     * @return [Mono] with [CosvSchema]
+     * @param key
+     * @param serializer [KSerializer] to decode JSON to [CosvSchema]
+     * @return [Mono] with content of COSV
      */
-    fun <D, A_E, A_D, A_R_D> findLatestById(
-        cosvId: String,
+    fun <D, A_E, A_D, A_R_D> download(
+        key: CosvFile,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,
     ): CosvSchemaMono<D, A_E, A_D, A_R_D>
 
     /**
-     * Finds extended raw cosv with [CosvSchema.id] and max [CosvSchema.modified]
+     * Downloads COSV from repository as [Flux] of [ByteBuffer] (stream)
      *
-     * @param cosvId
-     * @return [Mono] with [VulnerabilityExt]
+     * @param key
+     * @return [Flux] of [ByteBuffer] with content of COSV
      */
-    fun findLatestRawExt(
-        cosvId: String,
-    ): Mono<VulnerabilityExt>
+    fun downloadAsStream(
+        key: CosvFile,
+    ): Flux<ByteBuffer>
 
     /**
-     * @param cosvId
-     * @return [Flux] with removed versions
+     * Deletes provided version
+     *
+     * @param key
+     * @return [Mono] without body
      */
     fun delete(
-        cosvId: String,
+        key: CosvFile
+    ): Mono<Unit>
+
+    /**
+     * Deletes all COSV files (versions) with provided [identifier]
+     *
+     * @param identifier
+     * @return [Flux] with removed versions
+     */
+    fun deleteAll(
+        identifier: String,
     ): Flux<LocalDateTime>
 }

@@ -9,10 +9,13 @@ enum class Colors(val value: String) {
     GOLD("rgba(188,187,47, 0.1)"),
     GREEN("rgba(139, 237, 78, 0.1)"),
     GREY("rgba(188,186,179, 0.1)"),
+    NONE("#6b6b6b"),
+    ORANGE("#ffa500"),
     RED("rgba(245, 50, 50, 0.1)"),
     SAVE_PRIMARY("#3075c0"),
     SUCCESS("#28a745"),
     VULN_PRIMARY("#7952b3"),
     WARNING("#ffc107"),
+    WHITE("#ffffff"),
     ;
 }

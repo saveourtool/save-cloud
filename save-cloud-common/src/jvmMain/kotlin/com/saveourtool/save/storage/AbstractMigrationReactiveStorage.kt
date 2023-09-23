@@ -11,6 +11,8 @@ import reactor.kotlin.core.util.function.component2
 import java.nio.ByteBuffer
 import java.time.Instant
 import javax.annotation.PostConstruct
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 /**
  * Abstract storage which has an init method to migrate keys from old storage to new one
@@ -33,10 +35,17 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
     @PostConstruct
     fun init() {
         initializer.initReactively {
-            oldStorageProjectReactor.list()
-                .flatMap { migrateKey(it) }
-                .thenJust(Unit)
-                .defaultIfEmpty(Unit)
+            Flux.interval(1.seconds.toJavaDuration())
+                .filter {
+                    oldStorageProjectReactor.isInitDone() && newStorageProjectReactor.isInitDone()
+                }
+                .next()
+                .flatMap {
+                    oldStorageProjectReactor.list()
+                        .flatMap { migrateKey(it) }
+                        .thenJust(Unit)
+                        .defaultIfEmpty(Unit)
+                }
         }
     }
 
@@ -85,10 +94,7 @@ abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
      */
     protected abstract fun N.toOldKey(): O
 
-    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
     override fun list(): Flux<O> = initializer.validateAndRun { newStorageProjectReactor.list().map { it.toOldKey() } }
-
-    override fun list(prefix: String): Flux<O> = initializer.validateAndRun { newStorageProjectReactor.list(prefix).map { it.toOldKey() } }
 
     override fun download(key: O): Flux<ByteBuffer> = initializer.validateAndRun { newStorageProjectReactor.download(key.toNewKey()) }
 

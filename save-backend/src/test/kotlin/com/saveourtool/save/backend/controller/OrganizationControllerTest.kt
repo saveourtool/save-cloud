@@ -93,7 +93,9 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkVulnerabilityMetadataUserRepository::class),
     MockBean(VulnerabilityMetadataProjectRepository::class),
     MockBean(RawCosvFileRepository::class),
+    MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
+    MockBean(VulnerabilityGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")

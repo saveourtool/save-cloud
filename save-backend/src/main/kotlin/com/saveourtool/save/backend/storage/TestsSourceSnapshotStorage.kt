@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.entities.TestSuitesSource
 import com.saveourtool.save.entities.TestsSourceSnapshot
 import com.saveourtool.save.request.TestFilesRequest
@@ -25,12 +24,10 @@ import kotlin.io.path.*
 @Component
 class TestsSourceSnapshotStorage(
     s3Operations: S3Operations,
-    testsSourceSnapshotRepository: TestsSourceSnapshotRepository,
     s3KeyManager: TestsSourceSnapshotS3KeyManager,
-) : ReactiveStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotRepository, TestsSourceSnapshotS3KeyManager>(
+) : ReactiveStorageWithDatabase<TestsSourceSnapshotDto, TestsSourceSnapshot, TestsSourceSnapshotS3KeyManager>(
     s3Operations,
     s3KeyManager,
-    testsSourceSnapshotRepository,
 ) {
     /**
      * @param request

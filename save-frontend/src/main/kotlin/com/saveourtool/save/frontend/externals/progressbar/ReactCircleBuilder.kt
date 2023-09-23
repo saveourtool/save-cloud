@@ -16,7 +16,7 @@ import react.react
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.progressBar(
-    progress: Int,
+    progress: Float,
     size: String = "10rem",
     lineWidth: String = "5rem",
     color: String = Colors.SUCCESS.value,
@@ -27,7 +27,7 @@ fun ChildrenBuilder.progressBar(
     ReactCircle::class.react {
         this.size = size
         this.lineWidth = lineWidth
-        this.progress = progress.toString()
+        this.progress = (progress * 10).toString()
         this.progressColor = color
         this.showPercentageSymbol = showPercentageSymbol
         this.textColor = color

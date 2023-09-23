@@ -5,6 +5,7 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType.Companion.isSystemDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
 import react.dom.html.ReactHTML.div
@@ -15,6 +16,7 @@ import kotlinx.datetime.LocalDateTime
 const val HOVERABLE_CONST = "hoverable"
 
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
+    val (t) = useTranslation("dates")
     val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
 
     div {
@@ -28,7 +30,7 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
 
         props.onAddClick?.let { onClickCallback ->
             buttonBuilder(
-                label = "Add date",
+                label = "Add date".t(),
                 style = "secondary",
                 isOutline = true,
                 classes = "btn btn-sm btn-primary"
@@ -62,7 +64,7 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                             }
                             div {
                                 className = ClassName("text-label")
-                                +label
+                                +label.t()
                             }
                             div {
                                 className = ClassName("date-label")

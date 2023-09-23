@@ -11,14 +11,14 @@ import javax.persistence.MappedSuperclass
 @MappedSuperclass
 @EntityListeners(DateListener::class)
 @Suppress("UnnecessaryAbstractClass")
-abstract class BaseEntityWithDate : BaseEntity() {
+abstract class BaseEntityWithDate : BaseEntity(), IBaseEntityWithDate {
     /**
      * Create date of entity
      **/
-    open var createDate: LocalDateTime? = null
+    override var createDate: LocalDateTime? = null
 
     /**
      * Update date of entity
      **/
-    open var updateDate: LocalDateTime? = null
+    override var updateDate: LocalDateTime? = null
 }

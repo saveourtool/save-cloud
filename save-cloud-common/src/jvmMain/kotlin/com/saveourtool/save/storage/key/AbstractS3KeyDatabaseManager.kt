@@ -53,6 +53,13 @@ abstract class AbstractS3KeyDatabaseManager<K : Any, E : BaseEntity, R : BaseEnt
         }
     }
 
+    @Transactional
+    override fun deleteAll(keys: Collection<K>) {
+        keys.mapNotNull { findEntity(it) }
+            .onEach { beforeDelete(it) }
+            .let { repository.deleteAll(it) }
+    }
+
     /**
      * @receiver [E] entity which needs to be processed before deletion
      * @param entity

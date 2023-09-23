@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.storage
 
-import com.saveourtool.save.backend.repository.FileRepository
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
@@ -16,12 +15,10 @@ import reactor.core.publisher.Mono
 @Service
 class FileStorage(
     s3Operations: S3Operations,
-    fileRepository: FileRepository,
     s3KeyManager: FileS3KeyManager,
-) : ReactiveStorageWithDatabase<FileDto, File, FileRepository, FileS3KeyManager>(
+) : ReactiveStorageWithDatabase<FileDto, File, FileS3KeyManager>(
     s3Operations,
     s3KeyManager,
-    fileRepository
 ) {
     /**
      * @param project

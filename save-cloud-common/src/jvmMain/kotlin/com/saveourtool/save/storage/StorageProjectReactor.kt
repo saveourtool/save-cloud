@@ -12,16 +12,14 @@ import java.time.Instant
  */
 interface StorageProjectReactor<K> {
     /**
-     * @return list of keys in storage
+     * @return true if init is done already
      */
-    @Suppress("WRONG_OVERLOADING_FUNCTION_ARGUMENTS")
-    fun list(): Flux<K>
+    fun isInitDone(): Boolean = true
 
     /**
-     * @param prefix a common prefix for all keys
      * @return list of keys in storage
      */
-    fun list(prefix: String): Flux<K>
+    fun list(): Flux<K>
 
     /**
      * @param key a key to be checked
@@ -46,6 +44,12 @@ interface StorageProjectReactor<K> {
      * @return true if the object deleted, otherwise false
      */
     fun delete(key: K): Mono<Boolean>
+
+    /**
+     * @param keys keyes to be deleted
+     * @return true if all objects deleted, otherwise false
+     */
+    fun deleteAll(keys: Collection<K>): Mono<Boolean>
 
     /**
      * @param key a key for provided content

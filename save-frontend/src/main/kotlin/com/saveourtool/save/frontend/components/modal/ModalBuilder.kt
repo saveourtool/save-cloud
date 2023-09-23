@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import react.CSSProperties
 
 import react.ChildrenBuilder
 import react.dom.aria.ariaLabel
@@ -42,7 +43,37 @@ fun ChildrenBuilder.displayModal(
     modal { props ->
         props.isOpen = isOpen
         props.style = modalStyle
-        modalBuilder(title, classes, onCloseButtonPressed, bodyBuilder, buttonBuilder)
+        modalBuilder(title, classes, null, onCloseButtonPressed, bodyBuilder, buttonBuilder)
+    }
+}
+
+/**
+ * Universal function to create modals with bootstrap styles inside react modals.
+ *
+ * @param isOpen modal openness indicator - should be in state
+ * @param title title of the modal that will be shown in top-left corner
+ * @param bodyBuilder callback that defined modal body content
+ * @param classes classes that will be applied to bootstrap modal div
+ * @param modalStyle [Styles] that will be applied to react modal
+ * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
+ * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param customWidth
+ */
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "LAMBDA_IS_NOT_LAST_PARAMETER")
+fun ChildrenBuilder.displayModal(
+    isOpen: Boolean,
+    title: String,
+    bodyBuilder: ChildrenBuilder.() -> Unit,
+    classes: String = "",
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    customWidth: CSSProperties? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilder(title, classes, customWidth, onCloseButtonPressed, bodyBuilder, buttonBuilder)
     }
 }
 
@@ -229,10 +260,13 @@ fun ChildrenBuilder.modalBuilder(
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param bodyBuilder lambda that generates body of modal
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @param customWidth
  */
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.modalBuilder(
     title: String,
     classes: String = "",
+    customWidth: CSSProperties? = null,
     onCloseButtonPressed: (() -> Unit)?,
     bodyBuilder: ChildrenBuilder.() -> Unit,
     buttonBuilder: (ChildrenBuilder.() -> Unit)?,
@@ -241,6 +275,9 @@ fun ChildrenBuilder.modalBuilder(
         className = ClassName("modal-dialog $classes")
         div {
             className = ClassName("modal-content")
+            customWidth.let {
+                style = it
+            }
             onCloseFun(
                 title,
                 onCloseButtonPressed,

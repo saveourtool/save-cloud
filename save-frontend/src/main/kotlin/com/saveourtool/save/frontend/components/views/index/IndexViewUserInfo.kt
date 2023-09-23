@@ -19,7 +19,7 @@ const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 @Suppress("IDENTIFIER_LENGTH")
 val indexViewInfo: FC<IndexViewProps> = FC { props ->
-    val (t) = useTranslation("welcome")
+    val (t) = useTranslation("index")
 
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")
@@ -30,7 +30,7 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("row justify-content-center")
         h4 {
-            +"Non-profit Opensource Ecosystem with a focus on finding code bugs"
+            +"Non-profit Opensource Ecosystem with a focus on finding code bugs".t()
         }
     }
     div {
@@ -50,7 +50,7 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
         div {
             className = ClassName("card-body")
             p {
-                +"Your notifications will be located here."
+                +"Your notifications will be located here.".t()
             }
         }
     }
