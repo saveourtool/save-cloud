@@ -45,6 +45,7 @@ import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
 import web.cssom.ClassName
 import web.cssom.Cursor
+import web.cssom.Overflow
 import web.cssom.rem
 
 import kotlinx.coroutines.CancellationException
@@ -53,7 +54,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import web.cssom.Overflow
 
 const val TABLE_HEADERS_LOCALE_NAMESPACE = "table-headers"
 

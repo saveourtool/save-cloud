@@ -38,6 +38,7 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
+import react.router.useNavigate
 import web.cssom.*
 import web.file.File
 import web.html.InputType
@@ -47,7 +48,6 @@ import web.window.WindowTarget
 import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.router.useNavigate
 
 /**
  * A Component for registration view
