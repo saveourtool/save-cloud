@@ -6,7 +6,6 @@ import com.saveourtool.save.cvsscalculator.*
 import kotlinx.serialization.Serializable
 
 /**
- * @property version
  * @property attackVector
  * @property attackComplexity
  * @property privilegeRequired
@@ -18,16 +17,15 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class BaseMetricsV3(
-    override var version: CvssVersion,
-    var attackVector: AttackVectorType,
-    var attackComplexity: AttackComplexityType,
-    var privilegeRequired: PrivilegesRequiredType,
-    var userInteraction: UserInteractionType,
-    var scopeMetric: ScopeType,
-    var confidentiality: CiaType,
-    var integrity: CiaType,
-    var availability: CiaType,
-) : IBaseMetrics {
+    val attackVector: AttackVectorType,
+    val attackComplexity: AttackComplexityType,
+    val privilegeRequired: PrivilegesRequiredType,
+    val userInteraction: UserInteractionType,
+    val scopeMetric: ScopeType,
+    val confidentiality: CiaType,
+    val integrity: CiaType,
+    val availability: CiaType,
+) : ICvssMetrics {
     /**
      * @return true if BaseMetrics is valid, false otherwise
      */
@@ -40,7 +38,7 @@ data class BaseMetricsV3(
      * @return severity score vector
      */
     override fun scoreVectorString() =
-            "${BaseMetricsV3Names.CVSS_VERSION.value}:${version.value}/${BaseMetricsV3Names.ATTACK_VECTOR.value}:${attackVector.value}/" +
+            "${BaseMetricsV3Names.ATTACK_VECTOR.value}:${attackVector.value}/" +
                     "${BaseMetricsV3Names.ATTACK_COMPLEXITY.value}:${attackComplexity.value}/${BaseMetricsV3Names.PRIVILEGES_REQUIRED.value}:" +
                     "${privilegeRequired.value}/${BaseMetricsV3Names.USER_INTERACTION.value}:${userInteraction.value}/${BaseMetricsV3Names.SCOPE.value}:" +
                     "${scopeMetric.value}/${BaseMetricsV3Names.CONFIDENTIALITY.value}:${confidentiality.value}/${BaseMetricsV3Names.INTEGRITY.value}:" +
@@ -48,7 +46,6 @@ data class BaseMetricsV3(
 
     companion object {
         val empty = BaseMetricsV3(
-            version = CvssVersion.CVSS_V3_1,
             attackVector = AttackVectorType.NOT_DEFINED,
             attackComplexity = AttackComplexityType.NOT_DEFINED,
             privilegeRequired = PrivilegesRequiredType.NOT_DEFINED,

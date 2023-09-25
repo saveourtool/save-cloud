@@ -3,10 +3,10 @@
 package com.saveourtool.save.cvsscalculator.v2
 
 import com.saveourtool.save.cvsscalculator.*
+import com.saveourtool.save.cvsscalculator.v3.*
 import kotlinx.serialization.Serializable
 
 /**
- * @property version
  * @property accessVector
  * @property accessComplexity
  * @property authentication
@@ -16,14 +16,13 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class BaseMetricsV2(
-    override var version: CvssVersion,
-    var accessVector: AccessVectorType,
-    var accessComplexity: AccessComplexityType,
-    var authentication: AuthenticationType,
-    var confidentiality: CiaTypeV2,
-    var integrity: CiaTypeV2,
-    var availability: CiaTypeV2,
-) : IBaseMetrics {
+    val accessVector: AccessVectorType,
+    val accessComplexity: AccessComplexityType,
+    val authentication: AuthenticationType,
+    val confidentiality: CiaTypeV2,
+    val integrity: CiaTypeV2,
+    val availability: CiaTypeV2,
+) : ICvssMetrics {
     /**
      * @return true if BaseMetricsV2 is valid, false otherwise
      */
@@ -35,14 +34,13 @@ data class BaseMetricsV2(
      * @return severity score vector
      */
     override fun scoreVectorString() =
-            "${BaseMetricsV2Names.CVSS_VERSION.value}:${version.value}/${BaseMetricsV2Names.ACCESS_VECTOR.value}:${accessVector.value}/" +
+            "${BaseMetricsV2Names.ACCESS_VECTOR.value}:${accessVector.value}/" +
                     "${BaseMetricsV2Names.ACCESS_COMPLEXITY.value}:${accessComplexity.value}/${BaseMetricsV2Names.AUTHENTICATION.value}:" +
                     "${authentication.value}/${BaseMetricsV2Names.CONFIDENTIALITY.value}:${confidentiality.value}/${BaseMetricsV2Names.INTEGRITY.value}:" +
                     "${integrity.value}/${BaseMetricsV2Names.AVAILABILITY.value}:${availability.value}"
 
     companion object {
         val empty = BaseMetricsV2(
-            version = CvssVersion.CVSS_V3_1,
             accessVector = AccessVectorType.NOT_DEFINED,
             accessComplexity = AccessComplexityType.NOT_DEFINED,
             authentication = AuthenticationType.NOT_DEFINED,

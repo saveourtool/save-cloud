@@ -3,15 +3,10 @@
 package com.saveourtool.save.cvsscalculator
 
 /**
- * base interface for all BaseMetrics classes
+ * Base interface for all BaseMetrics classes
  */
 @Suppress("CLASS_NAME_INCORRECT")
-interface IBaseMetrics {
-    /**
-     * Version of CVSS
-     **/
-    var version: CvssVersion
-
+interface ICvssMetrics {
     /**
      * @return true if BaseMetrics is valid, false otherwise
      */
