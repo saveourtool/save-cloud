@@ -2,7 +2,9 @@ ARG BASE_IMAGE_NAME
 ARG BASE_IMAGE_TAG
 FROM $BASE_IMAGE_NAME:$BASE_IMAGE_TAG
 
-RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y curl libcurl4-openssl-dev tzdata unzip
+# clang is installed only for GSAC contest
+RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y curl libcurl4-openssl-dev tzdata unzip \
+ clang-12 clang-format libclang-12-dev
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
 RUN rm -rf /var/lib/apt/lists/*
 

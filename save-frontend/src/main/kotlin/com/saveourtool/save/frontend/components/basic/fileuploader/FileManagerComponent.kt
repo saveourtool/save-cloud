@@ -56,7 +56,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             val response = delete(
                 "$apiUrl/files/delete?fileId=${file.requiredId()}",
                 jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {
