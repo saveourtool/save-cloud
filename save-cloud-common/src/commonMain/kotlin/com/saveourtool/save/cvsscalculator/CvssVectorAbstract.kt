@@ -10,7 +10,7 @@ abstract class CvssVectorAbstract : ICvssVector {
      * @param key of severity score vector
      * @return weight for vector value
      */
-    fun Map<String, Float>.getWeight(key: String): Float = this.getOrElse(key) {
+    protected fun Map<String, Float>.getWeight(key: String): Float = this.getOrElse(key) {
         throw IllegalArgumentException("No such weight for value $key.")
     }
 
@@ -23,7 +23,7 @@ abstract class CvssVectorAbstract : ICvssVector {
         "MagicNumber",
     )
     // https://www.first.org/cvss/v3.1/specification-document#Appendix-A---Floating-Point-Rounding
-    fun roundup(number: Float): Float {
+    protected fun roundup(number: Float): Float {
         val value = (number * 100_000).roundToInt()
         return if (value % 10_000 == 0) {
             value / 100_000f
