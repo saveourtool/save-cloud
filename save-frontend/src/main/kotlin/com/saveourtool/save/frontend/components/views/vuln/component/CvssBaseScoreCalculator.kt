@@ -247,7 +247,8 @@ val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
 
                 li {
                     className = ClassName("list-group-item d-flex justify-content-center")
-                    +"${if (baseMetrics.isValid()) "${getCriticality(CvssVectorV3(CvssVersion.CVSS_V3_1, baseMetrics).calculateBaseScore())} ${ CvssVectorV3(CvssVersion.CVSS_V3_1, baseMetrics).calculateBaseScore() } " else ""}${CvssVectorV3(CvssVersion.CVSS_V3_1,
+                    val score = CvssVectorV3(CvssVersion.CVSS_V3_1, baseMetrics).calculateBaseScore()
+                    +"${if (baseMetrics.isValid()) "${getCriticality(score)} $score " else ""}${CvssVectorV3(CvssVersion.CVSS_V3_1,
                         baseMetrics).scoreVectorString()}"
                 }
             }
