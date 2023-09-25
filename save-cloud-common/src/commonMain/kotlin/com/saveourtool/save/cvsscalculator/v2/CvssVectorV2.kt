@@ -51,4 +51,11 @@ data class CvssVectorV2(
      */
     override fun scoreVectorString() =
             "${BaseMetricsV2Names.CVSS_VERSION.value}:${version.value}/${baseMetrics.scoreVectorString()}"
+
+    companion object {
+        val empty = CvssVectorV2(
+            version = CvssVersion.CVSS_V2,
+            baseMetrics = BaseMetricsV2.empty,
+        )
+    }
 }
