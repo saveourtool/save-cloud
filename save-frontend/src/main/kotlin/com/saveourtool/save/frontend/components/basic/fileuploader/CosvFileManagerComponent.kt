@@ -51,7 +51,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             val response = delete(
                 "$apiUrl/cosv/$selectedOrganization/delete/${file.requiredId()}",
                 jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {
