@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.cvsscalculator
+package com.saveourtool.save.cvsscalculator.v3
 
 import kotlinx.serialization.Serializable
 
@@ -83,18 +83,5 @@ enum class CiaType(val value: String) {
     LOW("L"),
     NONE("N"),
     NOT_DEFINED("_"),
-    ;
-}
-
-/**
- * Version of CVSS
- *
- * @property value abbreviated value from the cvss version
- */
-@Serializable
-enum class CvssVersion(val value: String) {
-    THREE("3.0"),
-    THREE_ONE("3.1"),
-    TWO("2.0"),
     ;
 }
