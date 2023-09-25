@@ -103,7 +103,8 @@ class SaveAgent(
                 val setupResult = ProcessBuilder(true, fs)
                     .exec(
                         "./$targetFile",
-                        "",
+                        // setup.sh should always be run from test-suites dir
+                        TEST_SUITES_DIR_NAME,
                         null,
                         setupShTimeoutMillis,
                     )
