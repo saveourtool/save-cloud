@@ -32,6 +32,15 @@ data class CvssVectorV3(
         )
     )
 
+    /**
+     * @return calculate value
+     */
+    fun calculateValidBaseScore(): Float? = if (baseMetrics.isValid()) {
+        calculateBaseScore()
+    } else {
+        null
+    }
+
     @Suppress(
         "FLOAT_IN_ACCURATE_CALCULATIONS",
         "MagicNumber",
