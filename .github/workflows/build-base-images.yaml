@@ -29,12 +29,6 @@ jobs:
           - base_image_name: python
             base_image_tag: 2.7
           - base_image_name: python
-            base_image_tag: 3.2
-          - base_image_name: python
-            base_image_tag: 3.3
-          - base_image_name: python
-            base_image_tag: 3.4
-          - base_image_name: python
             base_image_tag: 3.5
           - base_image_name: python
             base_image_tag: 3.6
