@@ -1,4 +1,4 @@
-FROM paketobuildpacks/builder:base
+FROM paketobuildpacks/builder-jammy-base:latest
 
 USER root
 RUN apt update && apt install -y software-properties-common && \

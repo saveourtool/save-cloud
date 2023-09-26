@@ -2,11 +2,14 @@ ARG BASE_IMAGE_NAME
 ARG BASE_IMAGE_TAG
 FROM $BASE_IMAGE_NAME:$BASE_IMAGE_TAG
 
-# clang is installed only for GSAC contest
-RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y curl libcurl4-openssl-dev tzdata unzip \
- clang-12 clang-format libclang-12-dev
+RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y curl libcurl4-openssl-dev tzdata unzip
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
 RUN rm -rf /var/lib/apt/lists/*
+
+# clang-12 can only be installed to ubuntu and is only needed for GSAC contest
+RUN if [ "$BASE_IMAGE_NAME" = "ubuntu" ]; then \
+    apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install clang-12 clang-format libclang-12-dev \
+    fi
 
 # Fixme: https://github.com/saveourtool/save-cloud/issues/352
 RUN if [ "$BASE_IMAGE_NAME" = "python" ]; then \
