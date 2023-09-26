@@ -613,7 +613,7 @@ internal class OrganizationController(
         .zipWith(validateGitCredential(gitDto))
         .filter { (_, isValid) -> isValid }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "Invalid git credential for url [${gitDto.url}]"
+            "Invalid git credential or connection problems (check you firewall) for url [${gitDto.url}]"
         }
         .flatMap { (organization, _) ->
             val existedGit = blockingToMono {
