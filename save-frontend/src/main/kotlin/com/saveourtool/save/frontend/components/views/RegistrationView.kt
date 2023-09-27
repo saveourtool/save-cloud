@@ -38,6 +38,7 @@ import react.dom.html.ReactHTML.main
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
+import react.router.useNavigate
 import web.cssom.*
 import web.file.File
 import web.html.InputType
@@ -56,6 +57,7 @@ import kotlinx.serialization.json.Json
 val registrationView: FC<RegistrationProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
+    val useNavigate = useNavigate()
 
     useRedirectToIndexIf(props.userInfo?.status) {
         // life hack ot be sure that props are loaded
@@ -88,6 +90,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             responseHandler = ::responseHandlerWithValidation,
         )
         if (response.ok) {
+            window.location.href = "${window.location.origin}/"
             window.location.reload()
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
@@ -102,7 +105,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             loadingHandler = ::loadingHandler,
         )
         if (replyToLogout.ok) {
-            window.location.href = window.location.origin
+            useNavigate(to = "/")
             window.location.reload()
         }
     }
