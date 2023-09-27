@@ -30,7 +30,6 @@ import okio.use
 
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -90,7 +89,6 @@ class SaveAgent(
 
     // a temporary workaround for python integration
     private fun executeAdditionallySetup(
-        targetDirectory: Path,
         additionalFileNames: Collection<String>,
         setupShTimeoutMillis: Long,
     ) = runCatching {
@@ -210,7 +208,7 @@ class SaveAgent(
             }
 
         // a temporary workaround for python integration
-        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
+        executeAdditionallySetup(agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
             .runIf(
                 failureResultPredicate
             ) {
