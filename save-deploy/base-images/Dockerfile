@@ -7,12 +7,12 @@ RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
 RUN rm -rf /var/lib/apt/lists/*
 
 # clang-12 can only be installed to ubuntu and is only needed for GSAC contest
-RUN if [ "$BASE_IMAGE_NAME" = "ubuntu" ]; then \
+RUN if [[ "$BASE_IMAGE_NAME" == "ubuntu" ]]; then \
     apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y clang-12 clang-format libclang-12-dev; \
     fi
 
 # Fixme: https://github.com/saveourtool/save-cloud/issues/352
-RUN if [ "$BASE_IMAGE_NAME" = "python" ]; then \
+RUN if [[ "$BASE_IMAGE_NAME" == "python" ]]; then \
     curl -s "https://get.sdkman.io" | bash && \
     bash -c 'source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open' && \
     ln -s $(which java) /usr/bin/java; \
