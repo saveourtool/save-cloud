@@ -64,8 +64,8 @@ jobs:
           # https://github.com/marketplace/actions/build-and-push-docker-images#inputs
           # '`List` type is a newline-delimited string'
           build-args: |
+            BASE_IMAGE=${{ matrix.base_image_name }}:${{ matrix.base_image_tag }}
             BASE_IMAGE_NAME=${{ matrix.base_image_name }}
-            BASE_IMAGE_TAG=${{ matrix.base_image_tag }}
           tags: ghcr.io/saveourtool/save-base:${{ matrix.base_image_name }}-${{ env.FORMATTED_TAG }}
 
   build_custom_builder_image:
