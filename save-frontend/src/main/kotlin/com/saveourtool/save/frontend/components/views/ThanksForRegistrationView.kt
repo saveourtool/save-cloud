@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.Style
+import com.saveourtool.save.frontend.utils.particles
 import com.saveourtool.save.frontend.utils.useBackground
 import com.saveourtool.save.frontend.utils.useRedirectToIndexIf
 import com.saveourtool.save.info.UserInfo
@@ -26,6 +27,7 @@ import web.cssom.rem
 
 val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props ->
     useBackground(Style.INDEX)
+    particles()
     val (t) = useTranslation("thanks-for-registration")
 
     useRedirectToIndexIf(props.userInfo?.status) {

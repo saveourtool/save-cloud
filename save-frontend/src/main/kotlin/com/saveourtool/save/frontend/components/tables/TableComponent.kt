@@ -45,6 +45,7 @@ import tanstack.table.core.getCoreRowModel
 import tanstack.table.core.getSortedRowModel
 import web.cssom.ClassName
 import web.cssom.Cursor
+import web.cssom.Overflow
 import web.cssom.rem
 
 import kotlinx.coroutines.CancellationException
@@ -244,6 +245,10 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
             className = ClassName("${props.cardBodyClassName} card-body")
             div {
                 className = ClassName("table-responsive")
+                // we sometimes have strange overflow with some monitor resolution in chrome
+                style = jso {
+                    overflowX = Overflow.hidden
+                }
                 table {
                     className = ClassName("table ${if (isTransparentGrid) "" else "table-bordered"} mb-0")
                     width = 100.0
