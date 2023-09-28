@@ -4,7 +4,6 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
@@ -18,7 +17,6 @@ import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -134,11 +132,10 @@ class UsersDetailsController(
                             freeText = newUserInfo.freeText
                         },
                         newUserInfo.oldName,
-                        oldStatus,
+                        oldStatus
                     )
                 } ?: UserSaveStatus.FORBIDDEN
-            }
-            else {
+            } else {
                 UserSaveStatus.HACKER
             }
         }
