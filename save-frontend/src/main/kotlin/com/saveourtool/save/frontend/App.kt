@@ -37,10 +37,10 @@ val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
         val userInfoNew: UserInfo? = get(
-                "$apiUrl/users/user-info",
-                jsonHeaders,
-                loadingHandler = ::loadingHandler,
-            )
+            "$apiUrl/users/user-info",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
             .run {
                 val responseText = text().await()
                 if (!ok || responseText == "null") null else Json.decodeFromString(responseText)

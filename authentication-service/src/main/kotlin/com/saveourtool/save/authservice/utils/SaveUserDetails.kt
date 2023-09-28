@@ -1,7 +1,6 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.annotation.JsonIgnore

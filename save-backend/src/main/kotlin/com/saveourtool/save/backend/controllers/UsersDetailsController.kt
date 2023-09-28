@@ -4,9 +4,7 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
