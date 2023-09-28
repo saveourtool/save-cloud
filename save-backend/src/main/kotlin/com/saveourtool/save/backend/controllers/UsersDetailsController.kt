@@ -1,6 +1,8 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 
@@ -26,6 +29,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -38,7 +42,14 @@ import reactor.kotlin.core.publisher.toMono
 class UsersDetailsController(
     private val userRepository: UserRepository,
     private val userDetailsService: UserDetailsService,
+    configProperties: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
+    private val gatewayWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(configProperties.gatewayUrl)
+        .build()
+
     /**
      * @param userName username
      * @return [UserInfo] info about user's
@@ -118,7 +129,7 @@ class UsersDetailsController(
         .blockingMap { user ->
             val userByName = userRepository.findByName(newUserInfo.name)
             if (user.id == userByName?.id) {
-                UserSaveStatus.CONFLICT
+                UserSaveStatus.CONFLICT to null
             } else {
                 val oldStatus = user.status
                 val newStatus = when (oldStatus) {
@@ -127,32 +138,39 @@ class UsersDetailsController(
                     else -> null
                 }
                 newStatus?.let {
+                    val newUser = user.apply {
+                        name = newUserInfo.name
+                        email = newUserInfo.email
+                        company = newUserInfo.company
+                        location = newUserInfo.location
+                        gitHub = newUserInfo.gitHub
+                        linkedin = newUserInfo.linkedin
+                        twitter = newUserInfo.twitter
+                        status = newStatus
+                        website = newUserInfo.website
+                        realName = newUserInfo.realName
+                        freeText = newUserInfo.freeText
+                    }
                     userDetailsService.saveUser(
-                        user.apply {
-                            name = newUserInfo.name
-                            email = newUserInfo.email
-                            company = newUserInfo.company
-                            location = newUserInfo.location
-                            gitHub = newUserInfo.gitHub
-                            linkedin = newUserInfo.linkedin
-                            twitter = newUserInfo.twitter
-                            status = newStatus
-                            website = newUserInfo.website
-                            realName = newUserInfo.realName
-                            freeText = newUserInfo.freeText
-                        },
+                        newUser,
                         newUserInfo.oldName,
                         oldStatus,
-                    )
-                } ?: UserSaveStatus.FORBIDDEN
+                    ) to SaveUserDetails(newUser)
+                } ?: (UserSaveStatus.FORBIDDEN to null)
             }
         }
-        .filter { status -> status == UserSaveStatus.UPDATE }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
+        .flatMap { (status, saveUserDetails) ->
+            when (status) {
+                UserSaveStatus.UPDATE -> gatewayWebClient.patch()
+                    .uri("/internal/sec/update")
+                    .bodyValue(saveUserDetails.orConflict { "User saved successfully, but save user details is empty" })
+                    .retrieve()
+                    .toBodilessEntity()
+                    .thenReturn(ResponseEntity.ok(status.message))
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
+            }
+
         }
 
     /**

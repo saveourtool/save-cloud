@@ -73,7 +73,7 @@ class WebSecurityConfig(
                 // FixMe: Extract into properties
                 "/",
                 "/login", "/logout",
-                "/sec/oauth-providers",
+                "/sec/oauth-providers", "/sec/user",
                 "/error",
                 "/neo4j/**",
             )
@@ -203,7 +203,7 @@ private fun userStatusBasedAuthorizationDecision(
                 backendService.findByPrincipal(principal, session)
             }
     }
-    .filter { it.status == UserStatus.ACTIVE.name }
+    .filter { it.isEnabled }
     .flatMap { authorizationManagerAuthorizationDecision(authentication, authorizationContext) }
     .defaultIfEmpty(AuthorizationDecision(false))
     .mapForUnauthorized(authorizationContext)

@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  *
  * @property preprocessorUrl url of preprocessor
  * @property orchestratorUrl url of save-orchestrator
+ * @property gatewayUrl url of api-gateway
  * @property demoUrl url of save-demo
  * @property initialBatchSize initial size of tests batch (for further scaling)
  * @property s3Storage configuration of S3 storage
@@ -23,6 +24,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class ConfigProperties(
     val preprocessorUrl: String,
     val orchestratorUrl: String,
+    val gatewayUrl: String,
     val demoUrl: String,
     val initialBatchSize: Int,
     override val s3Storage: S3OperationsProperties,
