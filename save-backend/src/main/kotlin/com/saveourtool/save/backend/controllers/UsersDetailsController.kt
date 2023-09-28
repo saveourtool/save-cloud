@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -109,9 +110,17 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val oldStatus = user.status
-            if (user.id == authentication.userId()) {
+            userRepository.findByIdOrNull(authentication.userId())
+        }
+        .switchIfEmptyToNotFound {
+            "Not found user in database for ${authentication.userId()}"
+        }
+        .blockingMap { user ->
+            val userByName = userRepository.findByName(newUserInfo.name)
+            if (user.id == userByName?.id) {
+                UserSaveStatus.CONFLICT
+            } else {
+                val oldStatus = user.status
                 val newStatus = when (oldStatus) {
                     UserStatus.CREATED -> UserStatus.NOT_APPROVED
                     UserStatus.ACTIVE -> UserStatus.ACTIVE
@@ -133,11 +142,9 @@ class UsersDetailsController(
                             freeText = newUserInfo.freeText
                         },
                         newUserInfo.oldName,
-                        oldStatus
+                        oldStatus,
                     )
                 } ?: UserSaveStatus.FORBIDDEN
-            } else {
-                UserSaveStatus.HACKER
             }
         }
         .filter { status -> status == UserSaveStatus.UPDATE }
@@ -170,15 +177,6 @@ class UsersDetailsController(
         .map {
             ResponseEntity.ok("User token saved successfully")
         }
-
-    /**
-     * @param authentication
-     * @return global [Role] of authenticated user
-     */
-    @GetMapping("/global-role")
-    @PreAuthorize("isAuthenticated()")
-    fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
-            Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
      * @param authentication
