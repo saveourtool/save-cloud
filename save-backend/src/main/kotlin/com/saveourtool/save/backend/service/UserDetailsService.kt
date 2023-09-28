@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
@@ -15,13 +14,10 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
-import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
-import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.reactive.function.client.WebClient
 import java.lang.IllegalArgumentException
 
 import java.util.*

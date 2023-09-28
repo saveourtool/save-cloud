@@ -58,6 +58,7 @@ config.devServer = Object.assign(
   config.devServer || {},
   {
     setupMiddlewares: (middlewares, devServer) => {
+      devServer.app.get("/sec/user", (req, res) => { return res.send("admin"); });
       devServer.app.get("/sec/oauth-providers", (req, res) => { return res.send([]); });
       return middlewares;
     },
@@ -112,7 +113,7 @@ config.devServer = Object.assign(
 );
 ```
 
-`setupMiddlewares` sets a stub for `/sec/oauth-providers` endpoint.
+`setupMiddlewares` sets stubs for `/sec/user` and `/sec/oauth-providers` endpoints.
 
 `historyApiFallback` makes `webpack-dev-server` return `index.html` in case of `404 Not Found`.
 

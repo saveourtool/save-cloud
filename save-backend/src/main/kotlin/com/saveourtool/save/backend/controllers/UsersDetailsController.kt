@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.data.domain.Pageable
-import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -164,7 +163,6 @@ class UsersDetailsController(
                 else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
                     .toMono()
             }
-
         }
 
     /**

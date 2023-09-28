@@ -7,7 +7,6 @@ package com.saveourtool.save.gateway.security
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
 
 import org.springframework.context.annotation.Bean
