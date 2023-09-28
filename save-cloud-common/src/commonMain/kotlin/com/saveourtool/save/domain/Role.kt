@@ -68,12 +68,4 @@ enum class Role(val formattedName: String, val priority: Int) {
      * @return true if current role has `delete` permission
      */
     fun hasDeletePermission() = this.isHigherOrEqualThan(OWNER)
-
-    companion object {
-        /**
-         * @param springSecurityRole
-         * @return [Role] found by [springSecurityRole] using [asSpringSecurityRole]
-         */
-        fun fromSpringSecurityRole(springSecurityRole: String): Role? = values().find { it.asSpringSecurityRole() == springSecurityRole }
-    }
 }

@@ -121,17 +121,9 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            userRepository.findByIdOrNull(authentication.userId())
-        }
-        .switchIfEmptyToNotFound {
-            "Not found user in database for ${authentication.userId()}"
-        }
-        .blockingMap { user ->
-            val userByName = userRepository.findByName(newUserInfo.name)
-            if (user.id == userByName?.id) {
-                UserSaveStatus.CONFLICT to null
-            } else {
-                val oldStatus = user.status
+            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            val oldStatus = user.status
+            if (user.id == authentication.userId()) {
                 val newStatus = when (oldStatus) {
                     UserStatus.CREATED -> UserStatus.NOT_APPROVED
                     UserStatus.ACTIVE -> UserStatus.ACTIVE
@@ -157,6 +149,8 @@ class UsersDetailsController(
                         oldStatus,
                     ) to SaveUserDetails(newUser)
                 } ?: (UserSaveStatus.FORBIDDEN to null)
+            } else {
+                UserSaveStatus.HACKER to null
             }
         }
         .flatMap { (status, saveUserDetails) ->
@@ -198,13 +192,12 @@ class UsersDetailsController(
 
     /**
      * @param authentication
-     * @return [UserInfo] of authenticated user
+     * @return global [Role] of authenticated user
      */
-    @GetMapping("/user-info")
+    @GetMapping("/global-role")
     @PreAuthorize("isAuthenticated()")
-    fun getSelfUserInfo(authentication: Authentication): Mono<UserInfo> = blockingToMono {
-        userDetailsService.findById(authentication.userId())?.toUserInfo()
-    }
+    fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
+            Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
      * @param userName

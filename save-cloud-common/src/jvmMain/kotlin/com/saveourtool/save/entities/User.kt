@@ -73,7 +73,6 @@ class User(
         linkedin = linkedin,
         gitHub = gitHub,
         twitter = twitter,
-        globalRole = role?.let { Role.fromSpringSecurityRole(it) } ?: Role.VIEWER,
         location = location,
         status = status,
         rating = rating,
