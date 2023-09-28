@@ -285,7 +285,7 @@ fun <T> Mono<T>.switchIfErrorToConflict(
  * @see ResponseSpec.blockingToBodilessEntity
  * @see BlockingBridge
  */
-fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R?): Mono<R> = flatMap { value ->
+fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R): Mono<R> = flatMap { value ->
     blockingToMono { function(value) }
 }
 
