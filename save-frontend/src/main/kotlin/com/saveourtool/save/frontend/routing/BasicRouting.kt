@@ -38,8 +38,6 @@ import org.w3c.dom.url.URLSearchParams
 import react.*
 import react.router.*
 
-val testExecutionDetailsView = testExecutionDetailsView()
-
 /**
  * Just put a map: View -> Route URL to this list
  */
@@ -87,6 +85,8 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     val executionView: VFC = withRouter { location, params ->
         ExecutionView::class.react {
+            organization = params["organization"]!!
+            project = params["project"]!!
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
                 TestExecutionFilter(
@@ -97,12 +97,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 )
             }
             testAnalysisEnabled = true
-        }
-    }
-
-    val creationView: VFC = withRouter { _, params ->
-        CreationView::class.react {
-            organizationName = params["owner"]
         }
     }
 
@@ -180,8 +174,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
             sandboxView.create() to SANDBOX,
             AboutUsView::class.react.create() to ABOUT_US,
-            CreationView::class.react.create() to CREATE_PROJECT,
-            CreateOrganizationView::class.react.create() to CREATE_ORGANIZATION,
+            createOrganizationView.create() to CREATE_ORGANIZATION,
             registrationView.create { userInfo = props.userInfo } to REGISTRATION,
             CollectionView::class.react.create { currentUserInfo = props.userInfo } to PROJECTS,
             contestListView.create { currentUserInfo = props.userInfo } to CONTESTS,
@@ -198,16 +191,16 @@ val basicRouting: FC<AppProps> = FC { props ->
             contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
             contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
             awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
-            creationView.create() to "$CREATE_PROJECT/:owner",
+            createProjectView.create() to "$CREATE_PROJECT/:organization?",
             organizationView.create() to ":owner",
             historyView.create() to ":owner/:name/history",
             projectView.create() to ":owner/:name",
             createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
             projectProblemView.create() to "project/:owner/:name/security/problems/:id",
-            executionView.create() to ":owner/:name/history/execution/:executionId",
+            executionView.create() to ":organization/:project/history/execution/:executionId",
             demoView.create() to "$DEMO/:organizationName/:projectName",
             cpgView.create() to "$DEMO/cpg",
-            testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
+            testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:id",
             vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
             uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,

@@ -90,7 +90,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             responseHandler = ::responseHandlerWithValidation,
         )
         if (response.ok) {
-            window.location.href = "${window.location.origin}/"
+            useNavigate(to = "/")
             window.location.reload()
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
@@ -124,6 +124,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                 responseHandler = ::noopResponseHandler,
             )
             if (response.ok) {
+                useNavigate("/${FrontendRoutes.THANKS_FOR_REGISTRATION}")
                 window.location.reload()
             }
         }
