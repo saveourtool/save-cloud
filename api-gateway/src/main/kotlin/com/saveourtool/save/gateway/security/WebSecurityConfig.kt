@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.gateway.security
 
-import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.gateway.config.ConfigurationProperties
 import com.saveourtool.save.gateway.service.BackendService
 import com.saveourtool.save.gateway.utils.StoringServerAuthenticationSuccessHandler
