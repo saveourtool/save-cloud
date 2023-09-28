@@ -62,11 +62,11 @@ class BackendService(
      * @return current user [SaveUserDetails]
      */
     @Suppress("UnusedParameter")
-    fun findByPrincipal(
-        principal: Principal,
-        session: WebSession?,
-    ): Mono<SaveUserDetails> = when (principal) {
-        is OAuth2AuthenticationToken -> session?.getSaveUserDetails() ?: findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
+    fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
+        is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
+            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                "Not found attribute $SAVE_USER_DETAILS_ATTIBUTE for ${OAuth2AuthenticationToken::class}"
+            }
         is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
