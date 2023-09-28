@@ -88,6 +88,9 @@ class BackendService(
         .contentType(MediaType.APPLICATION_JSON)
         .retrieve()
         .getSaveUserDetails()
+        .doOnNext {
+            saveUserDetailsCache.save(it)
+        }
 
     private fun WebClient.ResponseSpec.getSaveUserDetails(): Mono<SaveUserDetails> = this
         .onStatus({ it.is4xxClientError }) {
