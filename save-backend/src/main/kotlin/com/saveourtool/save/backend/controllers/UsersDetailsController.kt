@@ -110,16 +110,8 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            userRepository.findByIdOrNull(authentication.userId())
-        }
-        .switchIfEmptyToNotFound {
-            "Not found user in database for ${authentication.userId()}"
-        }
-        .blockingMap { user ->
-            val userByName = userRepository.findByName(newUserInfo.name)
-            if (user.id == userByName?.id) {
-                UserSaveStatus.CONFLICT
-            } else {
+            val user = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            if (user.id == authentication.userId()) {
                 val oldStatus = user.status
                 val newStatus = when (oldStatus) {
                     UserStatus.CREATED -> UserStatus.NOT_APPROVED
@@ -145,6 +137,9 @@ class UsersDetailsController(
                         oldStatus,
                     )
                 } ?: UserSaveStatus.FORBIDDEN
+            }
+            else {
+                UserSaveStatus.HACKER
             }
         }
         .filter { status -> status == UserSaveStatus.UPDATE }

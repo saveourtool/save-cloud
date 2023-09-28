@@ -199,8 +199,8 @@ private fun userStatusBasedAuthorizationDecision(
 ) = authentication
     .flatMap { principal ->
         authorizationContext.exchange.session
-            .flatMap { session ->
-                backendService.findByPrincipal(principal, session)
+            .flatMap { _ ->
+                backendService.findByPrincipal(principal, null)
             }
     }
     .filter { it.status == UserStatus.ACTIVE.name }
