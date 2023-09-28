@@ -264,7 +264,7 @@ class UsersDetailsController(
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun approveUser(
         @RequestParam userName: String,
-    ): Mono<StringResponse> =  blockingToMono {
+    ): Mono<StringResponse> = blockingToMono {
         userDetailsService.approveUser(userName)
     }
         .filter { status ->
