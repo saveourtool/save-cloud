@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -146,23 +147,23 @@ class UsersDetailsController(
                         newUser,
                         newUserInfo.oldName,
                         oldStatus,
-                    ) to SaveUserDetails(newUser)
+                    ) to newUser
                 } ?: (UserSaveStatus.FORBIDDEN to null)
             } else {
                 UserSaveStatus.HACKER to null
             }
         }
-        .flatMap { (status, saveUserDetails) ->
-            when (status) {
-                UserSaveStatus.UPDATE -> gatewayWebClient.patch()
-                    .uri("/internal/sec/update")
-                    .bodyValue(saveUserDetails.orConflict { "User saved successfully, but save user details is empty" })
-                    .retrieve()
-                    .toBodilessEntity()
-                    .thenReturn(ResponseEntity.ok(status.message))
-                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
-                    .toMono()
-            }
+        .filter { (status, _) ->
+            status == UserSaveStatus.UPDATE
+        }
+        .switchIfErrorToConflict {
+            UserSaveStatus.CONFLICT.message
+        }
+        .notifyGateway { (_, user) ->
+            user.orConflict { "User saved successfully, but save user details is empty" }
+        }
+        .map { (status, _) ->
+            ResponseEntity.ok(status.message)
         }
 
     /**
@@ -215,6 +216,11 @@ class UsersDetailsController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.HACKER.message
         }
+        .notifyGateway {
+            userRepository.findByIdOrNull(authentication.userId()).orNotFound {
+                "Not found user by id=${authentication.userId()}"
+            }
+        }
         .map { status ->
             ResponseEntity.ok(status.message)
         }
@@ -235,6 +241,11 @@ class UsersDetailsController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message
         }
+        .notifyGateway {
+            userRepository.findByName(userName).orNotFound {
+                "Not found user by name=$userName"
+            }
+        }
         .map { status ->
             ResponseEntity.ok(status.message)
         }
@@ -253,7 +264,7 @@ class UsersDetailsController(
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     fun approveUser(
         @RequestParam userName: String,
-    ): Mono<StringResponse> = blockingToMono {
+    ): Mono<StringResponse> =  blockingToMono {
         userDetailsService.approveUser(userName)
     }
         .filter { status ->
@@ -262,7 +273,21 @@ class UsersDetailsController(
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message
         }
+        .notifyGateway {
+            userRepository.findByName(userName).orNotFound {
+                "Not found user by name=$userName"
+            }
+        }
         .map { status ->
             ResponseEntity.ok(status.message)
         }
+
+    private fun <T : Any> Mono<T>.notifyGateway(userResolver: (T) -> User): Mono<T> = this.flatMap { value ->
+        gatewayWebClient.patch()
+            .uri("/internal/sec/update")
+            .bodyValue(SaveUserDetails(userResolver(value)))
+            .retrieve()
+            .toBodilessEntity()
+            .thenReturn(value)
+    }
 }
