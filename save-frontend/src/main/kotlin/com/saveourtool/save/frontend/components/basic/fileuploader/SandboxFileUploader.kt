@@ -50,7 +50,7 @@ val sandboxFileUploader: FC<SandboxFileUploaderProps> = FC { props ->
             val response = delete(
                 props.getUrlForFileDeletion(fileToDelete),
                 jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {

@@ -1,17 +1,27 @@
-ARG BASE_IMAGE_NAME
-ARG BASE_IMAGE_TAG
-FROM $BASE_IMAGE_NAME:$BASE_IMAGE_TAG
+ARG BASE_IMAGE
 
-RUN apt-get update && env DEBIAN_FRONTEND="noninteractive" apt-get install -y curl libcurl4-openssl-dev tzdata unzip
+FROM $BASE_IMAGE
+
+ARG BASE_IMAGE_NAME
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y curl libcurl4-openssl-dev tzdata unzip
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime
-RUN rm -rf /var/lib/apt/lists/*
+
+# clang-12 can only be installed to ubuntu and is only needed for GSAC contest
+RUN if [ "$BASE_IMAGE_NAME" = "ubuntu" ]; then \
+    apt-get install -y clang-12 clang-format libclang-12-dev; \
+    fi
 
 # Fixme: https://github.com/saveourtool/save-cloud/issues/352
-RUN if [ "$BASE_IMAGE_NAME" = "python" ]; then \
+RUN if [[ "$BASE_IMAGE_NAME" == "python" ]]; then \
     curl -s "https://get.sdkman.io" | bash && \
     bash -c 'source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install java 8.0.302-open' && \
     ln -s $(which java) /usr/bin/java; \
     fi
+
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 1100 save-agent && \
     useradd --uid 1100 --gid 1100 --create-home --shell /bin/sh save-agent && \

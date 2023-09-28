@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.cvsscalculator
+package com.saveourtool.save.cvsscalculator.v3
 
 import kotlinx.serialization.Serializable
 
@@ -14,6 +14,7 @@ enum class AttackVectorType(val value: String) {
     ADJACENT_NETWORK("A"),
     LOCAL("L"),
     NETWORK("N"),
+    NOT_DEFINED("_"),
     PHYSICAL("P"),
     ;
 }
@@ -27,6 +28,7 @@ enum class AttackVectorType(val value: String) {
 enum class AttackComplexityType(val value: String) {
     HIGH("H"),
     LOW("L"),
+    NOT_DEFINED("_"),
     ;
 }
 
@@ -40,6 +42,7 @@ enum class PrivilegesRequiredType(val value: String) {
     HIGH("H"),
     LOW("L"),
     NONE("N"),
+    NOT_DEFINED("_"),
     ;
 }
 
@@ -51,6 +54,7 @@ enum class PrivilegesRequiredType(val value: String) {
 @Serializable
 enum class UserInteractionType(val value: String) {
     NONE("N"),
+    NOT_DEFINED("_"),
     REQUIRED("R"),
     ;
 }
@@ -63,6 +67,7 @@ enum class UserInteractionType(val value: String) {
 @Serializable
 enum class ScopeType(val value: String) {
     CHANGED("C"),
+    NOT_DEFINED("_"),
     UNCHANGED("U"),
     ;
 }
@@ -77,5 +82,6 @@ enum class CiaType(val value: String) {
     HIGH("H"),
     LOW("L"),
     NONE("N"),
+    NOT_DEFINED("_"),
     ;
 }

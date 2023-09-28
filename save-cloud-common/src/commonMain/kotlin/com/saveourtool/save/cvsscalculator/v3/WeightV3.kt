@@ -3,7 +3,7 @@
     "MagicNumber",
 )
 
-package com.saveourtool.save.cvsscalculator
+package com.saveourtool.save.cvsscalculator.v3
 
 val av = mapOf(
     AttackVectorType.NETWORK.value to 0.85f,
