@@ -1,6 +1,7 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -70,7 +71,7 @@ class SaveUserDetails(
     override fun isCredentialsNonExpired(): Boolean = true
 
     @JsonIgnore
-    override fun isEnabled(): Boolean = true
+    override fun isEnabled(): Boolean = status == UserStatus.ACTIVE.toString()
 
     override fun eraseCredentials() {
         token = null
