@@ -61,6 +61,7 @@ class BackendService(
      * @param session current [WebSession]
      * @return current user [SaveUserDetails]
      */
+    @Suppress("UnusedParameter")
     fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
         is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
