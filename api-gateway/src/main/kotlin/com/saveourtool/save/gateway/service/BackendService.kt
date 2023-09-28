@@ -57,14 +57,11 @@ class BackendService(
      * Find current user [SaveUserDetails] by [principal].
      *
      * @param principal current user [Principal]
-     * @param session current [WebSession] or null if [session] should not be used
+     * @param session current [WebSession]
      * @return current user [SaveUserDetails]
      */
     @Suppress("UnusedParameter")
-    fun findByPrincipal(
-        principal: Principal,
-        session: WebSession,
-    ): Mono<SaveUserDetails> = when (principal) {
+    fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
         is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
         is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()

@@ -110,9 +110,9 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            val user = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            val oldStatus = user.status
             if (user.id == authentication.userId()) {
-                val oldStatus = user.status
                 val newStatus = when (oldStatus) {
                     UserStatus.CREATED -> UserStatus.NOT_APPROVED
                     UserStatus.ACTIVE -> UserStatus.ACTIVE
