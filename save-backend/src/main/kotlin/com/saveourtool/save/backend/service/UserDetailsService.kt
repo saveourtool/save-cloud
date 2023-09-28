@@ -102,12 +102,10 @@ class UserDetailsService(
      * @param authentication
      * @return global [Role] of authenticated user
      */
-    fun getGlobalRole(authentication: Authentication): Role = authentication.authorities
-        .map { grantedAuthority ->
-            Role.fromSpringSecurityRole(grantedAuthority.authority)
+    fun getGlobalRole(authentication: Authentication): Role = userRepository.findByIdOrNull(authentication.userId())
+        ?.let { user ->
+            Role.values().find { role -> role.asSpringSecurityRole() == user.role }
         }
-        .sortedBy { it?.priority }
-        .lastOrNull()
         ?: Role.VIEWER
 
     /**
