@@ -71,7 +71,7 @@ class SaveUserDetails(
     override fun isCredentialsNonExpired(): Boolean = true
 
     @JsonIgnore
-    override fun isEnabled(): Boolean = status == UserStatus.ACTIVE.toString()
+    override fun isEnabled(): Boolean = true
 
     override fun eraseCredentials() {
         token = null

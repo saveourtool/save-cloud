@@ -14,6 +14,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -44,6 +45,12 @@ class UserDetailsService(
      * @return found [User] or exception
      */
     fun getByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
+
+    /**
+     * @param userId [User.id]
+     * @return found [User] by provided [userId] or null
+     */
+    fun findById(userId: Long): User? = userRepository.findByIdOrNull(userId)
 
     /**
      * @param username
@@ -96,7 +103,7 @@ class UserDetailsService(
      */
     fun getGlobalRole(authentication: Authentication): Role = authentication.authorities
         .map { grantedAuthority ->
-            Role.values().find { role -> role.asSpringSecurityRole() == grantedAuthority.authority }
+            Role.fromSpringSecurityRole(grantedAuthority.authority)
         }
         .sortedBy { it?.priority }
         .lastOrNull()

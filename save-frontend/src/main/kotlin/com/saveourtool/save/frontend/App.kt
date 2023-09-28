@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.*
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -20,7 +18,6 @@ import com.saveourtool.save.validation.FrontendRoutes
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.*
 import react.router.dom.BrowserRouter
 import web.cssom.ClassName
 import web.dom.document
@@ -39,33 +36,15 @@ import kotlinx.serialization.json.Json
 val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
-        val userName: String? = get(
-            "${window.location.origin}/sec/user",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
-        ).run {
-            val responseText = text().await()
-            if (!ok || responseText == "null") null else responseText
-        }
-
-        val globalRole: Role? = get(
-            "$apiUrl/users/global-role",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
-        ).run {
-            val responseText = text().await()
-            if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
-        }
-
-        val user: UserInfo? = userName?.let {
-            get("$apiUrl/users/$userName", jsonHeaders, loadingHandler = ::loadingHandler)
-                .decodeFromJsonString<UserInfo>()
-        }
-
-        val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole)
-            ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
+        val userInfoNew: UserInfo? = get(
+                "$apiUrl/users/user-info",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+            )
+            .run {
+                val responseText = text().await()
+                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+            }
 
         userInfoNew?.let { setUserInfo(userInfoNew) }
     }

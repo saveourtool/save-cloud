@@ -181,6 +181,16 @@ class UsersDetailsController(
             Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
+     * @param authentication
+     * @return [UserInfo] of authenticated user
+     */
+    @GetMapping("/user-info")
+    @PreAuthorize("isAuthenticated()")
+    fun getSelfUserInfo(authentication: Authentication): Mono<UserInfo> = blockingToMono {
+        userDetailsService.findById(authentication.userId())?.toUserInfo()
+    }
+
+    /**
      * @param userName
      * @param authentication
      */

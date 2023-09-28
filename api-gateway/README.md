@@ -24,7 +24,7 @@ It forwards requests to specific backend services based on their paths
 and performs some necessary filtering and header manipulation to ensure proper communication between the gateway and downstream services.
 The routes are defined based on specific URI paths:
  - `/sec/**` is not forwarded anywhere but `api-gateway`'s `SecurityInfoController`,
-    which is responsible for `/sec/user` and `/sec/oauth-providers` endpoints
+    which is responsible for `/sec/oauth-providers` endpoint
  - `/api/sandbox` is forwarded to `save-sandbox`
  - `/api/demo` is forwarded to `save-demo`
  - `/api/cpg` is forwarded to `save-cpg-demo`
