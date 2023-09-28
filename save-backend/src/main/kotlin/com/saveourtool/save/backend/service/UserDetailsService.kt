@@ -19,6 +19,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.scheduler.Schedulers
 import java.lang.IllegalArgumentException
 
 import java.util.*
@@ -218,31 +219,31 @@ class UserDetailsService(
         name: String,
         authentication: Authentication,
     ): UserSaveStatus {
-        val user: User = userRepository.findByName(name).orNotFound()
-        val newName = "Deleted-${user.id}"
-        if (user.id == authentication.userId()) {
-            userRepository.deleteHighLevelName(user.name)
-            userRepository.saveHighLevelName(newName)
-            userRepository.save(user.apply {
-                this.name = newName
-                this.status = UserStatus.DELETED
-                this.avatar = null
-                this.company = null
-                this.twitter = null
-                this.email = null
-                this.gitHub = null
-                this.linkedin = null
-                this.location = null
-            })
-        } else {
-            return UserSaveStatus.HACKER
+        val user: User = userRepository.findByIdOrNull(authentication.userId()).orNotFound {
+            "Not found user in database for ${authentication.userId()}"
         }
+        val newName = "Deleted-${user.id}"
+        userRepository.deleteHighLevelName(user.name)
+        userRepository.saveHighLevelName(newName)
+        userRepository.save(user.apply {
+            this.name = newName
+            this.status = UserStatus.DELETED
+            this.avatar = null
+            this.company = null
+            this.twitter = null
+            this.email = null
+            this.gitHub = null
+            this.linkedin = null
+            this.location = null
+        })
 
         val avatarKey = AvatarKey(
             AvatarType.USER,
             name,
         )
         avatarStorage.delete(avatarKey)
+            .subscribeOn(Schedulers.boundedElastic())
+            .subscribe()
 
         originalLoginRepository.deleteByUserId(user.requiredId())
         lnkUserProjectRepository.deleteByUserId(user.requiredId())

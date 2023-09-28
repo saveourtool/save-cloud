@@ -79,7 +79,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
 
     val saveUser = useDeferredRequest {
         val newUserInfo = userInfo.copy(
-            oldName = props.userInfo?.name!!,
             status = UserStatus.ACTIVE,
         )
         val response = post(

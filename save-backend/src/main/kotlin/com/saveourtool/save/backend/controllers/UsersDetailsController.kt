@@ -116,7 +116,7 @@ class UsersDetailsController(
             "Not found user in database for ${authentication.userId()}"
         }
         .blockingMap { user ->
-            val oldName = user.name
+            val oldName = user.name.takeUnless { it == newUserInfo.name }
             val oldStatus = user.status
             val newStatus = when (oldStatus) {
                 UserStatus.CREATED -> UserStatus.NOT_APPROVED
@@ -196,14 +196,13 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
-        .filter { status ->
-            status == UserSaveStatus.DELETED
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.HACKER.message
-        }
         .map { status ->
-            ResponseEntity.ok(status.message)
+            when (status) {
+                UserSaveStatus.DELETED ->
+                    ResponseEntity.ok(status.message)
+                else ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+            }
         }
 
     /**
