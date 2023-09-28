@@ -3,6 +3,7 @@ config.devServer = Object.assign(
     config.devServer || {},
     {
         setupMiddlewares: (middlewares, devServer) => {
+            devServer.app.get("/sec/user", (req, res) => { return res.send("admin"); });
             devServer.app.get("/sec/oauth-providers", (req, res) => { return res.send([]); });
             return middlewares;
         },

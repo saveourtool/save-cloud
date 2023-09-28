@@ -48,12 +48,6 @@ class UserDetailsService(
     fun getByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
 
     /**
-     * @param userId [User.id]
-     * @return found [User] by provided [userId] or null
-     */
-    fun findById(userId: Long): User? = userRepository.findByIdOrNull(userId)
-
-    /**
      * @param username
      * @param source source (where the user identity is coming from)
      * @return spring's UserDetails retrieved from save's user found by provided values

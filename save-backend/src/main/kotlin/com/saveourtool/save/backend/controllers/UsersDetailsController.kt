@@ -4,6 +4,7 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
@@ -174,13 +175,12 @@ class UsersDetailsController(
 
     /**
      * @param authentication
-     * @return [UserInfo] of authenticated user
+     * @return global [Role] of authenticated user
      */
-    @GetMapping("/user-info")
+    @GetMapping("/global-role")
     @PreAuthorize("isAuthenticated()")
-    fun getSelfUserInfo(authentication: Authentication): Mono<UserInfo> = blockingToMono {
-        userDetailsService.findById(authentication.userId())?.toUserInfo()
-    }
+    fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
+            Mono.just(userDetailsService.getGlobalRole(authentication))
 
     /**
      * @param userName
