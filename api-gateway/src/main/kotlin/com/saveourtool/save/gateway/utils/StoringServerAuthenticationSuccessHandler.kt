@@ -1,7 +1,7 @@
 package com.saveourtool.save.gateway.utils
 
 import com.saveourtool.save.gateway.service.BackendService
-import com.saveourtool.save.utils.SAVE_USER_DETAILS_ATTIBUTE
+import com.saveourtool.save.utils.SAVE_USER_ID_ATTRIBUTE
 
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.BadCredentialsException
@@ -32,7 +32,7 @@ class StoringServerAuthenticationSuccessHandler(
         }
         return backendService.createNewIfRequired(source, nameInSource).flatMap { saveUser ->
             webFilterExchange.exchange.session.map {
-                it.attributes[SAVE_USER_DETAILS_ATTIBUTE] = saveUser
+                it.attributes[SAVE_USER_ID_ATTRIBUTE] = saveUser.id
             }
         }.then()
     }
