@@ -10636,7 +10636,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
+                    "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                   }
                 }
               }
@@ -10649,7 +10649,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
+                    "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                   }
                 }
               }
@@ -10783,6 +10783,7 @@
               "type": "string",
               "enum": [
                 "APPROVED",
+                "AUTO_APPROVED",
                 "PENDING_REVIEW",
                 "REJECTED"
               ]
@@ -14029,6 +14030,7 @@
             "type": "string",
             "enum": [
               "APPROVED",
+              "AUTO_APPROVED",
               "PENDING_REVIEW",
               "REJECTED"
             ]
@@ -14087,6 +14089,7 @@
             "type": "string",
             "enum": [
               "APPROVED",
+              "AUTO_APPROVED",
               "PENDING_REVIEW",
               "REJECTED"
             ]
@@ -14097,6 +14100,82 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "VulnerabilityMetadataDto": {
+        "required": [
+          "details",
+          "identifier",
+          "language",
+          "modified",
+          "severityNum",
+          "status",
+          "submitted",
+          "summary",
+          "tags",
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "type": "string"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "C",
+              "C++",
+              "C#",
+              "Go",
+              "Java",
+              "JavaScript",
+              "Kotlin",
+              "Other",
+              "PHP",
+              "Python",
+              "Rust",
+              "Sql",
+              "TypeScript"
+            ]
+          },
+          "modified": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationDto"
+          },
+          "severityNum": {
+            "type": "number",
+            "format": "float"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "AUTO_APPROVED",
+              "PENDING_REVIEW",
+              "REJECTED"
+            ]
+          },
+          "submitted": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "tags": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
           }
         }
       },
