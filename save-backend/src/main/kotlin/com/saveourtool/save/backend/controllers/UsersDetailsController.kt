@@ -116,36 +116,32 @@ class UsersDetailsController(
             "Not found user in database for ${authentication.userId()}"
         }
         .blockingMap { user ->
-            val userByName = userRepository.findByName(newUserInfo.name)
-            if (user.id == userByName?.id) {
-                UserSaveStatus.CONFLICT
-            } else {
-                val oldStatus = user.status
-                val newStatus = when (oldStatus) {
-                    UserStatus.CREATED -> UserStatus.NOT_APPROVED
-                    UserStatus.ACTIVE -> UserStatus.ACTIVE
-                    else -> null
-                }
-                newStatus?.let {
-                    userDetailsService.saveUser(
-                        user.apply {
-                            name = newUserInfo.name
-                            email = newUserInfo.email
-                            company = newUserInfo.company
-                            location = newUserInfo.location
-                            gitHub = newUserInfo.gitHub
-                            linkedin = newUserInfo.linkedin
-                            twitter = newUserInfo.twitter
-                            status = newStatus
-                            website = newUserInfo.website
-                            realName = newUserInfo.realName
-                            freeText = newUserInfo.freeText
-                        },
-                        newUserInfo.oldName,
-                        oldStatus,
-                    )
-                } ?: UserSaveStatus.FORBIDDEN
+            val oldName = user.name
+            val oldStatus = user.status
+            val newStatus = when (oldStatus) {
+                UserStatus.CREATED -> UserStatus.NOT_APPROVED
+                UserStatus.ACTIVE -> UserStatus.ACTIVE
+                else -> null
             }
+            newStatus?.let {
+                userDetailsService.saveUser(
+                    user.apply {
+                        name = newUserInfo.name
+                        email = newUserInfo.email
+                        company = newUserInfo.company
+                        location = newUserInfo.location
+                        gitHub = newUserInfo.gitHub
+                        linkedin = newUserInfo.linkedin
+                        twitter = newUserInfo.twitter
+                        status = newStatus
+                        website = newUserInfo.website
+                        realName = newUserInfo.realName
+                        freeText = newUserInfo.freeText
+                    },
+                    oldName,
+                    oldStatus,
+                )
+            } ?: UserSaveStatus.FORBIDDEN
         }
         .filter { status -> status == UserSaveStatus.UPDATE }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
