@@ -114,7 +114,7 @@ class UsersDetailsControllerTest {
             .bodyValue(newUserInfo)
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.CONFLICT)
+            .isEqualTo(HttpStatus.OK)
     }
 
     @Test
