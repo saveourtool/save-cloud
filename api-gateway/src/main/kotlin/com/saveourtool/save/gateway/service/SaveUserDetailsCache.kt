@@ -11,7 +11,7 @@ import kotlin.concurrent.write
  */
 @Component
 class SaveUserDetailsCache {
-    private val cache = hashMapOf<Long, SaveUserDetails>()
+    private val cache: HashMap<Long, SaveUserDetails> = hashMapOf()
     private val reentrantReadWriteLock = ReentrantReadWriteLock()
 
     /**
