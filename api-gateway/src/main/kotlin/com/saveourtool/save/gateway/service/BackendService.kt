@@ -62,8 +62,7 @@ class BackendService(
      * @return current user [SaveUserDetails]
      */
     fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
-        is OAuth2AuthenticationToken -> session.getAttribute<SaveUserDetails>(SAVE_USER_DETAILS_ATTIBUTE)
-            .toMono()
+        is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
                 "Not found attribute $SAVE_USER_DETAILS_ATTIBUTE for ${OAuth2AuthenticationToken::class}"
             }
