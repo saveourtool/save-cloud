@@ -44,7 +44,7 @@ import web.html.InputType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private val organizationSelectForm: FC<SelectFormRequiredProps<String>> = selectFormRequired<String>()
+private val organizationSelectForm: SelectFormFunctionalComponent = selectFormRequired()
 
 val createProjectView = VFC {
     useBackground(Style.SAVE_DARK)
@@ -296,3 +296,5 @@ val createProjectView = VFC {
         }
     }
 }
+
+typealias SelectFormFunctionalComponent = FC<SelectFormRequiredProps<String>>

@@ -14,8 +14,7 @@ import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
-import react.FC
-import react.Props
+import react.VFC
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
@@ -23,6 +22,8 @@ import react.dom.html.ReactHTML.tr
 import react.router.useNavigate
 import tanstack.table.core.Table
 import web.cssom.ClassName
+
+const val EXTRA_INFO_COLUMN_WIDTH = 3
 
 /**
  * A function component that renders info about [TestResultDebugInfo] into a table [tableInstance]
@@ -39,7 +40,7 @@ fun testStatusComponent(
     testResultDebugInfo: TestResultDebugInfo,
     tableInstance: Table<TestExecutionExtDto>,
     testExecutionDto: TestExecutionDto,
-) = FC<Props> {
+) = VFC {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
@@ -52,11 +53,11 @@ fun testStatusComponent(
     tr {
         className = ClassName("table-sm")
         td {
-            colSpan = 3
+            colSpan = EXTRA_INFO_COLUMN_WIDTH
             +"Container ID"
         }
         td {
-            colSpan = numColumns - 3
+            colSpan = numColumns - EXTRA_INFO_COLUMN_WIDTH
             small {
                 samp {
                     +"${testExecutionDto.agentContainerId} : ${testExecutionDto.agentContainerName}"
@@ -67,11 +68,11 @@ fun testStatusComponent(
     tr {
         className = ClassName("table-sm")
         td {
-            colSpan = 3
+            colSpan = EXTRA_INFO_COLUMN_WIDTH
             +"Executed command"
         }
         td {
-            colSpan = numColumns - 3
+            colSpan = numColumns - EXTRA_INFO_COLUMN_WIDTH
             small {
                 samp {
                     +(testResultDebugInfo.debugInfo?.execCmd ?: "N/A")
@@ -83,19 +84,23 @@ fun testStatusComponent(
         className = ClassName("table-sm")
         td {
             className = ClassName("align-middle")
-            colSpan = 3
+            colSpan = EXTRA_INFO_COLUMN_WIDTH
             +"Reason (additional info: "
             buttonBuilder(
                 icon = faExternalLinkAlt,
                 classes = "text-primary pl-0 pt-0 btn-sm",
                 style = ""
             ) {
-                useNavigate(to = "/$organizationProjectPath/details/history/execution/${testExecutionDto.executionId}/test/id")
+                useNavigate(
+                    to = "/$organizationProjectPath/history/" +
+                            "execution/${testExecutionDto.executionId}/" +
+                            "test/${testExecutionDto.requiredId()}"
+                )
             }
             +" )"
         }
         td {
-            colSpan = numColumns - 3
+            colSpan = numColumns - EXTRA_INFO_COLUMN_WIDTH
             small {
                 samp {
                     +shortMessage
@@ -115,7 +120,7 @@ fun testStatusComponent(
 fun <D : Any> executionStatusComponent(
     failReason: String,
     tableInstance: Table<D>
-) = FC<Props> {
+) = VFC {
     tr {
         td {
             colSpan = 2

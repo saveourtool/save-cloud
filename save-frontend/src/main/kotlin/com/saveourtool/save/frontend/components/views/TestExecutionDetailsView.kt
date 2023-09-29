@@ -7,13 +7,11 @@ import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.multilineText
 import com.saveourtool.save.frontend.utils.multilineTextWithIndices
 
-import org.w3c.fetch.Headers
 import react.*
 import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
@@ -26,50 +24,23 @@ import react.dom.html.ReactHTML.tr
 import react.router.useParams
 import web.cssom.ClassName
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
 /**
  * A component to display details about test execution
  *
  * @return a function component
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "TOO_LONG_FUNCTION")
-val testExecutionDetailsView = FC<Props> {
-    val params = useParams()
-    val executionId = params["executionId"]!!.toLong()
-
-    val testFilePath = params["*"]!!
-    val testResultLocation = TestResultLocation(
-        params["testSuiteName"]!!,
-        params["pluginName"]!!,
-        testFilePath,
-    )
-
+val testExecutionDetailsView = VFC {
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 
     // fixme: after https://github.com/saveourtool/save-cloud/issues/364 can be passed via history state to avoid requests
-    useRequest(arrayOf(params)) {
-        val testExecutionDtoResponse = post(
-            "$apiUrl/test-execution?executionId=$executionId&checkDebugInfo=true",
-            Headers().apply {
-                set("Content-Type", "application/json")
-            },
-            Json.encodeToString(testResultLocation),
-            loadingHandler = ::loadingHandler,
-        )
-        if (testExecutionDtoResponse.ok) {
-            val testResultDebugInfoResponse = getDebugInfoFor(testExecutionDtoResponse.decodeFromJsonString())
-            if (testResultDebugInfoResponse.ok) {
-                setTestResultDebugInfo(
-                    testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>()
-                )
-            } else {
-                setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
-            }
+    useRequest {
+        val testResultDebugInfoResponse = getDebugInfoFor(useParams()["testId"]!!.toLong())
+        if (testResultDebugInfoResponse.ok) {
+            setTestResultDebugInfo(testResultDebugInfoResponse.decodeFromJsonString<TestResultDebugInfo>())
         } else {
-            setStatus("Additional test info is not available (code ${testExecutionDtoResponse.status})")
+            setStatus("Additional test info is not available (code ${testResultDebugInfoResponse.status})")
         }
     }
 
@@ -151,6 +122,7 @@ fun ChildrenBuilder.displayTestResultDebugInfo(testResultDebugInfo: TestResultDe
         }
     }
 }
+
 private fun ChildrenBuilder.fallback(status: String) = div {
     +status
 }

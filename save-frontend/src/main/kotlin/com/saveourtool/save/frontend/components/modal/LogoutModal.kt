@@ -9,9 +9,9 @@ import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Headers
 import react.FC
+import react.router.useNavigate
 
 import kotlinx.browser.window
-import react.router.useNavigate
 
 /**
  * @param closeCallback a callback to call to close the modal

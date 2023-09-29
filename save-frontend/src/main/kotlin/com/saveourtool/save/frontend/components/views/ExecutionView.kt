@@ -313,7 +313,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
     } ?: ""
 
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
-        val trDebugInfoResponse = getDebugInfoFor(testExecution)
+        val trDebugInfoResponse = getDebugInfoFor(testExecution.requiredId())
+        // FixMe: invalid setup of execution because of the invalid propagated ID
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
         // there may be errors during deserialization, which will otherwise be silently ignored
         try {

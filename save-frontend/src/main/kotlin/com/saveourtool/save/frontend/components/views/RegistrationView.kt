@@ -59,7 +59,9 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     particles()
     val useNavigate = useNavigate()
 
-    if (props.userInfo?.status == UserStatus.ACTIVE) useNavigate(to = "/")
+    if (props.userInfo?.status != UserStatus.NOT_APPROVED) {
+        useNavigate(to = "/")
+    }
 
     useRedirectToIndexIf(props.userInfo?.status) {
         // life hack ot be sure that props are loaded

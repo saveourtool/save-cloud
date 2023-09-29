@@ -175,7 +175,10 @@ val basicRouting: FC<AppProps> = FC { props ->
             sandboxView.create() to SANDBOX,
             AboutUsView::class.react.create() to ABOUT_US,
             createOrganizationView.create() to CREATE_ORGANIZATION,
-            registrationView.create { userInfo = props.userInfo } to REGISTRATION,
+            registrationView.create {
+                userInfo = props.userInfo
+                userInfoSetter = props.userInfoSetter
+            } to REGISTRATION,
             CollectionView::class.react.create { currentUserInfo = props.userInfo } to PROJECTS,
             contestListView.create { currentUserInfo = props.userInfo } to CONTESTS,
 
@@ -200,7 +203,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             executionView.create() to ":organization/:project/history/execution/:executionId",
             demoView.create() to "$DEMO/:organizationName/:projectName",
             cpgView.create() to "$DEMO/cpg",
-            testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:id",
+            testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
             vulnerabilityCollectionView.create() to "$VULN/list/:params?",
             createVulnerabilityView.create() to CREATE_VULNERABILITY,
             uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,
