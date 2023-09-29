@@ -28,7 +28,7 @@ data class TestSuitesSourceDto(
     val latestFetchedVersion: String?,
     override val id: Long? = null,
 ) : Validatable, DtoWithId() {
-    override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath()
+    override fun validate(): Boolean = validateName() && validateOrganizationName() && validateTestRootPath() && gitDto.validate()
 
     /**
      * @return true if name is valid, false otherwise
