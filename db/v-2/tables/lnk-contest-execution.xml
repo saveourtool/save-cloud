@@ -62,7 +62,7 @@
   </changeSet>
 
   <changeSet id="one-contest-per-execution" author="nulls">
-    <addUniqueConstraint tableName="lnk_contest_execution" columnNames="uq_lnk_contest_execution_execution"/>
+    <addUniqueConstraint tableName="lnk_contest_execution" columnNames="execution_id" constraintName="uq_lnk_contest_execution_execution"/>
   </changeSet>
 
 </databaseChangeLog>
