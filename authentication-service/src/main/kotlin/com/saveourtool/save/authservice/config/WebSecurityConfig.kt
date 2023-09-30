@@ -116,6 +116,7 @@ class WebSecurityConfig(
             "/api/$v1/contests/*/*/best",
             "/api/demo/*/run",
             "/api/$v1/vulnerabilities/by-filter",
+            "/api/$v1/vulnerabilities/count-approved",
             // `fossGraphView` is public page
             "/api/$v1/vulnerabilities/by-identifier-with-description",
             "/api/$v1/comments/get-all",

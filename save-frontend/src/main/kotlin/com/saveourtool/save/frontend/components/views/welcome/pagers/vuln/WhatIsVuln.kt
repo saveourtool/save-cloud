@@ -30,13 +30,13 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
                 "What is vulnerability?".t(),
                 "/img/undraw_question.svg",
                 "Vulnerability is a weakness or flaw in a system, network, software, or hardware.".t(),
-                "mr-3",
+                "mr-3 px-4",
             )
             textCard(
-                "Why vulnerability archives important?".t(),
+                "Why is this archive needed?".t(),
                 "/img/undraw_share.svg",
-                "A vulnerability archive is vital as a centralized repository for documented vulnerabilities.".t(),
-                "ml-3",
+                "Archive importance".t(),
+                "ml-3 px-4",
             )
         }
 
