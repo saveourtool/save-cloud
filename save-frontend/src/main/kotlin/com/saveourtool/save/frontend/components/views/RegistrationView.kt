@@ -59,7 +59,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     particles()
     val useNavigate = useNavigate()
 
-    if (props.userInfo?.status != UserStatus.NOT_APPROVED) {
+    if (props.userInfo?.status == UserStatus.ACTIVE) {
         useNavigate(to = "/")
     }
 
