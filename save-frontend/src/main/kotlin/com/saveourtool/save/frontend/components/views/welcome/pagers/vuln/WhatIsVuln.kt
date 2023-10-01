@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers.vuln
 
 import com.saveourtool.save.frontend.components.basic.markdown
+import com.saveourtool.save.frontend.components.views.welcome.FIRST_RAW_HEIGHT
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import js.core.jso
 import react.ChildrenBuilder
@@ -58,7 +59,7 @@ private fun ChildrenBuilder.textCard(
     div {
         className = ClassName("card border border-primary rounded rounded-pill col $classes")
         style = jso {
-            height = 30.rem
+            height = FIRST_RAW_HEIGHT.rem
         }
         div {
             className = ClassName("d-flex justify-content-center")
