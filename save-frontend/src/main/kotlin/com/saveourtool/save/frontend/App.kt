@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
+import org.w3c.fetch.Response
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -42,19 +43,17 @@ val App: VFC = FC {
             jsonHeaders,
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler
-        ).run {
-            val responseText = text().await()
-            if (!ok || responseText == "null") null else responseText
-        }
+        ).validTextOrNull()
 
-        val globalRole: Role? = get(
-            "$apiUrl/users/global-role",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
-        ).run {
-            val responseText = text().await()
-            if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+        val globalRole: Role? = userName?.let {
+            get(
+                "$apiUrl/users/global-role",
+                jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+                .validTextOrNull()
+                ?.let { Json.decodeFromString(it) }
         }
 
         val user: UserInfo? = userName?.let {
@@ -94,6 +93,12 @@ val App: VFC = FC {
         scrollToTopButton()
     }
 }
+
+private suspend fun Response.validTextOrNull(): String? = text()
+    .await()
+    .takeIf {
+        ok && it.isNotEmpty() && it != "null"
+    }
 
 fun main() {
     /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
