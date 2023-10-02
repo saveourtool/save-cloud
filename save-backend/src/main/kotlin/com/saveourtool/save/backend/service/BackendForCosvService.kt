@@ -32,4 +32,8 @@ class BackendForCosvService(
         organizationName: String,
         permission: Permission
     ): Boolean = organizationPermissionEvaluator.hasPermission(authentication, getOrganizationByName(organizationName), permission)
+
+    override fun saveUser(user: User): User = userDetailsService.saveUser(user)
+
+    override fun saveOrganization(organization: Organization) = organizationService.updateOrganization(organization)
 }
