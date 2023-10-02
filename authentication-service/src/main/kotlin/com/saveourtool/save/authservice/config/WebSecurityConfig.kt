@@ -121,11 +121,12 @@ class WebSecurityConfig(
             "/api/$v1/comments/get-all",
             "/api/$v1/users/all",
             "/api/$v1/users/by-prefix",
+            "/api/$v1/users/user-info",
             "/api/$v1/avatar/**",
             // `ProjectView`'s getProject should be public, all the permission filtering is done on backend
             "/api/$v1/projects/get/organization-name",
             // info on tags should be public
-            "/api/$v1/tags/**"
+            "/api/$v1/tags/**",
         )
     }
 }

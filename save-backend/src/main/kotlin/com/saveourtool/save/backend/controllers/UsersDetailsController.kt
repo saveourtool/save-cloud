@@ -175,9 +175,8 @@ class UsersDetailsController(
      * @return [UserInfo] of authenticated user
      */
     @GetMapping("/user-info")
-    @PreAuthorize("isAuthenticated()")
-    fun getSelfUserInfo(authentication: Authentication): Mono<UserInfo> = blockingToMono {
-        userDetailsService.findById(authentication.userId())?.toUserInfo()
+    fun getSelfUserInfo(authentication: Authentication?): Mono<UserInfo> = blockingToMono {
+        authentication?.userId()?.let { userDetailsService.findById(it) }?.toUserInfo()
     }
 
     /**

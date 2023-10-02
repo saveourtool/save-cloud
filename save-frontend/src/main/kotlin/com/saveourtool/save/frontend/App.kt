@@ -36,17 +36,17 @@ import kotlinx.serialization.json.Json
 val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
-        val userInfoNew: UserInfo? = get(
+        get(
             "$apiUrl/users/user-info",
             jsonHeaders,
             loadingHandler = ::loadingHandler,
-        )
-            .run {
-                val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
+        ).run {
+            val responseText = text().await()
+            if (ok && responseText.isNotEmpty() && responseText != "null") {
+                val userInfoNew: UserInfo = Json.decodeFromString(responseText)
+                setUserInfo(userInfoNew)
             }
-
-        userInfoNew?.let { setUserInfo(userInfoNew) }
+        }
     }
     BrowserRouter {
         basename = "/"
