@@ -70,6 +70,16 @@ private const val TEXT_LABEL_INFIX = " $ELLIPSIS "
  */
 external interface ExecutionProps : PropsWithChildren {
     /**
+     * Organization name
+     */
+    var organization: String
+
+    /**
+     * Project name
+     */
+    var project: String
+
+    /**
      * ID of execution
      */
     var executionId: String
@@ -219,20 +229,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                         }
                     }
                 }
-                column(id = "containerName", header = "Container Name") {
-                    Fragment.create {
-                        td {
-                            +"${it.value.testExecution.agentContainerName}"
-                        }
-                    }
-                }
-                column(id = "containerId", header = "Container ID") {
-                    Fragment.create {
-                        td {
-                            +"${it.value.testExecution.agentContainerId}"
-                        }
-                    }
-                }
 
                 if (props.testAnalysisEnabled) {
                     column(id = "testMetrics", header = "Test Metrics") {
@@ -281,8 +277,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                 }
                 trei?.failReason != null || trdi != null -> {
                     trei?.failReason?.let { executionStatusComponent(it, tableInstance)() }
-                    trdi?.let { testStatusComponent(it, tableInstance)() }
+                    trdi?.let {
+                        testStatusComponent(
+                            "${props.organization}/${props.project}",
+                            it,
+                            tableInstance,
+                            row.original.testExecution
+                        )()
+                    }
                 }
+
                 else -> tr {
                     td {
                         colSpan = tableInstance.visibleColumnsCount()
@@ -309,7 +313,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
     } ?: ""
 
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
-        val trDebugInfoResponse = getDebugInfoFor(testExecution)
+        val trDebugInfoResponse = getDebugInfoFor(testExecution.requiredId())
+        // FixMe: invalid setup of execution because of the invalid propagated ID
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
         // there may be errors during deserialization, which will otherwise be silently ignored
         try {

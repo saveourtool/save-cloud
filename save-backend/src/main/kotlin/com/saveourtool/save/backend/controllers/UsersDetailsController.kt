@@ -121,37 +121,39 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            userRepository.findByIdOrNull(authentication.userId())
+        }
+        .switchIfEmptyToNotFound {
+            "User with id ${authentication.userId()} not found in database"
+        }
+        .blockingMap { user ->
+            val oldName = user.name.takeUnless { it == newUserInfo.name }
             val oldStatus = user.status
-            if (user.id == authentication.userId()) {
-                val newStatus = when (oldStatus) {
-                    UserStatus.CREATED -> UserStatus.NOT_APPROVED
-                    UserStatus.ACTIVE -> UserStatus.ACTIVE
-                    else -> null
-                }
-                newStatus?.let {
-                    val newUser = user.apply {
-                        name = newUserInfo.name
-                        email = newUserInfo.email
-                        company = newUserInfo.company
-                        location = newUserInfo.location
-                        gitHub = newUserInfo.gitHub
-                        linkedin = newUserInfo.linkedin
-                        twitter = newUserInfo.twitter
-                        status = newStatus
-                        website = newUserInfo.website
-                        realName = newUserInfo.realName
-                        freeText = newUserInfo.freeText
-                    }
-                    userDetailsService.saveUser(
-                        newUser,
-                        newUserInfo.oldName,
-                        oldStatus,
-                    ) to newUser
-                } ?: (UserSaveStatus.FORBIDDEN to null)
-            } else {
-                UserSaveStatus.HACKER to null
+            val newStatus = when (oldStatus) {
+                UserStatus.CREATED -> UserStatus.NOT_APPROVED
+                UserStatus.ACTIVE -> UserStatus.ACTIVE
+                else -> null
             }
+            newStatus?.let {
+                val newUser = user.apply {
+                    name = newUserInfo.name
+                    email = newUserInfo.email
+                    company = newUserInfo.company
+                    location = newUserInfo.location
+                    gitHub = newUserInfo.gitHub
+                    linkedin = newUserInfo.linkedin
+                    twitter = newUserInfo.twitter
+                    status = newStatus
+                    website = newUserInfo.website
+                    realName = newUserInfo.realName
+                    freeText = newUserInfo.freeText
+                }
+                userDetailsService.saveUser(
+                    newUser,
+                    oldName,
+                    oldStatus,
+                ) to newUser
+            } ?: (UserSaveStatus.FORBIDDEN to null)
         }
         .filter { (status, _) ->
             status == UserSaveStatus.UPDATE
@@ -213,16 +215,18 @@ class UsersDetailsController(
         .filter { status ->
             status == UserSaveStatus.DELETED
         }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.HACKER.message
-        }
         .notifyGateway {
             userRepository.findByIdOrNull(authentication.userId()).orNotFound {
                 "Not found user by id=${authentication.userId()}"
             }
         }
         .map { status ->
-            ResponseEntity.ok(status.message)
+            when (status) {
+                UserSaveStatus.DELETED ->
+                    ResponseEntity.ok(status.message)
+                else ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+            }
         }
 
     /**

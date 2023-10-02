@@ -15,6 +15,18 @@ import org.springframework.security.core.Authentication
 @Suppress("CLASS_NAME_INCORRECT")
 interface IBackendService {
     /**
+     * @param user user for update
+     * @return updated user
+     */
+    fun saveUser(user: User): User
+
+    /**
+     * @param organization organization for update
+     * @return updated organization
+     */
+    fun saveOrganization(organization: Organization): Organization
+
+    /**
      * @param name name of organization
      * @return found [Organization] by name
      */
