@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
@@ -18,6 +17,7 @@ import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -109,36 +109,38 @@ class UsersDetailsController(
             UserSaveStatus.INVALID_NAME.message
         }
         .blockingMap {
-            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
+            userRepository.findByIdOrNull(authentication.userId())
+        }
+        .switchIfEmptyToNotFound {
+            "User with id ${authentication.userId()} not found in database"
+        }
+        .blockingMap { user ->
+            val oldName = user.name.takeUnless { it == newUserInfo.name }
             val oldStatus = user.status
-            if (user.id == authentication.userId()) {
-                val newStatus = when (oldStatus) {
-                    UserStatus.CREATED -> UserStatus.NOT_APPROVED
-                    UserStatus.ACTIVE -> UserStatus.ACTIVE
-                    else -> null
-                }
-                newStatus?.let {
-                    userDetailsService.saveUser(
-                        user.apply {
-                            name = newUserInfo.name
-                            email = newUserInfo.email
-                            company = newUserInfo.company
-                            location = newUserInfo.location
-                            gitHub = newUserInfo.gitHub
-                            linkedin = newUserInfo.linkedin
-                            twitter = newUserInfo.twitter
-                            status = newStatus
-                            website = newUserInfo.website
-                            realName = newUserInfo.realName
-                            freeText = newUserInfo.freeText
-                        },
-                        newUserInfo.oldName,
-                        oldStatus
-                    )
-                } ?: UserSaveStatus.FORBIDDEN
-            } else {
-                UserSaveStatus.HACKER
+            val newStatus = when (oldStatus) {
+                UserStatus.CREATED -> UserStatus.NOT_APPROVED
+                UserStatus.ACTIVE -> UserStatus.ACTIVE
+                else -> null
             }
+            newStatus?.let {
+                userDetailsService.saveUser(
+                    user.apply {
+                        name = newUserInfo.name
+                        email = newUserInfo.email
+                        company = newUserInfo.company
+                        location = newUserInfo.location
+                        gitHub = newUserInfo.gitHub
+                        linkedin = newUserInfo.linkedin
+                        twitter = newUserInfo.twitter
+                        status = newStatus
+                        website = newUserInfo.website
+                        realName = newUserInfo.realName
+                        freeText = newUserInfo.freeText
+                    },
+                    oldName,
+                    oldStatus,
+                )
+            } ?: UserSaveStatus.FORBIDDEN
         }
         .filter { status -> status == UserSaveStatus.UPDATE }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
@@ -192,14 +194,13 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
-        .filter { status ->
-            status == UserSaveStatus.DELETED
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.HACKER.message
-        }
         .map { status ->
-            ResponseEntity.ok(status.message)
+            when (status) {
+                UserSaveStatus.DELETED ->
+                    ResponseEntity.ok(status.message)
+                else ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+            }
         }
 
     /**

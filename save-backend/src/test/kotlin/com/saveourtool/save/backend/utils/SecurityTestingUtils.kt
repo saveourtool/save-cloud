@@ -5,7 +5,6 @@
 package com.saveourtool.save.backend.utils
 
 import com.saveourtool.save.authservice.utils.SaveUserDetails
-import com.saveourtool.save.authservice.utils.status
 import com.saveourtool.save.info.UserStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
