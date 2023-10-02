@@ -112,7 +112,7 @@ class UsersDetailsController(
             userRepository.findByIdOrNull(authentication.userId())
         }
         .switchIfEmptyToNotFound {
-            "Not found user in database for ${authentication.userId()}"
+            "User with id ${authentication.userId()} not found in database"
         }
         .blockingMap { user ->
             val oldName = user.name.takeUnless { it == newUserInfo.name }

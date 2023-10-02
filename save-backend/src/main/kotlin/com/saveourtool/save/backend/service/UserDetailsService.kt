@@ -212,7 +212,7 @@ class UserDetailsService(
         authentication: Authentication,
     ): UserSaveStatus {
         val user: User = userRepository.findByIdOrNull(authentication.userId()).orNotFound {
-            "Not found user in database for ${authentication.userId()}"
+            "User with id ${authentication.userId()} not found in database"
         }
         val newName = "Deleted-${user.id}"
         userRepository.deleteHighLevelName(user.name)
