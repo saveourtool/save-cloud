@@ -264,10 +264,6 @@ class UsersDetailsController(
             }
         }
 
-    private fun <T : Any> Mono<T>.alsoNotifyGateway(userResolver: (T) -> User): Mono<T> = this.flatMap { value ->
-        notifyGateway(userResolver(value)).thenReturn(value)
-    }
-
     private fun notifyGateway(userId: Long): Mono<Unit> = blockingToMono {
         userRepository.findByIdOrNull(userId)
     }
