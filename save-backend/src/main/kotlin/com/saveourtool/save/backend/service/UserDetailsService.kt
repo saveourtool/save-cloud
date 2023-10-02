@@ -36,6 +36,12 @@ class UserDetailsService(
     private val avatarStorage: AvatarStorage,
 ) {
     /**
+     * @param user user for update
+     * @return updated user
+     */
+    fun saveUser(user: User): User = userRepository.save(user)
+
+    /**
      * @param username
      * @return spring's UserDetails retrieved from save's user found by provided values
      */
