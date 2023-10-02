@@ -126,46 +126,41 @@ class UsersDetailsController(
         .switchIfEmptyToNotFound {
             "User with id ${authentication.userId()} not found in database"
         }
+        .filter { user ->
+            user.status in (userStatusWorkflow.keys)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            UserSaveStatus.FORBIDDEN.message
+        }
         .blockingMap { user ->
             val oldName = user.name.takeUnless { it == newUserInfo.name }
             val oldStatus = user.status
-            val newStatus = when (oldStatus) {
-                UserStatus.CREATED -> UserStatus.NOT_APPROVED
-                UserStatus.ACTIVE -> UserStatus.ACTIVE
-                else -> null
+            val newUser = user.apply {
+                name = newUserInfo.name
+                email = newUserInfo.email
+                company = newUserInfo.company
+                location = newUserInfo.location
+                gitHub = newUserInfo.gitHub
+                linkedin = newUserInfo.linkedin
+                twitter = newUserInfo.twitter
+                status = userStatusWorkflow.getValue(oldStatus)
+                website = newUserInfo.website
+                realName = newUserInfo.realName
+                freeText = newUserInfo.freeText
             }
-            newStatus?.let {
-                val newUser = user.apply {
-                    name = newUserInfo.name
-                    email = newUserInfo.email
-                    company = newUserInfo.company
-                    location = newUserInfo.location
-                    gitHub = newUserInfo.gitHub
-                    linkedin = newUserInfo.linkedin
-                    twitter = newUserInfo.twitter
-                    status = newStatus
-                    website = newUserInfo.website
-                    realName = newUserInfo.realName
-                    freeText = newUserInfo.freeText
+            userDetailsService.saveUser(
+                newUser,
+                oldName,
+                oldStatus,
+            ) to newUser
+        }
+        .flatMap { (status, newUser) ->
+            when (status) {
+                UserSaveStatus.UPDATE -> notifyGateway(newUser).map {
+                    ResponseEntity.ok(status.message)
                 }
-                userDetailsService.saveUser(
-                    newUser,
-                    oldName,
-                    oldStatus,
-                ) to newUser
-            } ?: (UserSaveStatus.FORBIDDEN to null)
-        }
-        .filter { (status, _) ->
-            status == UserSaveStatus.UPDATE
-        }
-        .switchIfErrorToConflict {
-            UserSaveStatus.CONFLICT.message
-        }
-        .notifyGateway { (_, user) ->
-            user.orConflict { "User saved successfully, but save user details is empty" }
-        }
-        .map { (status, _) ->
-            ResponseEntity.ok(status.message)
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message).toMono()
+            }
         }
 
     /**
@@ -212,20 +207,13 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
-        .filter { status ->
-            status == UserSaveStatus.DELETED
-        }
-        .notifyGateway {
-            userRepository.findByIdOrNull(authentication.userId()).orNotFound {
-                "Not found user by id=${authentication.userId()}"
-            }
-        }
-        .map { status ->
+        .flatMap { status ->
             when (status) {
-                UserSaveStatus.DELETED ->
+                UserSaveStatus.DELETED -> notifyGateway(authentication.userId()).map {
                     ResponseEntity.ok(status.message)
-                else ->
-                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
             }
         }
 
@@ -239,19 +227,14 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.banUser(userName)
     }
-        .filter { status ->
-            status == UserSaveStatus.BANNED
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .notifyGateway {
-            userRepository.findByName(userName).orNotFound {
-                "Not found user by name=$userName"
+        .flatMap { status ->
+            when (status) {
+                UserSaveStatus.BANNED -> notifyGateway(userName).map {
+                    ResponseEntity.ok(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
             }
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
         }
 
     /**
@@ -271,27 +254,43 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.approveUser(userName)
     }
-        .filter { status ->
-            status == UserSaveStatus.APPROVED
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .notifyGateway {
-            userRepository.findByName(userName).orNotFound {
-                "Not found user by name=$userName"
+        .flatMap { status ->
+            when (status) {
+                UserSaveStatus.APPROVED -> notifyGateway(userName).map {
+                    ResponseEntity.ok(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
             }
         }
-        .map { status ->
-            ResponseEntity.ok(status.message)
-        }
 
-    private fun <T : Any> Mono<T>.notifyGateway(userResolver: (T) -> User): Mono<T> = this.flatMap { value ->
-        gatewayWebClient.patch()
-            .uri("/internal/sec/update")
-            .bodyValue(SaveUserDetails(userResolver(value)))
-            .retrieve()
-            .toBodilessEntity()
-            .thenReturn(value)
+    private fun <T : Any> Mono<T>.alsoNotifyGateway(userResolver: (T) -> User): Mono<T> = this.flatMap { value ->
+        notifyGateway(userResolver(value)).thenReturn(value)
+    }
+
+    private fun notifyGateway(userId: Long): Mono<Unit> = blockingToMono {
+        userRepository.findByIdOrNull(userId)
+    }
+        .switchIfEmptyToNotFound { "Not found user by id=$userId" }
+        .flatMap { user -> notifyGateway(user) }
+
+    private fun notifyGateway(userName: String): Mono<Unit> = blockingToMono {
+        userRepository.findByName(userName)
+    }
+        .switchIfEmptyToNotFound { "Not found user by name=$userName" }
+        .flatMap { user -> notifyGateway(user) }
+
+    private fun notifyGateway(user: User): Mono<Unit> = gatewayWebClient.patch()
+        .uri("/internal/sec/update")
+        .bodyValue(SaveUserDetails(user))
+        .retrieve()
+        .toBodilessEntity()
+        .thenReturn(Unit)
+
+    companion object {
+        private val userStatusWorkflow = mapOf(
+            UserStatus.CREATED to UserStatus.NOT_APPROVED,
+            UserStatus.ACTIVE to UserStatus.ACTIVE,
+        )
     }
 }
