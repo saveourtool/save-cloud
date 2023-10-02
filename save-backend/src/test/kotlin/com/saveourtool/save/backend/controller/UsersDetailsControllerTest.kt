@@ -141,6 +141,9 @@ class UsersDetailsControllerTest {
     companion object {
         private val log: Logger = getLogger<UsersDetailsControllerTest>()
 
+        @JvmStatic
+        lateinit var mockServerGateway: MockWebServer
+
         private fun mockGatewayUserUpdate(): Sequence<RecordedRequest?> {
             mockServerGateway.enqueue(
                 "/internal/sec/update",
@@ -152,9 +155,6 @@ class UsersDetailsControllerTest {
                 log.info("Request $it")
             }
         }
-
-        @JvmStatic
-        lateinit var mockServerGateway: MockWebServer
 
         @AfterEach
         fun cleanup() {
