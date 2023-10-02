@@ -24,7 +24,6 @@ import kotlinx.serialization.Serializable
  * @property globalRole
  * @property id
  * @property status
- * @property oldName is always null except for the process of renaming the user.
  * @property originalLogins
  * @property rating
  * @property website
@@ -37,7 +36,6 @@ import kotlinx.serialization.Serializable
 data class UserInfo(
     val name: String,
     val id: Long? = null,
-    val oldName: String? = null,
     val originalLogins: Map<String, String> = emptyMap(),
     val projects: Map<String, Role> = emptyMap(),
     val organizations: Map<String, Role> = emptyMap(),

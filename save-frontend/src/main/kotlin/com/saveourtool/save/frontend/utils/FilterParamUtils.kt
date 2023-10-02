@@ -15,11 +15,12 @@ import org.w3c.dom.url.URLSearchParams
 fun URLSearchParams.toVulnerabilitiesFilter(): VulnerabilityFilter {
     val tags = this.get("tags")?.split(",")?.toSet() ?: emptySet()
     val prefix = this.get("prefix") ?: ""
-    val status = VulnerabilityStatus.values().find { it.name == this.get("status")?.uppercase() } ?: VulnerabilityStatus.APPROVED
+    val status = VulnerabilityStatus.values().find { it.name == this.get("status")?.uppercase() }
+    val statuses = status?.let { listOf(it) } ?: listOf(VulnerabilityStatus.APPROVED, VulnerabilityStatus.AUTO_APPROVED)
 
     return VulnerabilityFilter(
         identifierPrefix = prefix,
-        status = status,
+        statuses = statuses,
         tags = tags
     )
 }
