@@ -145,23 +145,23 @@ suspend fun WithRequestStatusContext.postUploadFile(
 /**
  * Fetch debug info for test execution
  *
- * @param testExecutionDto
+ * @param testExecutionId id of a particular test execution
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
 suspend fun ComponentWithScope<*, *>.getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
-) = getDebugInfoFor(testExecutionDto, this::get)
+    testExecutionId: Long,
+) = getDebugInfoFor(testExecutionId, this::get)
 
 /**
  * Fetch debug info for test execution
  *
- * @param testExecutionDto
+ * @param testExecutionId id of a particular test execution
  * @return Response
  */
 suspend fun WithRequestStatusContext.getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
-) = getDebugInfoFor(testExecutionDto, this::get)
+    testExecutionId: Long,
+) = getDebugInfoFor(testExecutionId, this::get)
 
 /**
  * Fetch execution info for test execution
@@ -182,11 +182,11 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
 
 @Suppress("TYPE_ALIAS")
 private suspend fun getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
+    testExecutionId: Long,
     get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
 ) = get(
     "$apiUrl/files/get-debug-info",
-    jso { testExecutionId = testExecutionDto.requiredId() },
+    jso { this.testExecutionId = testExecutionId },
     jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler,
