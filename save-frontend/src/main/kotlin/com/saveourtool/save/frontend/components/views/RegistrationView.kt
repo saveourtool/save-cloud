@@ -59,6 +59,10 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     particles()
     val useNavigate = useNavigate()
 
+    if (props.userInfo?.status == UserStatus.ACTIVE) {
+        useNavigate(to = "/")
+    }
+
     useRedirectToIndexIf(props.userInfo?.status) {
         // life hack ot be sure that props are loaded
         props.key != null && props.userInfo?.status != UserStatus.CREATED
@@ -71,7 +75,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
     val (isTermsOfUseOk, setIsTermsOfUseOk) = useState(false)
     val (conflictErrorMessage, setConflictErrorMessage) = useState<String?>(null)
     val (userInfo, setUserInfo) = useStateFromProps(props.userInfo ?: UserInfo(name = "")) { userInfo ->
-        // weed to process user names, as some authorization providers pass emails instead of names
+        // weed to process usernames, as some authorization providers pass emails instead of names
         val atIndex = userInfo.name.indexOf('@')
         val processedName = if (atIndex >= 0) userInfo.name.substring(0, atIndex) else userInfo.name
         userInfo.copy(name = processedName)
@@ -89,7 +93,8 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             responseHandler = ::responseHandlerWithValidation,
         )
         if (response.ok) {
-            window.location.href = "${window.location.origin}/"
+            props.userInfoSetter(userInfo)
+            useNavigate(to = "/${FrontendRoutes.THANKS_FOR_REGISTRATION}")
             window.location.reload()
         } else if (response.isConflict()) {
             setConflictErrorMessage(response.unpackMessage())
@@ -122,6 +127,7 @@ val registrationView: FC<RegistrationProps> = FC { props ->
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
             )
+
             if (response.ok) {
                 window.location.reload()
             }
@@ -328,6 +334,11 @@ external interface RegistrationProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**
