@@ -27,17 +27,6 @@ interface IBackendService {
     fun saveOrganization(organization: Organization): Organization
 
     /**
-     * @param user who uploaded vulnerabilities
-     * @param organization vulnerabilities were uploaded to this organization
-     * @param uploadedVulnerabilities count of uploaded vulnerabilities
-     */
-    fun addRating(
-        user: User,
-        organization: Organization?,
-        uploadedVulnerabilities: Int,
-    )
-
-    /**
      * @param name name of organization
      * @return found [Organization] by name
      */

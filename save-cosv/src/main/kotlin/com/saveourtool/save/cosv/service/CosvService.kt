@@ -40,6 +40,7 @@ class CosvService(
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
+    private val vulnerabilityRatingService: VulnerabilityRatingService,
 ) {
     /**
      * @param rawCosvFileIds
@@ -63,7 +64,7 @@ class CosvService(
         }
         .sumAll()
         .blockingMap {
-            backendService.addRating(user, organization, it)
+            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
         }
         .map {
             log.debug {
