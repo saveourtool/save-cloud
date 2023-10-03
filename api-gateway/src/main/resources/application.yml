@@ -97,6 +97,13 @@ spring:
             # until we have fixed https://github.com/saveourtool/save-cloud/issues/2336
             # (now we use sub as a default user-name-attribute)
             # ===================
+          huawei:
+            authorization-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/authorize
+            token-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/token
+            jwk-set-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/certs
+            user-info-uri: https://account.cloud.huawei.com/rest.php?nsp_svc=GOpen.User.getInfo
+            user-name-attribute: openID
+            user-info-authentication-method: post
           gitee:
             authorization-uri: https://gitee.com/oauth/authorize
             token-uri: https://gitee.com/oauth/token
@@ -107,6 +114,19 @@ spring:
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
         registration:
+          huawei:
+            provider: huawei
+            client-id: 108423349
+            client-secret: 60682194c7a9d5e3e5ab9079db2c0b8accb6c96a99003c4c66fa645f8538778c
+            # hardcoded as for gitee
+            redirect-uri: 'https://saveourtool.com/login/oauth2/code/huawei'
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            # can be
+            #  - openid (doesn't work due to invalid_nonce)
+            #  - email (works but user allowed to not select to share an email)
+            #  - profile
+            scope: profile
           gitee:
             client-name: Gitee
             provider: gitee
