@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.externals.diffviewer
 
+import com.saveourtool.save.frontend.externals.progressbar.ReactCircleProps
 import react.FC
 import react.Props
 
@@ -13,7 +14,9 @@ import react.Props
 @JsName("default")
 external val reactDiffViewer: FC<ReactDiffViewerProps>
 
-
+/**
+ * Props of [ReactDiffViewerProps]
+ */
 external interface ReactDiffViewerProps : Props {
     /**
      * Old value as string.
