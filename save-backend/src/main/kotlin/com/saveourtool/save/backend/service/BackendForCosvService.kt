@@ -7,6 +7,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * Service for [IBackendService] to get required info for COSV from backend
@@ -36,4 +37,24 @@ class BackendForCosvService(
     override fun saveUser(user: User): User = userDetailsService.saveUser(user)
 
     override fun saveOrganization(organization: Organization) = organizationService.updateOrganization(organization)
+
+    @Transactional
+    override fun addRating(user: User, organization: Organization?, uploadedVulnerabilities: Int) {
+        user.apply {
+            rating += uploadedVulnerabilities * VULNERABILITY_OWNER_RATING
+        }
+        userDetailsService.saveUser(user)
+
+        organization?.let {
+            organization.apply {
+                rating += uploadedVulnerabilities * VULNERABILITY_ORGANIZATION_RATING
+            }
+            organizationService.updateOrganization(organization)
+        }
+    }
+
+    companion object {
+        private const val VULNERABILITY_ORGANIZATION_RATING = 10
+        private const val VULNERABILITY_OWNER_RATING = 10
+    }
 }

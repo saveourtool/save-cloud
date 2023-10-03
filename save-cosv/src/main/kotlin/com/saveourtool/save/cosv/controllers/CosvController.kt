@@ -81,7 +81,12 @@ class CosvController(
         }
         .thenReturn(ResponseEntity.ok("Submitted $ids to be processed"))
         .doOnSuccess {
-            cosvService.process(ids)
+            blockingToMono {
+                backendService.getOrganizationByName(organizationName) to backendService.getUserByName(authentication.name)
+            }
+                .flatMap { (organization, user) ->
+                    cosvService.process(ids, user, organization)
+                }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }

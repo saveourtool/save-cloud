@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
 
@@ -42,18 +43,28 @@ class CosvService(
 ) {
     /**
      * @param rawCosvFileIds
+     * @param user
+     * @param organization
      * @return empty [Mono]
      */
     fun process(
         rawCosvFileIds: Collection<Long>,
+        user: User,
+        organization: Organization,
     ): Mono<Unit> = rawCosvFileIds.toFlux()
         .flatMap { rawCosvFileId ->
             rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
-                .flatMap { (organization, user) ->
+                .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
+                    organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
+                }
+                .flatMap {
                     doProcess(rawCosvFileId, user, organization)
                 }
         }
-        .collectList()
+        .sumAll()
+        .blockingMap {
+            backendService.addRating(user, organization, it)
+        }
         .map {
             log.debug {
                 "Finished processing raw COSV files $rawCosvFileIds"
@@ -64,7 +75,7 @@ class CosvService(
         rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
+    ): Mono<Int> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
             val errorMessage by lazy {
@@ -81,10 +92,16 @@ class CosvService(
                         .then(Mono.error(error))
                 }
                 .collectList()
-                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
+                .flatMap { metadataList ->
+                    rawCosvFileStorage.update(
+                        rawCosvFileId,
+                        RawCosvFileStatus.PROCESSED,
+                        "Processed as ${metadataList.map(VulnerabilityMetadataDto::identifier)}"
+                    ).thenReturn(metadataList.size)
+                }
                 .onErrorResume { error ->
                     log.error(error) { errorMessage }
-                    Mono.just(Unit)
+                    Mono.just(0)
                 }
         }
 
