@@ -10619,6 +10619,26 @@
       "post": {
         "description": "Get filtered vulnerabilities.",
         "operationId": "getAllVulnerabilities",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -10926,6 +10946,55 @@
           }
         ],
         "summary": "Get cont of vulnerabilities by user name.",
+        "tags": [
+          "vulnerabilities"
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities/count/by-filter": {
+      "post": {
+        "description": "Get filtered vulnerabilities.",
+        "operationId": "getCountVulnerabilities",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VulnerabilityFilter"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Successfully fetched all vulnerabilities by filters"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all vulnerabilities with filters.",
         "tags": [
           "vulnerabilities"
         ]
@@ -13814,9 +13883,6 @@
           "name": {
             "type": "string"
           },
-          "oldName": {
-            "type": "string"
-          },
           "organizations": {
             "type": "object",
             "additionalProperties": {
@@ -14085,14 +14151,17 @@
           "organizationName": {
             "type": "string"
           },
-          "status": {
-            "type": "string",
-            "enum": [
-              "APPROVED",
-              "AUTO_APPROVED",
-              "PENDING_REVIEW",
-              "REJECTED"
-            ]
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "AUTO_APPROVED",
+                "PENDING_REVIEW",
+                "REJECTED"
+              ]
+            }
           },
           "tags": {
             "uniqueItems": true,
