@@ -2,8 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType.Companion.isSystemDateType
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
@@ -46,25 +47,27 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 div {
                     className = ClassName("line")
                 }
-                props.dates
-                    .plus(
-                        VulnerabilityDateType.SUBMITTED.value to
-                                (props.vulnerability.creationDateTime ?: LocalDateTime(0, 1, 1, 0, 0, 0, 0))
+                props.dates.plus(
+                    VulnerabilityDateDto(
+                        props.vulnerability.metadata.submitted,
+                        VulnerabilityDateType.SUBMITTED,
+                                props.vulnerability.metadata.identifier,
                     )
+                )
                     .toList()
-                    .sortedBy { it.second }
-                    .forEach { (label, dateTime) ->
+                    .sortedBy { it.date }
+                    .forEach { (dateTime, label) ->
                         div {
                             className =
                                     ClassName(if (!label.isSystemDateType()) "step $hoverable" else "step-non-editable")
                             if (!label.isSystemDateType()) {
                                 props.onNodeClick?.let { onClickCallback ->
-                                    onClick = { onClickCallback(dateTime, label) }
+                                    onClick = { onClickCallback(dateTime, label.value) }
                                 }
                             }
                             div {
                                 className = ClassName("text-label")
-                                +label.t()
+                                +label.value.t()
                             }
                             div {
                                 className = ClassName("date-label")
@@ -95,7 +98,7 @@ external interface TimelineComponentProps : Props {
     /**
      * Map with dates where key is [LocalDateTime] and value is label
      */
-    var dates: Map<String, LocalDateTime>
+    var dates:  List<VulnerabilityDateDto>
 
     /**
      * Callback that should be invoked on add button click
@@ -111,5 +114,5 @@ external interface TimelineComponentProps : Props {
     /**
      * Vulnerability dto of vulnerability
      */
-    var vulnerability: VulnerabilityDto
+    var vulnerability: VulnerabilityExt
 }

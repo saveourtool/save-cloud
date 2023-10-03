@@ -190,8 +190,8 @@ class CosvService(
                 VulnerabilityExt(
                     metadata = metadata.toDto(),
                     cosv = content,
+                    // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
-                    tags = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataId(metadata.requiredId()).map { it.tag.name }.toSet(),
                 )
             }
         }

@@ -27,7 +27,7 @@ fun ChildrenBuilder.progressBar(
     ReactCircle::class.react {
         this.size = size
         this.lineWidth = lineWidth
-        this.progress = (progress * 10).toString()
+        this.progress = progress.toString()
         this.progressColor = color
         this.showPercentageSymbol = showPercentageSymbol
         this.textColor = color
