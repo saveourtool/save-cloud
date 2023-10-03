@@ -53,9 +53,10 @@ spring:
             redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
-            # can be openid (doesn't work due to invalid_nonce)
-            #  or email (works but user allowed to not select to share an email)
-            #  or profile
+            # can be
+            #  - openid (doesn't work due to invalid_nonce)
+            #  - email (works but user allowed to not select to share an email)
+            #  - profile
             scope: email
           gitee:
             client-id: 6b7fc07ecdf7a12d9aa8e2aaf034743baa6f77e036dc22fe6455e02fcf51a851
