@@ -116,8 +116,6 @@ spring:
         registration:
           huawei:
             provider: huawei
-            client-id: 108423349
-            client-secret: 60682194c7a9d5e3e5ab9079db2c0b8accb6c96a99003c4c66fa645f8538778c
             # hardcoded as for gitee
             redirect-uri: 'https://saveourtool.com/login/oauth2/code/huawei'
             authorization-grant-type: authorization_code
