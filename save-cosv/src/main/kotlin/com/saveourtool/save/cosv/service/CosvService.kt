@@ -33,6 +33,7 @@ private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
  * Service for vulnerabilities
  */
 @Service
+@Suppress("LongParameterList")
 class CosvService(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
@@ -57,6 +58,9 @@ class CosvService(
             rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
                 .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
                     organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
+                }
+                .switchIfErrorToConflict {
+                    "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
                 }
                 .flatMap {
                     doProcess(rawCosvFileId, user, organization)
