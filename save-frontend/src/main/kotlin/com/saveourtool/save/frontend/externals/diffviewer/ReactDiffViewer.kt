@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.externals.diffviewer
 
-import com.saveourtool.save.frontend.externals.progressbar.ReactCircleProps
 import react.FC
 import react.Props
 
