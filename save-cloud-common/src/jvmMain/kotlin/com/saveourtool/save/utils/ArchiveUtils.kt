@@ -41,7 +41,7 @@ fun JPath.extractZipTo(targetPath: JPath) {
 /**
  * Extract path as ZIP archive to parent
  */
-actual fun Path.extractZipHere(): Unit = toNioPath().extractZipHere()
+actual fun Path.extractZipHere() = toNioPath().extractZipHere()
 
 /**
  * Extract path as ZIP archive to parent
