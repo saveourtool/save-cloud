@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="contest-1" author="nulls">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="contest"/>
+            </not>
+        </preConditions>
+        <createTable tableName="contest">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(250)"/>
+            <column name="status" type="varchar(250)" defaultValue="CREATED"/>
+            <column name="start_time" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1024)"/>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_contest_organization" references="organization(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="creation_time" type="datetime" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="contest" columnNames="name" constraintName="uq_contest_name"/>
+
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="contest"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="featured-contests-1" author="nulls">
+        <createTable tableName="featured_contests">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="contest_id" type="bigint"/>
+        </createTable>
+
+        <addUniqueConstraint tableName="featured_contests" columnNames="contest_id" constraintName="uq_contest_id"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="_clearing-tables.xml" relativeToChangelogFile="true"/>
+
+    <include file="rename-properties-field.xml" relativeToChangelogFile="true"/>
+    <include file="user.xml" relativeToChangelogFile="true"/>
+    <include file="organization.xml" relativeToChangelogFile="true"/>
+    <include file="project.xml" relativeToChangelogFile="true"/>
+    <include file="git.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status.xml" relativeToChangelogFile="true"/>
+    <include file="project-privacy.xml" relativeToChangelogFile="true"/>
+    <include file="test-suites-source.xml" relativeToChangelogFile="true"/>
+    <include file="test_suite.xml" relativeToChangelogFile="true"/>
+    <include file="test_execution.xml" relativeToChangelogFile="true"/>
+    <include file="execution.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-organization.xml" relativeToChangelogFile="true"/>
+    <include file="awesome-benchmarks.xml" relativeToChangelogFile="true"/>
+    <include file="contest.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-project.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-execution.xml" relativeToChangelogFile="true"/>
+    <include file="test.xml" relativeToChangelogFile="true"/>
+    <include file="high-level-names.xml" relativeToChangelogFile="true"/>
+    <include file="original-login.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-organization-test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="agent.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-contest-test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
+    <include file="file.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-description.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-project.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="project-problem.xml" relativeToChangelogFile="true"/>
+    <include file="comments.xml" relativeToChangelogFile="true"/>
+    <include file="contest-sample.xml" relativeToChangelogFile="true"/>
+    <include file="contest-sample-field.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-date.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-user.xml" relativeToChangelogFile="true"/>
+    <include file="tags.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-cosv-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-metadata-project.xml" relativeToChangelogFile="true"/>
+    <include file="drop-old-vulnerability-tables.xml" relativeToChangelogFile="true"/>
+    <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-user.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata-project.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="link-between-cosv-file-and-vulnerability-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="3-0-tables" author="nulls">
+        <tagDatabase tag="v3.0-tables"/>
+    </changeSet>
+
+</databaseChangeLog>

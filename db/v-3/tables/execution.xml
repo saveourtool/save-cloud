@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="execution-1" author="nulls">
+        <createTable tableName="execution">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_project" references="project(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="start_time" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="DATETIME(3)">
+                <constraints nullable="true" />
+            </column>
+            <column name="status" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="batch_size" type="integer">
+                <constraints nullable="true"/>
+            </column>
+            <column name="type" type="varchar(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="version" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="running_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="passed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="failed_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="skipped_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="sdk" type="varchar(255)" defaultValue="ubuntu:latest">
+                <constraints nullable="false" />
+            </column>
+            <column name="additional_files" type="text" defaultValue="null"/>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_user" references="user(id)"
+                             nullable="true" deleteCascade="true"/>
+            </column>
+            <column name="exec_cmd" type="text" defaultValue="NULL"/>
+            <column name="batch_size_for_analyzer" type="varchar(255)" defaultValue="NULL"/>
+            <column name="all_tests" type="bigint">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="unmatched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="matched_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="expected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="unexpected_checks" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="test_suite_source_name" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="save_cli_version" type="varchar(100)" defaultValue="N/A">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="double" defaultValue="null"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

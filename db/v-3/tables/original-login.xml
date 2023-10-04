@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="add-original-login-table" author="frolov" context="dev or prod">
+        <createTable tableName="original_login">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_original_login_user" references="user(id)" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(64)"/>
+            <column name="source" type="varchar(64)">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="original-login-unique-name" author="frolov" context="dev or prod">
+        <addUniqueConstraint tableName="original_login" columnNames="name,source"/>
+    </changeSet>
+
+    <changeSet id="remove-and-add-fk-original-login" author="frolov">
+        <dropForeignKeyConstraint baseTableName="original_login" constraintName="fk_original_login_user"/>
+        <addForeignKeyConstraint baseColumnNames="user_id"
+          baseTableName="original_login"
+          constraintName="fk_original_login_user"
+          referencedColumnNames="id"
+          referencedTableName="user"
+          onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="original-login-name-and-source-not-null" author="nulls">
+        <addNotNullConstraint tableName="original_login" columnName="name" columnDataType="varchar(64)"/>
+        <addNotNullConstraint tableName="original_login" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
+    </changeSet>
+
+    <changeSet id="increase-original-login-name" author="nulls">
+        <modifyDataType tableName="original_login" columnName="name" newDataType="varchar(255)"/>
+    </changeSet>
+</databaseChangeLog>
