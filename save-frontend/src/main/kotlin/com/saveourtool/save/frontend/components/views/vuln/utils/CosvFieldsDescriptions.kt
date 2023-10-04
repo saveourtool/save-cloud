@@ -73,6 +73,23 @@ val affectedEcosystemSpecific = "ecosystem_specific" to affectedEcosystemSpecifi
 
 val affectedDatabaseSpecific = "database_specific" to affectedDatabaseSpecificDescr
 
+val patchesDetail = "patches_detail" to patchesDetailDescr
+
+val patchesPatchUrl = "patch_url" to patchesPatchUrlDescr
+
+val patchesIssueUrl = "issue_url" to patchesIssueUrlDescr
+
+val patchesMainLanguage = "main_language" to patchesMainLanguageDescr
+
+val patchesAuthor = "author" to patchesAuthorDescr
+
+val patchesCommiter = "commiter" to patchesCommiterDescr
+
+val patchesBranches = "branches" to patchesBranchesDescr
+
+val patchesTags = "tags" to patchesTagsDescr
+
+
 val cosvFieldsDescriptionsList = listOf(
         schemaVersion,
         idModified,
@@ -106,5 +123,15 @@ val cosvFieldsDescriptionsList = listOf(
         rangesType,
         rangesRepo,
         rangesEvents,
-        rangesDatabaseSpecific
+        rangesDatabaseSpecific,
+        affectedEcosystemSpecific,
+        affectedDatabaseSpecific,
+        patchesDetail,
+        patchesPatchUrl,
+        patchesIssueUrl,
+        patchesMainLanguage,
+        patchesAuthor,
+        patchesCommiter,
+        patchesBranches,
+        patchesTags
 )

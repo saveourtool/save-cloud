@@ -204,3 +204,35 @@ val affectedDatabaseSpecificDescr = """
     The meaning of the values within the object is entirely defined by the
     database and beyond the scope of this document.
 """.trimIndent()
+
+val patchesDetailDescr = """
+    The detail info of the fix patch of each vulnerability
+""".trimIndent()
+
+val patchesPatchUrlDescr = """
+    The URL of fix patch
+""".trimIndent()
+
+val patchesIssueUrlDescr = """
+    The URL of the issue
+""".trimIndent()
+
+val patchesMainLanguageDescr = """
+    The main code language of this vulnerability
+""".trimIndent()
+
+val patchesAuthorDescr = """
+    The author of the fix commit
+""".trimIndent()
+
+val patchesCommiterDescr = """
+    The commiter of the fix commit
+""".trimIndent()
+
+val patchesBranchesDescr = """
+    The tag names of this fixing patch.
+""".trimIndent()
+
+val patchesTagsDescr = """
+    The tag names of this fixing patch.
+""".trimIndent()
