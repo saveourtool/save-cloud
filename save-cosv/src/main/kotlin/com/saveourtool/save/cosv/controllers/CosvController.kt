@@ -8,7 +8,6 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.storage.PATH_DELIMITER
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -61,39 +60,30 @@ class CosvController(
                     log.debug {
                         "Processing ${filePart.filename()}"
                     }
-                    rawCosvFileStorage.upload(
-                        key = RawCosvFileDto(
-                            filePart.filename(),
-                            organizationName = organizationName,
-                            userName = authentication.name,
-                        ),
-                        content = filePart.content().map { it.asByteBuffer() },
-                    )
+                    if (!filePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+                        rawCosvFileStorage.upload(
+                            key = RawCosvFileDto(
+                                filePart.filename(),
+                                organizationName = organizationName,
+                                userName = authentication.name,
+                            ),
+                            content = filePart.content().map { it.asByteBuffer() },
+                        )
+                    } else {
+                        doArchiveUpload(filePart, organizationName, authentication.name)
+                    }
                 }
                 .parallel()
         }
 
-    /**
-     * @param organizationName
-     * @param archiveFilePart
-     * @param authentication
-     * @return list of uploaded [RawCosvFileDto]
-     */
-    @RequiresAuthorizationSourceHeader
-    @PostMapping("/archive-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun archiveUpload(
-        @PathVariable organizationName: String,
-        @RequestPart(FILE_PART_NAME) archiveFilePart: FilePart,
-        authentication: Authentication,
-    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-        .filter { archiveFilePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true) }
-        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
-            "We support only ZIP archives: ${archiveFilePart.filename()} should end with $ARCHIVE_EXTENSION"
-        }
-        .blockingMap {
-            val tmpDir = createTempDirectoryForArchive()
-            tmpDir to Files.createTempDirectory(tmpDir, "content-")
-        }
+    private fun doArchiveUpload(
+        archiveFilePart: FilePart,
+        organizationName: String,
+        userName: String,
+    ): Flux<RawCosvFileDto> = blockingToMono {
+        val tmpDir = createTempDirectoryForArchive()
+        tmpDir to Files.createTempDirectory(tmpDir, "content-")
+    }
         .flatMapMany { (tmpDir, contentDir) ->
             val archiveFile = tmpDir / archiveFilePart.filename()
             log.debug {
@@ -117,14 +107,14 @@ class CosvController(
                                 key = RawCosvFileDto(
                                     concatS3Key(archiveFilePart.filename(), file.relativeTo(contentDir).toString()),
                                     organizationName = organizationName,
-                                    userName = authentication.name,
+                                    userName = userName,
                                 ),
                                 contentLength = file.fileSize(),
                                 content = file.toByteBufferFlux(),
                             )
                         }
                 }
-                .doOnSubscribe {
+                .doOnComplete {
                     tmpDir.deleteRecursivelySafely()
                 }
                 .onErrorResume { error ->

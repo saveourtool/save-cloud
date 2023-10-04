@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
@@ -98,17 +99,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fetchFiles()
     }
 
-    val uploadArchiveFile = useDeferredRequest {
-        post(
-            url = "$apiUrl/cosv/$selectedOrganization/archive-upload",
-            Headers(),
-            FormData().apply { append(FILE_PART_NAME, filesForUploading.single()) },
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
-        )
-        fetchFiles()
-    }
-
     val submitCosvFiles = useDeferredRequest {
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/submit-to-process",
@@ -153,6 +143,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
                 }
+                buttonBuilder(faReload) {
+                    fetchFiles()
+                }
             }
 
             // ===== UPLOAD FILES BUTTON =====
@@ -161,24 +154,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 dragAndDropForm {
                     isDisabled = selectedOrganization.isNullOrEmpty()
                     isMultipleFilesSupported = true
-                    tooltipMessage = "Only JSON files"
+                    tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         setFilesForUploading(files!!.asList())
                         uploadFiles()
-                    }
-                }
-            }
-
-            // ===== UPLOAD ARCHIVE FILE BUTTON =====
-            li {
-                className = ClassName("list-group-item p-0 d-flex bg-light")
-                dragAndDropForm {
-                    isDisabled = selectedOrganization.isNullOrEmpty()
-                    isMultipleFilesSupported = false
-                    tooltipMessage = "Only ZIP files"
-                    onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
-                        uploadArchiveFile()
                     }
                 }
             }
