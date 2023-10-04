@@ -285,4 +285,7 @@ private fun ChildrenBuilder.testingTypeButton(
     }
 }
 
-private fun Collection<TestSuiteVersioned>.extractIdsAndVersion() = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version).takeIf { it.isNotEmpty() }?.single()
+private fun Collection<TestSuiteVersioned>.extractIdsAndVersion(): Pair<List<Long>, String?> = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version)
+    .distinct()
+    .single()
+    .takeIf { it.isNotEmpty() }

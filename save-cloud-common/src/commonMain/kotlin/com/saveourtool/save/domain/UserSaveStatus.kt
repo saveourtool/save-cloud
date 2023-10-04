@@ -35,11 +35,6 @@ enum class UserSaveStatus(val message: String) {
     FORBIDDEN("You are trying to update user, while it is not yet active"),
 
     /**
-     * currentUser.id != changedUser.id
-     */
-    HACKER("You are trying to update other user that is not you"),
-
-    /**
      * User name longer than [NAMING_MAX_LENGTH] characters
      */
     INVALID_NAME("Name must not be longer than $NAMING_MAX_LENGTH characters"),

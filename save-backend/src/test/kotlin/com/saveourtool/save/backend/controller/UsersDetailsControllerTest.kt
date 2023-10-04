@@ -47,7 +47,6 @@ class UsersDetailsControllerTest {
 
         val newUserInfo = UserInfo(
             name = "Kuleshov",
-            oldName = "user",
             email = "example@save.com",
             company = "Example",
         )
@@ -87,7 +86,6 @@ class UsersDetailsControllerTest {
         val newUserInfo = UserInfo(
             id = 1,
             name = "admin",
-            oldName = null,
             email = "example@save.com",
             company = "Example Company",
         )
@@ -109,7 +107,6 @@ class UsersDetailsControllerTest {
             name = "admin",
             email = "example@save.com",
             company = "Example",
-            oldName = "admin"
         )
 
         webClient.post()
@@ -117,7 +114,7 @@ class UsersDetailsControllerTest {
             .bodyValue(newUserInfo)
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.CONFLICT)
+            .isEqualTo(HttpStatus.OK)
     }
 
     @Test
@@ -127,7 +124,6 @@ class UsersDetailsControllerTest {
 
         val newUserInfo = UserInfo(
             name = "JohnDoe",
-            oldName = "admin",
             email = "example@save.com",
             company = "Example",
         )
