@@ -7,8 +7,8 @@ import react.VFC
 import react.useState
 import react.dom.html.ReactHTML.div
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsList
 
-import com.saveourtool.save.frontend.components.views.vuln.utils.schemaVersion
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
@@ -34,7 +34,7 @@ val cosvSchemaView = VFC {
         }
     }
 
-    cosvList.forEach { cosvFieldDescriptionPair ->
+    cosvFieldsDescriptionsList.forEach { cosvFieldDescriptionPair ->
         div {
             buttonBuilder(cosvFieldDescriptionPair.first) {
                 setTextInModal(cosvFieldDescriptionPair.first to cosvFieldDescriptionPair.second)
@@ -46,10 +46,6 @@ val cosvSchemaView = VFC {
 
 }
 
-
-val cosvList = listOf(
-        schemaVersion
-)
 
 
 
