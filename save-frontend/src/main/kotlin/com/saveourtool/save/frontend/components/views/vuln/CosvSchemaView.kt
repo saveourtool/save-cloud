@@ -1,11 +1,14 @@
 package com.saveourtool.save.frontend.components.views.vuln
 
+import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 import react.VFC
 import react.useState
 import react.dom.html.ReactHTML.div
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
+
+import com.saveourtool.save.frontend.components.views.vuln.utils.schemaVersion
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
@@ -13,27 +16,41 @@ import com.saveourtool.save.frontend.utils.useBackground
 val cosvSchemaView = VFC {
     useBackground(Style.VULN_DARK)
     val windowOpenness = useWindowOpenness()
-    val (textInModal, setTextInModal) = useState<String>()
+    val (textInModal, setTextInModal) = useState<Pair<String, String>>()
 
-    displayModal(
-            windowOpenness.isOpen(),
-            "TITLE",
-            "MESSAGE",
-            mediumTransparentModalStyle,
-            windowOpenness.closeWindowAction()
-    ) {
-        buttonBuilder("Close", "secondary") {
-            windowOpenness.closeWindow()
+    val cosv = OsvSchema
+
+    if (textInModal != null) {
+        displayModal(
+                windowOpenness.isOpen(),
+                textInModal.first,
+                textInModal.second,
+                mediumTransparentModalStyle,
+                windowOpenness.closeWindowAction()
+        ) {
+            buttonBuilder("Close", "secondary") {
+                windowOpenness.closeWindow()
+            }
         }
     }
 
-    div {
-        buttonBuilder("schema_version") {
-            setTextInModal("schema_version")
-            windowOpenness.openWindow()
+    cosvList.forEach { cosvFieldDescriptionPair ->
+        div {
+            buttonBuilder(cosvFieldDescriptionPair.first) {
+                setTextInModal(cosvFieldDescriptionPair.first to cosvFieldDescriptionPair.second)
+                windowOpenness.openWindow()
+            }
         }
     }
+
+
 }
+
+
+val cosvList = listOf(
+        schemaVersion
+)
+
 
 
 val jsonSchema = """
