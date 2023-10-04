@@ -11,6 +11,7 @@ import org.apache.commons.compress.archivers.examples.Expander
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.io.path.absolutePathString
+import java.nio.file.Path as JPath
 
 const val ARCHIVE_EXTENSION = ".${ArchiveStreamFactory.ZIP}"
 
@@ -23,7 +24,14 @@ private val expander = Expander()
  *
  * @param targetPath
  */
-actual fun Path.extractZipTo(targetPath: Path) {
+actual fun Path.extractZipTo(targetPath: Path) = toNioPath().extractZipTo(targetPath.toNioPath())
+
+/**
+ * Extract path as ZIP archive to provided directory
+ *
+ * @param targetPath
+ */
+fun JPath.extractZipTo(targetPath: JPath) {
     log.debug { "Unzip $this into $targetPath" }
     expander.expand(ArchiveStreamFactory.ZIP, toFile(), targetPath.toFile())
 }
@@ -31,7 +39,12 @@ actual fun Path.extractZipTo(targetPath: Path) {
 /**
  * Extract path as ZIP archive to parent
  */
-actual fun Path.extractZipHere() = parent?.let {
+actual fun Path.extractZipHere() = toNioPath().extractZipHere()
+
+/**
+ * Extract path as ZIP archive to parent
+ */
+fun JPath.extractZipHere() = parent?.let {
     extractZipTo(it)
 } ?: throw FileSystemException(this.toFile(), null, "Path to archive is set incorrectly.")
 
@@ -41,14 +54,7 @@ actual fun Path.extractZipHere() = parent?.let {
  * @param targetPath
  */
 @Suppress("NestedBlockDepth")
-fun java.nio.file.Path.compressAsZipTo(targetPath: java.nio.file.Path) {
+fun JPath.compressAsZipTo(targetPath: JPath) {
     log.debug { "Zip ${absolutePathString()} into ${targetPath.absolutePathString()}" }
     archiver.create(ArchiveStreamFactory.ZIP, targetPath, this)
 }
-
-/**
- * Compress path as ZIP archive to provided file
- *
- * @param targetPath
- */
-fun Path.compressAsZipTo(targetPath: Path) = toNioPath().compressAsZipTo(targetPath.toNioPath())

@@ -8,6 +8,8 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.storage.PATH_DELIMITER
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.springframework.http.HttpHeaders
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.nio.file.Files
+import kotlin.io.path.*
 
 /**
  * Rest controller for COSVs
@@ -32,6 +36,10 @@ class CosvController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
+    private fun createTempDirectoryForArchive() = Files.createTempDirectory(
+        backendService.workingDir.createDirectories(),
+        "archive-"
+    )
     /**
      * @param organizationName
      * @param filePartFlux
@@ -61,6 +69,68 @@ class CosvController(
                     )
                 }
                 .parallel()
+        }
+
+    /**
+     * @param organizationName
+     * @param archiveFilePart
+     * @param authentication
+     * @return list of uploaded [RawCosvFileDto]
+     */
+    @OptIn(ExperimentalPathApi::class)
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/archive-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun archiveUpload(
+        @PathVariable organizationName: String,
+        @RequestPart(FILE_PART_NAME) archiveFilePart: FilePart,
+        authentication: Authentication,
+    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .filter { archiveFilePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true) }
+        .switchIfEmptyToResponseException(HttpStatus.BAD_REQUEST) {
+            "We support only ZIP archives: ${archiveFilePart.filename()} should end with $ARCHIVE_EXTENSION"
+        }
+        .blockingMap {
+            val tmpDir = createTempDirectoryForArchive()
+            tmpDir to Files.createTempDirectory(tmpDir, "content-")
+        }
+        .flatMapMany { (tmpDir, contentDir) ->
+            val archiveFile = tmpDir / archiveFilePart.filename()
+            log.debug {
+                "Saving archive ${archiveFilePart.filename()} to ${archiveFile.absolutePathString()}"
+            }
+            archiveFilePart.content()
+                .map { it.asByteBuffer() }
+                .collectToFile(archiveFile)
+                .blockingMap {
+                    archiveFile.extractZipTo(contentDir)
+                }
+                .flatMapMany {
+                    blockingToFlux {
+                        contentDir.listDirectoryEntries()
+                    }
+                        .flatMap { file ->
+                            log.debug {
+                                "Processing ${file.absolutePathString()}"
+                            }
+                            rawCosvFileStorage.upload(
+                                key = RawCosvFileDto(
+                                    concatS3Key(archiveFilePart.filename(), file.relativeTo(contentDir).toString()),
+                                    organizationName = organizationName,
+                                    userName = authentication.name,
+                                ),
+                                contentLength = file.fileSize(),
+                                content = file.toByteBufferFlux(),
+                            )
+                        }
+                }
+                .onErrorResume { error ->
+                    log.error(error) {
+                        "Failed to process archive ${archiveFilePart.filename()}"
+                    }
+                    blockingToMono {
+                        tmpDir.deleteRecursively()
+                    }.then(Mono.error(error))
+                }
         }
 
     /**

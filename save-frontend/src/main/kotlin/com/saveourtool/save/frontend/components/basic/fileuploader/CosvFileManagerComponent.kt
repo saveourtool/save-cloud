@@ -98,6 +98,17 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fetchFiles()
     }
 
+    val uploadArchiveFile = useDeferredRequest {
+        post(
+            url = "$apiUrl/cosv/$selectedOrganization/archive-upload",
+            Headers(),
+            FormData().apply { append(FILE_PART_NAME, filesForUploading.single()) },
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler
+        )
+        fetchFiles()
+    }
+
     val submitCosvFiles = useDeferredRequest {
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/submit-to-process",
@@ -154,6 +165,20 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     onChangeEventHandler = { files ->
                         setFilesForUploading(files!!.asList())
                         uploadFiles()
+                    }
+                }
+            }
+
+            // ===== UPLOAD ARCHIVE FILE BUTTON =====
+            li {
+                className = ClassName("list-group-item p-0 d-flex bg-light")
+                dragAndDropForm {
+                    isDisabled = selectedOrganization.isNullOrEmpty()
+                    isMultipleFilesSupported = false
+                    tooltipMessage = "Only ZIP files"
+                    onChangeEventHandler = { files ->
+                        setFilesForUploading(files!!.asList())
+                        uploadArchiveFile()
                     }
                 }
             }
