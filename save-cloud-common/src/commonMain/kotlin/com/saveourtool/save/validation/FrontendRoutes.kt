@@ -48,6 +48,7 @@ enum class FrontendRoutes(val path: String) {
     VULNERABILITIES("$VULN/list"),
     VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
+    COSV_SCHEMA("$VULN/cosv/schema")
     ;
 
     override fun toString(): String = path

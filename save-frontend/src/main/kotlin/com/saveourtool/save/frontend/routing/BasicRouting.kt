@@ -211,7 +211,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
             thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
-            cosvSchemaView.create {} to "/vuln/cosv/schema",
+            cosvSchemaView.create {} to COSV_SCHEMA,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter
