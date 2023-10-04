@@ -18,6 +18,7 @@ import java.nio.file.Path
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
+ * @property workingDir a local folder for tmp files
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")

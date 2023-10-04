@@ -10,8 +10,10 @@ import org.apache.commons.compress.archivers.examples.Archiver
 import org.apache.commons.compress.archivers.examples.Expander
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.io.path.absolutePathString
+
 import java.nio.file.Path as JPath
+
+import kotlin.io.path.absolutePathString
 
 const val ARCHIVE_EXTENSION = ".${ArchiveStreamFactory.ZIP}"
 
@@ -39,12 +41,12 @@ fun JPath.extractZipTo(targetPath: JPath) {
 /**
  * Extract path as ZIP archive to parent
  */
-actual fun Path.extractZipHere() = toNioPath().extractZipHere()
+actual fun Path.extractZipHere(): Unit = toNioPath().extractZipHere()
 
 /**
  * Extract path as ZIP archive to parent
  */
-fun JPath.extractZipHere() = parent?.let {
+fun JPath.extractZipHere(): Unit = parent?.let {
     extractZipTo(it)
 } ?: throw FileSystemException(this.toFile(), null, "Path to archive is set incorrectly.")
 
