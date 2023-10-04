@@ -17,13 +17,94 @@ val cweNames = "cwe_names" to cweNamesDescr
 
 val timeline = "timeline" to timelineDescr
 
+val timelineType = "type" to timelineTypeDescr
+
+val timelineValue = "valuy" to timelineValueDescr
+
+val related = "related" to relatedDescr
+
+val summaryDetails = "summary, details" to summaryDetailsDescr
+
+val severity = "severity" to severityDescr
+
+val severityType = "type" to severityTypeDescr
+
+val severityScore = "score" to severityScoreDescr
+
+val severityLevel = "level" to severityLevelDescr
+
+val severityScoreNum = "score_num" to severityScoreNumDescr
+
+val affected = "affected" to affectedDescr
+
+val packageField = "package" to packageDescr
+
+val packageEcosystem = "ecosystem" to packageEcosystemDescr
+
+val packageName = "name" to packageNameDescr
+
+val packagePurl = "purl" to packagePurlDescr
+
+val packageLanguage = "language" to packageLanguageDescr
+
+val packageRepository = "repository" to packageRepositoryDescr
+
+val packageIntroducedCommits = "introduced_commits" to packageIntroducedCommitsDescr
+
+val packageFixedCommits = "fixed_commits" to packageFixedCommitsDescr
+
+val packageHomePage = "home_page" to packageHomePageDescr
+
+val packageEdition = "edition" to packageEditionDescr
+
+val affectedVersions = "affectedVersions" to affectedVersionsDescr
+
+val ranges = "ranges" to rangesDescr
+
+val rangesType = "type" to rangesTypeDescr
+
+val rangesRepo = "repo" to rangesRepoDescr
+
+val rangesEvents = "events" to rangesEventsDescr
+
+val rangesDatabaseSpecific = "database_specific" to rangesDatabaseSpecificDescr
+
+val affectedEcosystemSpecific = "ecosystem_specific" to affectedEcosystemSpecificDescr
+
+val affectedDatabaseSpecific = "database_specific" to affectedDatabaseSpecificDescr
 
 val cosvFieldsDescriptionsList = listOf(
         schemaVersion,
         idModified,
+        published,
         withdrawn,
         aliases,
         cweIds,
         cweNames,
-        timeline
+        timeline,
+        timelineType,
+        timelineValue,
+        related,
+        summaryDetails,
+        severity,
+        severityType,
+        severityScore,
+        severityLevel,
+        severityScoreNum,
+        packageField,
+        packageEcosystem,
+        packageName,
+        packagePurl,
+        packageLanguage,
+        packageRepository,
+        packageIntroducedCommits,
+        packageFixedCommits,
+        packageHomePage,
+        packageEdition,
+        affectedVersions,
+        ranges,
+        rangesType,
+        rangesRepo,
+        rangesEvents,
+        rangesDatabaseSpecific
 )
