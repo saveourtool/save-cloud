@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.*
 
 /**
@@ -77,7 +79,6 @@ class CosvController(
      * @param authentication
      * @return list of uploaded [RawCosvFileDto]
      */
-    @OptIn(ExperimentalPathApi::class)
     @RequiresAuthorizationSourceHeader
     @PostMapping("/archive-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun archiveUpload(
@@ -123,13 +124,14 @@ class CosvController(
                             )
                         }
                 }
+                .doOnSubscribe {
+                    tmpDir.deleteRecursivelySafely()
+                }
                 .onErrorResume { error ->
                     log.error(error) {
                         "Failed to process archive ${archiveFilePart.filename()}"
                     }
-                    blockingToMono {
-                        tmpDir.deleteRecursively()
-                    }.then(Mono.error(error))
+                    blockingToMono { tmpDir.deleteRecursivelySafely() }.then(Mono.error(error))
                 }
         }
 
@@ -256,5 +258,14 @@ class CosvController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
+
+        @OptIn(ExperimentalPathApi::class)
+        private fun Path.deleteRecursivelySafely() = try {
+            deleteRecursively()
+        } catch (e: IOException) {
+            log.debug(e) {
+                "Failed to delete recursively ${absolutePathString()}"
+            }
+        }
     }
 }
