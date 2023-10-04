@@ -5,7 +5,6 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
@@ -51,7 +50,7 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                     VulnerabilityDateDto(
                         props.vulnerability.metadata.submitted,
                         VulnerabilityDateType.SUBMITTED,
-                                props.vulnerability.metadata.identifier,
+                        props.vulnerability.metadata.identifier,
                     )
                 )
                     .toList()
@@ -98,7 +97,7 @@ external interface TimelineComponentProps : Props {
     /**
      * Map with dates where key is [LocalDateTime] and value is label
      */
-    var dates:  List<VulnerabilityDateDto>
+    var dates: List<VulnerabilityDateDto>
 
     /**
      * Callback that should be invoked on add button click
