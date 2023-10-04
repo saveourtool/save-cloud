@@ -23,7 +23,7 @@ val cosvSchemaView = VFC {
             windowOpenness.closeWindowAction()
     ) {
         buttonBuilder("Close", "secondary") {
-
+            windowOpenness.closeWindow()
         }
     }
 
@@ -34,3 +34,99 @@ val cosvSchemaView = VFC {
         }
     }
 }
+
+
+val jsonSchema = """
+{
+  "schema_version": "string",
+  "id": "string",
+  "modified": "string",
+  "published": "string",
+  "withdrawn": "string",
+  "aliases": [ "string" ],
+  "cwe_ids": [ "string" ],
+  "cwe_names": [ "string" ],
+  "timeline": [ {
+      "type": "string",
+      "value": "string"
+    }
+  ],
+  "related": [ "string" ],
+  "summary": "string",
+  "details": "string",
+  "severity": [ {
+      "type": "string",
+      "score": "string",
+      "level": "string",
+      "score_num": "string"
+    }
+  ],
+  "affected": [ {
+      "package": {
+        "ecosystem": "string",
+        "name": "string",
+        "purl": "string",
+        "language": "string",
+        "repository": "string",
+        "introduced_commits": [ "string" ],
+        "fixed_commits": [ "string" ],
+        "home_page:": "string",
+        "edition:": "string"
+      },
+      "severity": [ {
+          "type": "string",
+          "score": "string",
+          "level": "string",
+          "score_num": "string"
+        }
+      ],
+      "ranges": [ {
+          "type": "string",
+          "repo": "string",
+          "events": [ {
+              "introduced": "string",
+              "fixed": "string",
+              "last_affected": "string",
+              "limit": "string"
+            }
+          ],
+          "database_specific": { "see description": "" }
+        }
+      ],
+      "versions": [ "string" ],
+      "ecosystem_specific": { "see description": "" },
+      "database_specific": { "see description": "" }
+    }
+  ],
+  "patches_detail": [ {
+      "patch_url": "string",
+      "issue_url": "string",
+      "main_language": "string",
+      "author": "string",
+      "commiter": "string",
+      "branches": [ "string" ],
+      "tags": [ "string" ]
+    }
+  ],
+  "contributors": [ {
+      "org": "string",
+      "name": "string",
+      "email": "string",
+      "contributions": "string"
+    }
+  ],
+  "confirm_type": "string",
+  "references": [ {
+      "type": "string",
+      "url": "string"
+    }
+  ],
+  "credits": [ {
+      "name": "string",
+      "contact": [ "string" ],
+      "type": "string"
+    }
+  ],
+  "database_specific": { "see description": "" }
+}
+"""
