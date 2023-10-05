@@ -43,7 +43,7 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="user" columnNames="name,source"/>
+        <addUniqueConstraint tableName="user" constraintName="uq_user_name" columnNames="name"/>
         <rollback>
             <dropTable
                     cascadeConstraints="true"

@@ -10,8 +10,9 @@
     <include file="organization.xml" relativeToChangelogFile="true"/>
     <include file="project.xml" relativeToChangelogFile="true"/>
     <include file="git.xml" relativeToChangelogFile="true"/>
-    <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="test-suites-source.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
     <include file="test-suite.xml" relativeToChangelogFile="true"/>
     <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="execution.xml" relativeToChangelogFile="true"/>
@@ -27,14 +28,13 @@
     <include file="original-login.xml" relativeToChangelogFile="true"/>
     <include file="lnk-organization-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="agent.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="lnk-contest-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
     <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
     <include file="file.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
-    <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
-    <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
     <include file="project-problem.xml" relativeToChangelogFile="true"/>
     <include file="comments.xml" relativeToChangelogFile="true"/>
     <include file="contest-sample.xml" relativeToChangelogFile="true"/>
