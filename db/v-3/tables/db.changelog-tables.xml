@@ -49,7 +49,7 @@
     <include file="cosv-file.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="3-0-tables" author="nulls">
+    <changeSet id="v3-3-0-tables" author="nulls">
         <tagDatabase tag="v3.0-tables"/>
     </changeSet>
 
