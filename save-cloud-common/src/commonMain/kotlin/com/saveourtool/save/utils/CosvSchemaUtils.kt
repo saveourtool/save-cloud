@@ -56,7 +56,6 @@ fun List<UserInfo>.asCredits(): List<Credit> = map { it.asCredit() }
  */
 fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList {
     timeline?.map { it.asVulnerabilityDateDto(id) }?.let { addAll(it) }
-    add(modified.asVulnerabilityDateDto(id, VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
 }
