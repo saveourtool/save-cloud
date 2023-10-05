@@ -1,6 +1,6 @@
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
-val cosvFieldsDescriptionMap = mapOf(
+val cosvFieldsDescriptionMap = mutableMapOf(
         "schema_version" to schemaVersionDescr,
         "id, modified" to idModifiedDescr,
         "published" to publishedDescr,

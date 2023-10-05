@@ -1,6 +1,5 @@
 package com.saveourtool.save.frontend.components.views.vuln
 
-import com.saveourtool.osv4k.OsvSchema
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 import react.VFC
@@ -12,11 +11,7 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescr
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
-import mui.icons.material.Class
 import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.br
-import react.dom.html.ReactHTML.p
-import react.dom.html.ReactHTML.pre
 import web.cssom.ClassName
 
 
@@ -147,33 +142,49 @@ val cosvSchemaView = VFC {
         className = ClassName("card")
         JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
             val str = it.replace("\\", "")
-            val key = str.takeWhile { it != ':' }.replace("\"", "")
-
-            //map[new]
-            //buttonBuilder (map[new])
-            //class = "btn-sm"
-
+            val key = str.takeWhile { it != ':' }.replace("\"", "").trim()
 
             div {
                 //class = ClassName("row") // если будет работать
-                val tmp = cosvFieldsDescriptionMap.entries.firstOrNull { entry ->
+                console.log("TEXT KEY [$key]")
+
+
+                val cosvKey = cosvFieldsDescriptionMap.entries.firstOrNull { entry ->
                     entry.key == key
                 }
-                tmp?.let { entry ->
-                    buttonBuilder(entry.key) {
-                        setTextInModal(entry.key to entry.value)
-                        windowOpenness.openWindow()
-                    }
-                } ?: key
+
+                console.log("NULL ${cosvKey == null}")
+
+
                 ReactHTML.pre {
-                    +str.dropWhile { it != ':' }.drop(1)//.repace(первое слово в строке)
+                    cosvKey?.let { entry ->
+                        //cosvFieldsDescriptionMap.remove(entry.key)
+                        buttonBuilder(entry.key) {
+                            setTextInModal(entry.key to entry.value)
+                            windowOpenness.openWindow()
+                        }
+                        +str.dropWhile { it != ':' }.drop(1)//.repace(первое слово в строке)
+                    } ?: run {
+                        +str
+                    }
+
 
                 }
             }
+
+
         }
 
         buttonBuilder("fdsafda") {
 
+        }
+
+        div {
+            JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
+                ReactHTML.pre {
+                    +it
+                }
+            }
         }
     }
 }
