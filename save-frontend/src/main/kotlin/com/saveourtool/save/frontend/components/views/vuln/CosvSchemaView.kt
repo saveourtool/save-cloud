@@ -12,39 +12,12 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescr
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
-
-val cosvSchemaView = VFC {
-    useBackground(Style.VULN_DARK)
-    val windowOpenness = useWindowOpenness()
-    val (textInModal, setTextInModal) = useState<Pair<String, String>>()
-
-    val cosv = OsvSchema
-
-    if (textInModal != null) {
-        displayModal(
-                windowOpenness.isOpen(),
-                textInModal.first,
-                textInModal.second,
-                mediumTransparentModalStyle,
-                windowOpenness.closeWindowAction()
-        ) {
-            buttonBuilder("Close", "secondary") {
-                windowOpenness.closeWindow()
-            }
-        }
-    }
-
-    cosvFieldsDescriptionsList.forEach { cosvFieldDescriptionPair ->
-        div {
-            buttonBuilder(cosvFieldDescriptionPair.first) {
-                setTextInModal(cosvFieldDescriptionPair.first to cosvFieldDescriptionPair.second)
-                windowOpenness.openWindow()
-            }
-        }
-    }
-}
-
-
+import mui.icons.material.Class
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.br
+import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.pre
+import web.cssom.ClassName
 
 
 val jsonSchema = """
@@ -141,3 +114,62 @@ val jsonSchema = """
   "database_specific": { "see description": "" }
 }
 """
+
+
+val cosvSchemaView = VFC {
+    useBackground(Style.VULN_DARK)
+    val windowOpenness = useWindowOpenness()
+    val (textInModal, setTextInModal) = useState<Pair<String, String>>()
+
+    val cosv = OsvSchema
+
+    if (textInModal != null) {
+        displayModal(
+                windowOpenness.isOpen(),
+                textInModal.first,
+                textInModal.second,
+                mediumTransparentModalStyle,
+                windowOpenness.closeWindowAction()
+        ) {
+            buttonBuilder("Close", "secondary") {
+                windowOpenness.closeWindow()
+            }
+        }
+    }
+
+    cosvFieldsDescriptionsList.forEach { cosvFieldDescriptionPair ->
+        div {
+            buttonBuilder(cosvFieldDescriptionPair.first) {
+                setTextInModal(cosvFieldDescriptionPair.first to cosvFieldDescriptionPair.second)
+                windowOpenness.openWindow()
+            }
+        }
+    }
+
+    val data: String = JSON.parse(jsonSchema)
+
+    div {
+        className = ClassName("card")
+        JSON.stringify(jsonSchema, null, 2).split("\\n").forEach { str ->
+            val new = str.splitFirst(" ").replace("\\", "")
+            map[new]
+            buttonBuilder (map[new])
+            class = "btn-sm"
+
+
+            div {
+                class = ClassName("row") // если будет работать
+                ReactHTML.pre {
+                    +it.repace(первое слово в строке)
+                }
+            }
+        }
+
+        buttonBuilder("fdsafda") {
+
+        }
+    }
+}
+
+
+
