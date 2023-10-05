@@ -8,6 +8,7 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.springframework.http.HttpHeaders
@@ -20,6 +21,10 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.*
 
 /**
  * Rest controller for COSVs
@@ -32,6 +37,11 @@ class CosvController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
+    private fun createTempDirectoryForArchive() = Files.createTempDirectory(
+        backendService.workingDir.createDirectories(),
+        "archive-"
+    )
+
     /**
      * @param organizationName
      * @param filePartFlux
@@ -51,16 +61,69 @@ class CosvController(
                     log.debug {
                         "Processing ${filePart.filename()}"
                     }
-                    rawCosvFileStorage.upload(
-                        key = RawCosvFileDto(
-                            filePart.filename(),
-                            organizationName = organizationName,
-                            userName = authentication.name,
-                        ),
-                        content = filePart.content().map { it.asByteBuffer() },
-                    )
+                    if (!filePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+                        rawCosvFileStorage.upload(
+                            key = RawCosvFileDto(
+                                filePart.filename(),
+                                organizationName = organizationName,
+                                userName = authentication.name,
+                            ),
+                            content = filePart.content().map { it.asByteBuffer() },
+                        )
+                    } else {
+                        doArchiveUpload(filePart, organizationName, authentication.name)
+                    }
                 }
                 .parallel()
+        }
+
+    private fun doArchiveUpload(
+        archiveFilePart: FilePart,
+        organizationName: String,
+        userName: String,
+    ): Flux<RawCosvFileDto> = blockingToMono {
+        val tmpDir = createTempDirectoryForArchive()
+        tmpDir to Files.createTempDirectory(tmpDir, "content-")
+    }
+        .flatMapMany { (tmpDir, contentDir) ->
+            val archiveFile = tmpDir / archiveFilePart.filename()
+            log.debug {
+                "Saving archive ${archiveFilePart.filename()} to ${archiveFile.absolutePathString()}"
+            }
+            archiveFilePart.content()
+                .map { it.asByteBuffer() }
+                .collectToFile(archiveFile)
+                .blockingMap {
+                    archiveFile.extractZipTo(contentDir)
+                }
+                .flatMapMany {
+                    blockingToFlux {
+                        contentDir.listDirectoryEntries()
+                    }
+                        .flatMap { file ->
+                            log.debug {
+                                "Processing ${file.absolutePathString()}"
+                            }
+                            rawCosvFileStorage.upload(
+                                key = RawCosvFileDto(
+                                    concatS3Key(archiveFilePart.filename(), file.relativeTo(contentDir).toString()),
+                                    organizationName = organizationName,
+                                    userName = userName,
+                                ),
+                                contentLength = file.fileSize(),
+                                content = file.toByteBufferFlux(),
+                            )
+                        }
+                }
+                .doOnComplete {
+                    tmpDir.deleteRecursivelySafely()
+                }
+                .onErrorResume { error ->
+                    log.error(error) {
+                        "Failed to process archive ${archiveFilePart.filename()}"
+                    }
+                    blockingToMono { tmpDir.deleteRecursivelySafely() }.then(Mono.error(error))
+                }
         }
 
     /**
@@ -81,7 +144,12 @@ class CosvController(
         }
         .thenReturn(ResponseEntity.ok("Submitted $ids to be processed"))
         .doOnSuccess {
-            cosvService.process(ids)
+            blockingToMono {
+                backendService.getOrganizationByName(organizationName) to backendService.getUserByName(authentication.name)
+            }
+                .flatMap { (organization, user) ->
+                    cosvService.process(ids, user, organization)
+                }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
         }
@@ -181,5 +249,14 @@ class CosvController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
+
+        @OptIn(ExperimentalPathApi::class)
+        private fun Path.deleteRecursivelySafely() = try {
+            deleteRecursively()
+        } catch (e: IOException) {
+            log.debug(e) {
+                "Failed to delete recursively ${absolutePathString()}"
+            }
+        }
     }
 }

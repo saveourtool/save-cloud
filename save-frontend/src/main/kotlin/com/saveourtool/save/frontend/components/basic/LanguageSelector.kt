@@ -58,6 +58,7 @@ val languageSelector: VFC = FC {
             PlatformLanguages.values().map { language ->
                 a {
                     className = ClassName("dropdown-item")
+                    style = jso { cursor = "pointer".unsafeCast<Cursor>() }
                     onClick = { setSelectedLanguage(language) }
                     span { +language.label }
                 }

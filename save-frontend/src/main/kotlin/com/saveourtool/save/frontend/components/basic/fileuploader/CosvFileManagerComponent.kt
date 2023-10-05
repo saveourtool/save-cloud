@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
@@ -133,6 +134,34 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         ul {
             className = ClassName("list-group")
 
+            // SUBMIT to process
+            li {
+                className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
+                    setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
+                }
+                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
+                    submitCosvFiles()
+                }
+                buttonBuilder(faReload) {
+                    fetchFiles()
+                }
+            }
+
+            // ===== UPLOAD FILES BUTTON =====
+            li {
+                className = ClassName("list-group-item p-0 d-flex bg-light")
+                dragAndDropForm {
+                    isDisabled = selectedOrganization.isNullOrEmpty()
+                    isMultipleFilesSupported = true
+                    tooltipMessage = "Only JSON files or ZIP archives"
+                    onChangeEventHandler = { files ->
+                        setFilesForUploading(files!!.asList())
+                        uploadFiles()
+                    }
+                }
+            }
+
             // ===== SELECTED FILES =====
             availableFiles.map { file ->
                 li {
@@ -182,30 +211,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             else -> " "
                         }
                     }
-                }
-            }
-
-            // ===== UPLOAD FILES BUTTON =====
-            li {
-                className = ClassName("list-group-item p-0 d-flex bg-light")
-                dragAndDropForm {
-                    isDisabled = selectedOrganization.isNullOrEmpty()
-                    isMultipleFilesSupported = true
-                    tooltipMessage = "Only JSON files"
-                    onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
-                        uploadFiles()
-                    }
-                }
-            }
-            // SUBMIT to process
-            li {
-                className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
-                    setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
-                }
-                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
-                    submitCosvFiles()
                 }
             }
         }

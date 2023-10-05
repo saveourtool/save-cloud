@@ -117,4 +117,8 @@
         </sql>
     </changeSet>
 
+    <changeSet id="increase-user-name" author="nulls">
+        <modifyDataType tableName="user" columnName="name" newDataType="varchar(255)"/>
+    </changeSet>
+
 </databaseChangeLog>

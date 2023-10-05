@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.UserPermissionEvaluator
 import com.saveourtool.save.entities.Organization
@@ -7,6 +8,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
+import java.nio.file.Path
 
 /**
  * Service for [IBackendService] to get required info for COSV from backend
@@ -17,7 +19,10 @@ class BackendForCosvService(
     private val userDetailsService: UserDetailsService,
     private val userPermissionEvaluator: UserPermissionEvaluator,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
+    configProperties: ConfigProperties,
 ) : IBackendService {
+    override val workingDir: Path = configProperties.workingDir
+
     override fun getOrganizationByName(name: String): Organization = organizationService.getByName(name)
 
     override fun getUserByName(name: String): User = userDetailsService.getByName(name)
@@ -32,4 +37,8 @@ class BackendForCosvService(
         organizationName: String,
         permission: Permission
     ): Boolean = organizationPermissionEvaluator.hasPermission(authentication, getOrganizationByName(organizationName), permission)
+
+    override fun saveUser(user: User): User = userDetailsService.saveUser(user)
+
+    override fun saveOrganization(organization: Organization) = organizationService.updateOrganization(organization)
 }

@@ -14,10 +14,12 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.scheduler.Schedulers
 import java.lang.IllegalArgumentException
 
 import java.util.*
@@ -33,6 +35,12 @@ class UserDetailsService(
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val avatarStorage: AvatarStorage,
 ) {
+    /**
+     * @param user user for update
+     * @return updated user
+     */
+    fun saveUser(user: User): User = userRepository.save(user)
+
     /**
      * @param username
      * @return spring's UserDetails retrieved from save's user found by provided values
@@ -94,12 +102,10 @@ class UserDetailsService(
      * @param authentication
      * @return global [Role] of authenticated user
      */
-    fun getGlobalRole(authentication: Authentication): Role = authentication.authorities
-        .map { grantedAuthority ->
-            Role.values().find { role -> role.asSpringSecurityRole() == grantedAuthority.authority }
+    fun getGlobalRole(authentication: Authentication): Role = userRepository.findByIdOrNull(authentication.userId())
+        ?.let { user ->
+            Role.values().find { role -> role.asSpringSecurityRole() == user.role }
         }
-        .sortedBy { it?.priority }
-        .lastOrNull()
         ?: Role.VIEWER
 
     /**
@@ -211,31 +217,31 @@ class UserDetailsService(
         name: String,
         authentication: Authentication,
     ): UserSaveStatus {
-        val user: User = userRepository.findByName(name).orNotFound()
-        val newName = "Deleted-${user.id}"
-        if (user.id == authentication.userId()) {
-            userRepository.deleteHighLevelName(user.name)
-            userRepository.saveHighLevelName(newName)
-            userRepository.save(user.apply {
-                this.name = newName
-                this.status = UserStatus.DELETED
-                this.avatar = null
-                this.company = null
-                this.twitter = null
-                this.email = null
-                this.gitHub = null
-                this.linkedin = null
-                this.location = null
-            })
-        } else {
-            return UserSaveStatus.HACKER
+        val user: User = userRepository.findByIdOrNull(authentication.userId()).orNotFound {
+            "User with id ${authentication.userId()} not found in database"
         }
+        val newName = "Deleted-${user.id}"
+        userRepository.deleteHighLevelName(user.name)
+        userRepository.saveHighLevelName(newName)
+        userRepository.save(user.apply {
+            this.name = newName
+            this.status = UserStatus.DELETED
+            this.avatar = null
+            this.company = null
+            this.twitter = null
+            this.email = null
+            this.gitHub = null
+            this.linkedin = null
+            this.location = null
+        })
 
         val avatarKey = AvatarKey(
             AvatarType.USER,
             name,
         )
         avatarStorage.delete(avatarKey)
+            .subscribeOn(Schedulers.boundedElastic())
+            .subscribe()
 
         originalLoginRepository.deleteByUserId(user.requiredId())
         lnkUserProjectRepository.deleteByUserId(user.requiredId())
