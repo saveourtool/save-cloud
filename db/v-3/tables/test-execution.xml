@@ -15,7 +15,7 @@
                              nullable="false" deleteCascade="true"/>
             </column>
             <column name="agent_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="execution_id" type="bigint">
                 <constraints foreignKeyName="fk_test_execution_execution" references="execution(id)"
@@ -28,7 +28,7 @@
                 <constraints nullable="true"/>
             </column>
             <column name="end_time" type="DATETIME(3)">
-                <constraints nullable="true" />
+                <constraints nullable="true"/>
             </column>
             <column name="unmatched" type="bigint">
                 <constraints nullable="true"/>

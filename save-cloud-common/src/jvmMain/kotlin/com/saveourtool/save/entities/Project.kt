@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities
+ package com.saveourtool.save.entities
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.spring.entity.BaseEntityWithDto

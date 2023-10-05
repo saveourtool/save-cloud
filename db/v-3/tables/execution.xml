@@ -47,7 +47,6 @@
             <column name="sdk" type="varchar(255)" defaultValue="ubuntu:latest">
                 <constraints nullable="false" />
             </column>
-            <column name="additional_files" type="text" defaultValue="null"/>
             <column name="user_id" type="bigint">
                 <constraints foreignKeyName="fk_execution_user" references="user(id)"
                              nullable="true" deleteCascade="true"/>

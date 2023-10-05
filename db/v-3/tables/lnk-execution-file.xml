@@ -18,17 +18,6 @@
             </column>
         </createTable>
         <addUniqueConstraint tableName="lnk_execution_file" columnNames="execution_id, file_id" constraintName="uq_lnk_execution_file"/>
-        <!-- mark all existed execution as OBSOLETE -->
-        <delete tableName="lnk_execution_test_suite" />
-        <delete tableName="test_execution" />
-        <delete tableName="agent_status" />
-        <delete tableName="agent" />
-        <update tableName="execution">
-            <column name="status" value="OBSOLETE"/>
-        </update>
-        <dropColumn tableName="execution">
-            <column name="additional_files"/>
-        </dropColumn>
     </changeSet>
 
 </databaseChangeLog>

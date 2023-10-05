@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="add-test-suite-table" author="aktsay" context="dev or prod">
+    <changeSet id="test-suite-1" author="nulls">
         <createTable tableName="test_suite">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -14,20 +14,17 @@
                 <constraints nullable="false"/>
             </column>
             <column name="date_added" type="DATETIME">
-                <constraints nullable="false" />
+                <constraints nullable="false"/>
             </column>
             <column name="description" type="text"/>
             <column name="language" type="varchar(255)" defaultValue="NULL"/>
             <column name="tags" type="varchar(255)" defaultValue="NULL"/>
-            <column name="source_id" type="bigint">
-                <constraints foreignKeyName="fk_test_suite_test_suites_source" references="test_suites_source(id)"
-                             nullable="false" deleteCascade="true"/>
-            </column>
-            <column name="version" type="varchar(100)">
-                <constraints nullable="false"/>
-            </column>
             <column name="plugins" type="varchar(200)" defaultValue=""/>
             <column name="is_public" type="boolean" defaultValue="true"/>
+            <column name="source_snapshot_id" type="bigint">
+                <constraints foreignKeyName="fk_test_suite_source_snapshot" references="tests_source_snapshot(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
         </createTable>
     </changeSet>
 

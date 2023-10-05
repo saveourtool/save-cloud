@@ -6,17 +6,14 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <include file="_clearing-tables.xml" relativeToChangelogFile="true"/>
-
-    <include file="rename-properties-field.xml" relativeToChangelogFile="true"/>
     <include file="user.xml" relativeToChangelogFile="true"/>
     <include file="organization.xml" relativeToChangelogFile="true"/>
     <include file="project.xml" relativeToChangelogFile="true"/>
     <include file="git.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
-    <include file="project-privacy.xml" relativeToChangelogFile="true"/>
     <include file="test-suites-source.xml" relativeToChangelogFile="true"/>
-    <include file="test_suite.xml" relativeToChangelogFile="true"/>
-    <include file="test_execution.xml" relativeToChangelogFile="true"/>
+    <include file="test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="execution.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-organization.xml" relativeToChangelogFile="true"/>
@@ -37,9 +34,6 @@
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-description.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-project.xml" relativeToChangelogFile="true"/>
     <include file="cosv-metadata.xml" relativeToChangelogFile="true"/>
     <include file="project-problem.xml" relativeToChangelogFile="true"/>
     <include file="comments.xml" relativeToChangelogFile="true"/>
@@ -52,7 +46,6 @@
     <include file="lnk-cosv-metadata-tag.xml" relativeToChangelogFile="true"/>
     <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
     <include file="cosv-metadata-project.xml" relativeToChangelogFile="true"/>
-    <include file="drop-old-vulnerability-tables.xml" relativeToChangelogFile="true"/>
     <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-metadata.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>

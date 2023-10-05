@@ -5,19 +5,22 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="project-problem" author="frolov" context="dev or prod">
+    <changeSet id="project-problem-1" author="frolov" context="dev or prod">
         <createTable tableName="project_problem">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar(250)" />
-            <column name="description" type="varchar(250)"/>
+            <column name="name" type="varchar(250)"/>
+            <column name="description" type="TEXT"/>
             <column name="critical" type="varchar(50)"/>
-            <column name="project_id" type="bigint">
-                <constraints foreignKeyName="fk_project_problem_project" references="project(id)" nullable="false" deleteCascade="true"/>
+            <column name="vulnerability_metadata_id" type="bigint">
+                <constraints foreignKeyName="fk_project_problem_vulnerability_metadata"
+                             references="vulnerability_metadata(id)"
+                             nullable="true" deleteCascade="true"/>
             </column>
-            <column name="vulnerability_id" type="bigint">
-                <constraints foreignKeyName="fk_project_problem_vulnerability" references="vulnerability(id)" nullable="true" deleteCascade="true"/>
+            <column name="project_id" type="bigint">
+                <constraints foreignKeyName="fk_project_problem_project" references="project(id)"
+                             nullable="false" deleteCascade="true"/>
             </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="true"/>
@@ -28,38 +31,11 @@
             <column name="user_id" type="bigint">
                 <constraints foreignKeyName="fk_project_problem_user" references="user(id)" nullable="false"/>
             </column>
-        </createTable>
-    </changeSet>
-
-    <changeSet id="project-problem-unique-name" author="frolov" context="dev or prod">
-        <addUniqueConstraint tableName="project_problem" columnNames="name,project_id"/>
-    </changeSet>
-
-    <changeSet id="modify-description-type" author="frolov">
-        <modifyDataType tableName="project_problem" columnName="description" newDataType="TEXT"/>
-    </changeSet>
-
-    <changeSet id="project-problem-2" author="frolov" context="dev or prod">
-        <addColumn tableName="project_problem">
             <column name="is_closed" type="BOOLEAN" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="project-problem-3" author="nulls">
-        <dropForeignKeyConstraint baseTableName="project_problem" constraintName="fk_project_problem_vulnerability"/>
-        <dropColumn tableName="project_problem" columnName="vulnerability_id"/>
-        <addColumn tableName="project_problem">
-            <column name="cosv_metadata_id" type="bigint">
-                <constraints foreignKeyName="fk_project_problem_cosv_metadata" references="cosv_metadata(id)" nullable="true" deleteCascade="true"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="project-problem-4" author="nulls">
-        <renameColumn tableName="project_problem" oldColumnName="cosv_metadata_id"
-                      newColumnName="vulnerability_metadata_id" columnDataType="bigint"/>
+        </createTable>
+        <addUniqueConstraint tableName="project_problem" columnNames="name,project_id"/>
     </changeSet>
 
 </databaseChangeLog>

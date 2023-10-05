@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="add-user-table" author="petertrr" context="dev or prod">
+    <changeSet id="user-1" author="nulls">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="user"/>
@@ -15,32 +15,11 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="varchar(64)"/>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
             <column name="password" type="varchar(256)"/>
             <column name="role" type="varchar(64)"/>
-        </createTable>
-
-        <rollback>
-            <dropTable
-                    cascadeConstraints="true"
-                    tableName="user" />
-        </rollback>
-    </changeSet>
-
-    <changeSet id="user-identity-source" author="petertrr" context="dev or prod">
-        <addColumn tableName="user">
-            <column name="source" type="varchar(64)">
-                <constraints nullable="true"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="user-unique-name" author="petertrr" context="dev or prod">
-        <addUniqueConstraint tableName="user" columnNames="name,source"/>
-    </changeSet>
-
-    <changeSet id="user-add-column-1" author="frolov" context="dev or prod">
-        <addColumn tableName="user">
             <column name="avatar" type="varchar(250)"/>
             <column name="email" type="varchar(250)"/>
             <column name="company" type="varchar(250)"/>
@@ -48,77 +27,29 @@
             <column name="linkedin" type="varchar(250)"/>
             <column name="git_hub" type="varchar(250)"/>
             <column name="twitter" type="varchar(250)"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="user-add-column-2" author="frolov" context="dev or prod">
-        <addColumn tableName="user">
-            <column name="is_active" type="BOOLEAN" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="user-add-column-3" author="frolov" context="dev or prod">
-        <addColumn tableName="user">
-            <column name="rating" type="bigint" defaultValue="0">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="user-name-not-nullable" author="nulls">
-        <addNotNullConstraint tableName="user" columnName="name" columnDataType="varchar(64)"/>
-        <addNotNullConstraint tableName="user" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
-    </changeSet>
-
-    <changeSet id="user-add-status" author="frolov" context="dev or prod">
-        <addColumn tableName="user">
-            <column name="status" type="varchar(64)" defaultValue="CREATED">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-
-        <sql>
-            UPDATE user SET status = 'ACTIVE' WHERE is_active = 1;
-        </sql>
-
-        <dropColumn tableName="user">
-            <column name="is_active"/>
-        </dropColumn>
-    </changeSet>
-
-
-    <changeSet id="user-drop-source" author="nulls">
-        <dropColumn tableName="user" columnName="source"/>
-    </changeSet>
-
-    <changeSet id="user-add-site" author="kuleshov" context="dev or prod">
-        <addColumn tableName="user">
             <column name="website" type="varchar(64)"/>
             <column name="free_text" type="varchar(1500)"/>
             <column name="real_name" type="varchar(128)"/>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="user-add-date" author="frolov" context="dev or prod">
-        <addColumn tableName="user">
+            <column name="rating" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(64)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
             <column name="create_date" type="DATETIME(3)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="update_date" type="DATETIME(3)">
-                <constraints nullable="true"/>
+                <constraints nullable="false"/>
             </column>
-        </addColumn>
-
-        <sql>
-            UPDATE user SET create_date = '2022-01-01 00:00:00';
-            UPDATE user SET create_date = '2022-01-01 00:00:00';
-        </sql>
+        </createTable>
+        <addUniqueConstraint tableName="user" columnNames="name,source"/>
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="user"/>
+        </rollback>
     </changeSet>
 
-    <changeSet id="increase-user-name" author="nulls">
-        <modifyDataType tableName="user" columnName="name" newDataType="varchar(255)"/>
-    </changeSet>
 
 </databaseChangeLog>
