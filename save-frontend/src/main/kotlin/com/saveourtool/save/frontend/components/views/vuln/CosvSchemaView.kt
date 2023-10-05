@@ -7,7 +7,7 @@ import react.VFC
 import react.useState
 import react.dom.html.ReactHTML.div
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsList
+import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionMap
 
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
@@ -115,13 +115,10 @@ val jsonSchema = """
 }
 """
 
-
 val cosvSchemaView = VFC {
     useBackground(Style.VULN_DARK)
     val windowOpenness = useWindowOpenness()
     val (textInModal, setTextInModal) = useState<Pair<String, String>>()
-
-    val cosv = OsvSchema
 
     if (textInModal != null) {
         displayModal(
@@ -137,30 +134,40 @@ val cosvSchemaView = VFC {
         }
     }
 
-    cosvFieldsDescriptionsList.forEach { cosvFieldDescriptionPair ->
+    cosvFieldsDescriptionMap.entries.forEach { (key, descr) ->
         div {
-            buttonBuilder(cosvFieldDescriptionPair.first) {
-                setTextInModal(cosvFieldDescriptionPair.first to cosvFieldDescriptionPair.second)
+            buttonBuilder(key) {
+                setTextInModal(key to descr)
                 windowOpenness.openWindow()
             }
         }
     }
 
-    val data: String = JSON.parse(jsonSchema)
-
     div {
         className = ClassName("card")
-        JSON.stringify(jsonSchema, null, 2).split("\\n").forEach { str ->
-            val new = str.splitFirst(" ").replace("\\", "")
-            map[new]
-            buttonBuilder (map[new])
-            class = "btn-sm"
+        JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
+            val str = it.replace("\\", "")
+            val key = str.takeWhile { it != ':' }.replace("\"", "")
+
+            //map[new]
+            //buttonBuilder (map[new])
+            //class = "btn-sm"
 
 
             div {
-                class = ClassName("row") // если будет работать
+                //class = ClassName("row") // если будет работать
+                val tmp = cosvFieldsDescriptionMap.entries.firstOrNull { entry ->
+                    entry.key == key
+                }
+                tmp?.let { entry ->
+                    buttonBuilder(entry.key) {
+                        setTextInModal(entry.key to entry.value)
+                        windowOpenness.openWindow()
+                    }
+                } ?: key
                 ReactHTML.pre {
-                    +it.repace(первое слово в строке)
+                    +str.dropWhile { it != ':' }.drop(1)//.repace(первое слово в строке)
+
                 }
             }
         }

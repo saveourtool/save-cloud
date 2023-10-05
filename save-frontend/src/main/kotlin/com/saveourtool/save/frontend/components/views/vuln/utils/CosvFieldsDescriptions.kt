@@ -1,172 +1,60 @@
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
-
-val schemaVersion = "schema_version" to schemaVersionDescr
-
-val idModified = "id, modified" to idModifiedDescr
-
-val published = "published" to publishedDescr
-
-val withdrawn = "withdrawn" to withdrawnDescr
-
-val aliases = "aliases" to aliasesDescr
-
-val cweIds = "cwe_ids" to cweIdsDescr
-
-val cweNames = "cwe_names" to cweNamesDescr
-
-val timeline = "timeline" to timelineDescr
-
-val timelineType = "type" to timelineTypeDescr
-
-val timelineValue = "value" to timelineValueDescr
-
-val related = "related" to relatedDescr
-
-val summaryDetails = "summary, details" to summaryDetailsDescr
-
-val severity = "severity" to severityDescr
-
-val severityType = "type" to severityTypeDescr
-
-val severityScore = "score" to severityScoreDescr
-
-val severityLevel = "level" to severityLevelDescr
-
-val severityScoreNum = "score_num" to severityScoreNumDescr
-
-val affected = "affected" to affectedDescr
-
-val packageField = "package" to packageDescr
-
-val packageEcosystem = "ecosystem" to packageEcosystemDescr
-
-val packageName = "name" to packageNameDescr
-
-val packagePurl = "purl" to packagePurlDescr
-
-val packageLanguage = "language" to packageLanguageDescr
-
-val packageRepository = "repository" to packageRepositoryDescr
-
-val packageIntroducedCommits = "introduced_commits" to packageIntroducedCommitsDescr
-
-val packageFixedCommits = "fixed_commits" to packageFixedCommitsDescr
-
-val packageHomePage = "home_page" to packageHomePageDescr
-
-val packageEdition = "edition" to packageEditionDescr
-
-val affectedVersions = "affectedVersions" to affectedVersionsDescr
-
-val ranges = "ranges" to rangesDescr
-
-val rangesType = "type" to rangesTypeDescr
-
-val rangesRepo = "repo" to rangesRepoDescr
-
-val rangesEvents = "events" to rangesEventsDescr
-
-val rangesDatabaseSpecific = "database_specific" to rangesDatabaseSpecificDescr
-
-val affectedEcosystemSpecific = "ecosystem_specific" to affectedEcosystemSpecificDescr
-
-val affectedDatabaseSpecific = "database_specific" to affectedDatabaseSpecificDescr
-
-val patchesDetail = "patches_detail" to patchesDetailDescr
-
-val patchesPatchUrl = "patch_url" to patchesPatchUrlDescr
-
-val patchesIssueUrl = "issue_url" to patchesIssueUrlDescr
-
-val patchesMainLanguage = "main_language" to patchesMainLanguageDescr
-
-val patchesAuthor = "author" to patchesAuthorDescr
-
-val patchesCommiter = "commiter" to patchesCommiterDescr
-
-val patchesBranches = "branches" to patchesBranchesDescr
-
-val patchesTags = "tags" to patchesTagsDescr
-
-val contributors = "contributors" to contributorsDescr
-
-val contributorsOrg = "org" to contributorsOrgDescr
-
-val contributorsName = "name" to contributorsNameDescr
-
-val contributorsEmail = "email" to contributorsEmailDescr
-
-val contributorsContributions = "contributions" to contributionsDescr
-
-val confirmType = "confirm_type" to confirmTypeDescr
-
-val references = "references" to referencesDescr
-
-val credits = "credits" to creditsDescr
-
-val creditsName = "name" to creditsNameDescr
-
-val creditsContact = "contact" to creditsContactDescr
-
-val creditsType = "type" to creditsTypeDescr
-
-val databaseSpecific = "database_specific" to databaseSpecificDescr
-
-val cosvFieldsDescriptionsList = listOf(
-        schemaVersion,
-        idModified,
-        published,
-        withdrawn,
-        aliases,
-        cweIds,
-        cweNames,
-        timeline,
-        timelineType,
-        timelineValue,
-        related,
-        summaryDetails,
-        severity,
-        severityType,
-        severityScore,
-        severityLevel,
-        severityScoreNum,
-        packageField,
-        packageEcosystem,
-        packageName,
-        packagePurl,
-        packageLanguage,
-        packageRepository,
-        packageIntroducedCommits,
-        packageFixedCommits,
-        packageHomePage,
-        packageEdition,
-        affectedVersions,
-        ranges,
-        rangesType,
-        rangesRepo,
-        rangesEvents,
-        rangesDatabaseSpecific,
-        affectedEcosystemSpecific,
-        affectedDatabaseSpecific,
-        patchesDetail,
-        patchesPatchUrl,
-        patchesIssueUrl,
-        patchesMainLanguage,
-        patchesAuthor,
-        patchesCommiter,
-        patchesBranches,
-        patchesTags,
-        contributors,
-        contributorsOrg,
-        contributorsName,
-        contributorsEmail,
-        contributorsContributions,
-        confirmType,
-        references,
-        credits,
-        creditsName,
-        creditsContact,
-        creditsType,
-        databaseSpecific
+val cosvFieldsDescriptionMap = mapOf(
+        "schema_version" to schemaVersionDescr,
+        "id, modified" to idModifiedDescr,
+        "published" to publishedDescr,
+        "withdrawn" to withdrawnDescr,
+        "aliases" to aliasesDescr,
+        "cwe_ids" to cweIdsDescr,
+        "cwe_names" to cweNamesDescr,
+        "timeline" to timelineDescr,
+        "type" to timelineTypeDescr,
+        "value" to timelineValueDescr,
+        "related" to relatedDescr,
+        "summary, details" to summaryDetailsDescr,
+        "severity" to severityDescr,
+        "type" to severityTypeDescr,
+        "score" to severityScoreDescr,
+        "level" to severityLevelDescr,
+        "score_num" to severityScoreNumDescr,
+        "affected" to affectedDescr,
+        "package" to packageDescr,
+        "ecosystem" to packageEcosystemDescr,
+        "name" to packageNameDescr,
+        "purl" to packagePurlDescr,
+        "language" to packageLanguageDescr,
+        "repository" to packageRepositoryDescr,
+        "introduced_commits" to packageIntroducedCommitsDescr,
+        "fixed_commits" to packageFixedCommitsDescr,
+        "home_page" to packageHomePageDescr,
+        "edition" to packageEditionDescr,
+        "affectedVersions" to affectedVersionsDescr,
+        "ranges" to rangesDescr,
+        "type" to rangesTypeDescr,
+        "repo" to rangesRepoDescr,
+        "events" to rangesEventsDescr,
+        "database_specific" to rangesDatabaseSpecificDescr,
+        "ecosystem_specific" to affectedEcosystemSpecificDescr,
+        "database_specific" to affectedDatabaseSpecificDescr,
+        "patches_detail" to patchesDetailDescr,
+        "patch_url" to patchesPatchUrlDescr,
+        "issue_url" to patchesIssueUrlDescr,
+        "main_language" to patchesMainLanguageDescr,
+        "author" to patchesAuthorDescr,
+        "commiter" to patchesCommiterDescr,
+        "branches" to patchesBranchesDescr,
+        "tags" to patchesTagsDescr,
+        "contributors" to contributorsDescr,
+        "org" to contributorsOrgDescr,
+        "name" to contributorsNameDescr,
+        "email" to contributorsEmailDescr,
+        "contributions" to contributionsDescr,
+        "confirm_type" to confirmTypeDescr,
+        "references" to referencesDescr,
+        "credits" to creditsDescr,
+        "name" to creditsNameDescr,
+        "contact" to creditsContactDescr,
+        "type" to creditsTypeDescr,
+        "database_specific" to databaseSpecificDescr,
 )
