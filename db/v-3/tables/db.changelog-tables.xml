@@ -14,39 +14,25 @@
     <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
     <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
     <include file="test-suite.xml" relativeToChangelogFile="true"/>
-    <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="execution.xml" relativeToChangelogFile="true"/>
+    <include file="test.xml" relativeToChangelogFile="true"/>
+    <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
     <include file="lnk-user-organization.xml" relativeToChangelogFile="true"/>
     <include file="awesome-benchmarks.xml" relativeToChangelogFile="true"/>
-    <include file="contest.xml" relativeToChangelogFile="true"/>
-    <include file="featured-contests.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-contest-project.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-contest-execution.xml" relativeToChangelogFile="true"/>
-    <include file="test.xml" relativeToChangelogFile="true"/>
     <include file="high-level-names.xml" relativeToChangelogFile="true"/>
     <include file="original-login.xml" relativeToChangelogFile="true"/>
     <include file="lnk-organization-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="agent.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-test-suite.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-contest-test-suite.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
     <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
     <include file="file.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
-    <include file="project-problem.xml" relativeToChangelogFile="true"/>
-    <include file="comments.xml" relativeToChangelogFile="true"/>
-    <include file="contest-sample.xml" relativeToChangelogFile="true"/>
-    <include file="contest-sample-field.xml" relativeToChangelogFile="true"/>
-    <include file="tags.xml" relativeToChangelogFile="true"/>
-    <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-metadata.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>
-    <include file="lnk-vulnerability-metadata-user.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-metadata-project.xml" relativeToChangelogFile="true"/>
-    <include file="cosv-file.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
+
+    <include file="contest/db.changelog-contest.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerabilities/db.changelog-vulnerabilities.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="3-0-tables" author="nulls">
         <tagDatabase tag="v3.0-tables"/>
