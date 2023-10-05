@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.*
@@ -46,13 +45,9 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 div {
                     className = ClassName("line")
                 }
-                props.dates.plus(
-                    VulnerabilityDateDto(
-                        props.vulnerability.metadata.submitted,
-                        VulnerabilityDateType.SUBMITTED,
-                        props.vulnerability.metadata.identifier,
-                    )
-                )
+
+                // <published> is nullable field in schema, so if it is null we should not be showing it
+                props.dates
                     .toList()
                     .sortedBy { it.date }
                     .forEach { (dateTime, label) ->

@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
-import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
@@ -40,7 +39,6 @@ class CosvService(
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
-    private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
 ) {
     /**
