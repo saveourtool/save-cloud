@@ -2,6 +2,7 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
+import com.saveourtool.save.cosv.repository.CosvFileRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
@@ -17,6 +18,7 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -42,6 +44,7 @@ class CosvService(
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
+    private val cosvFileRepository: CosvFileRepository,
 ) {
     /**
      * @param rawCosvFileIds
@@ -224,6 +227,13 @@ class CosvService(
      */
     fun getVulnerabilityAsCosvStream(identifier: String): Flux<ByteBuffer> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMapMany { metadata -> cosvRepository.downloadAsStream(metadata.latestCosvFile) }
+
+    /**
+     * @param cosvFileId
+     * @return [Flux] of [ByteBuffer] with COSV's content
+     */
+    fun getVulnerabilityVersionAsCosvStream(cosvFileId: Long): Flux<ByteBuffer> = blockingToMono { cosvFileRepository.findByIdOrNull(cosvFileId) }
+        .flatMapMany { cosvFile -> cosvRepository.downloadAsStream(cosvFile) }
 
     companion object {
         private val log: Logger = getLogger<CosvService>()

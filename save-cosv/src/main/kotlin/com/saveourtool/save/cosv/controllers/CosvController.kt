@@ -3,8 +3,10 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.cosv.repository.CosvFileRepository
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
@@ -31,11 +33,12 @@ import kotlin.io.path.*
  */
 @ApiSwaggerSupport
 @RestController
-@RequestMapping("/api/$v1/cosv/{organizationName}")
+@RequestMapping("/api/$v1/cosv")
 class CosvController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
+    private val cosvFileRepository: CosvFileRepository,
 ) {
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
         backendService.workingDir.createDirectories(),
@@ -49,7 +52,7 @@ class CosvController(
      * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/{organizationName}/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
@@ -133,7 +136,7 @@ class CosvController(
      * @return [StringResponse]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/submit-to-process")
+    @PostMapping("/{organizationName}/submit-to-process")
     fun submitToProcess(
         @PathVariable organizationName: String,
         @RequestBody ids: List<Long>,
@@ -160,7 +163,7 @@ class CosvController(
      * @return list of uploaded raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/list")
+    @GetMapping("/{organizationName}/list")
     fun list(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -170,13 +173,33 @@ class CosvController(
         }
 
     /**
+     * @param identifier
+     * @return list of cosv files
+     */
+    @GetMapping("/list-versions")
+    fun listVersions(
+        @RequestParam identifier: String,
+    ): Flux<CosvFileDto> = blockingToFlux {
+        cosvFileRepository.findAllByIdentifier(identifier).map { it.toDto() }
+    }
+
+    /**
+     * @param cosvFileId
+     * @return cosv file content
+     */
+    @GetMapping("/cosv-content")
+    fun cosvFileContent(
+        @RequestParam cosvFileId: Long,
+    ): Flux<ByteArray> = cosvService.getVulnerabilityVersionAsCosvStream(cosvFileId).map { it.array() }
+
+    /**
      * @param organizationName
      * @param id ID of raw COSV file
      * @param authentication
      * @return content of Raw COSV file
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/download/{id}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping("/{organizationName}/download/{id}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
@@ -199,7 +222,7 @@ class CosvController(
      * @return empty response
      */
     @RequiresAuthorizationSourceHeader
-    @DeleteMapping("/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @DeleteMapping("/{organizationName}/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun delete(
         @PathVariable organizationName: String,
         @PathVariable id: Long,

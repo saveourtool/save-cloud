@@ -41,6 +41,15 @@ fun LocalDateTime.toUnixCalendarFormat(timeZone: TimeZone = TimeZone.UTC) = toIn
     }
 
 /**
+ * @param timeZone timezone to print the date time in
+ * @return string representation of [LocalDateTime] in [Thursday, 1 Jan 1970 00:00:00] format
+ */
+fun LocalDateTime.toUnixCalendarFormatWithSeconds(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
+    .let {
+        "${toUnixCalendarFormat(timeZone)}:${it.second.plusZero()}"
+    }
+
+/**
  * @param duration
  */
 operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).plus(duration).toLocalDateTime(TimeZone.UTC)
