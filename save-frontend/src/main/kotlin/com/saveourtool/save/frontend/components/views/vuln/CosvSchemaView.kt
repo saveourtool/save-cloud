@@ -42,8 +42,6 @@ val cosvSchemaView = VFC {
             }
         }
     }
-
-
 }
 
 

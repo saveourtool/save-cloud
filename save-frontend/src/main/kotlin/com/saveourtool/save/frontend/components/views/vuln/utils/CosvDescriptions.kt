@@ -236,3 +236,68 @@ val patchesBranchesDescr = """
 val patchesTagsDescr = """
     The tag names of this fixing patch.
 """.trimIndent()
+
+val contributorsDescr = """
+    This field used to specify those persons or organizations who made contributions to this vulnerability record.
+""".trimIndent()
+
+val contributorsOrgDescr = """
+    The organization info of each contributor
+""".trimIndent()
+
+val contributorsNameDescr = """
+    The name of each contributor
+""".trimIndent()
+
+val contributorsEmailDescr = """
+    The email address of each contributor
+""".trimIndent()
+
+val contributionsDescr = """
+    The description of the contributions each contributor has made.
+""".trimIndent()
+
+val confirmTypeDescr = """
+    The confirmation type of this vulnerability record,
+    value should be one of “manual_confirmed”, “algorithm_confirmed” or “double_confirmed”
+""".trimIndent()
+
+val referencesDescr = """
+    The references field contains a list of JSON objects describing references.
+    Each object has a string field type specifying the type of reference,
+    and a string field url.
+    The url is the fully-qualified URL (including the scheme, typically “https://”)
+    linking to additional information, advisories, issue tracker entries,
+    and so on about the vulnerability itself. The type specifies what kind of reference the URL is.
+""".trimIndent()
+
+val creditsDescr = """
+    The credits field is a JSON array providing a way to give credit for the discovery,
+    confirmation, patch, or other events in the life cycle of a vulnerability.
+
+    Each of the objects in the credits array must contain at minimum a `name` field specifying
+    the name of the individual or entity being credited, using whatever notation they prefer.
+    It can also optionally include a `contact` JSON array.
+""".trimIndent()
+
+val creditsNameDescr = """
+    `credits[].name` should specify the name, label, or other identifier of the individual or entity being credited, using whatever notation the creditor prefers.
+""".trimIndent()
+
+val creditsContactDescr = """
+    Each `credits[].contact[]` entry should be a valid, fully qualified, plain-text URL at which the credited can be reached. Providing contacts is optional.
+""".trimIndent()
+
+val creditsTypeDescr = """
+    The optional `credits[].type` field should specify the type or role of the individual or entity being credited.    
+""".trimIndent()
+
+val databaseSpecificDescr = """
+    The top-level `database_specific` field is a JSON object holding additional information about the vulnerability
+    as defined by the database from which the record was obtained.
+
+    Unlike the `affected[].database_specific` field which is specific to each affected product,
+    this top-level field allows aggregator databases to add custom data that they considered applicable to the whole vulnerability.
+
+    **Note** that this is a single field with key `database_specific`, which itself contains a JSON object with unspecified fields.
+""".trimIndent()

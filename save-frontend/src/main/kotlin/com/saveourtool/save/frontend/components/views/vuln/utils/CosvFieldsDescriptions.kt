@@ -19,7 +19,7 @@ val timeline = "timeline" to timelineDescr
 
 val timelineType = "type" to timelineTypeDescr
 
-val timelineValue = "valuy" to timelineValueDescr
+val timelineValue = "value" to timelineValueDescr
 
 val related = "related" to relatedDescr
 
@@ -89,6 +89,29 @@ val patchesBranches = "branches" to patchesBranchesDescr
 
 val patchesTags = "tags" to patchesTagsDescr
 
+val contributors = "contributors" to contributorsDescr
+
+val contributorsOrg = "org" to contributorsOrgDescr
+
+val contributorsName = "name" to contributorsNameDescr
+
+val contributorsEmail = "email" to contributorsEmailDescr
+
+val contributorsContributions = "contributions" to contributionsDescr
+
+val confirmType = "confirm_type" to confirmTypeDescr
+
+val references = "references" to referencesDescr
+
+val credits = "credits" to creditsDescr
+
+val creditsName = "name" to creditsNameDescr
+
+val creditsContact = "contact" to creditsContactDescr
+
+val creditsType = "type" to creditsTypeDescr
+
+val databaseSpecific = "database_specific" to databaseSpecificDescr
 
 val cosvFieldsDescriptionsList = listOf(
         schemaVersion,
@@ -133,5 +156,17 @@ val cosvFieldsDescriptionsList = listOf(
         patchesAuthor,
         patchesCommiter,
         patchesBranches,
-        patchesTags
+        patchesTags,
+        contributors,
+        contributorsOrg,
+        contributorsName,
+        contributorsEmail,
+        contributorsContributions,
+        confirmType,
+        references,
+        credits,
+        creditsName,
+        creditsContact,
+        creditsType,
+        databaseSpecific
 )
