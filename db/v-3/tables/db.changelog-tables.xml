@@ -12,7 +12,6 @@
     <include file="git.xml" relativeToChangelogFile="true"/>
     <include file="agent-status.xml" relativeToChangelogFile="true"/>
     <include file="test-suites-source.xml" relativeToChangelogFile="true"/>
-    <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
     <include file="test-suite.xml" relativeToChangelogFile="true"/>
     <include file="test-execution.xml" relativeToChangelogFile="true"/>
     <include file="execution.xml" relativeToChangelogFile="true"/>
@@ -49,7 +48,7 @@
     <include file="cosv-file.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="v3-3-0-tables" author="nulls">
+    <changeSet id="3-0-tables" author="nulls">
         <tagDatabase tag="v3.0-tables"/>
     </changeSet>
 

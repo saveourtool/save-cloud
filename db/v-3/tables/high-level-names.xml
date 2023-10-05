@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="v3-high-level-names-1" author="nulls">
+    <changeSet id="high-level-names-1" author="nulls">
         <createTable tableName="high_level_names">
             <column name="name" type="varchar(64)">
                 <constraints primaryKey="true" nullable="false"/>

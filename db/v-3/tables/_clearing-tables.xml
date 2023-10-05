@@ -6,7 +6,7 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
 
-    <changeSet id="v3-cleanup-tables-before-v3" author="nulls">
+    <changeSet id="cleanup-tables-before-v3" author="nulls">
         <sql>
             DROP TABLE agent;
             DROP TABLE agent_status;
