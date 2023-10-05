@@ -8,6 +8,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
@@ -142,6 +143,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
                 }
+                buttonBuilder(faReload) {
+                    fetchFiles()
+                }
             }
 
             // ===== UPLOAD FILES BUTTON =====
@@ -150,7 +154,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 dragAndDropForm {
                     isDisabled = selectedOrganization.isNullOrEmpty()
                     isMultipleFilesSupported = true
-                    tooltipMessage = "Only JSON files"
+                    tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         setFilesForUploading(files!!.asList())
                         uploadFiles()
