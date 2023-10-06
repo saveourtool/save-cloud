@@ -11,6 +11,7 @@ import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
 import com.saveourtool.save.utils.KubernetesServiceAccountAuthHeaderPlugin
 import com.saveourtool.save.utils.fs
+import com.saveourtool.save.utils.handleSigterm
 import com.saveourtool.save.utils.parseConfig
 
 import io.ktor.client.HttpClient

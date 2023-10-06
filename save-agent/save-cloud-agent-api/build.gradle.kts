@@ -29,12 +29,6 @@ kotlin {
     macosX64()
 
     sourceSets {
-        sourceSets.all {
-            languageSettings.apply {
-                optIn("kotlin.RequiresOptIn")
-                optIn("kotlin.js.ExperimentalJsExport")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
@@ -63,23 +57,9 @@ kotlin {
         @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
-                implementation(project.dependencies.platform(libs.spring.boot.dependencies))
-                implementation(libs.spring.web)
-                implementation(libs.spring.webflux)
-                implementation(libs.spring.boot)
-                implementation(libs.spring.data.jpa)
-                implementation(libs.jackson.module.kotlin)
-                implementation(libs.hibernate.jpa21.api)
                 api(libs.slf4j.api)
                 api(libs.jetbrains.annotations)
-                implementation(libs.reactor.kotlin.extensions)
                 implementation(libs.commons.compress)
-                implementation(libs.validation.api)
-                implementation(libs.swagger.annotations)
-                implementation(libs.annotation.api)
-                implementation(project.dependencies.platform(libs.aws.sdk.bom))
-                implementation(libs.aws.sdk.s3)
-                implementation(libs.aws.sdk.netty.nio)
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.source)
                 implementation(libs.ktoml.file)

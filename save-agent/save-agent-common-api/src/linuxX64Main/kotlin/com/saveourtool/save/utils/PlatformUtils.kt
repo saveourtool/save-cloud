@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.agent.utils.logInfoCustom
 import platform.posix.SIGTERM
 import platform.posix.exit
 import platform.posix.signal
