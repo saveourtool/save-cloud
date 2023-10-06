@@ -15,6 +15,7 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
@@ -41,7 +42,8 @@ class CosvService(
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
-) {
+    private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
+    ) {
     /**
      * @param rawCosvFileIds
      * @param user
@@ -208,8 +210,13 @@ class CosvService(
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
             cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
+                val tags = lnkVulnerabilityMetadataTagRepository
+                    .findAllByVulnerabilityMetadataIdentifier(identifier)
+                    .map { it.tag.name }
+                    .toSet()
+
                 VulnerabilityExt(
-                    metadataDto = metadata.toDto(),
+                    metadataDto = metadata.toDto().copy(tags = tags),
                     cosv = content,
                     // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
