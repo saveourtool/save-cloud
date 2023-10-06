@@ -32,7 +32,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
-                api(project(":save-agent:save-cloud-common-api"))
+                api(project(":save-agent:save-agent-common-api"))
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
