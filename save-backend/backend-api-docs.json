@@ -110,16 +110,16 @@
           "content": {
             "multipart/form-data": {
               "schema": {
+                "required": [
+                  "file"
+                ],
                 "type": "object",
                 "properties": {
                   "file": {
                     "type": "string",
                     "format": "binary"
                   }
-                },
-                "required": [
-                  "file"
-                ]
+                }
               }
             }
           }
@@ -2180,6 +2180,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
+                "required": [
+                  "file"
+                ],
                 "type": "object",
                 "properties": {
                   "file": {
@@ -2189,10 +2192,7 @@
                       "format": "binary"
                     }
                   }
-                },
-                "required": [
-                  "file"
-                ]
+                }
               }
             }
           }
@@ -3343,6 +3343,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
+                "required": [
+                  "file"
+                ],
                 "type": "object",
                 "properties": {
                   "file": {
@@ -3350,10 +3353,7 @@
                     "format": "binary",
                     "description": "a file to upload"
                   }
-                },
-                "required": [
-                  "file"
-                ]
+                }
               }
             }
           }
@@ -4075,16 +4075,16 @@
           "content": {
             "multipart/form-data": {
               "schema": {
+                "required": [
+                  "file"
+                ],
                 "type": "object",
                 "properties": {
                   "file": {
                     "type": "string",
                     "format": "binary"
                   }
-                },
-                "required": [
-                  "file"
-                ]
+                }
               }
             }
           }
@@ -10754,7 +10754,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
+                  "$ref": "#/components/schemas/VulnerabilityExt"
                 }
               }
             },
@@ -10764,7 +10764,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
+                  "$ref": "#/components/schemas/VulnerabilityExt"
                 }
               }
             },
@@ -11060,63 +11060,6 @@
           }
         ],
         "summary": "Deleted vulnerability.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/delete-date": {
-      "post": {
-        "description": "Delete date.",
-        "operationId": "deleteDate",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDateDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully deleted date from vulnerability"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Requested date is not found"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Delete date.",
         "tags": [
           "vulnerabilities"
         ]
@@ -11915,7 +11858,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDto"
+                "$ref": "#/components/schemas/VulnerabilityExt"
               }
             }
           },
@@ -12010,6 +11953,98 @@
   },
   "components": {
     "schemas": {
+      "AffectedJsonObjectJsonObjectJsonObject": {
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "required": [
+              "entries",
+              "isEmpty",
+              "keys",
+              "size",
+              "values"
+            ],
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonElement"
+                },
+                "writeOnly": true
+              },
+              "entries": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "$ref": "#/components/schemas/JsonElement"
+                    }
+                  }
+                }
+              },
+              "isEmpty": {
+                "type": "boolean"
+              },
+              "keys": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            }
+          },
+          "ecosystem_specific": {
+            "$ref": "#/components/schemas/JsonObject"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "patches_detail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatchDetail"
+            }
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RangeJsonObject"
+            }
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "AnalysisResult": {
         "type": "object"
       },
@@ -12239,6 +12274,23 @@
           }
         }
       },
+      "Contributor": {
+        "type": "object",
+        "properties": {
+          "contributions": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "org": {
+            "type": "string"
+          }
+        }
+      },
       "CreateExecutionRequest": {
         "required": [
           "fileIds",
@@ -12288,6 +12340,38 @@
           },
           "testsVersion": {
             "type": "string"
+          }
+        }
+      },
+      "Credit": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "contact": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ANALYST",
+              "COORDINATOR",
+              "FINDER",
+              "OTHER",
+              "REMEDIATION_DEVELOPER",
+              "REMEDIATION_REVIEWER",
+              "REMEDIATION_VERIFIER",
+              "REPORTER",
+              "SPONSOR",
+              "TOOL"
+            ]
           }
         }
       },
@@ -12351,6 +12435,23 @@
             "$ref": "#/components/schemas/Sdk"
           },
           "vcsTagName": {
+            "type": "string"
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "fixed": {
+            "type": "string"
+          },
+          "introduced": {
+            "type": "string"
+          },
+          "last_affected": {
+            "type": "string"
+          },
+          "limit": {
             "type": "string"
           }
         }
@@ -12635,6 +12736,66 @@
           "username": {
             "type": "string"
           }
+        }
+      },
+      "JsonElement": {
+        "type": "object"
+      },
+      "JsonObject": {
+        "required": [
+          "entries",
+          "isEmpty",
+          "keys",
+          "size",
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            },
+            "writeOnly": true
+          },
+          "entries": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              }
+            }
+          },
+          "isEmpty": {
+            "type": "boolean"
+          },
+          "keys": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonElement"
+            }
+          }
+        },
+        "additionalProperties": {
+          "$ref": "#/components/schemas/JsonElement"
         }
       },
       "LnkOrganizationTestSuiteDto": {
@@ -13017,6 +13178,236 @@
           }
         }
       },
+      "OsvSchemaJsonObjectJsonObjectJsonObjectJsonObject": {
+        "required": [
+          "id",
+          "modified",
+          "schema_version"
+        ],
+        "type": "object",
+        "properties": {
+          "affected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AffectedJsonObjectJsonObjectJsonObject"
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirm_type": {
+            "type": "string",
+            "enum": [
+              "manual_confirmed",
+              "algorithm_confirmed",
+              "double_confirmed"
+            ]
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contributor"
+            }
+          },
+          "credits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Credit"
+            }
+          },
+          "cwe_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwe_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "database_specific": {
+            "required": [
+              "entries",
+              "isEmpty",
+              "keys",
+              "size",
+              "values"
+            ],
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonElement"
+                },
+                "writeOnly": true
+              },
+              "entries": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "$ref": "#/components/schemas/JsonElement"
+                    }
+                  }
+                }
+              },
+              "isEmpty": {
+                "type": "boolean"
+              },
+              "keys": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            }
+          },
+          "details": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "modified": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "published": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "summary": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            }
+          },
+          "withdrawn": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
+      "Package": {
+        "required": [
+          "ecosystem",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "ecosystem": {
+            "type": "string"
+          },
+          "edition": {
+            "type": "string"
+          },
+          "fixed_commits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "home_page": {
+            "type": "string"
+          },
+          "introduced_commits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "language": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "purl": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          }
+        }
+      },
+      "PatchDetail": {
+        "type": "object",
+        "properties": {
+          "author": {
+            "type": "string"
+          },
+          "branches": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "committer": {
+            "type": "string"
+          },
+          "issue_url": {
+            "type": "string"
+          },
+          "main_language": {
+            "type": "string"
+          },
+          "patch_url": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "Project": {
         "required": [
           "contestRating",
@@ -13228,6 +13619,89 @@
           }
         }
       },
+      "RangeJsonObject": {
+        "required": [
+          "events",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "required": [
+              "entries",
+              "isEmpty",
+              "keys",
+              "size",
+              "values"
+            ],
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonElement"
+                },
+                "writeOnly": true
+              },
+              "entries": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "$ref": "#/components/schemas/JsonElement"
+                    }
+                  }
+                }
+              },
+              "isEmpty": {
+                "type": "boolean"
+              },
+              "keys": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "size": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JsonElement"
+                }
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonElement"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "repo": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ECOSYSTEM",
+              "GIT",
+              "SEMVER"
+            ]
+          }
+        }
+      },
       "RawCosvFileDto": {
         "required": [
           "fileName",
@@ -13263,6 +13737,34 @@
             "$ref": "#/components/schemas/LocalDateTime"
           },
           "userName": {
+            "type": "string"
+          }
+        }
+      },
+      "Reference": {
+        "required": [
+          "type",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ADVISORY",
+              "ARTICLE",
+              "DETECTION",
+              "DISCUSSION",
+              "EVIDENCE",
+              "FIX",
+              "GIT",
+              "INTRODUCED",
+              "PACKAGE",
+              "REPORT",
+              "WEB"
+            ]
+          },
+          "url": {
             "type": "string"
           }
         }
@@ -13336,6 +13838,38 @@
           }
         },
         "description": "pair of userName and role that is requested to be set"
+      },
+      "Severity": {
+        "required": [
+          "score",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "None",
+              "Low",
+              "Medium",
+              "High",
+              "Critical"
+            ]
+          },
+          "score": {
+            "type": "string"
+          },
+          "score_num": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CVSS_V2",
+              "CVSS_V3"
+            ]
+          }
+        }
       },
       "TestExecutionDto": {
         "required": [
@@ -13753,6 +14287,27 @@
           }
         }
       },
+      "TimelineEntry": {
+        "required": [
+          "type",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "introduced",
+              "found",
+              "fixed",
+              "disclosed"
+            ]
+          },
+          "value": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
       "Unit": {
         "type": "object"
       },
@@ -13989,7 +14544,7 @@
               "Introduced",
               "Modified",
               "Published",
-              "Submitted",
+              "-\u003e COSV",
               "Withdrawn"
             ]
           },
@@ -14002,7 +14557,6 @@
         "required": [
           "allParticipants",
           "dates",
-          "datesWithLabels",
           "identifier",
           "language",
           "participants",
@@ -14029,12 +14583,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/VulnerabilityDateDto"
-            }
-          },
-          "datesWithLabels": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/LocalDateTime"
             }
           },
           "description": {
@@ -14110,6 +14658,35 @@
           },
           "userInfo": {
             "$ref": "#/components/schemas/UserInfo"
+          }
+        }
+      },
+      "VulnerabilityExt": {
+        "required": [
+          "allParticipants",
+          "cosv",
+          "metadata",
+          "saveContributors"
+        ],
+        "type": "object",
+        "properties": {
+          "allParticipants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfo"
+            }
+          },
+          "cosv": {
+            "$ref": "#/components/schemas/OsvSchemaJsonObjectJsonObjectJsonObjectJsonObject"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/VulnerabilityMetadataDto"
+          },
+          "saveContributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserInfo"
+            }
           }
         }
       },
