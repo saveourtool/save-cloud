@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
@@ -15,7 +16,6 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
-import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
@@ -43,7 +43,7 @@ class CosvService(
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
-    ) {
+) {
     /**
      * @param rawCosvFileIds
      * @param user

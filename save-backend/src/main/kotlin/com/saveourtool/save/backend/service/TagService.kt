@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.TagRepository
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
-import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.getLogger
@@ -83,4 +82,3 @@ class TagService(
         private val log: Logger = getLogger<TagService>()
     }
 }
-
