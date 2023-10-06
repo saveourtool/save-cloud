@@ -6,7 +6,7 @@ package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.agent.TestResultDebugInfo
 import com.saveourtool.save.agent.TestResultLocation
-import com.saveourtool.save.agent.TestResultStatus
+import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.core.result.*
 
 /**

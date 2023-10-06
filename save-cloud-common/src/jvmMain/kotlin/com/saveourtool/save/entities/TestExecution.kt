@@ -1,7 +1,7 @@
 package com.saveourtool.save.entities
 
 import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestResultStatus
+import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 
 import java.time.LocalDateTime
@@ -55,7 +55,7 @@ class TestExecution(
 
     var unexpected: Long?,
 
-) : BaseEntityWithDtoWithId<TestExecutionDto>() {
+    ) : BaseEntityWithDtoWithId<TestExecutionDto>() {
     /**
      * Converts `this` to [TestExecutionDto]
      *

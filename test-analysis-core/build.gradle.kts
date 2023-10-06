@@ -19,6 +19,7 @@ dependencies {
      */
     implementation(project.dependencies.platform(libs.spring.boot.dependencies))
     api(projects.saveCloudCommon)
+    implementation(project(":save-agent:save-cloud-agent-api"))
 
     testApi(libs.assertj.core)
     testApi(libs.mockito.kotlin)
