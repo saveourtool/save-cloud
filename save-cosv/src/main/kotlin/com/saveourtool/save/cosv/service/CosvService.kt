@@ -2,7 +2,6 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
-import com.saveourtool.save.cosv.repository.CosvFileRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
@@ -42,7 +41,6 @@ class CosvService(
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
-    private val cosvFileRepository: CosvFileRepository,
 ) {
     /**
      * @param rawCosvFileIds
