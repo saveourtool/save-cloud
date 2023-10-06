@@ -4,7 +4,6 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Sdk
 import kotlinx.serialization.Serializable
 
-typealias RunCommandMap = Map<String, String>
 typealias RunCommandPair = Pair<String, String>
 
 /**
