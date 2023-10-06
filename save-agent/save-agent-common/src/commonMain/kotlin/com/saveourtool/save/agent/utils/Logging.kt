@@ -4,7 +4,7 @@
 
 @file:Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_ON_FUNCTION")
 
-package com.saveourtool.save.utils
+package com.saveourtool.save.agent.utils
 
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logError

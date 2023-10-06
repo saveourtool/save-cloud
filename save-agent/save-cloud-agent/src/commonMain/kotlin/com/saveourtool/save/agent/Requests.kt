@@ -8,8 +8,6 @@ import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.utils.*
 
-import io.ktor.client.call.*
-import io.ktor.client.statement.*
 import okio.Path
 import okio.Path.Companion.toPath
 

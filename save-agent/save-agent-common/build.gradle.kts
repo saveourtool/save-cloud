@@ -4,18 +4,11 @@ import com.saveourtool.save.buildutils.configureSigning
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
-    kotlin("plugin.allopen")
-    alias(libs.plugins.kotlin.plugin.jpa)
     id("com.saveourtool.save.buildutils.code-quality-convention")
     id("com.saveourtool.save.buildutils.publishing-configuration")
 }
 
 kotlin {
-    allOpen {
-        annotation("javax.persistence.Entity")
-        annotation("org.springframework.stereotype.Service")
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {

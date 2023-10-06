@@ -4,6 +4,6 @@
 
 @file:JvmName("LoggingJVM")
 
-package com.saveourtool.save.utils
+package com.saveourtool.save.agent.utils
 
 internal actual fun getThreadId() = Thread.currentThread().id

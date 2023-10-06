@@ -26,6 +26,7 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     implementation(projects.saveOrchestratorCommon)
+    implementation(project(":save-agent:save-cloud-agent-api"))
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
     implementation(libs.hibernate.jpa21.api)
