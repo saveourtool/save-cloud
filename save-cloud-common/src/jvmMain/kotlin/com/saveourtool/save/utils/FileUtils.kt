@@ -36,8 +36,6 @@ import kotlinx.serialization.serializer
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
-actual val fs: FileSystem = FileSystem.SYSTEM
-
 /**
  * @return content of file as [Flux] of [DataBuffer]
  */
@@ -128,29 +126,6 @@ fun Path.requireIsAbsolute(): Path = apply {
         "The path is not absolute: $this"
     }
 }
-
-actual fun okio.Path.markAsExecutable() {
-    val file = this.toFile().toPath()
-    Files.setPosixFilePermissions(file, Files.getPosixFilePermissions(file) + EnumSet.of(
-        PosixFilePermission.OWNER_EXECUTE,
-        PosixFilePermission.GROUP_EXECUTE,
-        PosixFilePermission.OTHERS_EXECUTE,
-    ))
-}
-
-actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
-    fs.write(
-        file = file,
-        mustCreate = mustCreate,
-    ) {
-        write(this@writeToFile).flush()
-    }
-}
-
-actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C = TomlFileReader.decodeFromFile(
-    serializer(),
-    configPath.toString(),
-)
 
 /**
  * Move [source] into [destinationDir], while also copying original file attributes

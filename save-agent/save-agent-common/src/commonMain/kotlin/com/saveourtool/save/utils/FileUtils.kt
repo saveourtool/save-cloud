@@ -9,6 +9,7 @@ import okio.Path.Companion.toPath
 import com.saveourtool.save.core.files.findAllFilesMatching
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logInfo
+import kotlinx.datetime.Clock
 import okio.FileSystem
 import okio.Path
 
@@ -114,3 +115,48 @@ inline fun <reified C : Any> parseConfigOrDefault(
     logInfo("Config file $configName not found, falling back to default config.")
     defaultConfig
 }
+
+
+/**
+ * Write [lines] to file with name [fileName]
+ *
+ * @param fileName name of a file
+ * @param lines lines to be written to file with name [fileName]
+ * @param dirPath path to directory where a file should be created
+ * @return path to file
+ */
+fun FileSystem.createAndWrite(
+    fileName: String,
+    lines: List<String>,
+    dirPath: Path = ".".toPath(),
+) = dirPath.div(fileName).also { path ->
+    write(path, true) { lines.forEach { codeLine -> writeUtf8("$codeLine\n") } }
+}
+
+/**
+ * Write [lines] to file with name [fileName] if needed
+ *
+ * @param fileName name of a file
+ * @param lines lines to be written to file with name [fileName]
+ * @param dirPath path to directory where a file should be created
+ * @return path to file if both [fileName] and [lines] are provided, null otherwise
+ */
+fun FileSystem.createAndWriteIfNeeded(
+    fileName: String?,
+    lines: List<String>?,
+    dirPath: Path = ".".toPath(),
+) = fileName?.let { dirPath / it }?.also { path ->
+    write(path, true) { lines?.forEach { codeLine -> writeUtf8("$codeLine\n") } }
+}
+
+/**
+ * Create temporary directory
+ *
+ * @param mustCreate if true and file is already created, IOException is thrown
+ * @return path to newly-created temp dir
+ */
+fun FileSystem.createTempDir(mustCreate: Boolean = true) = Clock.System.now()
+    .let { it.epochSeconds * 1_000_000_000L + it.nanosecondsOfSecond }
+    .toString()
+    .toPath()
+    .also { createDirectory(it, mustCreate) }
