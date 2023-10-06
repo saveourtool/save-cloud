@@ -11,7 +11,6 @@ import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
 import com.saveourtool.save.utils.optionalEnv
 import com.saveourtool.save.utils.requiredEnv
-
 import generated.SAVE_CLOUD_VERSION
 
 import kotlinx.serialization.Serializable

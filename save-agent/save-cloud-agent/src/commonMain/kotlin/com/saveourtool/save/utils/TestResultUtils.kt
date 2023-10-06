@@ -4,7 +4,12 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.core.result.*
+import com.saveourtool.save.core.result.Crash
+import com.saveourtool.save.core.result.Fail
+import com.saveourtool.save.core.result.Ignored
+import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.core.result.TestResult
+import com.saveourtool.save.core.result.TestStatus
 import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
