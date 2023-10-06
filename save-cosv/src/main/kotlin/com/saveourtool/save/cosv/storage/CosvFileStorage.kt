@@ -6,9 +6,12 @@ import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToFlux
+import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.nio.ByteBuffer
 
 /**
  * Storage for COSV files.
@@ -41,4 +44,14 @@ class CosvFileStorage(
     fun listByIdentifier(identifier: String): Flux<CosvFile> = blockingToFlux {
         s3KeyManager.findAllByIdentifier(identifier)
     }
+
+    /**
+     * @param keyId
+     * @return [Flux] with all [ByteBuffer]
+     */
+    fun downloadByKeyId(keyId: Long): Flux<ByteBuffer> = blockingToMono { s3KeyManager.findKeyByEntityId(keyId) }
+        .switchIfEmptyToNotFound {
+            "Not found CosvFile by id $keyId"
+        }
+        .flatMapMany { download(it) }
 }
