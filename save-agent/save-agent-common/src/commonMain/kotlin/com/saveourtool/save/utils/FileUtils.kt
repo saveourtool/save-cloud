@@ -2,9 +2,8 @@
  * Utility methods to work with files using Okio
  */
 
-package com.saveourtool.save.agent.utils
+package com.saveourtool.save.utils
 
-import com.saveourtool.save.utils.fs
 import okio.FileNotFoundException
 import okio.Path.Companion.toPath
 
@@ -14,7 +13,7 @@ import okio.Path.Companion.toPath
  * @param filePath a file to read
  * @return list of string from file
  */
-internal fun readFile(filePath: String): List<String> = try {
+fun readFile(filePath: String): List<String> = try {
     val path = filePath.toPath()
     fs.read(path) {
         generateSequence { readUtf8Line() }.toList()

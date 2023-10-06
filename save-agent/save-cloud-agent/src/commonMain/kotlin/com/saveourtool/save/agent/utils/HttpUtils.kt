@@ -4,12 +4,11 @@
 
 package com.saveourtool.save.agent.utils
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.save.AgentState
 import com.saveourtool.save.agent.SaveAgent
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.agent.utils.failureOrNotOk
-import com.saveourtool.save.agent.utils.notOk
+import com.saveourtool.save.utils.*
 
 import io.ktor.client.*
 import io.ktor.client.call.body

@@ -1,4 +1,4 @@
-package com.saveourtool.save.agent
+package com.saveourtool.save
 
 /**
  * Env names which agent supports and expects

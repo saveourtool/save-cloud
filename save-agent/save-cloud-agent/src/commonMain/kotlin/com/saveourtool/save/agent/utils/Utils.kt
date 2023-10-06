@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.agent.utils
 
+import com.saveourtool.save.AgentEnvName
 import com.saveourtool.save.agent.AgentConfiguration
-import com.saveourtool.save.agent.AgentEnvName
 import com.saveourtool.save.core.logging.logTrace
 import com.saveourtool.save.utils.optionalEnv
 

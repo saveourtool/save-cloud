@@ -11,7 +11,7 @@ import com.saveourtool.save.core.logging.logError
 import com.saveourtool.save.core.logging.logInfo
 import io.ktor.client.plugins.logging.*
 
-internal val ktorLogger = object : Logger {
+val ktorLogger = object : Logger {
     override fun log(message: String) {
         logInfoCustom("[HTTP Client] $message")
     }

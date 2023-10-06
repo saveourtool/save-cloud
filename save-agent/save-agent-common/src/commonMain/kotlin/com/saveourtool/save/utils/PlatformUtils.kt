@@ -15,7 +15,7 @@ expect val fs: FileSystem
 /**
  * Process sigterm signal
  */
-internal expect fun handleSigterm()
+expect fun handleSigterm()
 
 /**
  * Atomic values

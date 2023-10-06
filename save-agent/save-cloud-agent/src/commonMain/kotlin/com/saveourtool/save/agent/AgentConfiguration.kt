@@ -6,11 +6,13 @@ package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.SAVE_CLI_EXECUTABLE_NAME
 import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
-import com.saveourtool.save.agent.utils.optionalEnv
-import com.saveourtool.save.agent.utils.requiredEnv
+import com.saveourtool.save.utils.optionalEnv
+import com.saveourtool.save.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
+import com.saveourtool.save.AgentEnvName
+import com.saveourtool.save.AgentInfo
 import generated.SAVE_CLOUD_VERSION
 
 import kotlinx.serialization.Serializable

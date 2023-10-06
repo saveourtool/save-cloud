@@ -2,7 +2,7 @@
  * Model classes for heartbeating between save agent and the orchestrator
  */
 
-package com.saveourtool.save.agent
+package com.saveourtool.save
 
 import kotlinx.serialization.Serializable
 
