@@ -26,6 +26,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
+                implementation(project(":save-agent:save-agent-common-api"))
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)
@@ -37,7 +38,9 @@ kotlin {
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
 
-                api(libs.cosv4k)
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
+                implementation(libs.ktoml.file)
             }
         }
         commonTest {
@@ -55,9 +58,6 @@ kotlin {
                 api(libs.slf4j.api)
                 api(libs.jetbrains.annotations)
                 implementation(libs.commons.compress)
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.source)
-                implementation(libs.ktoml.file)
                 api(libs.kotlinx.coroutines.reactor)
             }
         }
@@ -71,15 +71,6 @@ kotlin {
                 api(libs.junit.jupiter.api)
                 api(libs.junit.jupiter.params)
                 runtimeOnly(libs.junit.jupiter.engine)
-            }
-        }
-
-        @Suppress("UNUSED_VARIABLE")
-        val linuxX64Main by getting {
-            dependencies {
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.source)
-                implementation(libs.ktoml.file)
             }
         }
     }
