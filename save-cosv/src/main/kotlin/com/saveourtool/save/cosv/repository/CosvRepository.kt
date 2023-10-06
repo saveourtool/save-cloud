@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.CosvFile
+import com.saveourtool.save.entities.cosv.CosvFileDto
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
@@ -74,4 +75,14 @@ interface CosvRepository {
     fun deleteAll(
         identifier: String,
     ): Flux<LocalDateTime>
+
+    /**
+     * Get all COSV files (versions) with provided [identifier]
+     *
+     * @param identifier
+     * @return [Flux] with all COSV files versions
+     */
+    fun listVersions(
+        identifier: String,
+    ): Flux<CosvFileDto>
 }

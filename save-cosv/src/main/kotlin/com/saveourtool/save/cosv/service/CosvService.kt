@@ -8,6 +8,7 @@ import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
@@ -232,6 +233,12 @@ class CosvService(
      */
     fun getVulnerabilityVersionAsCosvStream(cosvFileId: Long): Flux<ByteBuffer> = blockingToMono { cosvFileRepository.findByIdOrNull(cosvFileId) }
         .flatMapMany { cosvFile -> cosvRepository.downloadAsStream(cosvFile) }
+
+    /**
+     * @param identifier
+     * @return list of cosv files
+     */
+    fun listVersions(identifier: String): Flux<CosvFileDto> = cosvRepository.listVersions(identifier)
 
     companion object {
         private val log: Logger = getLogger<CosvService>()

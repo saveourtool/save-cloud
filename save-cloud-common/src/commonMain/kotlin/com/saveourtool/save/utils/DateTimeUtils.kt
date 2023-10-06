@@ -32,21 +32,13 @@ fun LocalDateTime.prettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(Tim
 
 /**
  * @param timeZone timezone to print the date time in
+ * @param isSeconds flag for added seconds
  * @return string representation of [LocalDateTime] in [Thursday, 1 Jan 1970 00:00] format
  */
-fun LocalDateTime.toUnixCalendarFormat(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
+fun LocalDateTime.toUnixCalendarFormat(timeZone: TimeZone = TimeZone.UTC, isSeconds: Boolean = false) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
     .let {
         "${it.dayOfWeek.name.toLowerCaseWithFirstCharUpperCase()}, ${it.dayOfMonth} ${it.month.name.toLowerCaseWithFirstCharUpperCase()} ${it.year} ${it.hour.plusZero()}:${it
-            .minute.plusZero()}"
-    }
-
-/**
- * @param timeZone timezone to print the date time in
- * @return string representation of [LocalDateTime] in [Thursday, 1 Jan 1970 00:00:00] format
- */
-fun LocalDateTime.toUnixCalendarFormatWithSeconds(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
-    .let {
-        "${toUnixCalendarFormat(timeZone)}:${it.second.plusZero()}"
+            .minute.plusZero()}${if (isSeconds)":${it.second.plusZero()}" else ""}"
     }
 
 /**

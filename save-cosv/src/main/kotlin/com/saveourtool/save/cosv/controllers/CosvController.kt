@@ -3,7 +3,6 @@ package com.saveourtool.save.cosv.controllers
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.cosv.repository.CosvFileRepository
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFileDto
@@ -24,6 +23,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -38,7 +38,6 @@ class CosvController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
-    private val cosvFileRepository: CosvFileRepository,
 ) {
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
         backendService.workingDir.createDirectories(),
@@ -179,9 +178,7 @@ class CosvController(
     @GetMapping("/list-versions")
     fun listVersions(
         @RequestParam identifier: String,
-    ): Flux<CosvFileDto> = blockingToFlux {
-        cosvFileRepository.findAllByIdentifier(identifier).map { it.toDto() }
-    }
+    ): Flux<CosvFileDto> = cosvService.listVersions(identifier)
 
     /**
      * @param cosvFileId
@@ -190,7 +187,7 @@ class CosvController(
     @GetMapping("/cosv-content")
     fun cosvFileContent(
         @RequestParam cosvFileId: Long,
-    ): Flux<ByteArray> = cosvService.getVulnerabilityVersionAsCosvStream(cosvFileId).map { it.array() }
+    ): Flux<ByteBuffer> = cosvService.getVulnerabilityVersionAsCosvStream(cosvFileId)
 
     /**
      * @param organizationName

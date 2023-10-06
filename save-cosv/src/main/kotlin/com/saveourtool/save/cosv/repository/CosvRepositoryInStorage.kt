@@ -1,10 +1,13 @@
 package com.saveourtool.save.cosv.repository
 
+import com.saveourtool.save.cosv.storage.CosvFileS3KeyManager
 import com.saveourtool.save.cosv.storage.CosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFile
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.RequestParam
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -23,6 +26,7 @@ import kotlinx.serialization.json.decodeFromStream
 @Component
 class CosvRepositoryInStorage(
     private val cosvFileStorage: CosvFileStorage,
+    private val cosvFileS3KeyManager: CosvFileS3KeyManager,
 ) : CosvRepository {
     private val json = Json {
         prettyPrint = false
@@ -55,6 +59,12 @@ class CosvRepositoryInStorage(
                 keys.map { it.modified.toKotlinLocalDateTime() }
             }
         }
+
+    override fun listVersions(
+        @RequestParam identifier: String,
+    ): Flux<CosvFileDto> = blockingToFlux {
+        cosvFileS3KeyManager.findAllByIdentifier(identifier).map { it.toDto() }
+    }
 
     companion object {
         private fun CosvSchema<*, *, *, *>.toCosvFile() = CosvFile(
