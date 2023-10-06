@@ -2,6 +2,8 @@
  * Platform dependent utility methods
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.utils
 
 actual typealias AtomicLong = java.util.concurrent.atomic.AtomicLong
