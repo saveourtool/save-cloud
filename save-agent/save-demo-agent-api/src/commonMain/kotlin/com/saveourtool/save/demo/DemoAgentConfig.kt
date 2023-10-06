@@ -7,6 +7,8 @@ package com.saveourtool.save.demo
 import com.saveourtool.save.utils.DEFAULT_SETUP_SH_TIMEOUT_MILLIS
 import kotlinx.serialization.Serializable
 
+typealias RunCommandMap = Map<String, String>
+
 /**
  * Data class that contains everything for save-demo-agent configuration
  *
