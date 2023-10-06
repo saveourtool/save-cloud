@@ -17,7 +17,7 @@
     {
       "type": "CVSS_V3",
       "score": "N/A",
-      "score_num": "98"
+      "score_num": "9.8"
     }
   ],
   "summary": "Incorrect Authorization",
