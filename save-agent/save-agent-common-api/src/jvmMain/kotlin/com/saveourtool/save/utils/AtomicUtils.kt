@@ -1,9 +1,10 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
 /**
  * Platform dependent utility methods
  */
 
-@file:JvmName("PlatformUtilsJVM")
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
+// @file:JvmName("AtomicUtilsJVM")
 
 package com.saveourtool.save.utils
 
