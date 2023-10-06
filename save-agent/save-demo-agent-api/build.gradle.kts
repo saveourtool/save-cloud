@@ -19,13 +19,19 @@ kotlin {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
 
+    js(IR) {
+        browser()
+        useCommonJs()
+    }
+
+    // setup native compilation
     linuxX64()
+    macosX64()
 
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
-                implementation(project(":save-agent:save-agent-common"))
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)

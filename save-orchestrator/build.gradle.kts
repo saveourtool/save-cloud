@@ -16,7 +16,6 @@ tasks.withType<KotlinCompile> {
 dependencies {
     api(projects.saveCloudCommon)
     implementation(projects.saveOrchestratorCommon)
-    implementation(project(":save-agent:save-cloud-agent-api"))
     implementation(libs.save.common.jvm)
     implementation(libs.dockerJava.core)
     implementation(libs.dockerJava.transport.httpclient5)
