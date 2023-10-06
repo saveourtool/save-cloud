@@ -27,7 +27,6 @@ actual fun ByteArray.writeToFile(file: Path, mustCreate: Boolean) {
     fs.write(file = file, mustCreate = mustCreate) { write(this@writeToFile).flush() }
 }
 
-
 /**
  * Write [lines] to file with name [fileName]
  *
