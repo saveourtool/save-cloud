@@ -33,11 +33,4 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     }
 }
 
-actual fun handleSigterm() {
-    signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exit(1)
-    })
-}
-
 actual fun getenv(envName: String): String? = platform.posix.getenv(envName)?.toKString()

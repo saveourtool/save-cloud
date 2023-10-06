@@ -78,11 +78,6 @@ class ExpiringValueWrapper<T : Any>(
 }
 
 /**
- * Process sigterm signal
- */
-expect fun handleSigterm()
-
-/**
  * @param envName
  * @return env variable name
  */

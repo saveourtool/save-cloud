@@ -22,11 +22,4 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     }
 }
 
-actual fun handleSigterm() {
-    Signal.handle(Signal("TERM")) {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exitProcess(1)
-    }
-}
-
 actual fun getenv(envName: String): String? = System.getProperty(envName) ?: System.getenv(envName)
