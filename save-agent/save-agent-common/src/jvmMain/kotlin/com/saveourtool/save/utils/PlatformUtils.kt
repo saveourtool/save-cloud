@@ -1,15 +1,11 @@
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 /**
  * Platform dependent utility methods
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
 @file:JvmName("PlatformUtilsJVM")
 
 package com.saveourtool.save.utils
-
-import com.saveourtool.save.agent.utils.logInfoCustom
-import sun.misc.Signal
-import kotlin.system.exitProcess
 
 actual typealias AtomicLong = java.util.concurrent.atomic.AtomicLong
 

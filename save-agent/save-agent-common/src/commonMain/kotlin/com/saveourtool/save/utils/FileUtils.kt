@@ -4,17 +4,14 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.agent.utils.logErrorCustom
 import com.saveourtool.save.core.files.findAllFilesMatching
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logInfo
-
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 
-import kotlinx.datetime.Clock
 
 expect val fs: FileSystem
 
@@ -80,51 +77,6 @@ fun FileSystem.createAndWrite(
     dirPath: Path = ".".toPath(),
 ) = dirPath.div(fileName).also { path ->
     write(path, true) { lines.forEach { codeLine -> writeUtf8("$codeLine\n") } }
-}
-
-/**
- * Write [lines] to file with name [fileName] if needed
- *
- * @param fileName name of a file
- * @param lines lines to be written to file with name [fileName]
- * @param dirPath path to directory where a file should be created
- * @return path to file if both [fileName] and [lines] are provided, null otherwise
- */
-fun FileSystem.createAndWriteIfNeeded(
-    fileName: String?,
-    lines: List<String>?,
-    dirPath: Path = ".".toPath(),
-) = fileName?.let { dirPath / it }?.also { path ->
-    write(path, true) { lines?.forEach { codeLine -> writeUtf8("$codeLine\n") } }
-}
-
-/**
- * Create temporary directory
- *
- * @param mustCreate if true and file is already created, IOException is thrown
- * @return path to newly-created temp dir
- */
-@Suppress("MagicNumber")
-fun FileSystem.createTempDir(mustCreate: Boolean = true) = Clock.System.now()
-    .let { it.epochSeconds * 1_000_000_000L + it.nanosecondsOfSecond }
-    .toString()
-    .toPath()
-    .also { createDirectory(it, mustCreate) }
-
-/**
- * Read file as a list of strings
- *
- * @param filePath a file to read
- * @return list of string from file
- */
-fun readFile(filePath: String): List<String> = try {
-    val path = filePath.toPath()
-    fs.read(path) {
-        generateSequence { readUtf8Line() }.toList()
-    }
-} catch (e: FileNotFoundException) {
-    logErrorCustom("Not able to find file in the following path: $filePath")
-    emptyList()
 }
 
 /**
