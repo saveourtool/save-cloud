@@ -6,9 +6,11 @@ import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
+
 import org.slf4j.Logger
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -35,7 +37,7 @@ class TagService(
      */
     @Transactional
     fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag {
-        log.info("Trying to add $tagName to $identifier vulnerability")
+        log.info { "Trying to add $tagName to $identifier vulnerability" }
 
         if (!tagName.isValidTag()) {
             throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
