@@ -145,24 +145,27 @@ val cosvSchemaView = VFC {
                 //class = ClassName("row") // если будет работать
                 console.log("TEXT KEY [$key]")
 
-                val cosvKey = cosvFieldsDescriptionMap.firstOrNull { (_key, _value) ->
-                    _key == key
+                val cosvKey = cosvFieldsDescriptionMap.firstOrNull { (k, v) ->
+                    k == key
                 }
 
                 console.log("NULL ${cosvKey == null}")
                 console.log("STR ${str}")
 
                 ReactHTML.pre {
-                    cosvKey?.let { (_key, _value) ->
+                    cosvKey?.let { (key, value) ->
+                        // hold the tabulations
                         +"${str.takeWhile { it != '\"' }}\""
-                        // TODO make it small
-                        buttonBuilder(_key, classes = "btn-sm") {
-                            setTextInModal(_key to _value)
+                        // make from key the button
+                        buttonBuilder(key, classes = "btn-sm") {
+                            setTextInModal(key to value)
                             windowOpenness.openWindow()
                         }
                         +"\":"
+                        // print the type, i.e. value
                         +str.dropWhile { it != ':' }.drop(1)
                     } ?: run {
+                        // just print string
                         +str
                     }
                 }

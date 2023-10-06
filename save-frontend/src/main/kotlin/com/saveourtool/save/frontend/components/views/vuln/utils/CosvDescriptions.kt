@@ -198,9 +198,6 @@ val rangesEventsDescr = """
 
 val eventsIntroducedDescr = """
     Introduces a vulnerability
-    * Fixes a vulnerability: {"fixed": "string"}
-    * Describes the last known affected version: {"last_affected": "string"}
-    * Sets an uper limit on the range being described: {"limit": "string"}
 """.trimIndent()
 
 val eventsFixedDescr = """
