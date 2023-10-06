@@ -37,10 +37,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
-
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.source)
-                implementation(libs.ktoml.file)
             }
         }
         commonTest {
@@ -59,6 +55,10 @@ kotlin {
                 api(libs.jetbrains.annotations)
                 implementation(libs.commons.compress)
                 api(libs.kotlinx.coroutines.reactor)
+
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
+                implementation(libs.ktoml.file)
             }
         }
         @Suppress("UNUSED_VARIABLE")
@@ -71,6 +71,14 @@ kotlin {
                 api(libs.junit.jupiter.api)
                 api(libs.junit.jupiter.params)
                 runtimeOnly(libs.junit.jupiter.engine)
+            }
+        }
+        @Suppress("UNUSED_VARIABLE")
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.ktoml.core)
+                implementation(libs.ktoml.source)
+                implementation(libs.ktoml.file)
             }
         }
     }

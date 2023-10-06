@@ -42,10 +42,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
-
-                implementation(libs.ktoml.core)
-                implementation(libs.ktoml.source)
-                implementation(libs.ktoml.file)
             }
         }
         commonTest {
