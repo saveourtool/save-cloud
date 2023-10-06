@@ -5,6 +5,7 @@
 
 package com.saveourtool.save.validation
 
+import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import kotlin.js.JsExport
 
 const val SETTINGS = "settings"
