@@ -10,11 +10,18 @@ val schemaVersionDescr = """
     it should be assumed to be `1.0.0`, matching version `1.0` of the **COSV** schema.
 """.trimIndent()
 
-val idModifiedDescr = """
+val idDescr = """
     The id field is a unique identifier for the vulnerability entry.
     It is a string of the format `<DB>-<ENTRYID>`, where `DB` names the database and `ENTRYID`
     is in the format used by the database.
     For example: `“OSV-2020-111”`, `“CVE-2021-3114”`, or `“GHSA-vp9c-fpxx-744v”`.
+""".trimIndent()
+
+val modifiedDescr = """
+    The modified field gives the time the entry was last modified,
+    as an RFC3339-formatted timestamp in UTC (ending in “Z”).
+    Given two different entries claiming to describe the same id field,
+    the one with the later modification time is considered authoritative.
 """.trimIndent()
 
 val publishedDescr = """
@@ -70,10 +77,12 @@ val relatedDescr = """
     Related vulnerabilities are symmetric but not transitive.
 """.trimIndent()
 
-val summaryDetailsDescr = """
+val summaryDescr = """
     The `summary` field gives a one-line, English textual summary of the vulnerability. 
     It is recommended that this field be kept short, on the order of no more than 120 characters.
+""".trimIndent()
 
+val detailsDescr = """
     The `details` field gives additional English textual details about the vulnerability.
 """.trimIndent()
 
@@ -187,6 +196,25 @@ val rangesEventsDescr = """
     * Sets an uper limit on the range being described: {"limit": "string"}
 """.trimIndent()
 
+val eventsIntroducedDescr = """
+    Introduces a vulnerability
+    * Fixes a vulnerability: {"fixed": "string"}
+    * Describes the last known affected version: {"last_affected": "string"}
+    * Sets an uper limit on the range being described: {"limit": "string"}
+""".trimIndent()
+
+val eventsFixedDescr = """
+    Fixes a vulnerability: {"fixed": "string"}
+""".trimIndent()
+
+val eventsLastAffectedDescr = """
+    Describes the last known affected version: {"last_affected": "string"}
+""".trimIndent()
+
+val eventsLimitDescr = """
+    Sets an uper limit on the range being described: {"limit": "string"}
+""".trimIndent()
+
 val rangesDatabaseSpecificDescr = """
     The `ranges` object’s `database_specific` field is a JSON object holding additional information about the range from which the record was obtained.
 """.trimIndent()
@@ -269,6 +297,16 @@ val referencesDescr = """
     The url is the fully-qualified URL (including the scheme, typically “https://”)
     linking to additional information, advisories, issue tracker entries,
     and so on about the vulnerability itself. The type specifies what kind of reference the URL is.
+""".trimIndent()
+
+val referencesTypeDescr = """
+    The type specifies what kind of reference the URL is.
+""".trimIndent()
+
+val referencesUrlDescr = """
+         The url is the fully-qualified URL (including the scheme,typically “https://”)
+         linking to additional information, advisories, issue tracker entries,
+         and so on about the vulnerability itself. 
 """.trimIndent()
 
 val creditsDescr = """

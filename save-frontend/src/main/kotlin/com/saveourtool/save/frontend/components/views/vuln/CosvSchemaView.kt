@@ -1,5 +1,7 @@
 package com.saveourtool.save.frontend.components.views.vuln
 
+import com.saveourtool.osv4k.OsvSchema
+import com.saveourtool.osv4k.RawOsvSchema
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 import react.VFC
@@ -11,9 +13,13 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescr
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
+import kotlinext.js.js
 import react.dom.html.ReactHTML
 import web.cssom.ClassName
+import kotlinx.serialization.json.Json
 
+
+private val json = Json { prettyPrint = true }
 
 val jsonSchema = """
 {
@@ -49,8 +55,8 @@ val jsonSchema = """
         "repository": "string",
         "introduced_commits": [ "string" ],
         "fixed_commits": [ "string" ],
-        "home_page:": "string",
-        "edition:": "string"
+        "home_page": "string",
+        "edition": "string"
       },
       "severity": [ {
           "type": "string",
@@ -129,15 +135,6 @@ val cosvSchemaView = VFC {
         }
     }
 
-    cosvFieldsDescriptionMap.entries.forEach { (key, descr) ->
-        div {
-            buttonBuilder(key) {
-                setTextInModal(key to descr)
-                windowOpenness.openWindow()
-            }
-        }
-    }
-
     div {
         className = ClassName("card")
         JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
@@ -158,17 +155,18 @@ val cosvSchemaView = VFC {
 
                 ReactHTML.pre {
                     cosvKey?.let { entry ->
-                        //cosvFieldsDescriptionMap.remove(entry.key)
+                        //cosvFieldsDescriptionMap.remove(cosvKey.key)
+                        +"\""
+                        // TODO make it small
                         buttonBuilder(entry.key) {
                             setTextInModal(entry.key to entry.value)
                             windowOpenness.openWindow()
                         }
-                        +str.dropWhile { it != ':' }.drop(1)//.repace(первое слово в строке)
+                        +"\":"
+                        +str.dropWhile { it != ':' }.drop(1)
                     } ?: run {
                         +str
                     }
-
-
                 }
             }
 
@@ -181,8 +179,9 @@ val cosvSchemaView = VFC {
 
         div {
             JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
+                val str = it.replace("\\", "")
                 ReactHTML.pre {
-                    +it
+                    +str
                 }
             }
         }

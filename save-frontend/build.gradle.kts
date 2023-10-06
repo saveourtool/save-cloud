@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.datetime)
     implementation(libs.ktor.http)
+    implementation(libs.kotlin.reflect)
 }
 
 kotlin {
