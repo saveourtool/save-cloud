@@ -28,6 +28,7 @@ val diktatVersion: String = libs.versions.diktat.get()
 
 dependencies {
     api(projects.saveCloudCommon)
+    implementation(project(":save-agent:save-demo-agent-api"))
     implementation(libs.save.common.jvm)
 
     implementation(libs.spring.cloud.starter.kubernetes.client.config)

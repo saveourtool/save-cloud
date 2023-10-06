@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.authenticationService)
     implementation(projects.testAnalysisCore)
     implementation(projects.saveCosv)
+    implementation(project(":save-agent:save-cloud-agent-api"))
     implementation(libs.save.common.jvm)
     implementation(libs.spring.boot.starter.quartz)
     implementation(libs.spring.boot.starter.security)

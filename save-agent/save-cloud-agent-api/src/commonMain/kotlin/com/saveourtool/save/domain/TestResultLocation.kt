@@ -2,7 +2,7 @@
  * data classes representing additional data associated with test executions
  */
 
-package com.saveourtool.save.agent
+package com.saveourtool.save.domain
 
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.TestStatus

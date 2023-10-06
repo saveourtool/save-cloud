@@ -4,8 +4,9 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.utils.GenericAtomicReference
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -64,6 +65,7 @@ class ExpiringValueWrapper<T : Any>(
     private val expirationTimeSeconds = expirationTime.toLong(DurationUnit.SECONDS)
     private val lastUpdateTimeSeconds = AtomicLong(0)
     private val value: GenericAtomicReference<T> = GenericAtomicReference(valueGetter())
+    private val mutex = Mutex()
 
     /**
      * @return cached value or refreshes the value and returns it
@@ -77,31 +79,3 @@ class ExpiringValueWrapper<T : Any>(
         return value.get()
     }
 }
-
-/**
- * @param envName
- * @return env variable name
- */
-expect fun getenv(envName: String): String?
-
-/**
- * Get value of environment variable [envName] or throw if it is not set.
- *
- * @param envName name of the environment variable
- * @return value of the environment variable
- */
-fun requiredEnv(envName: String): String = requireNotNull(getenv(envName)) {
-    "Environment variable $envName is not set but is required"
-}.toString()
-
-/**
- * Get value of environment variable [envName] or null.
- *
- * @param envName name of the optional environment variable
- * @return value of the optional environment variable or null
- */
-fun optionalEnv(envName: String): String? = getenv(envName)
-    .also {
-        it ?: logDebug("Optional environment variable $envName is not provided")
-    }
-    ?.toString()

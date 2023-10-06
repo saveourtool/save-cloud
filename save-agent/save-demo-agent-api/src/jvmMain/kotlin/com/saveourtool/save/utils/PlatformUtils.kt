@@ -17,5 +17,3 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
         holder.set(newValue)
     }
 }
-
-actual fun getenv(envName: String): String? = System.getProperty(envName) ?: System.getenv(envName)

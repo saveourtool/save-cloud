@@ -4,8 +4,6 @@
 
 package com.saveourtool.save.utils
 
-import kotlinx.cinterop.toKString
-
 actual class AtomicLong actual constructor(value: Long) {
     private val kotlinAtomicLong = kotlin.native.concurrent.AtomicLong(value)
 
@@ -26,5 +24,3 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
         holder.value = newValue
     }
 }
-
-actual fun getenv(envName: String): String? = platform.posix.getenv(envName)?.toKString()

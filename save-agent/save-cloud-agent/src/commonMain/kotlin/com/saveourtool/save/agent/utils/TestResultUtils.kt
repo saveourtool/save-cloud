@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.agent.utils
 
-import com.saveourtool.save.agent.TestResultDebugInfo
-import com.saveourtool.save.agent.TestResultLocation
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.core.result.*
 import com.saveourtool.save.domain.TestResultStatus
 
