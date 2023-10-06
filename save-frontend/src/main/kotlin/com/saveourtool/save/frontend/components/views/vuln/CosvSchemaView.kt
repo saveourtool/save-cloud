@@ -137,7 +137,7 @@ val cosvSchemaView = VFC {
 
     div {
         className = ClassName("card")
-        JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
+        JSON.stringify(jsonSchema, null, 2).drop(1).dropLast(1).split("\\n").forEach {
             val str = it.replace("\\", "")
             val key = str.takeWhile { it != ':' }.replace("\"", "").trim()
 
@@ -145,21 +145,19 @@ val cosvSchemaView = VFC {
                 //class = ClassName("row") // если будет работать
                 console.log("TEXT KEY [$key]")
 
-
-                val cosvKey = cosvFieldsDescriptionMap.entries.firstOrNull { entry ->
-                    entry.key == key
+                val cosvKey = cosvFieldsDescriptionMap.firstOrNull { (_key, _value) ->
+                    _key == key
                 }
 
                 console.log("NULL ${cosvKey == null}")
-
+                console.log("STR ${str}")
 
                 ReactHTML.pre {
-                    cosvKey?.let { entry ->
-                        //cosvFieldsDescriptionMap.remove(cosvKey.key)
-                        +"\""
+                    cosvKey?.let { (_key, _value) ->
+                        +"${str.takeWhile { it != '\"' }}\""
                         // TODO make it small
-                        buttonBuilder(entry.key) {
-                            setTextInModal(entry.key to entry.value)
+                        buttonBuilder(_key, classes = "btn-sm") {
+                            setTextInModal(_key to _value)
                             windowOpenness.openWindow()
                         }
                         +"\":"
@@ -171,19 +169,6 @@ val cosvSchemaView = VFC {
             }
 
 
-        }
-
-        buttonBuilder("fdsafda") {
-
-        }
-
-        div {
-            JSON.stringify(jsonSchema, null, 2).split("\\n").forEach {
-                val str = it.replace("\\", "")
-                ReactHTML.pre {
-                    +str
-                }
-            }
         }
     }
 }
