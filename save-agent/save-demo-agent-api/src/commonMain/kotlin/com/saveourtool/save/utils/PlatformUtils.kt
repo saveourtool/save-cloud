@@ -8,7 +8,6 @@ import com.saveourtool.save.core.utils.GenericAtomicReference
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Clock
 
 /**
@@ -64,7 +63,6 @@ class ExpiringValueWrapper<T : Any>(
     private val expirationTimeSeconds = expirationTime.toLong(DurationUnit.SECONDS)
     private val lastUpdateTimeSeconds = AtomicLong(0)
     private val value: GenericAtomicReference<T> = GenericAtomicReference(valueGetter())
-    private val mutex = Mutex()
 
     /**
      * @return cached value or refreshes the value and returns it
