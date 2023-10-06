@@ -55,7 +55,7 @@ class TestExecution(
 
     var unexpected: Long?,
 
-    ) : BaseEntityWithDtoWithId<TestExecutionDto>() {
+) : BaseEntityWithDtoWithId<TestExecutionDto>() {
     /**
      * Converts `this` to [TestExecutionDto]
      *

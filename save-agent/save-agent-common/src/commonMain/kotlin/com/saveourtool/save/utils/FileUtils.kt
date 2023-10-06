@@ -4,32 +4,18 @@
 
 package com.saveourtool.save.utils
 
-import okio.FileNotFoundException
-import okio.Path.Companion.toPath
 import com.saveourtool.save.core.files.findAllFilesMatching
 import com.saveourtool.save.core.logging.logDebug
 import com.saveourtool.save.core.logging.logInfo
-import kotlinx.datetime.Clock
+
+import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
+import okio.Path.Companion.toPath
+
+import kotlinx.datetime.Clock
 
 expect val fs: FileSystem
-
-/**
- * Read file as a list of strings
- *
- * @param filePath a file to read
- * @return list of string from file
- */
-fun readFile(filePath: String): List<String> = try {
-    val path = filePath.toPath()
-    fs.read(path) {
-        generateSequence { readUtf8Line() }.toList()
-    }
-} catch (e: FileNotFoundException) {
-    logErrorCustom("Not able to find file in the following path: $filePath")
-    emptyList()
-}
 
 /**
  * Mark [this] file as executable. Sets permissions to rwxr--r--
@@ -80,44 +66,6 @@ fun Path.unzip(markAsExecutables: Boolean = true) {
 }
 
 /**
- * Parse config file
- * Notice that [C] should be serializable
- *
- * @param configPath path to toml config file
- * @return [C] filled with configuration information
- */
-expect inline fun <reified C : Any> parseConfig(configPath: Path): C
-
-/**
- * Parse config file
- * Notice that [C] should be serializable
- *
- * @param configName name of a toml config file, agent.toml by default
- * @return [C] filled with configuration information
- */
-inline fun <reified C : Any> parseConfig(configName: String = "agent.toml"): C = parseConfig<C>(configName.toPath())
-    .also { logInfo("Found ${configName.toPath()}.") }
-
-/**
- * Parse config file or apply default if none was found
- * Notice that [C] should be serializable
- *
- * @param defaultConfig config that should be set if no config was found ([FileNotFoundException])
- * @param configName name of a toml config file, agent.toml by default
- * @return [C] filled with configuration information
- */
-inline fun <reified C : Any> parseConfigOrDefault(
-    defaultConfig: C,
-    configName: String = "agent.toml",
-): C = try {
-    parseConfig(configName)
-} catch (e: FileNotFoundException) {
-    logInfo("Config file $configName not found, falling back to default config.")
-    defaultConfig
-}
-
-
-/**
  * Write [lines] to file with name [fileName]
  *
  * @param fileName name of a file
@@ -160,3 +108,56 @@ fun FileSystem.createTempDir(mustCreate: Boolean = true) = Clock.System.now()
     .toString()
     .toPath()
     .also { createDirectory(it, mustCreate) }
+
+/**
+ * Read file as a list of strings
+ *
+ * @param filePath a file to read
+ * @return list of string from file
+ */
+fun readFile(filePath: String): List<String> = try {
+    val path = filePath.toPath()
+    fs.read(path) {
+        generateSequence { readUtf8Line() }.toList()
+    }
+} catch (e: FileNotFoundException) {
+    logErrorCustom("Not able to find file in the following path: $filePath")
+    emptyList()
+}
+
+/**
+ * Parse config file
+ * Notice that [C] should be serializable
+ *
+ * @param configPath path to toml config file
+ * @return [C] filled with configuration information
+ */
+expect inline fun <reified C : Any> parseConfig(configPath: Path): C
+
+/**
+ * Parse config file
+ * Notice that [C] should be serializable
+ *
+ * @param configName name of a toml config file, agent.toml by default
+ * @return [C] filled with configuration information
+ */
+inline fun <reified C : Any> parseConfig(configName: String = "agent.toml"): C = parseConfig<C>(configName.toPath())
+    .also { logInfo("Found ${configName.toPath()}.") }
+
+/**
+ * Parse config file or apply default if none was found
+ * Notice that [C] should be serializable
+ *
+ * @param defaultConfig config that should be set if no config was found ([FileNotFoundException])
+ * @param configName name of a toml config file, agent.toml by default
+ * @return [C] filled with configuration information
+ */
+inline fun <reified C : Any> parseConfigOrDefault(
+    defaultConfig: C,
+    configName: String = "agent.toml",
+): C = try {
+    parseConfig(configName)
+} catch (e: FileNotFoundException) {
+    logInfo("Config file $configName not found, falling back to default config.")
+    defaultConfig
+}

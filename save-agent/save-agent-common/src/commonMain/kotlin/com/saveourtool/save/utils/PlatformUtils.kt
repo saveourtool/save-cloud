@@ -5,15 +5,10 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.logging.logDebug
-import kotlinx.datetime.Clock
-import okio.FileSystem
+
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-
-/**
- * Process sigterm signal
- */
-expect fun handleSigterm()
+import kotlinx.datetime.Clock
 
 /**
  * Atomic values
@@ -35,7 +30,6 @@ expect class AtomicLong(value: Long) {
      */
     fun addAndGet(delta: Long): Long
 }
-
 
 /**
  *  Class that holds value and shares atomic reference to the value
@@ -82,6 +76,11 @@ class ExpiringValueWrapper<T : Any>(
         return value.get()
     }
 }
+
+/**
+ * Process sigterm signal
+ */
+expect fun handleSigterm()
 
 /**
  * @param envName

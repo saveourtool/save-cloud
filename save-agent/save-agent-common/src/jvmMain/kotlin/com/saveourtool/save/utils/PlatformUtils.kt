@@ -10,14 +10,6 @@ package com.saveourtool.save.utils
 import sun.misc.Signal
 import kotlin.system.exitProcess
 
-actual fun handleSigterm() {
-    Signal.handle(Signal("TERM")) {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exitProcess(1)
-    }
-}
-
-
 actual typealias AtomicLong = java.util.concurrent.atomic.AtomicLong
 
 @Suppress("USE_DATA_CLASS")
@@ -26,6 +18,13 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     actual fun get(): T = holder.get()
     actual fun set(newValue: T) {
         holder.set(newValue)
+    }
+}
+
+actual fun handleSigterm() {
+    Signal.handle(Signal("TERM")) {
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
+        exitProcess(1)
     }
 }
 

@@ -10,14 +10,6 @@ import platform.posix.signal
 
 import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.toKString
-import okio.FileSystem
-
-actual fun handleSigterm() {
-    signal(SIGTERM, staticCFunction<Int, Unit> {
-        logInfoCustom("Agent is shutting down because SIGTERM has been received")
-        exit(1)
-    })
-}
 
 actual class AtomicLong actual constructor(value: Long) {
     private val kotlinAtomicLong = kotlin.native.concurrent.AtomicLong(value)
@@ -38,6 +30,13 @@ actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
     actual fun set(newValue: T) {
         holder.value = newValue
     }
+}
+
+actual fun handleSigterm() {
+    signal(SIGTERM, staticCFunction<Int, Unit> {
+        logInfoCustom("Agent is shutting down because SIGTERM has been received")
+        exit(1)
+    })
 }
 
 actual fun getenv(envName: String): String? = platform.posix.getenv(envName)?.toKString()
