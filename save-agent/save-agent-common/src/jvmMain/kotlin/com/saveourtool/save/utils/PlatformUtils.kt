@@ -5,7 +5,7 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 @file:JvmName("PlatformUtilsJVM")
 
-package com.saveourtool.save.agent.utils
+package com.saveourtool.save.utils
 
 import okio.FileSystem
 import sun.misc.Signal

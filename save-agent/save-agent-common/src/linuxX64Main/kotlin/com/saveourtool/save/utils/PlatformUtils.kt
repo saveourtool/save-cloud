@@ -2,7 +2,7 @@
  * Platform dependent utility methods
  */
 
-package com.saveourtool.save.agent.utils
+package com.saveourtool.save.utils
 
 import platform.posix.SIGTERM
 import platform.posix.exit

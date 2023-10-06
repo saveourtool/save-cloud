@@ -9,6 +9,7 @@ plugins {
     id("com.saveourtool.save.buildutils.code-quality-convention")
     id("com.saveourtool.save.buildutils.publishing-configuration")
 }
+
 kotlin {
     allOpen {
         annotation("javax.persistence.Entity")
@@ -29,12 +30,6 @@ kotlin {
     linuxX64()
 
     sourceSets {
-        sourceSets.all {
-            languageSettings.apply {
-                optIn("kotlin.RequiresOptIn")
-                optIn("kotlin.js.ExperimentalJsExport")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
@@ -44,6 +39,7 @@ kotlin {
 
                 implementation(libs.okio)
                 implementation(libs.ktor.client.core)
+                implementation(libs.ktor.plugins.client.logging)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.kotlinx.json)
@@ -99,13 +95,8 @@ kotlin {
             }
         }
 
-        val linuxX64Main by getting
-
         @Suppress("UNUSED_VARIABLE")
-        val nativeMain by creating {
-            dependsOn(commonMain)
-            linuxX64Main.dependsOn(this)
-
+        val linuxX64Main by getting {
             dependencies {
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.source)

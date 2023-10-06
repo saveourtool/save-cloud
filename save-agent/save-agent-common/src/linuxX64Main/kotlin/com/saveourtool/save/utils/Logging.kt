@@ -4,7 +4,7 @@
 
 @file:Suppress("MISSING_KDOC_TOP_LEVEL", "MISSING_KDOC_ON_FUNCTION")
 
-package com.saveourtool.save.agent.utils
+package com.saveourtool.save.utils
 
 import platform.linux.__NR_gettid
 import platform.posix.syscall
