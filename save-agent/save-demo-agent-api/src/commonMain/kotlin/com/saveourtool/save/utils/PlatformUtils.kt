@@ -5,11 +5,10 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.utils.GenericAtomicReference
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.Clock
 
 /**
