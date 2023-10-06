@@ -18,7 +18,6 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -231,8 +230,7 @@ class CosvService(
      * @param cosvFileId
      * @return [Flux] of [ByteBuffer] with COSV's content
      */
-    fun getVulnerabilityVersionAsCosvStream(cosvFileId: Long): Flux<ByteBuffer> = blockingToMono { cosvFileRepository.findByIdOrNull(cosvFileId) }
-        .flatMapMany { cosvFile -> cosvRepository.downloadAsStream(cosvFile) }
+    fun getVulnerabilityVersionAsCosvStream(cosvFileId: Long): Flux<ByteBuffer> = cosvRepository.downloadAsStream(cosvFileId)
 
     /**
      * @param identifier

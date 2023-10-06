@@ -66,6 +66,8 @@ class CosvRepositoryInStorage(
         cosvFileS3KeyManager.findAllByIdentifier(identifier).map { it.toDto() }
     }
 
+    override fun downloadAsStream(keyId: Long): Flux<ByteBuffer> = cosvFileStorage.downloadByKeyId(keyId)
+
     companion object {
         private fun CosvSchema<*, *, *, *>.toCosvFile() = CosvFile(
             identifier = id,

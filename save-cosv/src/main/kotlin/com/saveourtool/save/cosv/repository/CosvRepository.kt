@@ -57,6 +57,16 @@ interface CosvRepository {
     ): Flux<ByteBuffer>
 
     /**
+     * Downloads COSV from repository as [Flux] of [ByteBuffer] (stream)
+     *
+     * @param keyId
+     * @return [Flux] of [ByteBuffer] with content of COSV
+     */
+    fun downloadAsStream(
+        keyId: Long,
+    ): Flux<ByteBuffer>
+
+    /**
      * Deletes provided version
      *
      * @param key
