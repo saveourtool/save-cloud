@@ -2,7 +2,7 @@
  * Mapping entities from SAVE-cli to their equivalents from SAVE-cloud
  */
 
-package com.saveourtool.save.agent.utils
+package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.result.*
 import com.saveourtool.save.domain.TestResultDebugInfo

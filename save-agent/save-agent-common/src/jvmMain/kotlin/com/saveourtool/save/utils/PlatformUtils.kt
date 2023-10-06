@@ -7,6 +7,7 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.agent.utils.logInfoCustom
 import sun.misc.Signal
 import kotlin.system.exitProcess
 

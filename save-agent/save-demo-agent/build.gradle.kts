@@ -22,20 +22,16 @@ kotlin {
             }
         }
     }
-//    macosX64(configureNative)
     linuxX64(configureNative)
 
     sourceSets {
-//        val macosX64Main by getting
         val linuxX64Main by getting
 
         @Suppress("UNUSED_VARIABLE")
         val nativeMain by creating {
-//            macosX64Main.dependsOn(this)
             linuxX64Main.dependsOn(this)
 
             dependencies {
-                // implementation(projects.saveCloudCommon)
                 implementation(project(":save-agent:save-agent-common"))
                 implementation(project(":save-agent:save-demo-agent-api"))
                 implementation(libs.save.common)
@@ -53,12 +49,10 @@ kotlin {
             }
         }
 
-//        val macosX64Test by getting
         val linuxX64Test by getting
 
         @Suppress("UNUSED_VARIABLE")
         val nativeTest by creating {
-//            macosX64Test.dependsOn(this)
             linuxX64Test.dependsOn(this)
             dependencies {
                 implementation(libs.kotlin.test)
