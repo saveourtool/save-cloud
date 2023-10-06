@@ -163,8 +163,8 @@ class CosvService(
     ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
-                backendService.getUserByName(rawCosvExt.metadata.user.name),
-                rawCosvExt.metadata.organization?.let { organization ->
+                backendService.getUserByName(rawCosvExt.metadataDto.user.name),
+                rawCosvExt.metadataDto.organization?.let { organization ->
                     backendService.getOrganizationByName(organization.name)
                 }
             )
@@ -209,7 +209,7 @@ class CosvService(
         .flatMap { metadata ->
             cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
                 VulnerabilityExt(
-                    metadata = metadata.toDto(),
+                    metadataDto = metadata.toDto(),
                     cosv = content,
                     // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
