@@ -10,8 +10,6 @@ import okio.FileSystem
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
-expect val fs: FileSystem
-
 /**
  * Process sigterm signal
  */

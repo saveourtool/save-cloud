@@ -2,17 +2,12 @@
  * Mapping entities from SAVE-cli to their equivalents from SAVE-cloud
  */
 
-package com.saveourtool.save.utils
+package com.saveourtool.save.agent.utils
 
-import com.saveourtool.save.core.result.Crash
-import com.saveourtool.save.core.result.Fail
-import com.saveourtool.save.core.result.Ignored
-import com.saveourtool.save.core.result.Pass
-import com.saveourtool.save.core.result.TestResult
-import com.saveourtool.save.core.result.TestStatus
-import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultLocation
-import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.agent.TestResultDebugInfo
+import com.saveourtool.save.agent.TestResultLocation
+import com.saveourtool.save.agent.TestResultStatus
+import com.saveourtool.save.core.result.*
 
 /**
  * Maps `TestStatus` to `TestResultStatus`

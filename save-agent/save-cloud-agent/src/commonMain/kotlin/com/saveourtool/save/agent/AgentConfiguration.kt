@@ -11,8 +11,6 @@ import com.saveourtool.save.utils.requiredEnv
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.config.OutputStreamType
 import com.saveourtool.save.core.config.ReportType
-import com.saveourtool.save.AgentEnvName
-import com.saveourtool.save.AgentInfo
 import generated.SAVE_CLOUD_VERSION
 
 import kotlinx.serialization.Serializable

@@ -1,6 +1,6 @@
 package com.saveourtool.save.filters
 
-import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.agent.TestResultStatus
 import kotlinx.serialization.Serializable
 
 /**

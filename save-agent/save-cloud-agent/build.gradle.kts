@@ -48,6 +48,7 @@ kotlin {
             dependencies {
                 implementation(libs.save.common)
                 implementation(project(":save-agent:save-agent-common"))
+                implementation(project(":save-agent:save-cloud-agent-api"))
 //                implementation(projects.saveCloudCommon)
                 implementation(libs.save.core)
                 implementation(libs.save.plugins.fix)

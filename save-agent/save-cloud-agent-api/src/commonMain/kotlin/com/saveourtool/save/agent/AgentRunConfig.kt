@@ -1,6 +1,5 @@
-package com.saveourtool.save
+package com.saveourtool.save.agent
 
-import com.saveourtool.save.domain.TestResultDebugInfo
 import kotlinx.serialization.Serializable
 
 /**

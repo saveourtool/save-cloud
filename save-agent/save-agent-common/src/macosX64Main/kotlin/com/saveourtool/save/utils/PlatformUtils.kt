@@ -12,6 +12,8 @@ import kotlinx.cinterop.staticCFunction
 import kotlinx.cinterop.toKString
 import okio.FileSystem
 
+actual val fs: FileSystem = FileSystem.SYSTEM
+
 actual fun handleSigterm() {
     signal(SIGTERM, staticCFunction<Int, Unit> {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")

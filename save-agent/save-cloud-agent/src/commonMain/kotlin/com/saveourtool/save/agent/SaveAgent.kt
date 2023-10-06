@@ -2,9 +2,10 @@
 
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.*
-import com.saveourtool.save.agent.utils.*
+import com.saveourtool.save.agent.utils.TEST_SUITES_DIR_NAME
 import com.saveourtool.save.agent.utils.processRequestToBackend
+import com.saveourtool.save.agent.utils.toTestResultDebugInfo
+import com.saveourtool.save.agent.utils.toTestResultStatus
 import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
 import com.saveourtool.save.core.files.getWorkingDirectory
 import com.saveourtool.save.core.logging.describe
@@ -14,27 +15,24 @@ import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
 import com.saveourtool.save.utils.*
-
 import io.ktor.client.*
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
-import okio.Path
-import okio.Path.Companion.toPath
-import okio.buffer
-import okio.use
-
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import okio.Path
+import okio.Path.Companion.toPath
+import okio.buffer
+import okio.use
 
 /**
  * A main class for SAVE Agent

@@ -1,4 +1,4 @@
-package com.saveourtool.save.domain
+package com.saveourtool.save.agent
 
 import kotlinx.serialization.Serializable
 

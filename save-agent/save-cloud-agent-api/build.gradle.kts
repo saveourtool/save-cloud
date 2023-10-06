@@ -4,17 +4,10 @@ import com.saveourtool.save.buildutils.configureSigning
 plugins {
     kotlin("multiplatform")
     alias(libs.plugins.kotlin.plugin.serialization)
-    kotlin("plugin.allopen")
-    alias(libs.plugins.kotlin.plugin.jpa)
     id("com.saveourtool.save.buildutils.code-quality-convention")
     id("com.saveourtool.save.buildutils.publishing-configuration")
 }
 kotlin {
-    allOpen {
-        annotation("javax.persistence.Entity")
-        annotation("org.springframework.stereotype.Service")
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {
@@ -25,6 +18,7 @@ kotlin {
     jvmToolchain {
         this.languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
     }
+
     js(IR) {
         browser()
         useCommonJs()
@@ -105,15 +99,8 @@ kotlin {
             }
         }
 
-        val linuxX64Main by getting
-        val macosX64Main by getting
-
         @Suppress("UNUSED_VARIABLE")
-        val nativeMain by creating {
-            dependsOn(commonMain)
-            linuxX64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-
+        val linuxX64Main by getting {
             dependencies {
                 implementation(libs.ktoml.core)
                 implementation(libs.ktoml.source)

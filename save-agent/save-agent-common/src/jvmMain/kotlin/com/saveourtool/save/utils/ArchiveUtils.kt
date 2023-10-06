@@ -26,10 +26,24 @@ private val expander = Expander()
  *
  * @param targetPath
  */
+actual fun Path.extractZipTo(targetPath: Path) = toNioPath().extractZipTo(targetPath.toNioPath())
+
+/**
+ * Extract path as ZIP archive to provided directory
+ *
+ * @param targetPath
+ */
 fun JPath.extractZipTo(targetPath: JPath) {
-    log.debug { "Unzip $this into $targetPath" }
+    if (log.isDebugEnabled) {
+        log.debug("Unzip $this into $targetPath")
+    }
     expander.expand(ArchiveStreamFactory.ZIP, toFile(), targetPath.toFile())
 }
+
+/**
+ * Extract path as ZIP archive to parent
+ */
+actual fun Path.extractZipHere() = toNioPath().extractZipHere()
 
 /**
  * Extract path as ZIP archive to parent
@@ -45,6 +59,8 @@ fun JPath.extractZipHere(): Unit = parent?.let {
  */
 @Suppress("NestedBlockDepth")
 fun JPath.compressAsZipTo(targetPath: JPath) {
-    log.debug { "Zip ${absolutePathString()} into ${targetPath.absolutePathString()}" }
+    if (log.isDebugEnabled) {
+        log.debug("Zip ${absolutePathString()} into ${targetPath.absolutePathString()}")
+    }
     archiver.create(ArchiveStreamFactory.ZIP, targetPath, this)
 }

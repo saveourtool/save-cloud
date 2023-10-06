@@ -7,13 +7,10 @@
 
 package com.saveourtool.save.utils
 
-import okio.FileSystem
 import sun.misc.Signal
 import kotlin.system.exitProcess
 
-actual val fs: FileSystem = FileSystem.SYSTEM
-
-internal actual fun handleSigterm() {
+actual fun handleSigterm() {
     Signal.handle(Signal("TERM")) {
         logInfoCustom("Agent is shutting down because SIGTERM has been received")
         exitProcess(1)

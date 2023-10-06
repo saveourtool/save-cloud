@@ -1,6 +1,5 @@
 package com.saveourtool.save.agent
 
-import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.DtoWithId
 import com.saveourtool.save.test.analysis.metrics.NoDataAvailable
 import com.saveourtool.save.test.analysis.metrics.TestMetrics

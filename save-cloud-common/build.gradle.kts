@@ -44,6 +44,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.save.common)
+                implementation(project(":save-agent:save-cloud-agent-api"))
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.datetime)

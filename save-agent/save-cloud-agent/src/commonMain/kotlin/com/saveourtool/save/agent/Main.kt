@@ -5,7 +5,6 @@
 package com.saveourtool.save.agent
 
 import com.saveourtool.save.agent.utils.*
-import com.saveourtool.save.agent.utils.ktorLogger
 import com.saveourtool.save.core.config.LogType
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.logging.logType
