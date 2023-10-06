@@ -1,7 +1,3 @@
-/**
- * Platform dependent utility methods
- */
-
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.utils.GenericAtomicReference
