@@ -5,6 +5,7 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
@@ -22,6 +23,7 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.*
@@ -31,7 +33,7 @@ import kotlin.io.path.*
  */
 @ApiSwaggerSupport
 @RestController
-@RequestMapping("/api/$v1/cosv/{organizationName}")
+@RequestMapping("/api/$v1/cosv")
 class CosvController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
@@ -49,7 +51,7 @@ class CosvController(
      * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping("/{organizationName}/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
@@ -133,7 +135,7 @@ class CosvController(
      * @return [StringResponse]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/submit-to-process")
+    @PostMapping("/{organizationName}/submit-to-process")
     fun submitToProcess(
         @PathVariable organizationName: String,
         @RequestBody ids: List<Long>,
@@ -160,7 +162,7 @@ class CosvController(
      * @return list of uploaded raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/list")
+    @GetMapping("/{organizationName}/list")
     fun list(
         @PathVariable organizationName: String,
         authentication: Authentication,
@@ -170,13 +172,31 @@ class CosvController(
         }
 
     /**
+     * @param identifier
+     * @return list of cosv files
+     */
+    @GetMapping("/list-versions")
+    fun listVersions(
+        @RequestParam identifier: String,
+    ): Flux<CosvFileDto> = cosvService.listVersions(identifier)
+
+    /**
+     * @param cosvFileId
+     * @return cosv file content
+     */
+    @GetMapping("/cosv-content")
+    fun cosvFileContent(
+        @RequestParam cosvFileId: Long,
+    ): Flux<ByteBuffer> = cosvService.getVulnerabilityVersionAsCosvStream(cosvFileId)
+
+    /**
      * @param organizationName
      * @param id ID of raw COSV file
      * @param authentication
      * @return content of Raw COSV file
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/download/{id}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @GetMapping("/{organizationName}/download/{id}", produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
     fun download(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
@@ -199,7 +219,7 @@ class CosvController(
      * @return empty response
      */
     @RequiresAuthorizationSourceHeader
-    @DeleteMapping("/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @DeleteMapping("/{organizationName}/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun delete(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
