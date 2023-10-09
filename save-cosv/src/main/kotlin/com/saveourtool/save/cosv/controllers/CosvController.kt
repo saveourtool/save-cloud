@@ -48,6 +48,7 @@ class CosvController(
      * @param organizationName
      * @param filePartMono
      * @param authentication
+     * @param contentLength
      * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader

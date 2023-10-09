@@ -6,6 +6,7 @@ package com.saveourtool.save.utils
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import okio.FileSystem
+import org.slf4j.Logger
 import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono
 
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.file.Files
@@ -25,14 +27,12 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 import java.util.stream.Collectors
 
+import kotlin.io.path.*
 import kotlin.jvm.Throws
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
 import kotlinx.serialization.serializer
-import org.slf4j.Logger
-import java.io.IOException
-import kotlin.io.path.*
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
@@ -147,6 +147,18 @@ actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
     }
 }
 
+/**
+ * @param log logger to log debug message with potential [IOException]
+ */
+@OptIn(ExperimentalPathApi::class)
+fun Path.deleteRecursivelySafely(log: Logger): Unit = try {
+    deleteRecursively()
+} catch (e: IOException) {
+    log.debug(e) {
+        "Failed to delete recursively ${absolutePathString()}"
+    }
+}
+
 actual inline fun <reified C : Any> parseConfig(configPath: okio.Path): C = TomlFileReader.decodeFromFile(
     serializer(),
     configPath.toString(),
@@ -166,16 +178,4 @@ fun moveFileWithAttributes(source: File, destinationDir: File) {
 
     Files.copy(source.toPath(), destinationDir.resolve(source.name).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES)
     Files.delete(source.toPath())
-}
-
-/**
- * @param log logger to log debug message with potential [IOException]
- */
-@OptIn(ExperimentalPathApi::class)
-fun Path.deleteRecursivelySafely(log: Logger): Unit = try {
-    deleteRecursively()
-} catch (e: IOException) {
-    log.debug(e) {
-        "Failed to delete recursively ${absolutePathString()}"
-    }
 }

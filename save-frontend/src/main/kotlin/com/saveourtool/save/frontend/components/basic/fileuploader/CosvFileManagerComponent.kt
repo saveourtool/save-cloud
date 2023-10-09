@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
-import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus

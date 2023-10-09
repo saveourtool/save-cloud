@@ -9,6 +9,7 @@ import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
+import org.slf4j.Logger
 
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -38,8 +39,8 @@ class TestsSourceSnapshotStorage(
      * @return [TestFilesContent] filled with test files
      */
     fun getTestContent(request: TestFilesRequest): Mono<TestFilesContent> = blockingToMono {
-            createTempDirectoryForArchive()
-        }
+        createTempDirectoryForArchive()
+    }
         .flatMap { tmpSourceDir ->
             blockingToMono {
                 createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
@@ -63,7 +64,6 @@ class TestsSourceSnapshotStorage(
                 .doOnTerminate {
                     tmpSourceDir.deleteRecursivelySafely(log)
                 }
-
         }
 
     /**
@@ -75,6 +75,6 @@ class TestsSourceSnapshotStorage(
         .all { it }
 
     companion object {
-        private val log = getLogger<TestsSourceSnapshotStorage>()
+        private val log: Logger = getLogger<TestsSourceSnapshotStorage>()
     }
 }

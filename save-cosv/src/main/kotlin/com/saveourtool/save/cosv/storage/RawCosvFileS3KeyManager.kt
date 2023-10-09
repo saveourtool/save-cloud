@@ -60,14 +60,12 @@ class RawCosvFileS3KeyManager(
         filter: RawCosvFileFilter,
         page: Int,
         size: Int,
-    ): Collection<RawCosvFileDto> {
-        return repository.kFindAll(PageRequest.of(page, size)) { root, _, cb ->
-            cb.and(
-                filter.fileNamePart?.let { cb.like(root.get("fileName"), "%$it%") } ?: cb.and(),
-                cb.equal(root.get<Organization>("organization").get<String>("name"), filter.organizationName),
-            )
-        }.content.map { it.toDto() }
-    }
+    ): Collection<RawCosvFileDto> = repository.kFindAll(PageRequest.of(page, size)) { root, _, cb ->
+        cb.and(
+            filter.fileNamePart?.let { cb.like(root.get("fileName"), "%$it%") } ?: cb.and(),
+            cb.equal(root.get<Organization>("organization").get<String>("name"), filter.organizationName),
+        )
+    }.content.map { it.toDto() }
 
     /**
      * @param ids

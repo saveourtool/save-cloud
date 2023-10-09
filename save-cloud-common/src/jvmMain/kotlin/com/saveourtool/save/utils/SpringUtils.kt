@@ -74,6 +74,15 @@ inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotF
     "Not found ${T::class.simpleName} by id = $id"
 }
 
+/**
+ * Returns a [Page] of entities matching the given [Specification].
+ *
+ * @param spec can be null.
+ * @param pageable must not be null.
+ * @return never null.
+ */
+fun <T : Any> JpaSpecificationExecutor<T>.kFindAll(pageable: Pageable, spec: Specification<T>?): Page<T> = findAll(spec, pageable)
+
 private fun <K : Any> StorageProjectReactor<K>.doUpload(key: K, contentBytes: ByteArray) = contentBytes.size.toLong()
     .let { contentLength ->
         upload(key, contentLength, Flux.just(ByteBuffer.wrap(contentBytes)))
@@ -95,12 +104,3 @@ fun logAndRespond(
 }.let {
     ResponseEntity.status(statusCode.value).body(it)
 }
-
-/**
- * Returns a [Page] of entities matching the given [Specification].
- *
- * @param spec can be null.
- * @param pageable must not be null.
- * @return never null.
- */
-fun <T : Any> JpaSpecificationExecutor<T>.kFindAll(pageable: Pageable, spec: Specification<T>?): Page<T> = findAll(spec, pageable)
