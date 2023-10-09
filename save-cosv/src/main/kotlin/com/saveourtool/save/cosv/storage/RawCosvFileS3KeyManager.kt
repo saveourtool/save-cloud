@@ -8,7 +8,6 @@ import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
@@ -49,23 +48,6 @@ class RawCosvFileS3KeyManager(
     fun listByOrganization(
         organizationName: String,
     ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName).map { it.toDto() }
-
-    /**
-     * @param filter
-     * @param page
-     * @param size
-     * @return all [RawCosvFileDto]s which fits to [filter]
-     */
-    fun listByFilter(
-        filter: RawCosvFileFilter,
-        page: Int,
-        size: Int,
-    ): Collection<RawCosvFileDto> = repository.kFindAll(PageRequest.of(page, size)) { root, _, cb ->
-        cb.and(
-            filter.fileNamePart?.let { cb.like(root.get("fileName"), "%$it%") } ?: cb.and(),
-            cb.equal(root.get<Organization>("organization").get<String>("name"), filter.organizationName),
-        )
-    }.content.map { it.toDto() }
 
     /**
      * @param ids

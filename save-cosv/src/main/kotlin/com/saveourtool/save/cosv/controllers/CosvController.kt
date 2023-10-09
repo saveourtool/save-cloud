@@ -8,7 +8,6 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -197,7 +196,7 @@ class CosvController(
         authentication: Authentication,
     ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMapMany {
-            rawCosvFileStorage.listByFilter(RawCosvFileFilter(null, organizationName), 0, 100)
+            rawCosvFileStorage.listByOrganization(organizationName)
         }
 
     /**
