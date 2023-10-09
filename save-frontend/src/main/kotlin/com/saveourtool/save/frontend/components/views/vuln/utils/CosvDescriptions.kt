@@ -1,3 +1,7 @@
+/**
+ * The list of descriptions of each field in COSV schema
+ */
+
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
 val schemaVersionDescr = """

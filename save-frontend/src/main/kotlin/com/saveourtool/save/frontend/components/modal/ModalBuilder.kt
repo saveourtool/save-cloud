@@ -89,6 +89,7 @@ fun ChildrenBuilder.displayModal(
  * @param modalStyle [Styles] that will be applied to react modal
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @return modal
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.displayModal(
@@ -98,38 +99,25 @@ fun ChildrenBuilder.displayModal(
     modalStyle: Styles = mediumTransparentModalStyle,
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-) =  doCreateDisplayModal(false, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
+) = doCreateDisplayModal(false, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
 
 /**
  * @see displayModal
  */
-@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+@Suppress(
+    "LongParameterList",
+    "TOO_MANY_PARAMETERS",
+    "KDOC_WITHOUT_PARAM_TAG",
+    "KDOC_WITHOUT_RETURN_TAG"
+)
 fun ChildrenBuilder.displayModalWithPreTag(
-        isOpen: Boolean,
-        title: String,
-        message: String,
-        modalStyle: Styles = mediumTransparentModalStyle,
-        onCloseButtonPressed: (() -> Unit)? = null,
-        buttonBuilder: ChildrenBuilder.() -> Unit,
-) =  doCreateDisplayModal(true, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
-
-
-@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
-private fun ChildrenBuilder.doCreateDisplayModal(
-        usePreTag: Boolean,
-        isOpen: Boolean,
-        title: String,
-        message: String,
-        modalStyle: Styles = mediumTransparentModalStyle,
-        onCloseButtonPressed: (() -> Unit)? = null,
-        buttonBuilder: ChildrenBuilder.() -> Unit,
-) {
-    modal { props ->
-        props.isOpen = isOpen
-        props.style = modalStyle
-        modalBuilder(usePreTag, title, message, onCloseButtonPressed, buttonBuilder)
-    }
-}
+    isOpen: Boolean,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) = doCreateDisplayModal(true, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
 
 /**
  * Universal function to create modals with click condition styles inside react modals
@@ -398,5 +386,22 @@ fun ChildrenBuilder.onCloseFun(
                 }
             }
         }
+    }
+}
+
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+private fun ChildrenBuilder.doCreateDisplayModal(
+    usePreTag: Boolean,
+    isOpen: Boolean,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilder(usePreTag, title, message, onCloseButtonPressed, buttonBuilder)
     }
 }

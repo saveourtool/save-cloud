@@ -1,6 +1,10 @@
+/**
+ * The base spec of COSV schema
+ */
+
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
-val COSV_SCHEMA_JSON = """
+val cosvSchemaJson = """
 {
   "schema_version": "string",
   "id": "string",
