@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
+import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
@@ -10,6 +11,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
@@ -47,6 +49,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+
+    val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
+    val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
+
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
             val response = delete(
@@ -91,12 +97,29 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val uploadFiles = useDeferredRequest {
         post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            Headers(),
+            Headers().apply {
+                append(CONTENT_LENGTH_CUSTOM, JSON.stringify(filesForUploading.map { it.size }))
+            },
             FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
-        fetchFiles()
+        filesForUploading.forEach { fileForUploading ->
+            val uploadedFile: RawCosvFileDto = post(
+                url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
+                Headers().apply {
+                    append(CONTENT_LENGTH_CUSTOM, JSON.stringify(listOf(fileForUploading.size)))
+                },
+                FormData().apply {
+                    append(FILE_PART_NAME, fileForUploading)
+                },
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+                .decodeFromJsonString()
+            setUploadBytesReceived { it.plus(filesForUploading.size) }
+            setAvailableFiles { it.plus(uploadedFile) }
+        }
     }
 
     val submitCosvFiles = useDeferredRequest {
@@ -156,9 +179,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
+                        files!!.asList()
+                            .also { fileList -> setUploadBytesTotal(fileList.sumOf { it.size }.toLong()) }
+                            .let { setFilesForUploading(it) }
                         uploadFiles()
                     }
+                }
+            }
+            progressBarComponent {
+                current = uploadBytesReceived
+                total = uploadBytesTotal
+                flushCounters = {
+                    setUploadBytesTotal(0)
+                    setUploadBytesReceived(0)
                 }
             }
 

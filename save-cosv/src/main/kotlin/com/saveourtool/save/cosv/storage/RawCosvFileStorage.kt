@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
@@ -41,13 +42,17 @@ class RawCosvFileStorage(
     }.publishOn(s3Operations.scheduler)
 
     /**
-     * @param organizationName
-     * @return all [RawCosvFileDto]s which has provided [RawCosvFile.organization]
+     * @param filter
+     * @param page
+     * @param size
+     * @return all [RawCosvFileDto]s which fits to [filter]
      */
-    fun listByOrganization(
-        organizationName: String,
+    fun listByFilter(
+        filter: RawCosvFileFilter,
+        page: Int,
+        size: Int,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName)
+        s3KeyManager.listByFilter(filter, page, size)
     }
 
     /**
