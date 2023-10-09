@@ -1,8 +1,6 @@
 package com.saveourtool.save.frontend.components.views.vuln
 
-import com.saveourtool.osv4k.OsvSchema
-import com.saveourtool.osv4k.RawOsvSchema
-import com.saveourtool.save.frontend.components.modal.displayModal
+import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 import react.VFC
 import react.useState
@@ -13,13 +11,10 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescr
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
-import kotlinext.js.js
 import react.dom.html.ReactHTML
 import web.cssom.ClassName
 import kotlinx.serialization.json.Json
 
-
-private val json = Json { prettyPrint = true }
 
 val jsonSchema = """
 {
@@ -32,24 +27,24 @@ val jsonSchema = """
   "cwe_ids": [ "string" ],
   "cwe_names": [ "string" ],
   "timeline": [ {
-      "type": "string",
-      "value": "string"
+      "timeline.type": "string",
+      "timeline.value": "string"
     }
   ],
   "related": [ "string" ],
   "summary": "string",
   "details": "string",
   "severity": [ {
-      "type": "string",
-      "score": "string",
-      "level": "string",
-      "score_num": "string"
+      "severity.type": "string",
+      "severity.score": "string",
+      "severity.level": "string",
+      "severity.score_num": "string"
     }
   ],
   "affected": [ {
       "package": {
         "ecosystem": "string",
-        "name": "string",
+        "package.name": "string",
         "purl": "string",
         "language": "string",
         "repository": "string",
@@ -66,8 +61,8 @@ val jsonSchema = """
         }
       ],
       "ranges": [ {
-          "type": "string",
-          "repo": "string",
+          "ranges.type": "string",
+          "ranges.repo": "string",
           "events": [ {
               "introduced": "string",
               "fixed": "string",
@@ -75,12 +70,12 @@ val jsonSchema = """
               "limit": "string"
             }
           ],
-          "database_specific": { "see description": "" }
+          "ranges.database_specific": { "see description": "" }
         }
       ],
       "versions": [ "string" ],
-      "ecosystem_specific": { "see description": "" },
-      "database_specific": { "see description": "" }
+      "affected.ecosystem_specific": { "see description": "" },
+      "affected.database_specific": { "see description": "" }
     }
   ],
   "patches_detail": [ {
@@ -95,21 +90,21 @@ val jsonSchema = """
   ],
   "contributors": [ {
       "org": "string",
-      "name": "string",
+      "contributors.name": "string",
       "email": "string",
       "contributions": "string"
     }
   ],
   "confirm_type": "string",
   "references": [ {
-      "type": "string",
+      "references.type": "string",
       "url": "string"
     }
   ],
   "credits": [ {
-      "name": "string",
+      "credits.name": "string",
       "contact": [ "string" ],
-      "type": "string"
+      "credits.type": "string"
     }
   ],
   "database_specific": { "see description": "" }
@@ -122,7 +117,7 @@ val cosvSchemaView = VFC {
     val (textInModal, setTextInModal) = useState<Pair<String, String>>()
 
     if (textInModal != null) {
-        displayModal(
+        displayModalWithPreTag(
                 windowOpenness.isOpen(),
                 textInModal.first,
                 textInModal.second,
