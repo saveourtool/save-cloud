@@ -154,7 +154,7 @@ val cosvSchemaView = VFC {
                         // hold the tabulations
                         +"${str.takeWhile { it != '\"' }}\""
                         // make from key the button
-                        buttonBuilder(key, classes = "btn-sm") {
+                        buttonBuilder(key.substringAfter("."), classes = "btn-sm") {
                             setTextInModal(key to value)
                             windowOpenness.openWindow()
                         }
