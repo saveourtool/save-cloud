@@ -8,6 +8,7 @@ import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepositor
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
+import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
 
@@ -32,28 +34,43 @@ private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
  * Service for vulnerabilities
  */
 @Service
+@Suppress("LongParameterList")
 class CosvService(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
     private val backendService: IBackendService,
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
+    private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
 ) {
     /**
      * @param rawCosvFileIds
+     * @param user
+     * @param organization
      * @return empty [Mono]
      */
     fun process(
         rawCosvFileIds: Collection<Long>,
+        user: User,
+        organization: Organization,
     ): Mono<Unit> = rawCosvFileIds.toFlux()
         .flatMap { rawCosvFileId ->
             rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
-                .flatMap { (organization, user) ->
+                .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
+                    organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
+                }
+                .switchIfErrorToConflict {
+                    "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                }
+                .flatMap {
                     doProcess(rawCosvFileId, user, organization)
                 }
         }
-        .collectList()
+        .sumAll()
+        .blockingMap {
+            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
+        }
         .map {
             log.debug {
                 "Finished processing raw COSV files $rawCosvFileIds"
@@ -64,7 +81,7 @@ class CosvService(
         rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Mono<Unit> = rawCosvFileStorage.downloadById(rawCosvFileId)
+    ): Mono<Int> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
             val errorMessage by lazy {
@@ -81,10 +98,16 @@ class CosvService(
                         .then(Mono.error(error))
                 }
                 .collectList()
-                .flatMap { rawCosvFileStorage.update(rawCosvFileId, RawCosvFileStatus.PROCESSED, "Processed as ${it.map(VulnerabilityMetadataDto::identifier)}") }
+                .flatMap { metadataList ->
+                    rawCosvFileStorage.update(
+                        rawCosvFileId,
+                        RawCosvFileStatus.PROCESSED,
+                        "Processed as ${metadataList.map(VulnerabilityMetadataDto::identifier)}"
+                    ).thenReturn(metadataList.size)
+                }
                 .onErrorResume { error ->
                     log.error(error) { errorMessage }
-                    Mono.just(Unit)
+                    Mono.just(0)
                 }
         }
 
@@ -142,8 +165,8 @@ class CosvService(
     ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
-                backendService.getUserByName(rawCosvExt.metadata.user.name),
-                rawCosvExt.metadata.organization?.let { organization ->
+                backendService.getUserByName(rawCosvExt.metadataDto.user.name),
+                rawCosvExt.metadataDto.organization?.let { organization ->
                     backendService.getOrganizationByName(organization.name)
                 }
             )
@@ -187,11 +210,16 @@ class CosvService(
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
             cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
+                val tags = lnkVulnerabilityMetadataTagRepository
+                    .findAllByVulnerabilityMetadataIdentifier(identifier)
+                    .map { it.tag.name }
+                    .toSet()
+
                 VulnerabilityExt(
-                    metadata = metadata.toDto(),
+                    metadataDto = metadata.toDto().copy(tags = tags),
                     cosv = content,
+                    // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
-                    tags = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataId(metadata.requiredId()).map { it.tag.name }.toSet(),
                 )
             }
         }
@@ -202,6 +230,18 @@ class CosvService(
      */
     fun getVulnerabilityAsCosvStream(identifier: String): Flux<ByteBuffer> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMapMany { metadata -> cosvRepository.downloadAsStream(metadata.latestCosvFile) }
+
+    /**
+     * @param cosvFileId
+     * @return [Flux] of [ByteBuffer] with COSV's content
+     */
+    fun getVulnerabilityVersionAsCosvStream(cosvFileId: Long): Flux<ByteBuffer> = cosvRepository.downloadAsStream(cosvFileId)
+
+    /**
+     * @param identifier
+     * @return list of cosv files
+     */
+    fun listVersions(identifier: String): Flux<CosvFileDto> = cosvRepository.listVersions(identifier)
 
     companion object {
         private val log: Logger = getLogger<CosvService>()

@@ -18,7 +18,8 @@ import java.util.concurrent.CompletableFuture
 
 import kotlinx.datetime.Clock
 
-private val log = getLogger(object {}.javaClass.enclosingClass::class.java)
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+private val log = getLogger {}
 
 /**
  * Back up unexpected s3 key (according to [s3KeyValidator]) which are detected S3 storage (by common prefix [commonPrefix])

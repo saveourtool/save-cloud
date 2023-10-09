@@ -6,10 +6,7 @@ import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.entity.IBaseEntityWithDate
 
 import java.time.LocalDateTime
-import javax.persistence.Entity
-import javax.persistence.Enumerated
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
+import javax.persistence.*
 
 import kotlinx.datetime.toKotlinLocalDateTime
 
@@ -34,7 +31,7 @@ class RawCosvFile(
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     var status: RawCosvFileStatus,
     var statusMessage: String? = null,
     override var createDate: LocalDateTime? = null,

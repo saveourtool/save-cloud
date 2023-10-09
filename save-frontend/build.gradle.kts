@@ -113,6 +113,7 @@ kotlin {
             implementation(npm("react-ace", "^10.1.0"))
             implementation(npm("react-avatar-image-cropper", "^1.4.2"))
             implementation(npm("react-circle", "^1.1.1"))
+            implementation(npm("react-diff-viewer-continued", "^3.2.6"))
             // react-sigma
             implementation(npm("@react-sigma/core", "^3.1.0"))
             implementation(npm("sigma", "^2.4.0"))
