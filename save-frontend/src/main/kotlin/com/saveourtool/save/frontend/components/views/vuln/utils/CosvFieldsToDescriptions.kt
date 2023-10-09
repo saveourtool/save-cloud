@@ -1,6 +1,6 @@
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
-val cosvFieldsDescriptionMap = listOf(
+val cosvFieldsDescriptionsMap = listOf(
         "schema_version" to schemaVersionDescr,
         "id" to idDescr,
         "modified" to modifiedDescr,
