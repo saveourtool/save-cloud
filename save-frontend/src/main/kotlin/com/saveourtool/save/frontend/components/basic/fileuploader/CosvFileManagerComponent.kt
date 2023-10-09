@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
@@ -18,6 +19,7 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
@@ -35,6 +37,7 @@ import kotlinx.coroutines.await
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
+    val (t) = useTranslation("vulnerability-upload")
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
@@ -115,6 +118,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     div {
+        if (selectedOrganization.isNullOrEmpty()) {
+            div {
+                className = ClassName("mx-auto")
+                b {
+                    +"${"Organization that has permission".t()}!"
+                }
+            }
+        }
+
         organizationSelectForm {
             selectClasses = "custom-select"
             formType = InputTypes.ORGANIZATION_NAME
