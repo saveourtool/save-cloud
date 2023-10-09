@@ -6,8 +6,8 @@ package com.saveourtool.save.frontend.components.views.vuln
 
 import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
 import com.saveourtool.save.frontend.components.modal.loaderModalStyle
-import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
 import com.saveourtool.save.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
+import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
 import com.saveourtool.save.frontend.utils.*
 
 import react.VFC
