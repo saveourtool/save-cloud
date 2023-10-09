@@ -22,7 +22,6 @@ enum class FrontendRoutes(val path: String) {
     CONTESTS_GLOBAL_RATING("contests/global-rating"),
     CONTESTS_TEMPLATE("contest-template"),
     COOKIE("cookie"),
-    COSV_SCHEMA("$VULN/cosv/schema"),
     CREATE_CONTESTS_TEMPLATE("create-contest-template"),
     CREATE_ORGANIZATION("create-organization"),
     CREATE_PROJECT("create-project"),
@@ -49,6 +48,7 @@ enum class FrontendRoutes(val path: String) {
     VULNERABILITIES("$VULN/list"),
     VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
+    VULN_COSV_SCHEMA("$VULN/cosv/schema"),
     ;
 
     override fun toString(): String = path
