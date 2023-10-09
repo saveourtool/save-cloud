@@ -95,17 +95,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
-        post(
-            url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            Headers().apply {
-                append(CONTENT_LENGTH_CUSTOM, JSON.stringify(filesForUploading.map { it.size }))
-            },
-            FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
-            loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler
-        )
         filesForUploading.forEach { fileForUploading ->
-            val uploadedFile: RawCosvFileDto = post(
+            val uploadedFiles: List<RawCosvFileDto> = post(
                 url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
                 Headers().apply {
                     append(CONTENT_LENGTH_CUSTOM, JSON.stringify(listOf(fileForUploading.size)))
@@ -117,8 +108,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 responseHandler = ::noopResponseHandler
             )
                 .decodeFromJsonString()
-            setUploadBytesReceived { it.plus(filesForUploading.size) }
-            setAvailableFiles { it.plus(uploadedFile) }
+            setUploadBytesReceived { it.plus(fileForUploading.size.toLong()) }
+            setAvailableFiles { it.plus(uploadedFiles) }
         }
     }
 

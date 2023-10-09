@@ -25,14 +25,14 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 import java.util.stream.Collectors
 
-import kotlin.io.path.exists
-import kotlin.io.path.name
-import kotlin.io.path.outputStream
 import kotlin.jvm.Throws
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
 import kotlinx.serialization.serializer
+import org.slf4j.Logger
+import java.io.IOException
+import kotlin.io.path.*
 
 private const val DEFAULT_BUFFER_SIZE = 4096
 
@@ -166,4 +166,16 @@ fun moveFileWithAttributes(source: File, destinationDir: File) {
 
     Files.copy(source.toPath(), destinationDir.resolve(source.name).toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES)
     Files.delete(source.toPath())
+}
+
+/**
+ * @param log logger to log debug message with potential [IOException]
+ */
+@OptIn(ExperimentalPathApi::class)
+fun Path.deleteRecursivelySafely(log: Logger): Unit = try {
+    deleteRecursively()
+} catch (e: IOException) {
+    log.debug(e) {
+        "Failed to delete recursively ${absolutePathString()}"
+    }
 }
