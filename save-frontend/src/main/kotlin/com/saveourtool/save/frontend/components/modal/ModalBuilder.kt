@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import js.core.jso
 import react.CSSProperties
 
 import react.ChildrenBuilder
@@ -18,6 +19,7 @@ import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 /**
@@ -267,6 +269,7 @@ fun ChildrenBuilder.modalBuilder(
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
+    val customWidth: CSSProperties? = if (usePreTag) jso { width = 40.rem } else null
     modalBuilder(
         title = title,
         onCloseButtonPressed = onCloseButtonPressed,
@@ -278,12 +281,13 @@ fun ChildrenBuilder.modalBuilder(
                 }
             } else {
                 pre {
-                    className = ClassName("text-gray-800 mb-2 overflow-x: hidden")
+                    className = ClassName("text-gray-800 mb-2 overflow-x:hidden")
                     +message
                 }
             }
         },
         buttonBuilder = buttonBuilder,
+        customWidth = customWidth
     )
 }
 

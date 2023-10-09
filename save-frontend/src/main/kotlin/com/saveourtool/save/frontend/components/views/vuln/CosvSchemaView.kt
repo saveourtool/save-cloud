@@ -1,6 +1,8 @@
 package com.saveourtool.save.frontend.components.views.vuln
 
 import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
+import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
+import com.saveourtool.save.frontend.components.modal.loaderModalStyle
 import com.saveourtool.save.frontend.utils.useWindowOpenness
 import react.VFC
 import react.useState
@@ -54,10 +56,10 @@ val jsonSchema = """
         "edition": "string"
       },
       "severity": [ {
-          "type": "string",
-          "score": "string",
-          "level": "string",
-          "score_num": "string"
+          "severity.type": "string",
+          "severity.score": "string",
+          "severity.level": "string",
+          "severity.score_num": "string"
         }
       ],
       "ranges": [ {
@@ -121,7 +123,7 @@ val cosvSchemaView = VFC {
                 windowOpenness.isOpen(),
                 textInModal.first,
                 textInModal.second,
-                mediumTransparentModalStyle,
+                loaderModalStyle,
                 windowOpenness.closeWindowAction()
         ) {
             buttonBuilder("Close", "secondary") {
