@@ -2145,6 +2145,114 @@
         ]
       }
     },
+    "/api/v1/cosv/cosv-content": {
+      "get": {
+        "operationId": "cosvFileContent",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cosvFileId",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
+    "/api/v1/cosv/list-versions": {
+      "get": {
+        "operationId": "listVersions_2",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "identifier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
     "/api/v1/cosv/{organizationName}/batch-upload": {
       "post": {
         "operationId": "batchUpload",
@@ -12288,6 +12396,30 @@
           },
           "org": {
             "type": "string"
+          }
+        }
+      },
+      "CosvFileDto": {
+        "required": [
+          "id",
+          "identifier",
+          "modified"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "identifier": {
+            "type": "string"
+          },
+          "modified": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "prevCosvFileId": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
