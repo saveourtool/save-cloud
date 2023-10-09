@@ -76,7 +76,6 @@ class CosvController(
                         doArchiveUpload(filePart, organizationName, authentication.name)
                     }
                 }
-                .parallel()
         }
 
     private fun doArchiveUpload(
