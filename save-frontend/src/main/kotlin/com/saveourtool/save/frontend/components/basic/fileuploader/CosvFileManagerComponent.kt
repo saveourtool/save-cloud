@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
@@ -98,18 +99,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val uploadFiles = useDeferredRequest {
         filesForUploading.forEach { fileForUploading ->
-            val uploadedFiles: List<RawCosvFileDto> = post(
-                url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-                Headers().apply {
-                    append(CONTENT_LENGTH_CUSTOM, JSON.stringify(listOf(fileForUploading.size)))
-                },
-                FormData().apply {
-                    append(FILE_PART_NAME, fileForUploading)
-                },
+            val uploadedFiles: List<RawCosvFileDto> = postUploadFile(
+                url = "$apiUrl/cosv/$selectedOrganization/upload",
+                file = fileForUploading,
                 loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler
-            )
-                .decodeFromJsonString()
+            ).decodeFromJsonString()
             setUploadBytesReceived { it.plus(fileForUploading.size.toLong()) }
             setAvailableFiles { it.plus(uploadedFiles) }
         }

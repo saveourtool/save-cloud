@@ -8,10 +8,6 @@ import com.saveourtool.save.spring.entity.BaseEntity
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.storage.StorageProjectReactor
 import io.ktor.http.*
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.Part
@@ -73,15 +69,6 @@ fun <K : Any> StorageProjectReactor<K>.overwrite(key: K, contentBytes: ByteArray
 inline fun <reified T : BaseEntity, R : BaseEntityRepository<T>> R.getByIdOrNotFound(id: Long): T = findByIdOrNull(id).orNotFound {
     "Not found ${T::class.simpleName} by id = $id"
 }
-
-/**
- * Returns a [Page] of entities matching the given [Specification].
- *
- * @param spec can be null.
- * @param pageable must not be null.
- * @return never null.
- */
-fun <T : Any> JpaSpecificationExecutor<T>.kFindAll(pageable: Pageable, spec: Specification<T>?): Page<T> = findAll(spec, pageable)
 
 private fun <K : Any> StorageProjectReactor<K>.doUpload(key: K, contentBytes: ByteArray) = contentBytes.size.toLong()
     .let { contentLength ->

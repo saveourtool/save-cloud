@@ -42,9 +42,11 @@ class RawCosvFileStorage(
 
     /**
      * @param organizationName
-     * @return all [RawCosvFileDto]s which fits to [filter]
+     * @return all [RawCosvFileDto]s which has provided [RawCosvFile.organization]
      */
-    fun listByOrganization(organizationName: String): Flux<RawCosvFileDto> = blockingToFlux {
+    fun listByOrganization(
+        organizationName: String,
+    ): Flux<RawCosvFileDto> = blockingToFlux {
         s3KeyManager.listByOrganization(organizationName)
     }
 
