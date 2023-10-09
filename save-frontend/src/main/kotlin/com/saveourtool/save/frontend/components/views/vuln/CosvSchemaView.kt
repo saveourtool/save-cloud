@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.components.views.vuln
 import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
 import com.saveourtool.save.frontend.components.modal.loaderModalStyle
 import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
-import com.saveourtool.save.frontend.components.views.vuln.utils.cosvSchemaJson
+import com.saveourtool.save.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
 import com.saveourtool.save.frontend.utils.*
 
 import react.VFC
@@ -49,7 +49,7 @@ val cosvSchemaView = VFC {
                     to = "https://saveourtool.github.io/cosv4k/"
                 }
                 // FixMe: JSON.stringify not working in kotlin js
-                cosvSchemaJson.drop(1)
+                COSV_SCHEMA_JSON.drop(1)
                     .dropLast(1)
                     .split("\n")
                     .forEach {

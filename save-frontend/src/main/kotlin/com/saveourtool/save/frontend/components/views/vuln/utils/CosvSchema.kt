@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.vuln.utils
 
-val cosvSchemaJson = """
+const val COSV_SCHEMA_JSON = """
 {
   "schema_version": "string",
   "id": "string",
