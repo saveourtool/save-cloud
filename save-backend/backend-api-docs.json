@@ -11228,81 +11228,6 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/delete-tag": {
-      "delete": {
-        "description": "Delete a tag.",
-        "operationId": "deleteTag",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "identifier",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "tagName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully deleted a tag in vulnerability"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not enough permissions for managing vulnerability"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Requested vulnerability is not found"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Delete a tag.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
     "/api/v1/vulnerabilities/delete-user": {
       "delete": {
         "description": "Delete user.",
@@ -11718,81 +11643,6 @@
           }
         ],
         "summary": "Save new projects.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/save-tag": {
-      "post": {
-        "description": "Save a new tag.",
-        "operationId": "saveTag",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "identifier",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "tagName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully added a new tag to vulnerability"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Not enough permissions for managing vulnerability"
-          },
-          "404": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Requested vulnerability is not found"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Save a new tag.",
         "tags": [
           "vulnerabilities"
         ]
@@ -14797,7 +14647,7 @@
         "required": [
           "allParticipants",
           "cosv",
-          "metadata",
+          "metadataDto",
           "saveContributors"
         ],
         "type": "object",
@@ -14811,7 +14661,7 @@
           "cosv": {
             "$ref": "#/components/schemas/OsvSchemaJsonObjectJsonObjectJsonObjectJsonObject"
           },
-          "metadata": {
+          "metadataDto": {
             "$ref": "#/components/schemas/VulnerabilityMetadataDto"
           },
           "saveContributors": {
