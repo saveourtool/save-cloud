@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers.vuln
 
-import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.views.welcome.FIRST_RAW_HEIGHT
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.validation.FrontendRoutes
@@ -88,10 +87,10 @@ private fun ChildrenBuilder.textCard(
     }
 }
 
+@Suppress("IDENTIFIER_LENGTH")
 private fun ChildrenBuilder.mdCard(
     title: String,
     imageUrl: String,
-    //markdownStr: String,
     t: TranslationFunction,
 ) {
     div {
