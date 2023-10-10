@@ -27,6 +27,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Files
 import kotlin.io.path.*
 
+typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
 /**
  * Rest controller for COSVs
  */
@@ -72,18 +73,24 @@ class CosvController(
      * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/{organizationName}/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(
+        "/{organizationName}/batch-upload",
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
+        produces = [MediaType.APPLICATION_NDJSON_VALUE],
+    )
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
-    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-        .flatMapMany {
-            filePartFlux
-                .flatMap { filePart ->
-                    doUpload(filePart, organizationName, authentication.name, contentLength = null)
-                }
-        }
+    ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
+        hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+            .flatMapMany {
+                filePartFlux
+                    .flatMap { filePart ->
+                        doUpload(filePart, organizationName, authentication.name, contentLength = null)
+                    }
+            }
+    }
 
     private fun doUpload(
         filePart: FilePart,

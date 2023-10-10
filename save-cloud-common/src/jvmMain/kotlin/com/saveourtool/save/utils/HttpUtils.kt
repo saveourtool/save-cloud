@@ -1,7 +1,7 @@
 @file:JvmName("HttpUtils")
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.utils
 
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
@@ -54,7 +54,7 @@ typealias LazyResponseWithTiming<T> = () -> ResponseWithTiming<T>
  * header.
  */
 private fun <T : Any> T.withTimings(vararg timings: ServerTiming): ResponseWithTiming<T> =
-        ResponseWithTiming(this, *timings)
+    ResponseWithTiming(this, *timings)
 
 /**
  * Adds support for the
@@ -62,24 +62,24 @@ private fun <T : Any> T.withTimings(vararg timings: ServerTiming): ResponseWithT
  * header.
  */
 private fun <T : Any> LazyResponse<T>.withTimings(vararg timings: ServerTiming): LazyResponseWithTiming<T> =
-        {
-            val response: T
-            val nanos = measureNanoTime {
-                response = this()
-            }
-
-            when {
-                timings.isEmpty() -> response.withTimings(
-                    ServerTiming(
-                        "total",
-                        "Total server time",
-                        nanos.nanoseconds
-                    )
-                )
-
-                else -> response.withTimings(*timings)
-            }
+    {
+        val response: T
+        val nanos = measureNanoTime {
+            response = this()
         }
+
+        when {
+            timings.isEmpty() -> response.withTimings(
+                ServerTiming(
+                    "total",
+                    "Total server time",
+                    nanos.nanoseconds
+                )
+            )
+
+            else -> response.withTimings(*timings)
+        }
+    }
 
 /**
  * @param timings the server-side timings.
@@ -125,12 +125,12 @@ private fun <T : Any> withHttpHeaders(
  * @return HTTP headers with `Cache-Control` and optional `Server-Timing`.
  */
 private fun httpHeaders(vararg timings: ServerTiming): HttpHeaders =
-        httpHeaders { headers ->
-            headers[CACHE_CONTROL] = cacheControlValues.joinToString()
-            if (timings.isNotEmpty()) {
-                headers[SERVER_TIMING] = timings.joinToString()
-            }
+    httpHeaders { headers ->
+        headers[CACHE_CONTROL] = cacheControlValues.joinToString()
+        if (timings.isNotEmpty()) {
+            headers[SERVER_TIMING] = timings.joinToString()
         }
+    }
 
 /**
  * @return HTTP headers initialized with [init].

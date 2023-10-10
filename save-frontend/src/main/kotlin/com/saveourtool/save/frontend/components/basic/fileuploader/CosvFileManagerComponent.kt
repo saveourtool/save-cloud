@@ -12,6 +12,8 @@ import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
@@ -32,6 +34,11 @@ import web.html.InputType
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.serialization.json.Json
+import org.w3c.fetch.Headers
+import web.http.FormData
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -94,14 +101,28 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
-        filesForUploading.forEach { fileForUploading ->
-            val uploadedFiles: List<RawCosvFileDto> = postUploadFile(
-                url = "$apiUrl/cosv/$selectedOrganization/upload",
-                file = fileForUploading,
-                loadingHandler = ::noopLoadingHandler,
-            ).decodeFromJsonString()
-            setUploadBytesReceived { it.plus(fileForUploading.size.toLong()) }
-            setAvailableFiles { it.plus(uploadedFiles) }
+        val response = post(
+            url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
+            headers = Headers(jso {
+                Accept = "application/x-ndjson"
+            }),
+            body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        )
+        when {
+            response.ok -> response
+                .readLines()
+                .filter(String::isNotEmpty)
+                .onCompletion {
+                    fetchFiles()
+                }
+                .collect { message ->
+                    val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                    setUploadBytesReceived { it.plus(1) }
+                    setAvailableFiles { it.plus(uploadedFile) }
+                }
+            else -> window.alert(response.unpackMessageOrNull().orEmpty())
         }
     }
 
@@ -172,7 +193,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         files!!.asList()
-                            .also { fileList -> setUploadBytesTotal(fileList.sumOf { it.size }.toLong()) }
+                            .also { fileList -> setUploadBytesTotal(fileList.size.toLong()) }
                             .let { setFilesForUploading(it) }
                         uploadFiles()
                     }

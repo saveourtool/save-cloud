@@ -74,11 +74,15 @@ class DefaultStorageProjectReactor<K : Any>(
                                 .flatMap { (index, buffer) ->
                                     s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
                                         .toMonoAndPublishOn()
+                                        .map { it to buffer.capacity() }
                                 }
                                 .collectList()
-                                .flatMap { uploadPartResults ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResults)
+                                .flatMap { uploadPartResultWithSizeList ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.first })
                                         .toMonoAndPublishOn()
+                                        .map {
+                                            uploadPartResultWithSizeList.sumOf { it.second }
+                                        }
                                 }
                         }
                         .flatMap {
@@ -97,10 +101,11 @@ class DefaultStorageProjectReactor<K : Any>(
                         .doOnError {
                             s3KeyManager.delete(key)
                         }
-                        .map {
-                            requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                "Not found inserted updated key for $key"
-                            }
+                        .flatMap {
+                            findKey(s3Key)
+                                .switchIfEmptyToNotFound {
+                                    "Not found inserted updated key for $key"
+                                }
                         }
                 }
 
