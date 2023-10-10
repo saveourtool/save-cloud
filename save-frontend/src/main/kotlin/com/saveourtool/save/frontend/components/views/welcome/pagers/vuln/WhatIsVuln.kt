@@ -9,7 +9,6 @@ import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
