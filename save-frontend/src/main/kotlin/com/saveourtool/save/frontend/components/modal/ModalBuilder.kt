@@ -7,6 +7,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.modal.Styles
 import com.saveourtool.save.frontend.utils.WindowOpenness
 import com.saveourtool.save.frontend.utils.buttonBuilder
+import js.core.jso
 import react.CSSProperties
 
 import react.ChildrenBuilder
@@ -15,8 +16,10 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.pre
 import react.dom.html.ReactHTML.span
 import web.cssom.ClassName
+import web.cssom.rem
 import web.html.ButtonType
 
 /**
@@ -86,6 +89,7 @@ fun ChildrenBuilder.displayModal(
  * @param modalStyle [Styles] that will be applied to react modal
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
+ * @return modal
  */
 @Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.displayModal(
@@ -95,13 +99,25 @@ fun ChildrenBuilder.displayModal(
     modalStyle: Styles = mediumTransparentModalStyle,
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
-) {
-    modal { props ->
-        props.isOpen = isOpen
-        props.style = modalStyle
-        modalBuilder(title, message, onCloseButtonPressed, buttonBuilder)
-    }
-}
+) = doCreateDisplayModal(false, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
+
+/**
+ * @see displayModal
+ */
+@Suppress(
+    "LongParameterList",
+    "TOO_MANY_PARAMETERS",
+    "KDOC_WITHOUT_PARAM_TAG",
+    "KDOC_WITHOUT_RETURN_TAG"
+)
+fun ChildrenBuilder.displayModalWithPreTag(
+    isOpen: Boolean,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) = doCreateDisplayModal(true, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
 
 /**
  * Universal function to create modals with click condition styles inside react modals
@@ -228,27 +244,38 @@ fun ChildrenBuilder.displaySimpleModal(
 /**
  * Universal function to create modals with bootstrap styles.
  *
+ * @param usePreTag whether to use `ReactHTML.pre` tag
  * @param title title of the modal that will be shown in top-left corner
  * @param message main text that will be shown in the center of modal
  * @param onCloseButtonPressed callback that will be applied to `X` button in the top-right corner
  * @param buttonBuilder lambda that generates several buttons, must contain either [button] or [buttonBuilder]
  */
 fun ChildrenBuilder.modalBuilder(
+    usePreTag: Boolean,
     title: String,
     message: String,
     onCloseButtonPressed: (() -> Unit)?,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
+    val customWidth: CSSProperties? = if (usePreTag) jso { width = 40.rem } else null
     modalBuilder(
         title = title,
         onCloseButtonPressed = onCloseButtonPressed,
         bodyBuilder = {
-            h2 {
-                className = ClassName("h6 text-gray-800 mb-2")
-                +message
+            if (!usePreTag) {
+                h2 {
+                    className = ClassName("h6 text-gray-800 mb-2")
+                    +message
+                }
+            } else {
+                pre {
+                    className = ClassName("text-gray-800 mb-2 overflow-x:hidden")
+                    +message
+                }
             }
         },
         buttonBuilder = buttonBuilder,
+        customWidth = customWidth
     )
 }
 
@@ -359,5 +386,22 @@ fun ChildrenBuilder.onCloseFun(
                 }
             }
         }
+    }
+}
+
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
+private fun ChildrenBuilder.doCreateDisplayModal(
+    usePreTag: Boolean,
+    isOpen: Boolean,
+    title: String,
+    message: String,
+    modalStyle: Styles = mediumTransparentModalStyle,
+    onCloseButtonPressed: (() -> Unit)? = null,
+    buttonBuilder: ChildrenBuilder.() -> Unit,
+) {
+    modal { props ->
+        props.isOpen = isOpen
+        props.style = modalStyle
+        modalBuilder(usePreTag, title, message, onCloseButtonPressed, buttonBuilder)
     }
 }
