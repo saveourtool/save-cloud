@@ -10,14 +10,13 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
 import js.core.jso
+import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.b
@@ -31,14 +30,12 @@ import web.cssom.ClassName
 import web.cssom.Cursor
 import web.file.File
 import web.html.InputType
+import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
-import web.http.FormData
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()

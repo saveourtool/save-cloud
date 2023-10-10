@@ -80,15 +80,15 @@ class DefaultStorageProjectReactor<K : Any>(
                                 }
                                 .collectList()
                                 .flatMap { uploadPartResultWithSizeList ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.completedPart })
+                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.completedPart() })
                                         .toMonoAndPublishOn()
                                         .map {
-                                            uploadPartResultWithSizeList.sumOf { it.contentLength }
+                                            uploadPartResultWithSizeList.sumOf { it.contentLength() }
                                         }
                                 }
                         }
                         .flatMap { contentLength ->
-                            findKey(s3Key, contentLength)
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
                                 .switchIfEmptyToNotFound {
                                     "Not found inserted updated key for $key"
                                 }
@@ -104,7 +104,7 @@ class DefaultStorageProjectReactor<K : Any>(
                             s3KeyManager.delete(key)
                         }
                         .flatMap {
-                            findKey(s3Key, contentLength)
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
                                 .switchIfEmptyToNotFound {
                                     "Not found inserted updated key for $key"
                                 }
@@ -170,7 +170,12 @@ class DefaultStorageProjectReactor<K : Any>(
 
     private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
 
-    private fun findKey(s3Key: String, contentLength: Long): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key)?.let { updateKeyByContentLength(it, contentLength) } }
+    private fun findKeyAndUpdateByContentLength(s3Key: String, contentLength: Long): Mono<K> = s3KeyManager.callAsMono {
+        findKey(s3Key)?.let {
+            updateKeyByContentLength(it,
+                contentLength)
+        }
+    }
 
     private fun findExistedS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { findExistedS3Key(key) }
 
@@ -183,9 +188,7 @@ class DefaultStorageProjectReactor<K : Any>(
                 { function(this) }.toMono()
             }
 
-    private val Pair<CompletedPart, Long>.completedPart: CompletedPart
-        get() = first
+    private fun Pair<CompletedPart, Long>.completedPart() = first
 
-    private val Pair<CompletedPart, Long>.contentLength: Long
-        get() = second
+    private fun Pair<CompletedPart, Long>.contentLength() = second
 }
