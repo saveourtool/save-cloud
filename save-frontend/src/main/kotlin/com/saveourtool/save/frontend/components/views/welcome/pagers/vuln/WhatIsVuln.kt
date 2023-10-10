@@ -119,7 +119,7 @@ private fun ChildrenBuilder.mdCard(
             }
             div {
                 className = ClassName("col-8 align-middle pr-4 m-3 overflow-x:hidden")
-                ReactHTML.pre {
+                pre {
                     Link {
                         +"OSV Schema "
                         to = "https://ossf.github.io/osv-schema/"
