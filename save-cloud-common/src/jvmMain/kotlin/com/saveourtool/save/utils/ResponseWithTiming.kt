@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.utils
 
 /**
  * Adds support for the
