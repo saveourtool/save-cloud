@@ -119,7 +119,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
-                    setUploadBytesReceived { it.plus(1) }
+                    setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
                     setAvailableFiles { it.plus(uploadedFile) }
                 }
             else -> window.alert(response.unpackMessageOrNull().orEmpty())
@@ -193,7 +193,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         files!!.asList()
-                            .also { fileList -> setUploadBytesTotal(fileList.size.toLong()) }
+                            .also { setUploadBytesTotal(it.sumOf(File::size).toLong()) }
                             .let { setFilesForUploading(it) }
                         uploadFiles()
                     }

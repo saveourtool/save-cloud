@@ -27,6 +27,13 @@ interface S3KeyManager<K : Any> {
 
     /**
      * @param key
+     * @param contentLength content length is to set to [K]
+     * @return [K] is updated by [contentLength]
+     */
+    fun updateKeyByContentLength(key: K, contentLength: Long): K = key
+
+    /**
+     * @param key
      * @return s3 key, cannot start with [com.saveourtool.save.storage.PATH_DELIMITER]
      */
     fun createNewS3Key(key: K): String
