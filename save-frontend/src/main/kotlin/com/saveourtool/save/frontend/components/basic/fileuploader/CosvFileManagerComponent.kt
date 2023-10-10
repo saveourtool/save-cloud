@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
@@ -18,6 +19,7 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
@@ -32,9 +34,12 @@ import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.json.Json
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
+    val (t) = useTranslation("vulnerability-upload")
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
@@ -47,6 +52,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+
+    val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
+    val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
+
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
             val response = delete(
@@ -89,14 +98,26 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
-        post(
+        val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            Headers(),
-            FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
+            headers = Headers(jso {
+                Accept = "application/x-ndjson"
+            }),
+            body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
-        fetchFiles()
+        when {
+            response.ok -> response
+                .readLines()
+                .filter(String::isNotEmpty)
+                .collect { message ->
+                    val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                    setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
+                    setAvailableFiles { it.plus(uploadedFile) }
+                }
+            else -> window.alert(response.unpackMessageOrNull().orEmpty())
+        }
     }
 
     val submitCosvFiles = useDeferredRequest {
@@ -115,6 +136,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     div {
+        if (selectedOrganization.isNullOrEmpty()) {
+            div {
+                className = ClassName("mx-auto")
+                b {
+                    +"${"Organization that has permission".t()}!"
+                }
+            }
+        }
+
         organizationSelectForm {
             selectClasses = "custom-select"
             formType = InputTypes.ORGANIZATION_NAME
@@ -156,9 +186,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
+                        files!!.asList()
+                            .also { setUploadBytesTotal(it.sumOf(File::size).toLong()) }
+                            .let { setFilesForUploading(it) }
                         uploadFiles()
                     }
+                }
+            }
+            progressBarComponent {
+                current = uploadBytesReceived
+                total = uploadBytesTotal
+                flushCounters = {
+                    setUploadBytesTotal(0)
+                    setUploadBytesReceived(0)
                 }
             }
 

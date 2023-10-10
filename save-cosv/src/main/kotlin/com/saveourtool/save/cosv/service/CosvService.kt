@@ -4,6 +4,7 @@ import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
+import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
@@ -41,6 +42,7 @@ class CosvService(
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
+    private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
 ) {
     /**
      * @param rawCosvFileIds
@@ -163,8 +165,8 @@ class CosvService(
     ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
-                backendService.getUserByName(rawCosvExt.metadata.user.name),
-                rawCosvExt.metadata.organization?.let { organization ->
+                backendService.getUserByName(rawCosvExt.metadataDto.user.name),
+                rawCosvExt.metadataDto.organization?.let { organization ->
                     backendService.getOrganizationByName(organization.name)
                 }
             )
@@ -208,8 +210,13 @@ class CosvService(
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
             cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
+                val tags = lnkVulnerabilityMetadataTagRepository
+                    .findAllByVulnerabilityMetadataIdentifier(identifier)
+                    .map { it.tag.name }
+                    .toSet()
+
                 VulnerabilityExt(
-                    metadata = metadata.toDto(),
+                    metadataDto = metadata.toDto().copy(tags = tags),
                     cosv = content,
                     // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },

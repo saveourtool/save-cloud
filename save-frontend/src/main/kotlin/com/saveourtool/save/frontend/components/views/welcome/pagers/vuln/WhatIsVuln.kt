@@ -4,15 +4,17 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers.vuln
 
-import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.views.welcome.FIRST_RAW_HEIGHT
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
+import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
+import react.dom.html.ReactHTML.pre
+import react.router.dom.Link
 import web.cssom.*
 
 /**
@@ -44,7 +46,7 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
         div {
             className = ClassName("row mt-4 align-middle")
             div {
-                mdCard("Useful links", "/img/undraw_important.svg", "Links".t().trimIndent())
+                mdCard("Useful links", "/img/undraw_important.svg", t)
             }
         }
     }
@@ -84,10 +86,11 @@ private fun ChildrenBuilder.textCard(
     }
 }
 
+@Suppress("IDENTIFIER_LENGTH")
 private fun ChildrenBuilder.mdCard(
     title: String,
     imageUrl: String,
-    markdownStr: String,
+    t: TranslationFunction,
 ) {
     div {
         className = ClassName("card border border-primary rounded rounded-pill col")
@@ -101,7 +104,7 @@ private fun ChildrenBuilder.mdCard(
                 div {
                     className = ClassName("")
                     img {
-                        className = ClassName("rounded mx-5 my-3")
+                        className = ClassName("rounded pr-4 mx-5 my-3")
                         src = imageUrl
                         style = jso {
                             @Suppress("MAGIC_NUMBER")
@@ -115,8 +118,24 @@ private fun ChildrenBuilder.mdCard(
                 }
             }
             div {
-                className = ClassName("col-8 align-middle m-3")
-                markdown(markdownStr)
+                className = ClassName("col-8 align-middle pr-4 m-3 overflow-x:hidden")
+                pre {
+                    Link {
+                        +"OSV Schema "
+                        to = "https://ossf.github.io/osv-schema/"
+                    }
+                    +"OSV Schema".t()
+                    Link {
+                        +"COSV Schema 1.0 "
+                        to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
+                    }
+                    +"COSV Schema".t()
+                    Link {
+                        +"cosv4k "
+                        to = "https://github.com/saveourtool/cosv4k"
+                    }
+                    +"cosv4k".t()
+                }
             }
         }
     }

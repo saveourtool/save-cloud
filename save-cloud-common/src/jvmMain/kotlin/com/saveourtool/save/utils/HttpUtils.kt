@@ -1,7 +1,7 @@
 @file:JvmName("HttpUtils")
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.backend.utils
+package com.saveourtool.save.utils
 
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
