@@ -4,10 +4,10 @@
 
 package com.saveourtool.save.utils
 
+import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
-import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
@@ -94,6 +94,22 @@ fun Float.asSeverity(): Severity = Severity(
     scoreNum = toString(),
 )
 
+/**
+ * @return list of VulnerabilityProjectDto
+ */
+@Suppress("TOO_MANY_LINES_IN_LAMBDA")
+fun CosvSchema<*, *, *, *>.getVulnerabilityProjects(): List<VulnerabilityProjectDto> = affected?.map {
+    VulnerabilityProjectDto(
+        it.`package`?.name ?: "",
+        it.`package`?.ecosystem ?: "",
+        it.`package`?.repository ?: "",
+        it.`package`?.purl ?: "",
+        it.versions ?: emptyList(),
+        VulnerabilityProjectType.PROJECT,
+        id,
+    )
+} ?: emptyList()
+
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
@@ -108,15 +124,3 @@ private fun TimelineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimelineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
-
-fun CosvSchema<*, *, *, *>.getVulnerabilityProjects(): List<VulnerabilityProjectDto> = affected?.map {
-    VulnerabilityProjectDto(
-        it.`package`?.name ?: "",
-        it.`package`?.ecosystem ?: "",
-        it.`package`?.repository ?: "",
-        it.`package`?.purl ?: "",
-        it.versions ?: emptyList(),
-        VulnerabilityProjectType.PROJECT,
-        id,
-    )
-} ?: emptyList()
