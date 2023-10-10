@@ -22,7 +22,7 @@ private val tagLengthRange = 3..15
  */
 fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
     isNotBlank() && setOf(first(), last()).none { it in namingAllowedSpecialSymbols } &&
-            hasOnlyAlphaNumOrAllowedSpecialSymbols() && !containsForbiddenWords() && isLengthOk(allowedLength)
+            hasOnlyAlphaNumOrAllowedSpecialSymbols() && isAllLettersAreEnglish() && !containsForbiddenWords() && isLengthOk(allowedLength)
 }
 
 /**
@@ -73,6 +73,18 @@ fun String.isValidMaxAllowedLength() = isLengthOk(NAMING_ALLOWED_LENGTH)
  * @return true if [String.length] is in [tagLengthRange] and [String] does not contain commas (`,`), false otherwise
  */
 fun String.isValidTag() = length in tagLengthRange && !contains(",") && isNotBlank()
+
+fun String.isAllLettersAreEnglish(): Boolean {
+    this.forEach {
+        if (it.isLetter()) {
+            if (it.lowercase() < 'a'.toString() || it.lowercase() > 'z'.toString()) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
 
 private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 
