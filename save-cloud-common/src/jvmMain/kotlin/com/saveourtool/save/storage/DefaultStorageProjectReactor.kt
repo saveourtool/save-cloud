@@ -14,6 +14,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.services.s3.model.CompletedPart
 
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -72,17 +73,22 @@ class DefaultStorageProjectReactor<K : Any>(
                         .flatMap { response ->
                             content.index()
                                 .flatMap { (index, buffer) ->
+                                    val contentLength = buffer.remaining().toLong()
                                     s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
                                         .toMonoAndPublishOn()
+                                        .map { it to contentLength }
                                 }
                                 .collectList()
-                                .flatMap { uploadPartResults ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResults)
+                                .flatMap { uploadPartResultWithSizeList ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.completedPart() })
                                         .toMonoAndPublishOn()
+                                        .map {
+                                            uploadPartResultWithSizeList.sumOf { it.contentLength() }
+                                        }
                                 }
                         }
-                        .flatMap {
-                            findKey(s3Key)
+                        .flatMap { contentLength ->
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
                                 .switchIfEmptyToNotFound {
                                     "Not found inserted updated key for $key"
                                 }
@@ -97,10 +103,11 @@ class DefaultStorageProjectReactor<K : Any>(
                         .doOnError {
                             s3KeyManager.delete(key)
                         }
-                        .map {
-                            requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                "Not found inserted updated key for $key"
-                            }
+                        .flatMap {
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
+                                .switchIfEmptyToNotFound {
+                                    "Not found inserted updated key for $key"
+                                }
                         }
                 }
 
@@ -163,6 +170,13 @@ class DefaultStorageProjectReactor<K : Any>(
 
     private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
 
+    private fun findKeyAndUpdateByContentLength(s3Key: String, contentLength: Long): Mono<K> = s3KeyManager.callAsMono {
+        findKey(s3Key)?.let {
+            updateKeyByContentLength(it,
+                contentLength)
+        }
+    }
+
     private fun findExistedS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { findExistedS3Key(key) }
 
     private fun createNewS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { createNewS3Key(key) }
@@ -173,4 +187,8 @@ class DefaultStorageProjectReactor<K : Any>(
             } else {
                 { function(this) }.toMono()
             }
+
+    private fun Pair<CompletedPart, Long>.completedPart() = first
+
+    private fun Pair<CompletedPart, Long>.contentLength() = second
 }
