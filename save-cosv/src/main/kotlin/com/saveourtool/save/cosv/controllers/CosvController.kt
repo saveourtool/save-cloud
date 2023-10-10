@@ -129,7 +129,9 @@ class CosvController(
             log.debug {
                 "Saving archive ${archiveFilePart.filename()} to ${archiveFile.absolutePathString()}"
             }
-            archiveFilePart.transferTo(archiveFile)
+            archiveFilePart.content()
+                .map { it.asByteBuffer() }
+                .collectToFile(archiveFile)
                 .blockingMap {
                     archiveFile.extractZipTo(contentDir)
                 }

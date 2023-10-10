@@ -114,9 +114,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             response.ok -> response
                 .readLines()
                 .filter(String::isNotEmpty)
-                .onCompletion {
-                    fetchFiles()
-                }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
                     setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
