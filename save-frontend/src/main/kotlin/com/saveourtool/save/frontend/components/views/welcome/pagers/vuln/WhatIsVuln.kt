@@ -106,7 +106,7 @@ private fun ChildrenBuilder.mdCard(
                 div {
                     className = ClassName("")
                     img {
-                        className = ClassName("rounded mx-5 my-3")
+                        className = ClassName("rounded pr-4 mx-5 my-3")
                         src = imageUrl
                         style = jso {
                             @Suppress("MAGIC_NUMBER")
@@ -120,24 +120,23 @@ private fun ChildrenBuilder.mdCard(
                 }
             }
             div {
-                className = ClassName("col-8 align-middle m-3 overflow-x:hidden")
-                //markdown(markdownStr)
+                className = ClassName("col-8 align-middle pr-4 m-3 overflow-x:hidden")
                 ReactHTML.pre {
                     Link {
                         +"OSV Schema "
                         to = "https://ossf.github.io/osv-schema/"
                     }
-                    + "OSV Schema".t()
+                    +"OSV Schema".t()
                     Link {
                         +"COSV Schema 1.0 "
                         to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
                     }
-                    + "COSV Schema".t()
+                    +"COSV Schema".t()
                     Link {
                         +"cosv4k "
                         to = "https://github.com/saveourtool/cosv4k"
                     }
-                    + "cosv4k".t()
+                    +"cosv4k".t()
                 }
             }
         }
