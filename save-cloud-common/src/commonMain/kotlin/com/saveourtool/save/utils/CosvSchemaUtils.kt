@@ -4,12 +4,10 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
@@ -110,3 +108,15 @@ private fun TimelineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimelineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
+
+fun CosvSchema<*, *, *, *>.getVulnerabilityProjects(): List<VulnerabilityProjectDto> = affected?.map {
+    VulnerabilityProjectDto(
+        it.`package`?.name ?: "",
+        it.`package`?.ecosystem ?: "",
+        it.`package`?.repository ?: "",
+        it.`package`?.purl ?: "",
+        it.versions ?: emptyList(),
+        VulnerabilityProjectType.PROJECT,
+        id,
+    )
+} ?: emptyList()
