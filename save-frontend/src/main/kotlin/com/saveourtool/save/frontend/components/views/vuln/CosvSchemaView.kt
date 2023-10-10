@@ -11,8 +11,8 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescr
 import com.saveourtool.save.frontend.utils.*
 
 import react.VFC
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.pre
 import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
@@ -66,7 +66,7 @@ val cosvSchemaView = VFC {
                             }
 
                             // show schema, where each key is the button, which will show description about this key vid `onClick`
-                            ReactHTML.pre {
+                            pre {
                                 cosvKey?.let { (key, value) ->
                                     // hold the tabulations
                                     +"${str.takeWhile { it != '\"' }}\""
