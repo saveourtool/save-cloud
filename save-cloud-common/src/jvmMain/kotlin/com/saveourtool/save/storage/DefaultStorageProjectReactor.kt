@@ -71,11 +71,13 @@ class DefaultStorageProjectReactor<K : Any>(
                     s3Operations.createMultipartUpload(s3Key)
                         .toMonoAndPublishOn()
                         .flatMap { response ->
-
-                            content.index()
-                                .flatMap { (index, buffer) ->
-                                    val contentLength = buffer.remaining().toLong()
-                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
+                            content.bufferAccumulatedUntil { buffers ->
+                                buffers.sumOf { it.capacity().toLong() } < multiPartUploadMinPartSizeInBytes
+                            }
+                                .index()
+                                .flatMap { (index, buffers) ->
+                                    val contentLength = buffers.sumOf { it.capacity().toLong() }
+                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffers(*buffers.toTypedArray()))
                                         .toMonoAndPublishOn()
                                         .map { it to contentLength }
                                 }
@@ -192,4 +194,8 @@ class DefaultStorageProjectReactor<K : Any>(
     private fun Pair<CompletedPart, Long>.completedPart() = first
 
     private fun Pair<CompletedPart, Long>.contentLength() = second
+
+    companion object {
+        private val multiPartUploadMinPartSizeInBytes = 5 * 1024 * 1024
+    }
 }
