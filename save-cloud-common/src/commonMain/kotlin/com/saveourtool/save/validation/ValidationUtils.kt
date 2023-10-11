@@ -9,7 +9,7 @@ package com.saveourtool.save.validation
  */
 const val NAMING_ALLOWED_LENGTH = 64
 const val NAMING_MAX_LENGTH = 22
-private val namingAllowedSpecialSymbols = setOf('-', '_', '.', ' ')
+private val namingAllowedSpecialSymbols = setOf('-', '_', '.')
 
 @Suppress("MagicNumber")
 private val tagLengthRange = 3..15
@@ -20,9 +20,12 @@ private val tagLengthRange = 3..15
  * @param allowedLength maximum allowed number of characters, default [NAMING_ALLOWED_LENGTH]
  * @return true if name is valid, false otherwise
  */
-fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
-    isNotBlank() && setOf(first(), last()).none { it in namingAllowedSpecialSymbols } &&
-            hasOnlyAlphaNumOrAllowedSpecialSymbols() && areAllLettersEnglish() && !containsForbiddenWords() && isLengthOk(allowedLength)
+fun String.isValidName(
+        allowedLength: Int = NAMING_ALLOWED_LENGTH,
+        allowedSpecialSymbols: Set<Char> = namingAllowedSpecialSymbols
+) = run {
+    isNotBlank() && setOf(first(), last()).none { it in allowedSpecialSymbols } &&
+            hasOnlyAlphaNumOrAllowedSpecialSymbols(allowedSpecialSymbols) && areAllLettersEnglish() && !containsForbiddenWords() && isLengthOk(allowedLength)
 }
 
 /**
@@ -85,7 +88,9 @@ fun String.areAllLettersEnglish(): Boolean {
     }
 }
 
-private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
+private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols(
+        allowedSpecialSymbols: Set<Char> = namingAllowedSpecialSymbols
+) = all { it.isLetterOrDigit() || allowedSpecialSymbols.contains(it) }
 
 private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
     .any { this == it }

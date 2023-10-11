@@ -21,7 +21,7 @@ fun String.validateUserEmail(): String = if (isValidEmail()) "" else EMAIL_ERROR
  * @return validation in inputField
  */
 fun String.validateRealName(): String =
-        if (!isValidName()) "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, setOf('-', '_', '.', ' '))) "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
 
 /**
  * @return validation in inputField
