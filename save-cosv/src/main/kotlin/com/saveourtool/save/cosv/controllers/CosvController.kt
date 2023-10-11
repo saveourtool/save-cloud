@@ -180,13 +180,21 @@ class CosvController(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
-        hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-            .flatMap { rawCosvFileStorage.findById(id) }
-            .flatMapMany { rawCosvFile ->
-                doUploadArchiveEntries(rawCosvFile.fileName, rawCosvFileStorage.download(rawCosvFile), organizationName, authentication.name)
-            }
-    }
+    ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMap { rawCosvFileStorage.findById(id) }
+        .flatMapMany { rawCosvFile ->
+            doUploadArchiveEntries(
+                rawCosvFile.fileName,
+                rawCosvFileStorage.download(rawCosvFile),
+                organizationName,
+                authentication.name
+            )
+        }
+        .let {
+            ResponseEntity.ok()
+                .cacheControlForNdjson()
+                .body(it)
+        }
 
     /**
      * @param organizationName
