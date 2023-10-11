@@ -3,9 +3,8 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.utils.http.HttpHeader
-import com.saveourtool.save.utils.http.ServerTimingHttpHeader
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
 import kotlin.contracts.ExperimentalContracts
@@ -14,28 +13,55 @@ import kotlin.contracts.contract
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
 
+private const val SERVER_TIMING = "Server-Timing"
+
+/**
+ * [`no-transform`](https://www.rfc-editor.org/rfc/rfc7234#section-5.2.2.4)
+ * is absolutely necessary, so that SSE stream passes through the
+ * [proxy](https://github.com/chimurai/http-proxy-middleware) without
+ * [compression](https://github.com/expressjs/compression).
+ *
+ * Otherwise, the front-end receives all the events at once, and only
+ * after the response body is fully written.
+ *
+ * See
+ * [this comment](https://github.com/facebook/create-react-app/issues/7847#issuecomment-544715338)
+ * for details:
+ *
+ * The rest of the `Cache-Control` header is merely what _Spring_ sets by default.
+ */
+private val cacheControlValues: Array<out String> = arrayOf(
+    "no-cache",
+    "no-store",
+    "no-transform",
+    "max-age=0",
+    "must-revalidate",
+)
+
 /**
  * Lazy HTTP response.
  */
 typealias LazyResponse<T> = () -> T
 
 /**
- * Lazy HTTP response with headers.
+ * Lazy HTTP response with timings.
  */
-typealias LazyResponseWithHeaders<T> = () -> ResponseWithHeaders<T>
-
-/**
- * Adds support for the required headers.
- */
-private fun <T : Any> T.withHeaders(vararg headers: HttpHeader): ResponseWithHeaders<T> =
-        ResponseWithHeaders(this, *headers)
+typealias LazyResponseWithTiming<T> = () -> ResponseWithTiming<T>
 
 /**
  * Adds support for the
  * [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing)
  * header.
  */
-private fun <T : Any> LazyResponse<T>.withHeaders(vararg headers: HttpHeader): LazyResponseWithHeaders<T> =
+private fun <T : Any> T.withTimings(vararg timings: ServerTiming): ResponseWithTiming<T> =
+        ResponseWithTiming(this, *timings)
+
+/**
+ * Adds support for the
+ * [`Server-Timing`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Server-Timing)
+ * header.
+ */
+private fun <T : Any> LazyResponse<T>.withTimings(vararg timings: ServerTiming): LazyResponseWithTiming<T> =
         {
             val response: T
             val nanos = measureNanoTime {
@@ -43,36 +69,33 @@ private fun <T : Any> LazyResponse<T>.withHeaders(vararg headers: HttpHeader): L
             }
 
             when {
-                headers.none { it is ServerTimingHttpHeader } -> response.withHeaders(
-                    *headers,
-                    ServerTimingHttpHeader(
-                        ServerTiming(
-                            "total",
-                            "Total server time",
-                            nanos.nanoseconds
-                        )
+                timings.isEmpty() -> response.withTimings(
+                    ServerTiming(
+                        "total",
+                        "Total server time",
+                        nanos.nanoseconds
                     )
                 )
 
-                else -> response.withHeaders(*headers)
+                else -> response.withTimings(*timings)
             }
         }
 
 /**
- * @param headers the headers.
+ * @param timings the server-side timings.
  * @param lazyResponse the lazy HTTP response.
  * @return [lazyResponse] wrapped with HTTP headers.
  */
 @OptIn(ExperimentalContracts::class)
 fun <T : Any> withHttpHeaders(
-    vararg headers: HttpHeader,
+    vararg timings: ServerTiming,
     lazyResponse: LazyResponse<T>,
 ): ResponseEntity<T> {
     contract {
         callsInPlace(lazyResponse, EXACTLY_ONCE)
     }
 
-    return withHttpHeaders(lazyResponse.withHeaders(*headers))
+    return withHttpHeaders(lazyResponse.withTimings(*timings))
 }
 
 /**
@@ -83,7 +106,7 @@ fun <T : Any> withHttpHeaders(
  */
 @OptIn(ExperimentalContracts::class)
 private fun <T : Any> withHttpHeaders(
-    lazyResponse: LazyResponseWithHeaders<T>,
+    lazyResponse: LazyResponseWithTiming<T>,
 ): ResponseEntity<T> {
     contract {
         callsInPlace(lazyResponse, EXACTLY_ONCE)
@@ -93,7 +116,7 @@ private fun <T : Any> withHttpHeaders(
 
     return ResponseEntity(
         response.response,
-        httpHeaders(*response.headers),
+        httpHeaders(*response.timings),
         OK,
     )
 }
@@ -101,10 +124,11 @@ private fun <T : Any> withHttpHeaders(
 /**
  * @return HTTP headers with `Cache-Control` and optional `Server-Timing`.
  */
-private fun httpHeaders(vararg headers: HttpHeader): HttpHeaders =
-        httpHeaders { headersBuilder ->
-            headers.forEach { header ->
-                headersBuilder[header.name] = header.value
+private fun httpHeaders(vararg timings: ServerTiming): HttpHeaders =
+        httpHeaders { headers ->
+            headers[CACHE_CONTROL] = cacheControlValues.joinToString()
+            if (timings.isNotEmpty()) {
+                headers[SERVER_TIMING] = timings.joinToString()
             }
         }
 
