@@ -2308,7 +2308,7 @@
         "responses": {
           "401": {
             "content": {
-              "*/*": {
+              "application/x-ndjson": {
                 "schema": {
                   "type": "array",
                   "items": {
@@ -2595,6 +2595,89 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
+    "/api/v1/cosv/{organizationName}/upload": {
+      "post": {
+        "operationId": "upload_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Content-Length-Custom",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
                 }
               }
             },
@@ -13693,6 +13776,10 @@
         ],
         "type": "object",
         "properties": {
+          "contentLength": {
+            "type": "integer",
+            "format": "int64"
+          },
           "fileName": {
             "type": "string"
           },
