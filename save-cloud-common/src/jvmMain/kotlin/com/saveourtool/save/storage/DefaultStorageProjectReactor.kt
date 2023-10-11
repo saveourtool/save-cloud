@@ -71,19 +71,29 @@ class DefaultStorageProjectReactor<K : Any>(
                     s3Operations.createMultipartUpload(s3Key)
                         .toMonoAndPublishOn()
                         .flatMap { response ->
-                            content.index()
-                                .flatMap { (index, buffer) ->
-                                    val contentLength = buffer.remaining().toLong()
-                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
+                            content.bufferAccumulatedUntil { buffers ->
+                                buffers.capacity() < MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES
+                            }
+                                .index()
+                                .flatMap { (index, buffers) ->
+                                    val contentLength = buffers.capacity().toLong()
+                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffers(*buffers.toTypedArray()))
                                         .toMonoAndPublishOn()
-                                        .map { it to contentLength }
+                                        .map { CompletedPartExt(it, contentLength) }
                                 }
                                 .collectList()
-                                .flatMap { uploadPartResultWithSizeList ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.completedPart() })
+                                .flatMap { uploadPartExtResults ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartExtResults.map { it.completedPart })
                                         .toMonoAndPublishOn()
                                         .map {
-                                            uploadPartResultWithSizeList.sumOf { it.contentLength() }
+                                            uploadPartExtResults.sumOf { it.contentLength }
+                                        }
+                                }
+                                .onErrorResume { error ->
+                                    s3Operations.abortMultipartUpload(response)
+                                        .toMonoAndPublishOn()
+                                        .flatMap {
+                                            Mono.error(error)
                                         }
                                 }
                         }
@@ -188,7 +198,19 @@ class DefaultStorageProjectReactor<K : Any>(
                 { function(this) }.toMono()
             }
 
-    private fun Pair<CompletedPart, Long>.completedPart() = first
+    companion object {
+        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html
+        private const val MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES = 5 * 1024 * 1024
 
-    private fun Pair<CompletedPart, Long>.contentLength() = second
+        private fun List<ByteBuffer>.capacity() = sumOf { it.capacity() }
+
+        /**
+         * @property completedPart
+         * @property contentLength
+         */
+        private data class CompletedPartExt(
+            val completedPart: CompletedPart,
+            val contentLength: Long,
+        )
+    }
 }
