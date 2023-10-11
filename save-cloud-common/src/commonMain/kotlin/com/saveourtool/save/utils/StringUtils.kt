@@ -5,12 +5,10 @@ package com.saveourtool.save.utils
 /**
  * @return short [String] for list values
  */
-fun List<String>?.listToShortString(): String {
-    this?.run {
-        return if (size <= 2) {
-            this.joinToString(" ,")
-        } else {
-            "${first()} ... ${last()}"
-        }
-    } ?: return ""
-}
+fun List<String>?.listToShortString(): String = this?.run {
+    if (size <= 2) {
+        this.joinToString(" ,")
+    } else {
+        "${first()} ... ${last()}"
+    }
+}.orEmpty()
