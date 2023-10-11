@@ -20,8 +20,7 @@ import com.saveourtool.save.validation.isValidName
 import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
-import react.FC
-import react.Props
+import react.VFC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -42,7 +41,7 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.serialization.json.Json
 
-val cosvFileManagerComponent: FC<Props> = FC { _ ->
+val cosvFileManagerComponent: VFC = VFC {
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
 
@@ -295,6 +294,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             }
         }
     }
+}
+
+private fun RawCosvFileDto.unzipButton(): VFC = VFC {
+    val (unzippedBytesReceived, setUploadBytesReceived) = useState(0L)
+    val (unzippedBytesTotal, setUploadBytesTotal) = useState(0L)
 }
 
 private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
