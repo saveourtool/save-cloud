@@ -21,19 +21,19 @@ fun String.validateUserEmail(): String = if (isValidEmail()) "" else EMAIL_ERROR
  * @return validation in inputField
  */
 fun String.validateRealName(): String =
-        if (!isValidMaxAllowedLength()) "Name should be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName()) "Name should contain only english letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
 
 /**
  * @return validation in inputField
  */
 fun String.validateCompany(): String =
-        if (!isValidMaxAllowedLength()) "Affiliation should be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName()) "Affiliation should contain only english letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
 
 /**
  * @return validation in inputField
  */
 fun String.validateLocation(): String =
-        if (!isValidMaxAllowedLength()) "Location should be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName()) "Location should contain only english letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
 
 /**
  * @return validation in inputField

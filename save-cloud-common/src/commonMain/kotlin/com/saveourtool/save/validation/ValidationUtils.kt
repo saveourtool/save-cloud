@@ -9,7 +9,7 @@ package com.saveourtool.save.validation
  */
 const val NAMING_ALLOWED_LENGTH = 64
 const val NAMING_MAX_LENGTH = 22
-private val namingAllowedSpecialSymbols = setOf('-', '_', '.')
+private val namingAllowedSpecialSymbols = setOf('-', '_', '.', ' ')
 
 @Suppress("MagicNumber")
 private val tagLengthRange = 3..15
@@ -22,7 +22,7 @@ private val tagLengthRange = 3..15
  */
 fun String.isValidName(allowedLength: Int = NAMING_ALLOWED_LENGTH) = run {
     isNotBlank() && setOf(first(), last()).none { it in namingAllowedSpecialSymbols } &&
-            hasOnlyAlphaNumOrAllowedSpecialSymbols() && isAllLettersAreEnglish() && !containsForbiddenWords() && isLengthOk(allowedLength)
+            hasOnlyAlphaNumOrAllowedSpecialSymbols() && areAllLettersEnglish() && !containsForbiddenWords() && isLengthOk(allowedLength)
 }
 
 /**
@@ -74,12 +74,10 @@ fun String.isValidMaxAllowedLength() = isLengthOk(NAMING_ALLOWED_LENGTH)
  */
 fun String.isValidTag() = length in tagLengthRange && !contains(",") && isNotBlank()
 
-fun String.isAllLettersAreEnglish(): Boolean {
-    this.forEach {
-        if (it.isLetter()) {
-            if (it.lowercase() < 'a'.toString() || it.lowercase() > 'z'.toString()) {
-                return false
-            }
+fun String.areAllLettersEnglish(): Boolean {
+    this.filter { it.isLetter() }.forEach {
+        if (it.lowercase() < 'a'.toString() || it.lowercase() > 'z'.toString()) {
+            return false
         }
     }
     return true
