@@ -11,12 +11,10 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.utils.http.CacheControlHttpHeader
 import com.saveourtool.save.v1
 import org.reactivestreams.Publisher
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
@@ -25,6 +23,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.nio.ByteBuffer
 import java.nio.file.Files
+import java.time.Duration
 import kotlin.io.path.*
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
@@ -83,15 +82,29 @@ class CosvController(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
-    ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
-        hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-            .flatMapMany {
-                filePartFlux
-                    .flatMap { filePart ->
-                        doUpload(filePart, organizationName, authentication.name, contentLength = null)
-                    }
-            }
-    }
+    ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMapMany {
+            filePartFlux
+                .flatMap { filePart ->
+                    doUpload(filePart, organizationName, authentication.name, contentLength = null)
+                }
+        }
+        .let {
+            ResponseEntity
+                .ok()
+                .cacheControl(
+                    CacheControl
+                        .noStore()
+                        .noCache()
+                        .noTransform()
+                        .sMaxAge(Duration.ZERO)
+                        .mustRevalidate()
+                )
+                .headers { headers ->
+                    headers[HttpHeaders.CACHE_CONTROL] = CacheControlHttpHeader.value
+                }
+                .body(it)
+        }
 
     private fun doUpload(
         filePart: FilePart,
