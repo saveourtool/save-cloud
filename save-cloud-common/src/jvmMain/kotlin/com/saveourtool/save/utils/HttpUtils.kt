@@ -3,10 +3,12 @@
 
 package com.saveourtool.save.utils
 
+import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
+import java.time.Duration
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
@@ -145,3 +147,14 @@ private fun httpHeaders(init: (headers: HttpHeaders) -> Unit): HttpHeaders {
         init(headers)
     }
 }
+
+/**
+ * Adds required [HttpHeaders.CACHE_CONTROL] to support [org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE]
+ * @return builder [this]
+ */
+fun ResponseEntity.BodyBuilder.cacheControlForNdjson() = cacheControl(
+    CacheControl
+        .noStore() // no-cache and max-age cannot be set
+        .noTransform()
+        .mustRevalidate()
+)

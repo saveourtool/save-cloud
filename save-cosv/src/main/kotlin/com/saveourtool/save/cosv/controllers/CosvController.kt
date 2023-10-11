@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.http.CacheControlHttpHeader
 import com.saveourtool.save.v1
 import org.reactivestreams.Publisher
 import org.springframework.http.*
@@ -23,7 +22,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.nio.ByteBuffer
 import java.nio.file.Files
-import java.time.Duration
 import kotlin.io.path.*
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
@@ -92,17 +90,7 @@ class CosvController(
         .let {
             ResponseEntity
                 .ok()
-                .cacheControl(
-                    CacheControl
-                        .noStore()
-                        .noCache()
-                        .noTransform()
-                        .sMaxAge(Duration.ZERO)
-                        .mustRevalidate()
-                )
-                .headers { headers ->
-                    headers[HttpHeaders.CACHE_CONTROL] = CacheControlHttpHeader.value
-                }
+                .cacheControlForNdjson()
                 .body(it)
         }
 
