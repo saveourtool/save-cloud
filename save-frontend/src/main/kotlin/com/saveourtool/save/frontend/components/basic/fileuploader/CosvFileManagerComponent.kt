@@ -34,6 +34,8 @@ import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.json.Json
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -50,6 +52,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+
+    val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
+    val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
+
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
             val response = delete(
@@ -92,14 +98,26 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
-        post(
+        val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            Headers(),
-            FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
-            loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
+            headers = Headers(jso {
+                Accept = "application/x-ndjson"
+            }),
+            body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
         )
-        fetchFiles()
+        when {
+            response.ok -> response
+                .readLines()
+                .filter(String::isNotEmpty)
+                .collect { message ->
+                    val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                    setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
+                    setAvailableFiles { it.plus(uploadedFile) }
+                }
+            else -> window.alert(response.unpackMessageOrNull().orEmpty())
+        }
     }
 
     val submitCosvFiles = useDeferredRequest {
@@ -168,9 +186,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
+                        files!!.asList()
+                            .also { setUploadBytesTotal(it.sumOf(File::size).toLong()) }
+                            .let { setFilesForUploading(it) }
                         uploadFiles()
                     }
+                }
+            }
+            progressBarComponent {
+                current = uploadBytesReceived
+                total = uploadBytesTotal
+                flushCounters = {
+                    setUploadBytesTotal(0)
+                    setUploadBytesReceived(0)
                 }
             }
 

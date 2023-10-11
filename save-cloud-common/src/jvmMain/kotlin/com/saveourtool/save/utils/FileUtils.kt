@@ -6,6 +6,7 @@ package com.saveourtool.save.utils
 
 import com.akuleshov7.ktoml.file.TomlFileReader
 import okio.FileSystem
+import org.slf4j.Logger
 import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono
 
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.file.Files
@@ -25,9 +27,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 import java.util.stream.Collectors
 
-import kotlin.io.path.exists
-import kotlin.io.path.name
-import kotlin.io.path.outputStream
+import kotlin.io.path.*
 import kotlin.jvm.Throws
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -144,6 +144,18 @@ actual fun ByteArray.writeToFile(file: okio.Path, mustCreate: Boolean) {
         mustCreate = mustCreate,
     ) {
         write(this@writeToFile).flush()
+    }
+}
+
+/**
+ * @param log logger to log debug message with potential [IOException]
+ */
+@OptIn(ExperimentalPathApi::class)
+fun Path.deleteRecursivelySafely(log: Logger): Unit = try {
+    deleteRecursively()
+} catch (e: IOException) {
+    log.debug(e) {
+        "Failed to delete recursively ${absolutePathString()}"
     }
 }
 

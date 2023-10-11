@@ -88,11 +88,6 @@ class RawCosvFileS3KeyManager(
         it.organization to it.user
     }
 
-    /**
-     * @param id
-     * @return [K] for [E] with provided [id]
-     */
-    override fun findKeyByEntityId(
-        id: Long,
-    ): RawCosvFileDto? = super.findKeyByEntityId(id)
+    override fun updateKeyByContentLength(key: RawCosvFileDto, contentLength: Long): RawCosvFileDto =
+            key.copy(contentLength = contentLength)
 }
