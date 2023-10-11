@@ -5,13 +5,19 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
+import com.saveourtool.save.domain.Progress
+import com.saveourtool.save.domain.Progress.Companion.withProgress
+import com.saveourtool.save.domain.Progressable
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.reactivestreams.Publisher
 import org.springframework.http.*
 import org.springframework.http.codec.multipart.FilePart
@@ -23,6 +29,7 @@ import reactor.core.scheduler.Schedulers
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import kotlin.io.path.*
+import kotlin.math.round
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
 
@@ -41,6 +48,8 @@ class CosvController(
         backendService.workingDir.createDirectories(),
         "archive-"
     )
+
+    private val json = Json
 
     /**
      * @param organizationName
@@ -119,7 +128,7 @@ class CosvController(
         archiveFileContent: Flux<ByteBuffer>,
         organizationName: String,
         userName: String,
-    ): Flux<RawCosvFileDto> = blockingToMono {
+    ): Flux<UnzipRawCosvFileResponse> = blockingToMono {
         val tmpDir = createTempDirectoryForArchive()
         val tmpArchiveFile = tmpDir / archiveFileName
         val contentDir = Files.createTempDirectory(tmpDir, "content-")
@@ -133,28 +142,36 @@ class CosvController(
                 .collectToFile(tmpArchiveFile)
                 .blockingMap {
                     tmpArchiveFile.extractZipTo(contentDir)
+                    val entries = contentDir.listDirectoryEntries()
+                    entries.map { it to it.fileSize() } to tmpArchiveFile.fileSize()
                 }
-                .flatMapMany {
-                    blockingToFlux {
-                        contentDir.listDirectoryEntries()
-                    }
-                        .flatMap { file ->
-                            log.debug {
-                                "Processing ${file.absolutePathString()}"
-                            }
-                            rawCosvFileStorage.upload(
-                                key = RawCosvFileDto(
-                                    concatS3Key(archiveFileName, file.relativeTo(contentDir).toString()),
-                                    organizationName = organizationName,
-                                    userName = userName,
-                                ),
-                                contentLength = file.fileSize(),
-                                content = file.toByteBufferFlux(),
-                            )
-                        }
-                }
-                .doOnComplete {
-                    tmpDir.deleteRecursivelySafely(log)
+                .flatMapMany { (entryWithSizeList, archiveSize) ->
+                    val fullSize = archiveSize * 2 + entryWithSizeList.sumOf { it.second }
+                    val firstAndLastResponse = UnzipRawCosvFileResponse(null, archiveSize, fullSize)
+                    Flux.concat(
+                        Mono.just(firstAndLastResponse),
+                        Flux.fromIterable(entryWithSizeList.map { it.first })
+                            .flatMap { file ->
+                                log.debug {
+                                    "Processing ${file.absolutePathString()}"
+                                }
+                                val contentLength = file.fileSize()
+                                rawCosvFileStorage.upload(
+                                    key = RawCosvFileDto(
+                                        concatS3Key(archiveFileName, file.relativeTo(contentDir).toString()),
+                                        organizationName = organizationName,
+                                        userName = userName,
+                                    ),
+                                    contentLength = contentLength,
+                                    content = file.toByteBufferFlux(),
+                                )
+                                    .map { UnzipRawCosvFileResponse(it, contentLength, fullSize) }
+                            },
+                        blockingToMono {
+                            tmpDir.deleteRecursivelySafely(log)
+                        }.thenReturn(firstAndLastResponse),
+                    )
+
                 }
                 .onErrorResume { error ->
                     log.error(error) {
@@ -173,14 +190,14 @@ class CosvController(
     @RequiresAuthorizationSourceHeader
     @PostMapping(
         "/{organizationName}/unzip/{id}",
-        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
         produces = [MediaType.APPLICATION_NDJSON_VALUE],
     )
     fun unzip(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+    ): ResponseEntity<Flux<UnzipRawCosvFileResponse>> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
         .flatMap { rawCosvFileStorage.findById(id) }
         .flatMapMany { rawCosvFile ->
             doUploadArchiveEntries(

@@ -45,6 +45,11 @@ val jsonHeaders = Headers().apply {
     set("Content-Type", "application/json")
 }
 
+val ndJsonHeaders = Headers().apply {
+    set("Content-Type", "application/json")
+    set("Accept", "application/x-ndjson")
+}
+
 /**
  * The chunk of data read from the body of an HTTP response.
  *
