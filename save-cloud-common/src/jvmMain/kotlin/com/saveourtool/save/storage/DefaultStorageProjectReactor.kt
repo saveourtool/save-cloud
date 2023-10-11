@@ -89,6 +89,13 @@ class DefaultStorageProjectReactor<K : Any>(
                                             uploadPartExtResults.sumOf { it.contentLength }
                                         }
                                 }
+                                .onErrorResume { error ->
+                                    s3Operations.abortMultipartUpload(response)
+                                        .toMonoAndPublishOn()
+                                        .flatMap {
+                                            Mono.error(error)
+                                        }
+                                }
                         }
                         .flatMap { contentLength ->
                             findKeyAndUpdateByContentLength(s3Key, contentLength)
@@ -192,6 +199,7 @@ class DefaultStorageProjectReactor<K : Any>(
             }
 
     companion object {
+        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html
         private const val MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES = 5 * 1024 * 1024
 
         private fun List<ByteBuffer>.capacity() = sumOf { it.capacity() }
