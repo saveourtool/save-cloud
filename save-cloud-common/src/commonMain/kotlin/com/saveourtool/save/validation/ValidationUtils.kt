@@ -74,15 +74,16 @@ fun String.isValidMaxAllowedLength() = isLengthOk(NAMING_ALLOWED_LENGTH)
  */
 fun String.isValidTag() = length in tagLengthRange && !contains(",") && isNotBlank()
 
+/**
+ * Check if each of letter in string is English
+ *
+ * @return true if all letters are English, false otherwise
+ */
 fun String.areAllLettersEnglish(): Boolean {
-    this.filter { it.isLetter() }.forEach {
-        if (it.lowercase() < 'a'.toString() || it.lowercase() > 'z'.toString()) {
-            return false
-        }
+    return this.filter { it.isLetter() }.all {
+        (it.lowercaseChar() >= 'a') && (it.lowercaseChar() <= 'z')
     }
-    return true
 }
-
 
 private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols() = all { it.isLetterOrDigit() || namingAllowedSpecialSymbols.contains(it) }
 
