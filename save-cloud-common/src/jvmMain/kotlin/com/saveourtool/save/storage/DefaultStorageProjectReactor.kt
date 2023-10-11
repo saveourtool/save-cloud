@@ -72,21 +72,21 @@ class DefaultStorageProjectReactor<K : Any>(
                         .toMonoAndPublishOn()
                         .flatMap { response ->
                             content.bufferAccumulatedUntil { buffers ->
-                                buffers.sumOf { it.capacity().toLong() } < multiPartUploadMinPartSizeInBytes
+                                buffers.capacity() < MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES
                             }
                                 .index()
                                 .flatMap { (index, buffers) ->
-                                    val contentLength = buffers.sumOf { it.capacity().toLong() }
+                                    val contentLength = buffers.capacity().toLong()
                                     s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffers(*buffers.toTypedArray()))
                                         .toMonoAndPublishOn()
-                                        .map { it to contentLength }
+                                        .map { CompletedPartExt(it, contentLength) }
                                 }
                                 .collectList()
-                                .flatMap { uploadPartResultWithSizeList ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResultWithSizeList.map { it.completedPart() })
+                                .flatMap { uploadPartExtResults ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartExtResults.map { it.completedPart })
                                         .toMonoAndPublishOn()
                                         .map {
-                                            uploadPartResultWithSizeList.sumOf { it.contentLength() }
+                                            uploadPartExtResults.sumOf { it.contentLength }
                                         }
                                 }
                         }
@@ -191,11 +191,14 @@ class DefaultStorageProjectReactor<K : Any>(
                 { function(this) }.toMono()
             }
 
-    private fun Pair<CompletedPart, Long>.completedPart() = first
-
-    private fun Pair<CompletedPart, Long>.contentLength() = second
-
     companion object {
-        private val multiPartUploadMinPartSizeInBytes = 5 * 1024 * 1024
+        private const val MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES = 5 * 1024 * 1024
+
+        private fun List<ByteBuffer>.capacity() = sumOf { it.capacity() }
+
+        private data class CompletedPartExt(
+            val completedPart: CompletedPart,
+            val contentLength: Long,
+        )
     }
 }
