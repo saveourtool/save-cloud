@@ -2,6 +2,8 @@
  * Utility method `bufferAccumulatedUntil` for working with Reactor publishers
  */
 
+@file:Suppress("FILE_NAME_MATCH_CLASS")
+
 package com.saveourtool.save.utils
 
 import reactor.core.publisher.Flux
@@ -10,13 +12,14 @@ import java.util.function.Predicate
 typealias BufferedFlux<T> = Flux<List<T>>
 typealias BufferPredicate<T> = Predicate<List<T>>
 
+/**
+ * @property bufferNumber
+ * @property elements
+ */
 private data class Buffer<T : Any>(
     val bufferNumber: Int,
     val elements: List<T>,
-) {
-    val currentElement: T
-        get() = elements.last()
-}
+)
 
 /**
  * Buffers [T] to [List] of [T] till an accumulated buffer fits by [bufferPredicate]
@@ -40,4 +43,4 @@ fun <T : Any> Flux<T>.bufferAccumulatedUntil(bufferPredicate: BufferPredicate<T>
 }
     .skip(1)
     .bufferUntilChanged { it.bufferNumber }
-    .map { buffer -> buffer.map { it.currentElement } }
+    .map { buffer -> buffer.map { it.elements.last() } }

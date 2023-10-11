@@ -196,6 +196,10 @@ class DefaultStorageProjectReactor<K : Any>(
 
         private fun List<ByteBuffer>.capacity() = sumOf { it.capacity() }
 
+        /**
+         * @property completedPart
+         * @property contentLength
+         */
         private data class CompletedPartExt(
             val completedPart: CompletedPart,
             val contentLength: Long,

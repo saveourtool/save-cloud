@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faBoxOpen
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
-import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
@@ -24,6 +23,7 @@ import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.b
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
@@ -33,6 +33,7 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.Cursor
 import web.file.File
+import web.html.ButtonType
 import web.html.InputType
 import web.http.FormData
 
@@ -40,9 +41,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.button
-import web.html.ButtonType
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()

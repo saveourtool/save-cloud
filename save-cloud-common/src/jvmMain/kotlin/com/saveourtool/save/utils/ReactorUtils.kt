@@ -30,7 +30,6 @@ import kotlin.time.toJavaDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import java.util.function.Predicate
 
 private const val DEFAULT_PART_SIZE: Long = 5 * 1024 * 1024
 
