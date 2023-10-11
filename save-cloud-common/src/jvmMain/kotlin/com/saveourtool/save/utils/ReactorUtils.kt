@@ -5,9 +5,6 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
-import io.ktor.client.statement.*
-import io.ktor.client.utils.*
-import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
@@ -33,6 +30,7 @@ import kotlin.time.toJavaDuration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.util.function.Predicate
 
 private const val DEFAULT_PART_SIZE: Long = 5 * 1024 * 1024
 

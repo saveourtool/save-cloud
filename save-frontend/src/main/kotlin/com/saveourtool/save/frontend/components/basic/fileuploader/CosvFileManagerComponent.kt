@@ -8,9 +8,13 @@ import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.externals.fontawesome.faBoxOpen
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
+import com.saveourtool.save.frontend.externals.fontawesome.faTrash
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
@@ -36,6 +40,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.serialization.json.Json
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.button
+import web.html.ButtonType
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -52,6 +59,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+    val (fileToUnzip, setFileToUnzip) = useState<RawCosvFileDto>()
 
     val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
     val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
@@ -67,6 +75,24 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
                 setFileToDelete(null)
+            }
+        }
+    }
+
+    val unzipFile = useDeferredRequest {
+        fileToUnzip?.let { file ->
+            val response = post(
+                "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
+                headers = Headers(jso {
+                    Accept = "application/x-ndjson"
+                }),
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+
+            if (response.ok) {
+                setFileToUnzip(null)
             }
         }
     }
@@ -222,6 +248,22 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     }
                     downloadFileButton(file, RawCosvFileDto::fileName) {
                         "$apiUrl/cosv/$selectedOrganization/download/${file.requiredId()}"
+                    }
+                    if (file.fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn")
+                            fontAwesomeIcon(icon = faBoxOpen)
+                            onClick = {
+                                val confirm = window.confirm(
+                                    "Are you sure you want to unzip ${file.fileName} file?"
+                                )
+                                if (confirm) {
+                                    setFileToUnzip(file)
+                                    unzipFile()
+                                }
+                            }
+                        }
                     }
                     deleteFileButton(file, RawCosvFileDto::fileName) {
                         setFileToDelete(it)

@@ -71,6 +71,7 @@ class DefaultStorageProjectReactor<K : Any>(
                     s3Operations.createMultipartUpload(s3Key)
                         .toMonoAndPublishOn()
                         .flatMap { response ->
+
                             content.index()
                                 .flatMap { (index, buffer) ->
                                     val contentLength = buffer.remaining().toLong()
