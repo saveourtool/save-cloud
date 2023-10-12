@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.reactivestreams.Publisher
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -223,7 +224,7 @@ class CosvController(
         authentication: Authentication,
     ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMapMany {
-            rawCosvFileStorage.listByOrganization(organizationName, page, size)
+            rawCosvFileStorage.listByOrganization(organizationName, PageRequest.of(page, size))
         }
 
     /**

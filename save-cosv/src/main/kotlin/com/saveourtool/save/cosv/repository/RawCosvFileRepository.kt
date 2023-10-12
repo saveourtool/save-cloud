@@ -36,6 +36,4 @@ interface RawCosvFileRepository : BaseEntityRepository<RawCosvFile> {
      * @return all [RawCosvFile]s which has provided [RawCosvFile.organization]
      */
     fun findAllByOrganizationName(organizationName: String, pageRequest: PageRequest): Collection<RawCosvFile>
-
-
 }

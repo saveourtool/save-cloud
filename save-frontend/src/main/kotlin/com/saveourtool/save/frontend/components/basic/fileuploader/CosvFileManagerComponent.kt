@@ -35,6 +35,7 @@ import web.http.FormData
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.json.Json
 
 private const val DEFAULT_SIZE = 10
@@ -112,7 +113,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             val result: List<RawCosvFileDto> = get(
                 url = "$apiUrl/cosv/$selectedOrganization/list",
                 params = jso<dynamic> {
-                    page = newPage
+                    page = newPage - 1
                     size = DEFAULT_SIZE
                 },
                 headers = jsonHeaders,
@@ -133,6 +134,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             ).decodeFromJsonString()
             setAvailableFiles(emptyList())
             setAllAvailableFilesCount(count)
+            setLastPage(0)
             fetchMoreFiles()
         }
     }
@@ -151,10 +153,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             response.ok -> response
                 .readLines()
                 .filter(String::isNotEmpty)
+                .onCompletion {
+                    reFetchFiles()
+                }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
                     setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
-                    setAvailableFiles { it.plus(uploadedFile) }
                 }
             else -> window.alert(response.unpackMessageOrNull().orEmpty())
         }

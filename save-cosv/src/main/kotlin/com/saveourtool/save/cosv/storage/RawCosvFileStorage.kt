@@ -12,6 +12,7 @@ import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -40,7 +41,6 @@ class RawCosvFileStorage(
         )
     }.publishOn(s3Operations.scheduler)
 
-
     /**
      * @param organizationName
      * @return count of all [RawCosvFileDto]s which fits to [filter]
@@ -53,26 +53,14 @@ class RawCosvFileStorage(
 
     /**
      * @param organizationName
+     * @param pageRequest
      * @return all [RawCosvFileDto]s which fits to [filter]
      */
     fun listByOrganization(
         organizationName: String,
+        pageRequest: PageRequest? = null,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName)
-    }
-
-    /**
-     * @param organizationName
-     * @param page
-     * @param size
-     * @return all [RawCosvFileDto]s which fits to [filter]
-     */
-    fun listByOrganization(
-        organizationName: String,
-        page: Int,
-        size: Int,
-    ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName, page, size)
+        s3KeyManager.listByOrganization(organizationName, pageRequest)
     }
 
     /**
