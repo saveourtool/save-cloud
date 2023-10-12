@@ -119,18 +119,33 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val fetchMoreFiles = useDeferredRequest {
         selectedOrganization?.let {
             val newPage = lastPage.inc()
-            val result: List<RawCosvFileDto> = get(
+            val response = get(
                 url = "$apiUrl/cosv/$selectedOrganization/list",
                 params = jso<dynamic> {
                     page = newPage - 1
                     size = DEFAULT_SIZE
                 },
-                headers = jsonHeaders,
+                headers = Headers().withAcceptNdjson().withContentTypeJson(),
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
-            ).decodeFromJsonString()
-            setLastPage(newPage)
-            setAvailableFiles { it.plus(result) }
+            )
+            when {
+                response.ok -> {
+                    setStreamingOperationActive(true)
+                    response
+                        .readLines()
+                        .filter(String::isNotEmpty)
+                        .onCompletion {
+                            setStreamingOperationActive(false)
+                            setLastPage(newPage)
+                        }
+                        .collect { message ->
+                            val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                            setAvailableFiles { it.plus(uploadedFile) }
+                        }
+                }
+                else -> window.alert("Failed to fetch next page: ${response.unpackMessageOrNull().orEmpty()}")
+            }
         }
     }
     val reFetchFiles = useDeferredRequest {
@@ -197,11 +212,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                         .collect { message ->
                             val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
-                            entryResponse.result?.let { result ->
-                                setAvailableFiles {
-                                    it.plus(result)
-                                }
-                            }
                             if (entryResponse.updateCounters) {
                                 setTotalBytes(entryResponse.fullSize)
                                 setProcessedBytes(entryResponse.processedSize)
@@ -210,10 +220,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             }
                         }
                 }
-                else -> window.alert(response.unpackMessageOrNull().orEmpty())
+                else -> window.alert("Failed to unzip ${file.fileName}: ${response.unpackMessageOrNull().orEmpty()}")
             }
             if (response.ok) {
                 setFileToUnzip(null)
+                reFetchFiles()
             }
         }
     }
@@ -388,7 +399,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             if (lastPage * DEFAULT_SIZE < allAvailableFilesCount) {
                 li {
                     className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                    buttonBuilder("Load more") {
+                    buttonBuilder("Load more", isDisabled = isStreamingOperationActive) {
                         fetchMoreFiles()
                     }
                 }

@@ -289,15 +289,24 @@ class CosvController(
      * @return list of uploaded raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/{organizationName}/list")
+    @GetMapping(
+        "/{organizationName}/list",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_NDJSON_VALUE],
+    )
     fun list(
         @PathVariable organizationName: String,
         @RequestParam page: Int,
         @RequestParam size: Int,
         authentication: Authentication,
-    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
+    ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMapMany {
             rawCosvFileStorage.listByOrganization(organizationName, PageRequest.of(page, size))
+        }
+        .let {
+            ResponseEntity.ok()
+                .cacheControlForNdjson()
+                .body(it)
         }
 
     /**
