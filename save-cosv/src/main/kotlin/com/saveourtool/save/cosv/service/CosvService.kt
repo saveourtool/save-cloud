@@ -21,13 +21,13 @@ import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
 
 import kotlinx.serialization.serializer
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
