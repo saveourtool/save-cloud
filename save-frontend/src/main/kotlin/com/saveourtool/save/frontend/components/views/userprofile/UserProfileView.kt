@@ -18,11 +18,16 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.LOGIN_MAX_LENGTH
+import com.saveourtool.save.utils.REAL_NAME_PART_MAX_LENGTH
+import com.saveourtool.save.utils.shortenLogin
+import com.saveourtool.save.utils.shortenRealName
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
 import react.dom.aria.ariaDescribedBy
+import react.dom.html.HTMLAttributes
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -35,6 +40,7 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
+import web.html.HTMLHeadingElement
 import web.html.InputType
 
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
@@ -267,12 +273,12 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
     h3 {
         className = ClassName("mb-0 text-gray-900 text-center")
-        +(user?.name ?: "N/A")
+        shortenLoginWithTooltipIfNecessary(user?.name, this)
     }
 
     h5 {
         className = ClassName("mb-0 text-gray-600 text-center")
-        +(user?.realName ?: "N/A")
+        shortenRealNameWithTooltipIfNecessary(user?.realName, this)
     }
 
     div {
@@ -369,6 +375,42 @@ fun ChildrenBuilder.renderLeftUserMenu(
             }
         }
     }
+}
+
+/**
+ * @param login
+ * @param header
+ */
+fun ChildrenBuilder.shortenLoginWithTooltipIfNecessary(login: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    login?.let {
+        if (it.length > LOGIN_MAX_LENGTH) {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "top"
+            header.title = it
+
+            +(it.shortenLogin())
+        } else {
+            +it
+        }
+    } ?: +"N/A"
+}
+
+/**
+ * @param realName
+ * @param header
+ */
+fun ChildrenBuilder.shortenRealNameWithTooltipIfNecessary(realName: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    realName?.let { name ->
+        if (name.split(" ").any { it.length > REAL_NAME_PART_MAX_LENGTH }) {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "bottom"
+            header.title = name
+
+            +(name.shortenRealName())
+        } else {
+            +name
+        }
+    } ?: +"N/A"
 }
 
 /**

@@ -94,4 +94,4 @@ private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols(
 private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
     .any { this == it }
 
-private fun String.isLengthOk(allowedLength: Int) = length < allowedLength
+private fun String.isLengthOk(allowedLength: Int) = length <= allowedLength
