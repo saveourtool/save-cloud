@@ -5,12 +5,16 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.externals.fontawesome.faBoxOpen
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
+import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
@@ -20,6 +24,7 @@ import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.b
+import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
@@ -29,6 +34,7 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.Cursor
 import web.file.File
+import web.html.ButtonType
 import web.html.InputType
 import web.http.FormData
 
@@ -57,9 +63,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
+    val (fileToUnzip, setFileToUnzip) = useState<RawCosvFileDto>()
 
-    val (uploadBytesReceived, setUploadBytesReceived) = useState(0L)
-    val (uploadBytesTotal, setUploadBytesTotal) = useState(0L)
+    val (processedBytes, setProcessedBytes) = useState(0L)
+    val (totalBytes, setTotalBytes) = useState(0L)
+
+    val (isStreamingOperationActive, setStreamingOperationActive) = useState(false)
 
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
@@ -140,11 +149,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
+        setStreamingOperationActive(true)
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            headers = Headers(jso {
-                Accept = "application/x-ndjson"
-            }),
+            headers = Headers().withAcceptNdjson(),
             body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -154,13 +162,59 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 .readLines()
                 .filter(String::isNotEmpty)
                 .onCompletion {
+                    setStreamingOperationActive(false)
                     reFetchFiles()
                 }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
-                    setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
+                    setProcessedBytes { it.plus(uploadedFile.requiredContentLength()) }
                 }
             else -> window.alert(response.unpackMessageOrNull().orEmpty())
+        }
+    }
+
+    val unzipFile = useDeferredRequest {
+        fileToUnzip?.let { file ->
+            setStreamingOperationActive(true)
+            val response = post(
+                "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
+                headers = Headers().withContentTypeJson().withAcceptNdjson(),
+                body = undefined,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler,
+            )
+
+            when {
+                response.ok -> {
+                    setAvailableFiles {
+                        it.minus(file)
+                    }
+                    response
+                        .readLines()
+                        .filter(String::isNotEmpty)
+                        .onCompletion {
+                            setStreamingOperationActive(false)
+                        }
+                        .collect { message ->
+                            val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
+                            entryResponse.result?.let { result ->
+                                setAvailableFiles {
+                                    it.plus(result)
+                                }
+                            }
+                            if (entryResponse.updateCounters) {
+                                setTotalBytes(entryResponse.fullSize)
+                                setProcessedBytes(entryResponse.processedSize)
+                            } else {
+                                setProcessedBytes { it + entryResponse.processedSize }
+                            }
+                        }
+                }
+                else -> window.alert(response.unpackMessageOrNull().orEmpty())
+            }
+            if (response.ok) {
+                setFileToUnzip(null)
+            }
         }
     }
 
@@ -227,7 +281,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
                     deleteProcessedFiles()
                 }
-                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
+                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     submitCosvFiles()
                 }
                 buttonBuilder("Submit all uploaded by you", isDisabled = availableFiles.isEmpty()) {
@@ -242,23 +296,23 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
-                    isDisabled = selectedOrganization.isNullOrEmpty()
+                    isDisabled = selectedOrganization.isNullOrEmpty() || isStreamingOperationActive
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         files!!.asList()
-                            .also { setUploadBytesTotal(it.sumOf(File::size).toLong()) }
+                            .also { setTotalBytes(it.sumOf(File::size).toLong()) }
                             .let { setFilesForUploading(it) }
                         uploadFiles()
                     }
                 }
             }
             progressBarComponent {
-                current = uploadBytesReceived
-                total = uploadBytesTotal
+                current = processedBytes
+                total = totalBytes
                 flushCounters = {
-                    setUploadBytesTotal(0)
-                    setUploadBytesReceived(0)
+                    setTotalBytes(0)
+                    setProcessedBytes(0)
                 }
             }
 
@@ -282,6 +336,23 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     }
                     downloadFileButton(file, RawCosvFileDto::fileName) {
                         "$apiUrl/cosv/$selectedOrganization/download/${file.requiredId()}"
+                    }
+                    if (file.fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+                        button {
+                            type = ButtonType.button
+                            className = ClassName("btn")
+                            fontAwesomeIcon(icon = faBoxOpen)
+                            disabled = isStreamingOperationActive
+                            onClick = {
+                                val confirm = window.confirm(
+                                    "Are you sure you want to unzip and then remove ${file.fileName} file?"
+                                )
+                                if (confirm) {
+                                    setFileToUnzip(file)
+                                    unzipFile()
+                                }
+                            }
+                        }
                     }
                     deleteFileButton(file, RawCosvFileDto::fileName) {
                         setFileToDelete(it)
