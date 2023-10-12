@@ -43,7 +43,6 @@ class CosvController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
-    private val json = Json
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
         backendService.workingDir.createDirectories(),
         "archive-"
