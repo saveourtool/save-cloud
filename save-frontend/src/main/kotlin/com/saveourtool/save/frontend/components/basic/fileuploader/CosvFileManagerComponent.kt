@@ -42,7 +42,6 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.withIndex
 import kotlinx.serialization.json.Json
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
@@ -64,6 +63,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val (processedBytes, setProcessedBytes) = useState(0L)
     val (totalBytes, setTotalBytes) = useState(0L)
+
+    val (isStreamingOperationActive, setStreamingOperationActive) = useState(false)
 
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
@@ -124,6 +125,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
+        setStreamingOperationActive(true)
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
             headers = Headers().withAcceptNdjson(),
@@ -135,6 +137,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             response.ok -> response
                 .readLines()
                 .filter(String::isNotEmpty)
+                .onCompletion {
+                    setStreamingOperationActive(false)
+                }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
                     setProcessedBytes { it.plus(uploadedFile.requiredContentLength()) }
@@ -155,29 +160,31 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             )
 
             when {
-                response.ok -> response
-                    .readLines()
-                    .filter(String::isNotEmpty)
-                    .withIndex()
-                    .onCompletion {
-                        fetchFiles()
+                response.ok -> {
+                    setAvailableFiles {
+                        it.minus(file)
                     }
-                    .collect { (index, message) ->
-                        val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
-                        entryResponse.result?.let { result ->
-                            setAvailableFiles {
-                                it.plus(result)
+                    response
+                        .readLines()
+                        .filter(String::isNotEmpty)
+                        .onCompletion {
+                            setStreamingOperationActive(false)
+                        }
+                        .collect { message ->
+                            val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
+                            entryResponse.result?.let { result ->
+                                setAvailableFiles {
+                                    it.plus(result)
+                                }
+                            }
+                            if (entryResponse.updateCounters) {
+                                setTotalBytes(entryResponse.fullSize)
+                                setProcessedBytes(entryResponse.processedSize)
+                            } else {
+                                setProcessedBytes { it + entryResponse.processedSize }
                             }
                         }
-                        if (index == 0) {
-                            setTotalBytes(entryResponse.fullSize)
-                            setProcessedBytes(entryResponse.processedSize)
-                        } else {
-                            setProcessedBytes {
-                                it + entryResponse.processedSize
-                            }
-                        }
-                    }
+                }
                 else -> window.alert(response.unpackMessageOrNull().orEmpty())
             }
             if (response.ok) {
@@ -251,7 +258,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
-                    isDisabled = selectedOrganization.isNullOrEmpty()
+                    isDisabled = selectedOrganization.isNullOrEmpty() || isStreamingOperationActive
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
@@ -297,6 +304,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             type = ButtonType.button
                             className = ClassName("btn")
                             fontAwesomeIcon(icon = faBoxOpen)
+                            disabled = isStreamingOperationActive
                             onClick = {
                                 val confirm = window.confirm(
                                     "Are you sure you want to unzip and then remove ${file.fileName} file?"

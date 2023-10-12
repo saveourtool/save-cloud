@@ -139,10 +139,19 @@ class CosvController(
     ): ResponseEntity<UnzipRawCosvFileResponseFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
         .flatMap { rawCosvFileStorage.findById(id) }
         .flatMapMany { rawCosvFile ->
-            doUploadArchiveEntries(
-                rawCosvFile,
-                organizationName,
-                authentication.name
+            Flux.concat(
+                Mono.just(
+                    UnzipRawCosvFileResponse(
+                        5,
+                        100,
+                        updateCounters = true,
+                    )
+                ),
+                doUploadArchiveEntries(
+                    rawCosvFile,
+                    organizationName,
+                    authentication.name
+                )
             )
         }
         .let {
@@ -174,9 +183,8 @@ class CosvController(
                 }
                 .flatMapMany { (entryWithSizeList, archiveSize) ->
                     val fullSize = archiveSize * 2 + entryWithSizeList.sumOf { it.second }
-                    val firstAndLastResponse = UnzipRawCosvFileResponse(null, archiveSize, fullSize)
                     Flux.concat(
-                        Mono.just(firstAndLastResponse),
+                        Mono.just(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = true)),
                         Flux.fromIterable(entryWithSizeList.map { it.first })
                             .flatMap { file ->
                                 log.debug {
@@ -192,13 +200,13 @@ class CosvController(
                                     contentLength = contentLength,
                                     content = file.toByteBufferFlux(),
                                 )
-                                    .map { UnzipRawCosvFileResponse(it, contentLength, fullSize) }
+                                    .map { UnzipRawCosvFileResponse(contentLength, fullSize, result = it) }
                             },
                         blockingToMono {
                             tmpDir.deleteRecursivelySafely(log)
                         }
                             .then(rawCosvFileStorage.delete(archiveFile))
-                            .thenReturn(firstAndLastResponse),
+                            .thenReturn(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = false)),
                     )
                 }
                 .onErrorResume { error ->
