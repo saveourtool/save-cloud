@@ -59,6 +59,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
+    val leftAvailableFilesCount = allAvailableFilesCount - lastPage * DEFAULT_SIZE
+
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
 
@@ -396,10 +398,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 }
             }
 
-            if (lastPage * DEFAULT_SIZE < allAvailableFilesCount) {
+            if (leftAvailableFilesCount > 0) {
                 li {
                     className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                    buttonBuilder("Load more", isDisabled = isStreamingOperationActive) {
+                    buttonBuilder("Load more (left $leftAvailableFilesCount)", isDisabled = isStreamingOperationActive) {
                         fetchMoreFiles()
                     }
                 }
