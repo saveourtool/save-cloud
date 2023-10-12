@@ -84,13 +84,6 @@ fun Headers.withContentTypeJson() = apply {
 }
 
 /**
- * @return [this] headers with `content-type` for multipart form-data
- */
-fun Headers.withContentTypeMultipartFormData() = apply {
-    set("Content-Type", "multipart/form-data")
-}
-
-/**
  * @return [this] headers with `accept` for JSON
  */
 fun Headers.withAcceptJson() = apply {

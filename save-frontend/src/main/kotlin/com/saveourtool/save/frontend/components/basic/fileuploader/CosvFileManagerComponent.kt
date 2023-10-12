@@ -126,7 +126,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val uploadFiles = useDeferredRequest {
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            headers = Headers().withAcceptNdjson().withContentTypeMultipartFormData(),
+            headers = Headers().withAcceptNdjson(),
             body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -148,7 +148,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fileToUnzip?.let { file ->
             val response = post(
                 "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
-                headers = Headers().withAcceptNdjson(),
+                headers = Headers().withContentTypeJson().withAcceptNdjson(),
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
