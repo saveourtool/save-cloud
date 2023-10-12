@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
@@ -20,6 +21,7 @@ import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
 import react.Props
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
@@ -34,9 +36,12 @@ import web.http.FormData
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
+import kotlinx.coroutines.flow.filter
+import kotlinx.serialization.json.Json
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
+    val (t) = useTranslation("vulnerability-upload")
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
@@ -64,7 +69,24 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
                 setFileToDelete(null)
+            } else {
+                window.alert("Failed to delete file due to ${response.unpackMessageOrHttpStatus()}")
             }
+        }
+    }
+
+    val deleteProcessedFiles = useDeferredRequest {
+        val response = delete(
+            "$apiUrl/cosv/$selectedOrganization/delete-processed",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+
+        if (response.ok) {
+            val deletedFiles: Set<RawCosvFileDto> = response.decodeFromJsonString()
+            setAvailableFiles { it.minus(deletedFiles) }
+        } else {
+            window.alert("Failed to delete processed files due to ${response.unpackMessageOrHttpStatus()}")
         }
     }
 
@@ -95,30 +117,25 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     val uploadFiles = useDeferredRequest {
-        post(
+        val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            Headers().apply {
-                append(CONTENT_LENGTH_CUSTOM, JSON.stringify(filesForUploading.map { it.size }))
-            },
-            FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
+            headers = Headers(jso {
+                Accept = "application/x-ndjson"
+            }),
+            body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::noopLoadingHandler,
-            responseHandler = ::noopResponseHandler
+            responseHandler = ::noopResponseHandler,
         )
-        filesForUploading.forEach { fileForUploading ->
-            val uploadedFile: RawCosvFileDto = post(
-                url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-                Headers().apply {
-                    append(CONTENT_LENGTH_CUSTOM, JSON.stringify(listOf(fileForUploading.size)))
-                },
-                FormData().apply {
-                    append(FILE_PART_NAME, fileForUploading)
-                },
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler
-            )
-                .decodeFromJsonString()
-            setUploadBytesReceived { it.plus(filesForUploading.size) }
-            setAvailableFiles { it.plus(uploadedFile) }
+        when {
+            response.ok -> response
+                .readLines()
+                .filter(String::isNotEmpty)
+                .collect { message ->
+                    val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                    setUploadBytesReceived { it.plus(uploadedFile.requiredContentLength()) }
+                    setAvailableFiles { it.plus(uploadedFile) }
+                }
+            else -> window.alert(response.unpackMessageOrNull().orEmpty())
         }
     }
 
@@ -138,6 +155,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 
     div {
+        if (selectedOrganization.isNullOrEmpty()) {
+            div {
+                className = ClassName("mx-auto")
+                b {
+                    +"${"Organization that has permission".t()}!"
+                }
+            }
+        }
+
         organizationSelectForm {
             selectClasses = "custom-select"
             formType = InputTypes.ORGANIZATION_NAME
@@ -163,6 +189,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
                     setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
                 }
+                buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
+                    deleteProcessedFiles()
+                }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
                 }
@@ -180,7 +209,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
                         files!!.asList()
-                            .also { fileList -> setUploadBytesTotal(fileList.sumOf { it.size }.toLong()) }
+                            .also { setUploadBytesTotal(it.sumOf(File::size).toLong()) }
                             .let { setFilesForUploading(it) }
                         uploadFiles()
                     }

@@ -70,6 +70,14 @@ interface S3Operations {
     ): CompletableFuture<CompleteMultipartUploadResponse>
 
     /**
+     * @param createResponse response on creating multipart upload
+     * @return [CompletableFuture] with response
+     */
+    fun abortMultipartUpload(
+        createResponse: CreateMultipartUploadResponse,
+    ): CompletableFuture<AbortMultipartUploadResponse>
+
+    /**
      * @param s3Key
      * @param contentLength
      * @param content

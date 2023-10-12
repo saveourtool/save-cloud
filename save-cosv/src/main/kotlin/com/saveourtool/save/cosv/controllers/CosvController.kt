@@ -13,6 +13,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import org.reactivestreams.Publisher
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -28,8 +29,10 @@ import reactor.kotlin.core.util.function.component2
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.io.path.*
+
+typealias RawCosvFileDtoList = List<RawCosvFileDto>
+typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
 
 /**
  * Rest controller for COSVs
@@ -49,40 +52,76 @@ class CosvController(
 
     /**
      * @param organizationName
+     * @param filePartMono
+     * @param authentication
+     * @param contentLength
+     * @return list of uploaded [RawCosvFileDto]
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/{organizationName}/upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun upload(
+        @PathVariable organizationName: String,
+        @RequestPart(FILE_PART_NAME) filePartMono: Mono<FilePart>,
+        @RequestHeader(CONTENT_LENGTH_CUSTOM) contentLength: Long,
+        authentication: Authentication,
+    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMapMany {
+            filePartMono
+                .flatMapMany { filePart ->
+                    doUpload(filePart, organizationName, authentication.name, contentLength)
+                }
+        }
+
+    /**
+     * @param organizationName
      * @param filePartFlux
      * @param authentication
      * @return list of uploaded [RawCosvFileDto]
      */
     @RequiresAuthorizationSourceHeader
-    @PostMapping("/{organizationName}/batch-upload", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    @PostMapping(
+        "/{organizationName}/batch-upload",
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
+        produces = [MediaType.APPLICATION_NDJSON_VALUE],
+    )
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         @RequestHeader(CONTENT_LENGTH_CUSTOM) filesContentLength: List<Long>,
         authentication: Authentication,
-    ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-        .flatMapMany {
-            filePartFlux
-                .zipWithIterable(filesContentLength)
-                .flatMap { (filePart, contentLength) ->
-                    log.debug {
-                        "Processing ${filePart.filename()}"
+    ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
+        hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+            .flatMapMany {
+                filePartFlux
+                    .flatMap { filePart ->
+                        doUpload(filePart, organizationName, authentication.name, contentLength = null)
                     }
-                    if (!filePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
-                        rawCosvFileStorage.upload(
-                            key = RawCosvFileDto(
-                                filePart.filename(),
-                                organizationName = organizationName,
-                                userName = authentication.name,
-                            ),
-                            content = filePart.content().map { it.asByteBuffer() },
-                            contentLength = contentLength,
-                        )
-                    } else {
-                        doArchiveUpload(filePart, organizationName, authentication.name)
-                    }
-                }
+            }
+    }
+
+    private fun doUpload(
+        filePart: FilePart,
+        organizationName: String,
+        userName: String,
+        contentLength: Long?,
+    ): Publisher<RawCosvFileDto> {
+        log.debug {
+            "Processing ${filePart.filename()}"
         }
+        return if (!filePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+            val key = RawCosvFileDto(
+                filePart.filename(),
+                organizationName = organizationName,
+                userName = userName,
+            )
+            val content = filePart.content().map { it.asByteBuffer() }
+            contentLength?.let {
+                rawCosvFileStorage.upload(key, it, content)
+            } ?: rawCosvFileStorage.upload(key, content)
+        } else {
+            doArchiveUpload(filePart, organizationName, userName)
+        }
+    }
 
     private fun doArchiveUpload(
         archiveFilePart: FilePart,
@@ -121,13 +160,13 @@ class CosvController(
                         }
                 }
                 .doOnComplete {
-                    tmpDir.deleteRecursivelySafely()
+                    tmpDir.deleteRecursivelySafely(log)
                 }
                 .onErrorResume { error ->
                     log.error(error) {
                         "Failed to process archive ${archiveFilePart.filename()}"
                     }
-                    blockingToMono { tmpDir.deleteRecursivelySafely() }.then(Mono.error(error))
+                    blockingToMono { tmpDir.deleteRecursivelySafely(log) }.then(Mono.error(error))
                 }
         }
 
@@ -219,7 +258,7 @@ class CosvController(
      * @param organizationName
      * @param id
      * @param authentication
-     * @return empty response
+     * @return string response
      */
     @RequiresAuthorizationSourceHeader
     @DeleteMapping("/{organizationName}/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -236,6 +275,31 @@ class CosvController(
                 }
                 .map {
                     ResponseEntity.ok("Raw COSV file deleted successfully")
+                }
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return list of deleted keys
+     */
+    @RequiresAuthorizationSourceHeader
+    @DeleteMapping("/{organizationName}/delete-processed", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun deleteProcessed(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<RawCosvFileDtoList> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
+        .flatMap {
+            rawCosvFileStorage.listByOrganization(organizationName)
+                .filter { it.status == RawCosvFileStatus.PROCESSED }
+                .collectList()
+                .flatMap { keys ->
+                    rawCosvFileStorage.deleteAll(keys)
+                        .filter { it }
+                        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                            "Failed to delete process raw cosv files: $keys"
+                        }
+                        .map { keys }
                 }
         }
 
@@ -272,14 +336,5 @@ class CosvController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
-
-        @OptIn(ExperimentalPathApi::class)
-        private fun Path.deleteRecursivelySafely() = try {
-            deleteRecursively()
-        } catch (e: IOException) {
-            log.debug(e) {
-                "Failed to delete recursively ${absolutePathString()}"
-            }
-        }
     }
 }
