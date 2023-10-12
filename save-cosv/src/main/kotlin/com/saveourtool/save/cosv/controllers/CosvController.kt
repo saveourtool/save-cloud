@@ -177,6 +177,32 @@ class CosvController(
         @PathVariable organizationName: String,
         @RequestBody ids: List<Long>,
         authentication: Authentication,
+    ): Mono<StringResponse> = doSubmitToProcess(organizationName, ids, authentication)
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return [StringResponse]
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping("/{organizationName}/submit-all-uploaded-to-process")
+    fun submitAllUploadedToProcess(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganization(organizationName)
+        .filter {
+            it.userName == authentication.name
+        }
+        .map { it.requiredId() }
+        .collectList()
+        .flatMap { ids ->
+            doSubmitToProcess(organizationName, ids, authentication)
+        }
+
+    private fun doSubmitToProcess(
+        organizationName: String,
+        ids: List<Long>,
+        authentication: Authentication,
     ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.WRITE, "submit to process")
         .flatMap {
             rawCosvFileStorage.updateAll(ids, RawCosvFileStatus.IN_PROGRESS)

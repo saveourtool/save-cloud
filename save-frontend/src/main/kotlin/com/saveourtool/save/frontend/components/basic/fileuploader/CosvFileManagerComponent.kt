@@ -178,6 +178,20 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         setSelectedFiles(emptyList())
     }
 
+    val submitAllUploadedCosvFiles = useDeferredRequest {
+        val response = post(
+            url = "$apiUrl/cosv/$selectedOrganization/submit-all-uploaded-to-process",
+            jsonHeaders,
+            body = undefined,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler
+        )
+        if (response.ok) {
+            window.alert(response.text().await())
+        }
+        setSelectedFiles(emptyList())
+    }
+
     div {
         if (selectedOrganization.isNullOrEmpty()) {
             div {
@@ -210,14 +224,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
-                    setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
-                }
                 buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
                     deleteProcessedFiles()
                 }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
+                }
+                buttonBuilder("Submit all uploaded by you", isDisabled = availableFiles.isEmpty()) {
+                    submitAllUploadedCosvFiles()
                 }
                 buttonBuilder(faReload) {
                     reFetchFiles()
