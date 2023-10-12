@@ -45,41 +45,6 @@ val jsonHeaders = Headers()
     .contentTypeJson()
 
 /**
- * @return [this] headers with `content-type` for JSON
- */
-fun Headers.contentTypeJson() = apply {
-    set("Content-Type", "application/json")
-}
-
-/**
- * @return [this] headers with `content-tupe` for octet-stream (bytes)
- */
-fun Headers.contentTypeOctetStream() = apply {
-    set("Content-Type", "application/octet-stream")
-}
-
-/**
- * @return [this] headers with `accept` for JSON
- */
-fun Headers.acceptJson() = apply {
-    set("Accept", "application/json")
-}
-
-/**
- * @return [this] headers with `accept` for NDJSON
- */
-fun Headers.acceptNdjson() = apply {
-    set("Accept", "application/x-ndjson")
-}
-
-/**
- * @return [this] headers with `accept` for octet-stream (bytes)
- */
-fun Headers.acceptOctetStream() = apply {
-    set("Accept", "application/octet-stream")
-}
-
-/**
  * The chunk of data read from the body of an HTTP response.
  *
  * @param T the type of the data (usually a byte array).
@@ -110,6 +75,41 @@ interface WithRequestStatusContext {
      * @param transform
      */
     fun setLoadingCounter(transform: (oldValue: Int) -> Int)
+}
+
+/**
+ * @return [this] headers with `content-type` for JSON
+ */
+fun Headers.contentTypeJson() = apply {
+    set("Content-Type", "application/json")
+}
+
+/**
+ * @return [this] headers with `content-type` for multipart form-data
+ */
+fun Headers.contentTypeMultipartFormData() = apply {
+    set("Content-Type", "multipart/form-data")
+}
+
+/**
+ * @return [this] headers with `accept` for JSON
+ */
+fun Headers.acceptJson() = apply {
+    set("Accept", "application/json")
+}
+
+/**
+ * @return [this] headers with `accept` for NDJSON
+ */
+fun Headers.acceptNdjson() = apply {
+    set("Accept", "application/x-ndjson")
+}
+
+/**
+ * @return [this] headers with `accept` for octet-stream (bytes)
+ */
+fun Headers.acceptOctetStream() = apply {
+    set("Accept", "application/octet-stream")
 }
 
 /**
