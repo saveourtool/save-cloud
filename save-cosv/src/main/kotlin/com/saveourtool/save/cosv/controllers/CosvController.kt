@@ -8,27 +8,29 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+
 import org.reactivestreams.Publisher
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.nio.ByteBuffer
 import java.nio.file.Files
+
 import kotlin.io.path.*
 
 typealias RawCosvFileDtoList = List<RawCosvFileDto>
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
+typealias UnzipRawCosvFileResponseFlux = Flux<UnzipRawCosvFileResponse>
 
 /**
  * Rest controller for COSVs
@@ -84,15 +86,19 @@ class CosvController(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
         authentication: Authentication,
-    ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
-        hasPermission(authentication, organizationName, Permission.WRITE, "upload")
-            .flatMapMany {
-                filePartFlux
-                    .flatMap { filePart ->
-                        doUpload(filePart, organizationName, authentication.name, contentLength = null)
-                    }
-            }
-    }
+    ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMapMany {
+            filePartFlux
+                .flatMap { filePart ->
+                    doUpload(filePart, organizationName, authentication.name, contentLength = null)
+                }
+        }
+        .let {
+            ResponseEntity
+                .ok()
+                .cacheControlForNdjson()
+                .body(it)
+        }
 
     private fun doUpload(
         filePart: FilePart,
@@ -103,65 +109,103 @@ class CosvController(
         log.debug {
             "Processing ${filePart.filename()}"
         }
-        return if (!filePart.filename().endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
-            val key = RawCosvFileDto(
-                filePart.filename(),
-                organizationName = organizationName,
-                userName = userName,
-            )
-            val content = filePart.content().map { it.asByteBuffer() }
-            contentLength?.let {
-                rawCosvFileStorage.upload(key, it, content)
-            } ?: rawCosvFileStorage.upload(key, content)
-        } else {
-            doArchiveUpload(filePart, organizationName, userName)
-        }
+        val key = RawCosvFileDto(
+            filePart.filename(),
+            organizationName = organizationName,
+            userName = userName,
+        )
+        val content = filePart.content().map { it.asByteBuffer() }
+        return contentLength?.let {
+            rawCosvFileStorage.upload(key, it, content)
+        } ?: rawCosvFileStorage.upload(key, content)
     }
 
-    private fun doArchiveUpload(
-        archiveFilePart: FilePart,
+    /**
+     * @param organizationName
+     * @param id
+     * @param authentication
+     * @return list of uploaded [RawCosvFileDto]
+     */
+    @RequiresAuthorizationSourceHeader
+    @PostMapping(
+        "/{organizationName}/unzip/{id}",
+        consumes = [MediaType.APPLICATION_JSON_VALUE],
+        produces = [MediaType.APPLICATION_NDJSON_VALUE],
+    )
+    fun unzip(
+        @PathVariable organizationName: String,
+        @PathVariable id: Long,
+        authentication: Authentication,
+    ): ResponseEntity<UnzipRawCosvFileResponseFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+        .flatMap { rawCosvFileStorage.findById(id) }
+        .flatMapMany { rawCosvFile ->
+            Flux.concat(
+                Mono.just(firstFakeResponse),
+                doUploadArchiveEntries(
+                    rawCosvFile,
+                    organizationName,
+                    authentication.name
+                )
+            )
+        }
+        .let {
+            ResponseEntity.ok()
+                .cacheControlForNdjson()
+                .body(it)
+        }
+
+    private fun doUploadArchiveEntries(
+        archiveFile: RawCosvFileDto,
         organizationName: String,
         userName: String,
-    ): Flux<RawCosvFileDto> = blockingToMono {
+    ): UnzipRawCosvFileResponseFlux = blockingToMono {
         val tmpDir = createTempDirectoryForArchive()
-        tmpDir to Files.createTempDirectory(tmpDir, "content-")
+        val tmpArchiveFile = tmpDir / archiveFile.fileName
+        val contentDir = Files.createTempDirectory(tmpDir, "content-")
+        Triple(tmpDir, tmpArchiveFile, contentDir)
     }
-        .flatMapMany { (tmpDir, contentDir) ->
-            val archiveFile = tmpDir / archiveFilePart.filename()
+        .flatMapMany { (tmpDir, tmpArchiveFile, contentDir) ->
             log.debug {
-                "Saving archive ${archiveFilePart.filename()} to ${archiveFile.absolutePathString()}"
+                "Saving archive ${archiveFile.fileName} to ${tmpArchiveFile.absolutePathString()}"
             }
-            archiveFilePart.content()
-                .map { it.asByteBuffer() }
-                .collectToFile(archiveFile)
+            rawCosvFileStorage.download(archiveFile)
+                .collectToFile(tmpArchiveFile)
                 .blockingMap {
-                    archiveFile.extractZipTo(contentDir)
+                    tmpArchiveFile.extractZipTo(contentDir)
+                    val entries = contentDir.listDirectoryEntries()
+                    entries.map { it to it.fileSize() } to tmpArchiveFile.fileSize()
                 }
-                .flatMapMany {
-                    blockingToFlux {
-                        contentDir.listDirectoryEntries()
-                    }
-                        .flatMap { file ->
-                            log.debug {
-                                "Processing ${file.absolutePathString()}"
-                            }
-                            rawCosvFileStorage.upload(
-                                key = RawCosvFileDto(
-                                    concatS3Key(archiveFilePart.filename(), file.relativeTo(contentDir).toString()),
-                                    organizationName = organizationName,
-                                    userName = userName,
-                                ),
-                                contentLength = file.fileSize(),
-                                content = file.toByteBufferFlux(),
-                            )
+                .flatMapMany { (entryWithSizeList, archiveSize) ->
+                    val fullSize = archiveSize * 2 + entryWithSizeList.sumOf { it.second }
+                    Flux.concat(
+                        Mono.just(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = true)),
+                        Flux.fromIterable(entryWithSizeList.map { it.first })
+                            .flatMap { file ->
+                                log.debug {
+                                    "Processing ${file.absolutePathString()}"
+                                }
+                                val contentLength = file.fileSize()
+                                rawCosvFileStorage.upload(
+                                    key = RawCosvFileDto(
+                                        concatS3Key(archiveFile.fileName, file.relativeTo(contentDir).toString()),
+                                        organizationName = organizationName,
+                                        userName = userName,
+                                    ),
+                                    contentLength = contentLength,
+                                    content = file.toByteBufferFlux(),
+                                )
+                                    .map { UnzipRawCosvFileResponse(contentLength, fullSize, result = it) }
+                            },
+                        blockingToMono {
+                            tmpDir.deleteRecursivelySafely(log)
                         }
-                }
-                .doOnComplete {
-                    tmpDir.deleteRecursivelySafely(log)
+                            .then(rawCosvFileStorage.delete(archiveFile))
+                            .thenReturn(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = false)),
+                    )
                 }
                 .onErrorResume { error ->
                     log.error(error) {
-                        "Failed to process archive ${archiveFilePart.filename()}"
+                        "Failed to process archive ${archiveFile.fileName}"
                     }
                     blockingToMono { tmpDir.deleteRecursivelySafely(log) }.then(Mono.error(error))
                 }
@@ -359,5 +403,8 @@ class CosvController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
+
+        // to show progress bar
+        private val firstFakeResponse = UnzipRawCosvFileResponse(5, 100, updateCounters = true)
     }
 }
