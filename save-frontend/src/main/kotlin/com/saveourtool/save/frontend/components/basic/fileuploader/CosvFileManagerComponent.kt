@@ -20,6 +20,7 @@ import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
 import js.core.jso
+import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.b
@@ -43,7 +44,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.Headers
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
