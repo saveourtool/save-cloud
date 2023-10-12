@@ -26,7 +26,7 @@ abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDto<K>, 
     override fun findEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
-                .orNotFound { "Failed to find entity for $this by id = $id" }
+                .orNotFound { "Failed to find entity for ${this.javaClass.simpleName} by id = $id" }
         }
         ?: findByDto(key)
 

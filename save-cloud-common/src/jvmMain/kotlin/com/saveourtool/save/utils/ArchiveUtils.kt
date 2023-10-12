@@ -2,6 +2,8 @@
  * This file contains util methods to work with archives
  */
 
+@file:JvmName("ArchiveUtilsJVM")
+
 package com.saveourtool.save.utils
 
 import okio.Path
@@ -14,8 +16,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Path as JPath
 
 import kotlin.io.path.absolutePathString
-
-const val ARCHIVE_EXTENSION = ".${ArchiveStreamFactory.ZIP}"
 
 private val log: Logger = LoggerFactory.getLogger(object {}.javaClass.enclosingClass::class.java)
 private val archiver = Archiver()
