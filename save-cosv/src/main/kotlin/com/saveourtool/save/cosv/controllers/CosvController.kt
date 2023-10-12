@@ -140,13 +140,7 @@ class CosvController(
         .flatMap { rawCosvFileStorage.findById(id) }
         .flatMapMany { rawCosvFile ->
             Flux.concat(
-                Mono.just(
-                    UnzipRawCosvFileResponse(
-                        5,
-                        100,
-                        updateCounters = true,
-                    )
-                ),
+                Mono.just(firstFakeResponse),
                 doUploadArchiveEntries(
                     rawCosvFile,
                     organizationName,
@@ -383,5 +377,8 @@ class CosvController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
+
+        // to show progress bar
+        private val firstFakeResponse = UnzipRawCosvFileResponse(5, 100, updateCounters = true)
     }
 }
