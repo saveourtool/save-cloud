@@ -23,6 +23,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.*
 import react.dom.aria.ariaDescribedBy
+import react.dom.html.HTMLAttributes
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -35,6 +36,7 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
+import web.html.HTMLHeadingElement
 import web.html.InputType
 
 val userProfileView: FC<UserProfileViewProps> = FC { props ->
@@ -267,12 +269,12 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
     h3 {
         className = ClassName("mb-0 text-gray-900 text-center")
-        +(user?.name ?: "N/A")
+        validateName(user?.name, this)
     }
 
     h5 {
         className = ClassName("mb-0 text-gray-600 text-center")
-        +(user?.realName ?: "N/A")
+        validateRealName(user?.realName, this)
     }
 
     div {
@@ -369,6 +371,42 @@ fun ChildrenBuilder.renderLeftUserMenu(
             }
         }
     }
+}
+
+/**
+ * @param name
+ * @param header
+ */
+fun ChildrenBuilder.validateName(name: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    name?.let {
+        if (it.length > 14) {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "bottom"
+            header.title = it
+
+            +(it.substring(0, 13) + "...")
+        } else {
+            +it
+        }
+    } ?: "N/A"
+}
+
+/**
+ * @param realName
+ * @param header
+ */
+fun ChildrenBuilder.validateRealName(realName: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    realName?.let {
+        if (it.split(" ").any { namePart -> namePart.length > 20 }) {
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "bottom"
+            header.title = it
+
+            +(it.substring(0, 19) + "...")
+        } else {
+            +it
+        }
+    } ?: "N/A"
 }
 
 /**
