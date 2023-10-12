@@ -3,6 +3,7 @@
 
 package com.saveourtool.save.utils
 
+import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpHeaders.CACHE_CONTROL
 import org.springframework.http.HttpStatus.OK
@@ -47,6 +48,18 @@ typealias LazyResponse<T> = () -> T
  * Lazy HTTP response with timings.
  */
 typealias LazyResponseWithTiming<T> = () -> ResponseWithTiming<T>
+
+/**
+ * Adds required [HttpHeaders.CACHE_CONTROL] to support [org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE]
+ *
+ * @return builder [this]
+ */
+fun ResponseEntity.BodyBuilder.cacheControlForNdjson() = cacheControl(
+    CacheControl
+        .noStore()  // no-cache and max-age cannot be set
+        .noTransform()
+        .mustRevalidate()
+)
 
 /**
  * Adds support for the
