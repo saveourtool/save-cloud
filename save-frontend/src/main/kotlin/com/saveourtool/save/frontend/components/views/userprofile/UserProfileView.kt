@@ -18,6 +18,10 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.utils.LOGIN_MAX_LENGTH
+import com.saveourtool.save.utils.REAL_NAME_PART_MAX_LENGTH
+import com.saveourtool.save.utils.shortenLogin
+import com.saveourtool.save.utils.shortenRealName
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -269,12 +273,12 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
     h3 {
         className = ClassName("mb-0 text-gray-900 text-center")
-        validateName(user?.name, this)
+        shortenLoginWithTooltipIfNecessary(user?.name, this)
     }
 
     h5 {
         className = ClassName("mb-0 text-gray-600 text-center")
-        validateRealName(user?.realName, this)
+        shortenRealNameWithTooltipIfNecessary(user?.realName, this)
     }
 
     div {
@@ -374,39 +378,39 @@ fun ChildrenBuilder.renderLeftUserMenu(
 }
 
 /**
- * @param name
+ * @param login
  * @param header
  */
-fun ChildrenBuilder.validateName(name: String?, header: HTMLAttributes<HTMLHeadingElement>) {
-    name?.let {
-        if (it.length > 14) {
+fun ChildrenBuilder.shortenLoginWithTooltipIfNecessary(login: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    login?.let {
+        if (it.length > LOGIN_MAX_LENGTH) {
             asDynamic()["data-toggle"] = "tooltip"
-            asDynamic()["data-placement"] = "bottom"
+            asDynamic()["data-placement"] = "top"
             header.title = it
 
-            +(it.substring(0, 13) + "...")
+            +(it.shortenLogin())
         } else {
             +it
         }
-    } ?: "N/A"
+    } ?: +"N/A"
 }
 
 /**
  * @param realName
  * @param header
  */
-fun ChildrenBuilder.validateRealName(realName: String?, header: HTMLAttributes<HTMLHeadingElement>) {
-    realName?.let {
-        if (it.split(" ").any { namePart -> namePart.length > 20 }) {
+fun ChildrenBuilder.shortenRealNameWithTooltipIfNecessary(realName: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+    realName?.let { name ->
+        if (name.split(" ").any { it.length > REAL_NAME_PART_MAX_LENGTH }) {
             asDynamic()["data-toggle"] = "tooltip"
             asDynamic()["data-placement"] = "bottom"
-            header.title = it
+            header.title = name
 
-            +(it.substring(0, 19) + "...")
+            +(name.shortenRealName())
         } else {
-            +it
+            +name
         }
-    } ?: "N/A"
+    } ?: +"N/A"
 }
 
 /**
