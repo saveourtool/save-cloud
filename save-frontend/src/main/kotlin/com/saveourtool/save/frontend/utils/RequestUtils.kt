@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
@@ -41,8 +40,8 @@ val demoApiUrl = "${window.location.origin}/api/demo"
 val cpgDemoApiUrl = "${window.location.origin}/api/cpg"
 
 val jsonHeaders = Headers()
-    .acceptJson()
-    .contentTypeJson()
+    .withAcceptJson()
+    .withContentTypeJson()
 
 /**
  * The chunk of data read from the body of an HTTP response.
@@ -80,35 +79,35 @@ interface WithRequestStatusContext {
 /**
  * @return [this] headers with `content-type` for JSON
  */
-fun Headers.contentTypeJson() = apply {
+fun Headers.withContentTypeJson() = apply {
     set("Content-Type", "application/json")
 }
 
 /**
  * @return [this] headers with `content-type` for multipart form-data
  */
-fun Headers.contentTypeMultipartFormData() = apply {
+fun Headers.withContentTypeMultipartFormData() = apply {
     set("Content-Type", "multipart/form-data")
 }
 
 /**
  * @return [this] headers with `accept` for JSON
  */
-fun Headers.acceptJson() = apply {
+fun Headers.withAcceptJson() = apply {
     set("Accept", "application/json")
 }
 
 /**
  * @return [this] headers with `accept` for NDJSON
  */
-fun Headers.acceptNdjson() = apply {
+fun Headers.withAcceptNdjson() = apply {
     set("Accept", "application/x-ndjson")
 }
 
 /**
  * @return [this] headers with `accept` for octet-stream (bytes)
  */
-fun Headers.acceptOctetStream() = apply {
+fun Headers.withAcceptOctetStream() = apply {
     set("Accept", "application/octet-stream")
 }
 

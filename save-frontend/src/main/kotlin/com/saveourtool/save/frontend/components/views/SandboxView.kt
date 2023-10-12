@@ -47,7 +47,7 @@ val sandboxView = VFC {
     val resultReload = useDeferredRequest {
         val response = get(
             "$sandboxApiUrl/get-debug-info",
-            Headers().acceptOctetStream(),
+            Headers().withAcceptOctetStream(),
             loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
