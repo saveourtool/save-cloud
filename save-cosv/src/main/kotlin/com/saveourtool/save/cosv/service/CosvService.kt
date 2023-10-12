@@ -63,7 +63,7 @@ class CosvService(
                 }
                 .switchIfEmpty {
                     log.error {
-                        "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                        "Submitter ${user.name} is not the owner of the raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
                     }
                     Mono.empty()
                 }
