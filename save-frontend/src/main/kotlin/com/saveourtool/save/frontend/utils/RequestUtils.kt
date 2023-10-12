@@ -40,14 +40,43 @@ val apiUrl = "${window.location.origin}/api/$v1"
 val demoApiUrl = "${window.location.origin}/api/demo"
 val cpgDemoApiUrl = "${window.location.origin}/api/cpg"
 
-val jsonHeaders = Headers().apply {
-    set("Accept", "application/json")
+val jsonHeaders = Headers()
+    .acceptJson()
+    .contentTypeJson()
+
+/**
+ * @return [this] headers with `content-type` for JSON
+ */
+fun Headers.contentTypeJson() = apply {
     set("Content-Type", "application/json")
 }
 
-val ndJsonHeaders = Headers().apply {
-    set("Content-Type", "application/json")
+/**
+ * @return [this] headers with `content-tupe` for octet-stream (bytes)
+ */
+fun Headers.contentTypeOctetStream() = apply {
+    set("Content-Type", "application/octet-stream")
+}
+
+/**
+ * @return [this] headers with `accept` for JSON
+ */
+fun Headers.acceptJson() = apply {
+    set("Accept", "application/json")
+}
+
+/**
+ * @return [this] headers with `accept` for NDJSON
+ */
+fun Headers.acceptNdjson() = apply {
     set("Accept", "application/x-ndjson")
+}
+
+/**
+ * @return [this] headers with `accept` for octet-stream (bytes)
+ */
+fun Headers.acceptOctetStream() = apply {
+    set("Accept", "application/octet-stream")
 }
 
 /**

@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.serialization.json.Json
+import org.w3c.fetch.Headers
 
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
@@ -125,7 +126,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val uploadFiles = useDeferredRequest {
         val response = post(
             url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
-            headers = ndJsonHeaders,
+            headers = Headers().acceptNdjson().contentTypeOctetStream(),
             body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
@@ -147,7 +148,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fileToUnzip?.let { file ->
             val response = post(
                 "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
-                headers = ndJsonHeaders,
+                headers = Headers().acceptNdjson(),
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler,
