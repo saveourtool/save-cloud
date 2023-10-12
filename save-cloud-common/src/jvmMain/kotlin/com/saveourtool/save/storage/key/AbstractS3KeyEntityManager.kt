@@ -29,7 +29,7 @@ abstract class AbstractS3KeyEntityManager<E : BaseEntity, R : BaseEntityReposito
     override fun findEntity(key: E): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
-                .orNotFound { "Failed to find entity for $this by id = $id" }
+                .orNotFound { "Failed to find entity for ${this.javaClass.simpleName} by id = $id" }
         }
         ?: findByContent(key)
 
