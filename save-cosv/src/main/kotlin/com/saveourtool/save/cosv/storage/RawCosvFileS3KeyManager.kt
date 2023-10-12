@@ -8,13 +8,11 @@ import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
-import com.saveourtool.save.utils.kFindAll
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -44,30 +42,33 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param organizationName
+     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
+     */
+    fun countByOrganization(
+        organizationName: String,
+    ): Long = repository.countAllByOrganizationName(organizationName)
+
+    /**
+     * @param organizationName
      * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
      */
     fun listByOrganization(
         organizationName: String,
-    ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName).map { it.toDto() }
+    ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName)
+        .map { it.toDto() }
 
     /**
-     * @param filter
+     * @param organizationName
      * @param page
      * @param size
-     * @return all [RawCosvFileDto]s which fits to [filter]
+     * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
      */
-    fun listByFilter(
-        filter: RawCosvFileFilter,
+    fun listByOrganization(
+        organizationName: String,
         page: Int,
         size: Int,
-    ): Collection<RawCosvFileDto> {
-        return repository.kFindAll(PageRequest.of(page, size)) { root, _, cb ->
-            cb.and(
-                filter.fileNamePart?.let { cb.like(root.get("fileName"), "%$it%") } ?: cb.and(),
-                cb.equal(root.get<Organization>("organization").get<String>("name"), filter.organizationName),
-            )
-        }.content.map { it.toDto() }
-    }
+    ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName, PageRequest.of(page, size))
+        .map { it.toDto() }
 
     /**
      * @param ids

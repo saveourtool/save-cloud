@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
-import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
@@ -12,7 +11,6 @@ import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.externals.fontawesome.faReload
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.validation.isValidName
 
@@ -39,6 +37,8 @@ import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.serialization.json.Json
 
+private const val DEFAULT_SIZE = 10
+
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
@@ -46,6 +46,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
+    val (allAvailableFilesCount, setAllAvailableFilesCount) = useState(0L)
+    val (lastPage, setLastPage) = useState(0)
     val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
@@ -104,15 +106,34 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         setUserOrganizations(organizations)
     }
 
-    val fetchFiles = useDeferredRequest {
+    val fetchMoreFiles = useDeferredRequest {
         selectedOrganization?.let {
+            val newPage = lastPage.inc()
             val result: List<RawCosvFileDto> = get(
                 url = "$apiUrl/cosv/$selectedOrganization/list",
+                params = jso<dynamic> {
+                    page = newPage
+                    size = DEFAULT_SIZE
+                },
+                headers = jsonHeaders,
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler
+            ).decodeFromJsonString()
+            setLastPage(newPage)
+            setAvailableFiles { it.plus(result) }
+        }
+    }
+    val reFetchFiles = useDeferredRequest {
+        selectedOrganization?.let {
+            val count: Long = get(
+                url = "$apiUrl/cosv/$selectedOrganization/count",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
             ).decodeFromJsonString()
-            setAvailableFiles(result)
+            setAvailableFiles(emptyList())
+            setAllAvailableFilesCount(count)
+            fetchMoreFiles()
         }
     }
 
@@ -151,7 +172,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             window.alert(response.text().await())
         }
         setSelectedFiles(emptyList())
-        fetchFiles()
     }
 
     div {
@@ -176,7 +196,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             disabled = false
             onChangeFun = { value ->
                 setSelectedOrganization(value)
-                fetchFiles()
+                reFetchFiles()
             }
         }
 
@@ -196,7 +216,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     submitCosvFiles()
                 }
                 buttonBuilder(faReload) {
-                    fetchFiles()
+                    reFetchFiles()
                 }
             }
 
@@ -272,6 +292,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             RawCosvFileStatus.FAILED -> " (with errors)"
                             else -> " "
                         }
+                    }
+                }
+            }
+
+            if (lastPage * DEFAULT_SIZE < allAvailableFilesCount) {
+                li {
+                    className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                    buttonBuilder("Load more") {
+                        fetchMoreFiles()
                     }
                 }
             }

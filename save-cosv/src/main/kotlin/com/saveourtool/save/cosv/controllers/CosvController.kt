@@ -8,7 +8,6 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -24,9 +23,6 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.util.function.component1
-import reactor.kotlin.core.util.function.component2
-import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import kotlin.io.path.*
@@ -87,7 +83,6 @@ class CosvController(
     fun batchUpload(
         @PathVariable organizationName: String,
         @RequestPart(FILE_PART_NAME) filePartFlux: Flux<FilePart>,
-        @RequestHeader(CONTENT_LENGTH_CUSTOM) filesContentLength: List<Long>,
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileDtoFlux> = withHttpHeaders {
         hasPermission(authentication, organizationName, Permission.WRITE, "upload")
@@ -136,10 +131,9 @@ class CosvController(
             log.debug {
                 "Saving archive ${archiveFilePart.filename()} to ${archiveFile.absolutePathString()}"
             }
-            archiveFilePart.transferTo(archiveFile)
-                .blockingMap {
-                    archiveFile.extractZipTo(contentDir)
-                }
+            archiveFilePart.content()
+                .map { it.asByteBuffer() }
+                .collectToFile(archiveFile)
                 .flatMapMany {
                     blockingToFlux {
                         contentDir.listDirectoryEntries()
@@ -201,16 +195,35 @@ class CosvController(
     /**
      * @param organizationName
      * @param authentication
+     * @return count of uploaded raw cosv files in [organizationName]
+     */
+    @RequiresAuthorizationSourceHeader
+    @GetMapping("/{organizationName}/count")
+    fun count(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<Long> = hasPermission(authentication, organizationName, Permission.READ, "read")
+        .flatMap {
+            rawCosvFileStorage.countByOrganization(organizationName)
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @param page
+     * @param size
      * @return list of uploaded raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
     @GetMapping("/{organizationName}/list")
     fun list(
         @PathVariable organizationName: String,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
         authentication: Authentication,
     ): Flux<RawCosvFileDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMapMany {
-            rawCosvFileStorage.listByFilter(RawCosvFileFilter(null, organizationName), 0, 100)
+            rawCosvFileStorage.listByOrganization(organizationName, page, size)
         }
 
     /**

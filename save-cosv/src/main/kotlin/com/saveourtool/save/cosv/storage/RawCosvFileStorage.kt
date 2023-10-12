@@ -5,7 +5,6 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.filters.RawCosvFileFilter
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
@@ -41,18 +40,39 @@ class RawCosvFileStorage(
         )
     }.publishOn(s3Operations.scheduler)
 
+
     /**
-     * @param filter
+     * @param organizationName
+     * @return count of all [RawCosvFileDto]s which fits to [filter]
+     */
+    fun countByOrganization(
+        organizationName: String,
+    ): Mono<Long> = blockingToMono {
+        s3KeyManager.countByOrganization(organizationName)
+    }
+
+    /**
+     * @param organizationName
+     * @return all [RawCosvFileDto]s which fits to [filter]
+     */
+    fun listByOrganization(
+        organizationName: String,
+    ): Flux<RawCosvFileDto> = blockingToFlux {
+        s3KeyManager.listByOrganization(organizationName)
+    }
+
+    /**
+     * @param organizationName
      * @param page
      * @param size
      * @return all [RawCosvFileDto]s which fits to [filter]
      */
-    fun listByFilter(
-        filter: RawCosvFileFilter,
+    fun listByOrganization(
+        organizationName: String,
         page: Int,
         size: Int,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByFilter(filter, page, size)
+        s3KeyManager.listByOrganization(organizationName, page, size)
     }
 
     /**
