@@ -4,9 +4,7 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*

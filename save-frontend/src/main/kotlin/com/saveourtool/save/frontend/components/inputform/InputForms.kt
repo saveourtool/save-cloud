@@ -12,11 +12,11 @@ private const val URL_PLACEHOLDER = "https://example.com"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
 private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
 
-private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+private const val NAME_TOOLTIP = "Allowed symbols: English letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
 private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMING_MAX_LENGTH characters." +
-        "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+        "Allowed symbols: English letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
 
 private const val SEVERITY_VECTOR_TOOLTIP = "It's a string representation of the Common Vulnerability Scoring System (CVSS)." +
