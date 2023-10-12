@@ -14896,15 +14896,26 @@
       },
       "VulnerabilityProjectDto": {
         "required": [
+          "ecosystem",
           "name",
+          "purl",
+          "repository",
           "type",
-          "url",
           "versions",
           "vulnerabilityIdentifier"
         ],
         "type": "object",
         "properties": {
+          "ecosystem": {
+            "type": "string"
+          },
           "name": {
+            "type": "string"
+          },
+          "purl": {
+            "type": "string"
+          },
+          "repository": {
             "type": "string"
           },
           "type": {
@@ -14915,11 +14926,11 @@
               "Project"
             ]
           },
-          "url": {
-            "type": "string"
-          },
           "versions": {
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "vulnerabilityIdentifier": {
             "type": "string"
