@@ -5,9 +5,6 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
-import com.saveourtool.save.domain.Progress
-import com.saveourtool.save.domain.Progress.Companion.withProgress
-import com.saveourtool.save.domain.Progressable
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
@@ -16,8 +13,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+
 import org.reactivestreams.Publisher
 import org.springframework.http.*
 import org.springframework.http.codec.multipart.FilePart
@@ -26,12 +22,15 @@ import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.nio.ByteBuffer
 import java.nio.file.Files
+
 import kotlin.io.path.*
-import kotlin.math.round
+import kotlinx.serialization.json.Json
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
+typealias UnzipRawCosvFileResponseFlux = Flux<UnzipRawCosvFileResponse>
 
 /**
  * Rest controller for COSVs
@@ -44,12 +43,11 @@ class CosvController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
+    private val json = Json
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
         backendService.workingDir.createDirectories(),
         "archive-"
     )
-
-    private val json = Json
 
     /**
      * @param organizationName
@@ -128,7 +126,7 @@ class CosvController(
         archiveFileContent: Flux<ByteBuffer>,
         organizationName: String,
         userName: String,
-    ): Flux<UnzipRawCosvFileResponse> = blockingToMono {
+    ): UnzipRawCosvFileResponseFlux = blockingToMono {
         val tmpDir = createTempDirectoryForArchive()
         val tmpArchiveFile = tmpDir / archiveFileName
         val contentDir = Files.createTempDirectory(tmpDir, "content-")
@@ -171,7 +169,6 @@ class CosvController(
                             tmpDir.deleteRecursivelySafely(log)
                         }.thenReturn(firstAndLastResponse),
                     )
-
                 }
                 .onErrorResume { error ->
                     log.error(error) {
@@ -197,7 +194,7 @@ class CosvController(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): ResponseEntity<Flux<UnzipRawCosvFileResponse>> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+    ): ResponseEntity<UnzipRawCosvFileResponseFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
         .flatMap { rawCosvFileStorage.findById(id) }
         .flatMapMany { rawCosvFile ->
             doUploadArchiveEntries(

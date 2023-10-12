@@ -2,7 +2,6 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
-import com.saveourtool.save.domain.Progressable
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
@@ -21,7 +20,6 @@ import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
 import js.core.jso
-import org.w3c.fetch.Headers
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.b
@@ -80,7 +78,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             }
         }
     }
-
 
     useRequest {
         val organizations = get(
