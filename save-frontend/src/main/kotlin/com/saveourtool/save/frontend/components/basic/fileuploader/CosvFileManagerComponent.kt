@@ -71,6 +71,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         }
     }
 
+    val deleteProcessedFiles = useDeferredRequest {
+        val response = delete(
+            "$apiUrl/cosv/$selectedOrganization/delete-processed",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+
+        if (response.ok) {
+            val deletedFiles: Set<RawCosvFileDto> = response.decodeFromJsonString()
+            setAvailableFiles { it.minus(deletedFiles) }
+        }
+    }
+
     useRequest {
         val organizations = get(
             url = "$apiUrl/organizations/with-allow-bulk-upload",
@@ -169,6 +182,9 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
                 buttonBuilder("Select all", isDisabled = availableFiles.isEmpty()) {
                     setSelectedFiles(availableFiles.filterNot { it.isNotSelectable() })
+                }
+                buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
+                    deleteProcessedFiles()
                 }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
                     submitCosvFiles()
