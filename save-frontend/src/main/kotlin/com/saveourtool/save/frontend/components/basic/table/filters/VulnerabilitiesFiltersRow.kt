@@ -85,7 +85,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         getUrlForOptionsFetch = { prefix ->
                             "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DROPDOWN_OPTIONS_AMOUNT"
                         }
-                        placeholder = "${"Author".t()}..."
+                        placeholder = "${"COSV Submitter".t()}..."
                         renderOption = ::renderUserWithAvatar
                         onOptionClick = { newUser ->
                             setUser(newUser)

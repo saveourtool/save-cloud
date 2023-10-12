@@ -145,8 +145,9 @@ class DefaultStorageProjectReactor<K : Any>(
         .flatMap { s3Key ->
             s3Operations.deleteObject(s3Key).toMonoAndPublishOn()
         }
+        .collectList()
         .flatMap { deleteKeys(keys) }
-        .thenJust(true)
+        .thenReturn(true)
         .defaultIfEmpty(false)
 
     override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
