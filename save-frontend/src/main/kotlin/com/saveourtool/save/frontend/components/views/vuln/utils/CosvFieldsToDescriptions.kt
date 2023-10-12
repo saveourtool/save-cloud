@@ -70,3 +70,33 @@ val cosvFieldsDescriptionsMap = listOf(
     "credits.type" to creditsTypeDescr,
     "database_specific" to databaseSpecificDescr,
 )
+
+val keysOnlyFromCosv = listOf(
+    "cwe_ids",
+    "cwe_names",
+    "timeline",
+    "timeline.type",
+    "timeline.value",
+    "severity.level",
+    "severity.score_num",
+    "language",
+    "repository",
+    "introduced_commits",
+    "fixed_commits",
+    "home_page",
+    "edition",
+    "patches_detail",
+    "patch_url",
+    "issue_url",
+    "main_language",
+    "author",
+    "commiter",
+    "branches",
+    "tags",
+    "contributors",
+    "org",
+    "contributors.name",
+    "email",
+    "contributions",
+    "confirm_type"
+)
