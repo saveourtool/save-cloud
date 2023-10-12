@@ -29,6 +29,7 @@ import java.nio.file.Files
 import kotlin.io.path.*
 import kotlinx.serialization.json.Json
 
+typealias RawCosvFileDtoList = List<RawCosvFileDto>
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
 typealias UnzipRawCosvFileResponseFlux = Flux<UnzipRawCosvFileResponse>
 
@@ -297,7 +298,7 @@ class CosvController(
      * @param organizationName
      * @param id
      * @param authentication
-     * @return empty response
+     * @return string response
      */
     @RequiresAuthorizationSourceHeader
     @DeleteMapping("/{organizationName}/delete/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -314,6 +315,31 @@ class CosvController(
                 }
                 .map {
                     ResponseEntity.ok("Raw COSV file deleted successfully")
+                }
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return list of deleted keys
+     */
+    @RequiresAuthorizationSourceHeader
+    @DeleteMapping("/{organizationName}/delete-processed", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun deleteProcessed(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<RawCosvFileDtoList> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
+        .flatMap {
+            rawCosvFileStorage.listByOrganization(organizationName)
+                .filter { it.status == RawCosvFileStatus.PROCESSED }
+                .collectList()
+                .flatMap { keys ->
+                    rawCosvFileStorage.deleteAll(keys)
+                        .filter { it }
+                        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                            "Failed to delete process raw cosv files: $keys"
+                        }
+                        .map { keys }
                 }
         }
 
