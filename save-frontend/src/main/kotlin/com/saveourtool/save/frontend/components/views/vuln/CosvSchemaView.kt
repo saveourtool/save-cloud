@@ -8,6 +8,7 @@ import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
 import com.saveourtool.save.frontend.components.modal.loaderModalStyle
 import com.saveourtool.save.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
 import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
+import com.saveourtool.save.frontend.components.views.vuln.utils.keysOnlyFromCosv
 import com.saveourtool.save.frontend.utils.*
 
 import react.VFC
@@ -71,7 +72,11 @@ val cosvSchemaView = VFC {
                                     // hold the tabulations
                                     +"${str.takeWhile { it != '\"' }}\""
                                     // make from key the button
-                                    buttonBuilder(key.substringAfter("."), classes = "btn-sm") {
+                                    buttonBuilder(
+                                        key.substringAfter("."),
+                                        style = if (key in keysOnlyFromCosv) "info" else "primary",
+                                        classes = "btn-sm"
+                                    ) {
                                         setTextInModal(key to value)
                                         windowOpenness.openWindow()
                                     }
