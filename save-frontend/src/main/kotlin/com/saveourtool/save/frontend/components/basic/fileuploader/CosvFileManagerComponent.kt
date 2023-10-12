@@ -151,6 +151,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val unzipFile = useDeferredRequest {
         fileToUnzip?.let { file ->
+            setStreamingOperationActive(true)
             val response = post(
                 "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
                 headers = Headers().withContentTypeJson().withAcceptNdjson(),
@@ -246,7 +247,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
                     deleteProcessedFiles()
                 }
-                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty()) {
+                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     submitCosvFiles()
                 }
                 buttonBuilder(faReload) {

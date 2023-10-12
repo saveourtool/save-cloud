@@ -27,6 +27,7 @@ import reactor.kotlin.extra.math.sumAll
 import java.nio.ByteBuffer
 
 import kotlinx.serialization.serializer
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
@@ -60,8 +61,11 @@ class CosvService(
                 .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
                     organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
                 }
-                .switchIfErrorToConflict {
-                    "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                .switchIfEmpty {
+                    log.error {
+                        "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                    }
+                    Mono.empty()
                 }
                 .flatMap {
                     doProcess(rawCosvFileId, user, organization)
