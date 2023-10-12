@@ -44,6 +44,8 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.json.Json
 
+private const val DEFAULT_SIZE = 10
+
 val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
@@ -51,9 +53,13 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
+    val (allAvailableFilesCount, setAllAvailableFilesCount) = useState(0L)
+    val (lastPage, setLastPage) = useState(0)
     val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
+
+    val leftAvailableFilesCount = allAvailableFilesCount - lastPage * DEFAULT_SIZE
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
@@ -112,15 +118,50 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         setUserOrganizations(organizations)
     }
 
-    val fetchFiles = useDeferredRequest {
+    val fetchMoreFiles = useDeferredRequest {
         selectedOrganization?.let {
-            val result: List<RawCosvFileDto> = get(
+            val newPage = lastPage.inc()
+            val response = get(
                 url = "$apiUrl/cosv/$selectedOrganization/list",
+                params = jso<dynamic> {
+                    page = newPage - 1
+                    size = DEFAULT_SIZE
+                },
+                headers = Headers().withAcceptNdjson().withContentTypeJson(),
+                loadingHandler = ::loadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+            when {
+                response.ok -> {
+                    setStreamingOperationActive(true)
+                    response
+                        .readLines()
+                        .filter(String::isNotEmpty)
+                        .onCompletion {
+                            setStreamingOperationActive(false)
+                            setLastPage(newPage)
+                        }
+                        .collect { message ->
+                            val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
+                            setAvailableFiles { it.plus(uploadedFile) }
+                        }
+                }
+                else -> window.alert("Failed to fetch next page: ${response.unpackMessageOrNull().orEmpty()}")
+            }
+        }
+    }
+    val reFetchFiles = useDeferredRequest {
+        selectedOrganization?.let {
+            val count: Long = get(
+                url = "$apiUrl/cosv/$selectedOrganization/count",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
             ).decodeFromJsonString()
-            setAvailableFiles(result)
+            setAvailableFiles(emptyList())
+            setAllAvailableFilesCount(count)
+            setLastPage(0)
+            fetchMoreFiles()
         }
     }
 
@@ -139,11 +180,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 .filter(String::isNotEmpty)
                 .onCompletion {
                     setStreamingOperationActive(false)
+                    reFetchFiles()
                 }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
                     setProcessedBytes { it.plus(uploadedFile.requiredContentLength()) }
-                    setAvailableFiles { it.plus(uploadedFile) }
                 }
             else -> window.alert(response.unpackMessageOrNull().orEmpty())
         }
@@ -173,11 +214,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                         .collect { message ->
                             val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
-                            entryResponse.result?.let { result ->
-                                setAvailableFiles {
-                                    it.plus(result)
-                                }
-                            }
                             if (entryResponse.updateCounters) {
                                 setTotalBytes(entryResponse.fullSize)
                                 setProcessedBytes(entryResponse.processedSize)
@@ -186,10 +222,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             }
                         }
                 }
-                else -> window.alert(response.unpackMessageOrNull().orEmpty())
+                else -> window.alert("Failed to unzip ${file.fileName}: ${response.unpackMessageOrNull().orEmpty()}")
             }
             if (response.ok) {
                 setFileToUnzip(null)
+                reFetchFiles()
             }
         }
     }
@@ -244,7 +281,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             disabled = false
             onChangeFun = { value ->
                 setSelectedOrganization(value)
-                fetchFiles()
+                reFetchFiles()
             }
         }
 
@@ -264,7 +301,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     submitAllUploadedCosvFiles()
                 }
                 buttonBuilder(faReload) {
-                    fetchFiles()
+                    reFetchFiles()
                 }
             }
 
@@ -357,6 +394,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             RawCosvFileStatus.FAILED -> " (with errors)"
                             else -> " "
                         }
+                    }
+                }
+            }
+
+            if (leftAvailableFilesCount > 0) {
+                li {
+                    className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                    buttonBuilder("Load more (left $leftAvailableFilesCount)", isDisabled = isStreamingOperationActive) {
+                        fetchMoreFiles()
                     }
                 }
             }

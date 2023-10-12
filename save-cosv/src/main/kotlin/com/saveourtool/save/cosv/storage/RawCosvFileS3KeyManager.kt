@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -41,11 +42,23 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param organizationName
+     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
+     */
+    fun countByOrganization(
+        organizationName: String,
+    ): Long = repository.countAllByOrganizationName(organizationName)
+
+    /**
+     * @param organizationName
+     * @param pageRequest
      * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
      */
     fun listByOrganization(
         organizationName: String,
-    ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName).map { it.toDto() }
+        pageRequest: PageRequest? = null,
+    ): Collection<RawCosvFileDto> = run {
+        pageRequest?.let { repository.findAllByOrganizationName(organizationName, it) } ?: repository.findAllByOrganizationName(organizationName)
+    }.map { it.toDto() }
 
     /**
      * @param ids
