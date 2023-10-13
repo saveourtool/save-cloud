@@ -94,3 +94,9 @@ const val AVATARS_PACKS_DIR: String = "/img/avatar_packs"
  */
 @Suppress("NON_EXPORTABLE_TYPE")
 const val NO_BREAK_SPACE = '\u00a0'
+
+/**
+ * Horizontal Ellipsis (U+2026).
+ */
+@Suppress("NON_EXPORTABLE_TYPE")
+const val ELLIPSIS = '\u2026'

@@ -1,6 +1,9 @@
+@file:JvmName("StringUtils")
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
 package com.saveourtool.save.utils
+
+import kotlin.jvm.JvmName
 
 const val LOGIN_MAX_LENGTH = 14
 const val REAL_NAME_PART_MAX_LENGTH = 20
@@ -17,10 +20,28 @@ fun List<String>?.listToShortString(): String = this?.run {
 }.orEmpty()
 
 /**
- * @param maxLength
- * @return short [String] for text
+ * If necessary, shortens the receiver to have the maximum length of
+ * [maxLength], replacing the last character with [ELLIPSIS].
+ *
+ * @receiver the string to truncate.
+ * @param maxLength the maximum length the truncated string should have.
+ * @return the truncated string.
+ * @see ELLIPSIS
  */
-fun String.shorten(maxLength: Int): String = substring(0, maxLength - 1) + "..."
+fun String.shorten(maxLength: Int): String {
+    require(maxLength >= 1) {
+        "maxLength should be >= 1: $maxLength"
+    }
+
+    return when {
+        length <= maxLength -> this
+        else -> asSequence().joinToString(
+            separator = "",
+            limit = maxLength - 1,
+            truncated = ELLIPSIS.toString(),
+        )
+    }
+}
 
 /**
  * @return short [String] for login
