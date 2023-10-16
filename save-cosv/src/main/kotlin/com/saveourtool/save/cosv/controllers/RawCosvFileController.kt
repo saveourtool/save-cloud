@@ -234,7 +234,7 @@ class RawCosvFileController(
     fun submitAllUploadedToProcess(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganization(organizationName)
+    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
         .filter {
             it.userName == authentication.name
         }
@@ -276,7 +276,7 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<Long> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMap {
-            rawCosvFileStorage.countByOrganization(organizationName)
+            rawCosvFileStorage.countByOrganizationAndUser(organizationName, authentication.name)
         }
 
     /**
@@ -299,7 +299,7 @@ class RawCosvFileController(
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMapMany {
-            rawCosvFileStorage.listByOrganization(organizationName, PageRequest.of(page, size))
+            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name, PageRequest.of(page, size))
         }
         .let {
             ResponseEntity.ok()
@@ -366,7 +366,7 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<RawCosvFileDtoList> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
         .flatMap {
-            rawCosvFileStorage.listByOrganization(organizationName)
+            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
                 .filter { it.status == RawCosvFileStatus.PROCESSED }
                 .collectList()
                 .flatMap { keys ->
@@ -417,3 +417,4 @@ class RawCosvFileController(
         private val firstFakeResponse = UnzipRawCosvFileResponse(5, 100, updateCounters = true)
     }
 }
+
