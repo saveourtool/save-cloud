@@ -43,24 +43,28 @@ class RawCosvFileStorage(
 
     /**
      * @param organizationName
-     * @return count of all [RawCosvFileDto]s which fits to [filter]
+     * @param userName
+     * @return count of all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
      */
-    fun countByOrganization(
+    fun countByOrganizationAndUser(
         organizationName: String,
+        userName: String,
     ): Mono<Long> = blockingToMono {
-        s3KeyManager.countByOrganization(organizationName)
+        s3KeyManager.countByOrganizationAndUser(organizationName, userName)
     }
 
     /**
      * @param organizationName
+     * @param userName
      * @param pageRequest
-     * @return all [RawCosvFileDto]s which fits to [filter]
+     * @return all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
      */
-    fun listByOrganization(
+    fun listByOrganizationAndUser(
         organizationName: String,
+        userName: String,
         pageRequest: PageRequest? = null,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName, pageRequest)
+        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest)
     }
 
     /**

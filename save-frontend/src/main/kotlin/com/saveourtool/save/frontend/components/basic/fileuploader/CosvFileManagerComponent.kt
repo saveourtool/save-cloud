@@ -297,7 +297,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     submitCosvFiles()
                 }
-                buttonBuilder("Submit all uploaded by you", isDisabled = availableFiles.isEmpty()) {
+                buttonBuilder("Submit all uploaded", isDisabled = availableFiles.isEmpty()) {
                     submitAllUploadedCosvFiles()
                 }
                 buttonBuilder(faReload) {
