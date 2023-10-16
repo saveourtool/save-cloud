@@ -39,6 +39,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.router.useNavigate
 
 /**
  * `Props` retrieved from router
@@ -96,6 +97,8 @@ external interface ContestGlobalRatingViewState : State {
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGlobalRatingViewState>(Style.SAVE_LIGHT) {
+    val navigate = useNavigate()
+
     @Suppress(
         "STRING_TEMPLATE_QUOTES",
         "TYPE_ALIAS",
@@ -284,10 +287,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                                 organizationFilter = filter
                                             }
                                             getOrganization(filter)
-                                            window.location.href = buildString {
+                                            navigate(to = buildString {
                                                 append(window.location.href.substringBefore("?"))
                                                 filterValue?.let { append("?organizationName=$filterValue") }
-                                            }
+                                            })
                                         }
                                     }
                                 }
@@ -326,10 +329,10 @@ class ContestGlobalRatingView : AbstractView<ContestGlobalRatingProps, ContestGl
                                                 projectFilter = filter
                                             }
                                             getProject(filter)
-                                            window.location.href = buildString {
+                                            navigate(to = buildString {
                                                 append(window.location.href.substringBefore("?"))
                                                 filterValue?.let { append("?projectName=$filterValue") }
-                                            }
+                                            })
                                         }
                                     }
                                 }

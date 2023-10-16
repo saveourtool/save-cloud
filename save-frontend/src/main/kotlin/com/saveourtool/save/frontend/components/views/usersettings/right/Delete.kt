@@ -19,9 +19,11 @@ import web.cssom.ClassName
 import web.cssom.rem
 
 import kotlinx.browser.window
+import react.router.useNavigate
 
 val deleteSettingsCard: FC<SettingsProps> = FC { props ->
     val deleteUserWindowOpenness = useWindowOpenness()
+    val navigate = useNavigate()
 
     @Suppress("TOO_MANY_LINES_IN_LAMBDA")
     val deleteUser = useDeferredRequest {
@@ -43,7 +45,7 @@ val deleteSettingsCard: FC<SettingsProps> = FC { props ->
                     loadingHandler = ::loadingHandler,
                 )
                 if (replyToLogout.ok) {
-                    window.location.href = "${window.location.origin}/"
+                    navigate(to = "${window.location.origin}/")
                     window.location.reload()
                 }
             }

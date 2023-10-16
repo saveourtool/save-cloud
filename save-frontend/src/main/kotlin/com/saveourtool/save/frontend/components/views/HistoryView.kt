@@ -43,6 +43,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.router.useNavigate
 
 /**
  * [Props] for tests execution history
@@ -121,6 +122,8 @@ external interface FiltersProps : TableProps<ExecutionDto> {
     "TOO_MANY_LINES_IN_LAMBDA",
 )
 class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGHT) {
+    val navigate = useNavigate()
+
     private val selectedExecutionIds = mutableListOf<Long>()
     private val executionsTable = tableComponent<ExecutionDto, FiltersProps>(
         columns = {
@@ -433,7 +436,7 @@ class HistoryView : AbstractView<HistoryProps, HistoryViewState>(Style.SAVE_LIGH
                     )
 
             if (responseFromDeleteExecutions.ok) {
-                window.location.href = "${window.location.origin}#/${props.organizationName}/${props.name}"
+                navigate(to = "${window.location.origin}#/${props.organizationName}/${props.name}")
             }
         }
     }
