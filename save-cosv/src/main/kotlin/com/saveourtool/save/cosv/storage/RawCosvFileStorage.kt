@@ -12,8 +12,11 @@ import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
@@ -40,6 +43,18 @@ class RawCosvFileStorage(
             s3KeyManager = s3KeyManager,
         )
     }.publishOn(s3Operations.scheduler)
+
+    override fun upload(key: RawCosvFileDto, content: Flux<ByteBuffer>): Mono<RawCosvFileDto> {
+        val result = key.contentLength?.let {
+            upload(key, it, content)
+        } ?: super.upload(key, content)
+        return result.onErrorResume { error ->
+            when (error) {
+                is DataIntegrityViolationException -> Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate file name ${key.fileName}", error))
+                else -> Mono.error(error)
+            }
+        }
+    }
 
     /**
      * @param organizationName

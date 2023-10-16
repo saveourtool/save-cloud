@@ -168,6 +168,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val uploadFiles = useDeferredRequest {
         setStreamingOperationActive(true)
+        setTotalBytes(filesForUploading.sumOf(File::size).toLong())
         val response = post(
             url = "$apiUrl/raw-cosv/$selectedOrganization/batch-upload",
             headers = Headers().withAcceptNdjson(),
@@ -187,7 +188,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
                     setProcessedBytes { it.plus(uploadedFile.requiredContentLength()) }
                 }
-            else -> window.alert(response.unpackMessageOrNull().orEmpty())
+            else -> {
+                setStreamingOperationActive(false)
+                setTotalBytes(0)
+                setProcessedBytes(0)
+                window.alert(response.unpackMessageOrNull().orEmpty())
+            }
         }
     }
 
@@ -314,9 +320,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     isMultipleFilesSupported = true
                     tooltipMessage = "Only JSON files or ZIP archives"
                     onChangeEventHandler = { files ->
-                        files!!.asList()
-                            .also { setTotalBytes(it.sumOf(File::size).toLong()) }
-                            .let { setFilesForUploading(it) }
+                        setFilesForUploading(files!!.asList())
                         uploadFiles()
                     }
                 }
