@@ -45,8 +45,8 @@ class RawCosvFile(
         organizationName = organization.name,
         status = status,
         statusMessage = statusMessage,
-        updateDate = requiredUpdateDate().toKotlinLocalDateTime(),
         contentLength = contentLength,
+        updateDate = requiredUpdateDate().toKotlinLocalDateTime(),
         id = requiredId(),
     )
 
@@ -64,6 +64,7 @@ class RawCosvFile(
             user = userResolver(userName),
             organization = organizationResolver(organizationName),
             status = status,
+            contentLength = contentLength,
         )
     }
 }
