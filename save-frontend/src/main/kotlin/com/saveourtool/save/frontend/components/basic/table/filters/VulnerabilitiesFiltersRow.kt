@@ -121,7 +121,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
 
                     div {
                         className = ClassName("col-2")
-                        buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
+                        buttonBuilder(faSearch, classes = "btn mr-1", title = "Start search", isOutline = props.filter == filter, style = "secondary") {
                             props.onChangeFilter(filter)
                         }
                         buttonBuilder(faWindowClose, classes = "btn mr-1", title = "Drop filters", isOutline = true, style = "secondary") {
@@ -195,7 +195,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     div {
                         className = ClassName("col-2")
                         withNavigate { navigateContext ->
-                            buttonBuilder(faPlus, style = "primary mr-1", isOutline = true) {
+                            buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", isOutline = true) {
                                 navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
                             }
                         }

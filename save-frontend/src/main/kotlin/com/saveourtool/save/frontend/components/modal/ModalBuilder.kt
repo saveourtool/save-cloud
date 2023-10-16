@@ -114,7 +114,7 @@ fun ChildrenBuilder.displayModalWithPreTag(
     isOpen: Boolean,
     title: String,
     message: String,
-    modalStyle: Styles = mediumTransparentModalStyle,
+    modalStyle: Styles = defaultModalStyle,
     onCloseButtonPressed: (() -> Unit)? = null,
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) = doCreateDisplayModal(true, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)

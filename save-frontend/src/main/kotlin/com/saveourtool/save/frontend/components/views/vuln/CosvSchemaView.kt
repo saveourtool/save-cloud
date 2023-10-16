@@ -4,51 +4,38 @@
 
 package com.saveourtool.save.frontend.components.views.vuln
 
-import com.saveourtool.save.frontend.components.modal.displayModalWithPreTag
-import com.saveourtool.save.frontend.components.modal.loaderModalStyle
+
 import com.saveourtool.save.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
 import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
 import com.saveourtool.save.frontend.components.views.vuln.utils.keysOnlyFromCosv
 import com.saveourtool.save.frontend.utils.*
+import js.core.jso
 
 import react.VFC
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h3
+import react.dom.html.ReactHTML.h5
+import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
-import react.router.dom.Link
 import react.useState
 import web.cssom.ClassName
+import web.cssom.Height
+import web.cssom.Width
+import web.cssom.rem
 
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "PARAMETER_NAME_IN_OUTER_LAMBDA")
 val cosvSchemaView = VFC {
     particles()
     useBackground(Style.VULN_DARK)
-    val windowOpenness = useWindowOpenness()
     val (textInModal, setTextInModal) = useState<Pair<String, String>>()
-
-    textInModal?.let {
-        displayModalWithPreTag(
-            windowOpenness.isOpen(),
-            textInModal.first,
-            textInModal.second,
-            loaderModalStyle,
-            windowOpenness.closeWindowAction()
-        ) {
-            buttonBuilder("Close", "secondary") {
-                windowOpenness.closeWindow()
-            }
-        }
-    }
 
     div {
         className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-sm-4 mt-3")
+            className = ClassName("col-3 mt-3 mb-5")
             div {
                 className = ClassName("card card-body bg-light border-dark text-gray-800 shadow")
-                Link {
-                    +"COSV Schema"
-                    to = "https://saveourtool.github.io/cosv4k/"
-                }
                 // FixMe: JSON.stringify not working in kotlin js
                 COSV_SCHEMA_JSON.drop(1)
                     .dropLast(1)
@@ -68,9 +55,10 @@ val cosvSchemaView = VFC {
 
                             // show schema, where each key is the button, which will show description about this key vid `onClick`
                             pre {
+                                className = ClassName("mb-2")
                                 cosvKey?.let { (key, value) ->
                                     // hold the tabulations
-                                    +"${str.takeWhile { it != '\"' }}\""
+                                    +str.takeWhile { it != '\"' }
                                     // make from key the button
                                     buttonBuilder(
                                         key.substringAfter("."),
@@ -78,9 +66,8 @@ val cosvSchemaView = VFC {
                                         classes = "btn-sm"
                                     ) {
                                         setTextInModal(key to value)
-                                        windowOpenness.openWindow()
                                     }
-                                    +"\":"
+                                    +" :"
                                     // print the type, i.e. value
                                     +str.dropWhile { it != ':' }.drop(1)
                                 } ?: run {
@@ -90,6 +77,74 @@ val cosvSchemaView = VFC {
                             }
                         }
                     }
+            }
+        }
+        div {
+            className = ClassName("col-4 mt-3")
+            div {
+                className = ClassName("card card-body bg-light border-dark text-gray-800 shadow")
+                style = jso {
+                    width = "50rem".unsafeCast<Width>()
+                    height = "40rem".unsafeCast<Height>()
+                }
+                id = "sticky-sidebar"
+
+                div {
+                    className = ClassName("row justify-content-center mt-1")
+                    img {
+                        src = "/img/schema.png"
+                        style = jso {
+                            height = 10.rem
+                            width = 10.rem
+                        }
+                    }
+                }
+
+                div {
+                    className = ClassName("row justify-content-center")
+                    div {
+                        className = ClassName("col-2 text-right")
+                        a {
+                            href = "https://www.gitlink.org.cn/zone/CCF-ODC/source/7"
+                            buttonBuilder(
+                                "Schema",
+                                style = "outline-primary",
+                                classes = "rounded-pill btn",
+                                isOutline = false
+                            ) { }
+                        }
+                    }
+
+
+                    div {
+                        className = ClassName("col-2 text-left")
+                        a {
+                            href = "https://www.gitlink.org.cn/zone/CCF-ODC/source/7"
+                            buttonBuilder(
+                                "More",
+                                style = "outline-primary",
+                                classes = "rounded-pill btn",
+                                isOutline = false
+                            ) { }
+                        }
+                    }
+                }
+                div {
+                    className = ClassName("row justify-content-center mt-4 mx-3")
+                    h3 {
+                        className = ClassName("text-gray-800")
+                        +(textInModal
+                            ?.first
+                            ?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+                            ?: "<- Press on the JSON key to get details")
+                    }
+                }
+                div {
+                    className = ClassName("row justify-content-center mt-2 mx-3")
+                    h5 {
+                        +(textInModal?.second ?: "")
+                    }
+                }
             }
         }
     }
