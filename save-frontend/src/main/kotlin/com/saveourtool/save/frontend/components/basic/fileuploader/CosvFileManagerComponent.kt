@@ -291,16 +291,16 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Delete all processed", isDisabled = availableFiles.none { it.status == RawCosvFileStatus.PROCESSED }) {
+                buttonBuilder("Delete all processed", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
                     deleteProcessedFiles()
                 }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     submitCosvFiles()
                 }
-                buttonBuilder("Submit all uploaded by you", isDisabled = availableFiles.isEmpty()) {
+                buttonBuilder("Submit all uploaded", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
                     submitAllUploadedCosvFiles()
                 }
-                buttonBuilder(faReload) {
+                buttonBuilder(faReload, isDisabled = isStreamingOperationActive) {
                     reFetchFiles()
                 }
             }
@@ -411,3 +411,5 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 }
 
 private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
+
+private fun Collection<RawCosvFileDto>.noneWithStatus(status: RawCosvFileStatus) = none { it.status == status }

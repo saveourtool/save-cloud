@@ -42,22 +42,27 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param organizationName
-     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
+     * @param userName
+     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
-    fun countByOrganization(
+    fun countByOrganizationAndUser(
         organizationName: String,
-    ): Long = repository.countAllByOrganizationName(organizationName)
+        userName: String,
+    ): Long = repository.countAllByOrganizationNameAndUserName(organizationName, userName)
 
     /**
      * @param organizationName
+     * @param userName
      * @param pageRequest
-     * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
+     * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
-    fun listByOrganization(
+    fun listByOrganizationAndUser(
         organizationName: String,
+        userName: String,
         pageRequest: PageRequest? = null,
     ): Collection<RawCosvFileDto> = run {
-        pageRequest?.let { repository.findAllByOrganizationName(organizationName, it) } ?: repository.findAllByOrganizationName(organizationName)
+        pageRequest?.let { repository.findAllByOrganizationNameAndUserName(organizationName, userName, it) }
+            ?: repository.findAllByOrganizationNameAndUserName(organizationName, userName)
     }.map { it.toDto() }
 
     /**
