@@ -23,10 +23,7 @@ import com.saveourtool.save.frontend.components.views.projectcollection.Collecti
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.*
-import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.vuln.uploadVulnerabilityView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
+import com.saveourtool.save.frontend.components.views.vuln.*
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
@@ -214,6 +211,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
             thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
+            cosvSchemaView.create() to VULN_COSV_SCHEMA,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter

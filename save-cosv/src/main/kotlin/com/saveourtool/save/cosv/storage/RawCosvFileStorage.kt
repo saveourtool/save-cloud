@@ -12,6 +12,7 @@ import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -42,12 +43,28 @@ class RawCosvFileStorage(
 
     /**
      * @param organizationName
-     * @return all [RawCosvFileDto]s which has provided [RawCosvFile.organization]
+     * @param userName
+     * @return count of all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
      */
-    fun listByOrganization(
+    fun countByOrganizationAndUser(
         organizationName: String,
+        userName: String,
+    ): Mono<Long> = blockingToMono {
+        s3KeyManager.countByOrganizationAndUser(organizationName, userName)
+    }
+
+    /**
+     * @param organizationName
+     * @param userName
+     * @param pageRequest
+     * @return all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     */
+    fun listByOrganizationAndUser(
+        organizationName: String,
+        userName: String,
+        pageRequest: PageRequest? = null,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName)
+        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest)
     }
 
     /**

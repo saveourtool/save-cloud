@@ -14,6 +14,7 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.services.s3.model.CompletedPart
 
 import java.nio.ByteBuffer
 import java.time.Instant
@@ -70,19 +71,34 @@ class DefaultStorageProjectReactor<K : Any>(
                     s3Operations.createMultipartUpload(s3Key)
                         .toMonoAndPublishOn()
                         .flatMap { response ->
-                            content.index()
-                                .flatMap { (index, buffer) ->
-                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffer(buffer))
+                            content.bufferAccumulatedUntil { buffers ->
+                                buffers.capacity() < MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES
+                            }
+                                .index()
+                                .flatMap { (index, buffers) ->
+                                    val contentLength = buffers.capacity().toLong()
+                                    s3Operations.uploadPart(response, index + 1, AsyncRequestBody.fromByteBuffers(*buffers.toTypedArray()))
                                         .toMonoAndPublishOn()
+                                        .map { CompletedPartExt(it, contentLength) }
                                 }
                                 .collectList()
-                                .flatMap { uploadPartResults ->
-                                    s3Operations.completeMultipartUpload(response, uploadPartResults)
+                                .flatMap { uploadPartExtResults ->
+                                    s3Operations.completeMultipartUpload(response, uploadPartExtResults.map { it.completedPart })
                                         .toMonoAndPublishOn()
+                                        .map {
+                                            uploadPartExtResults.sumOf { it.contentLength }
+                                        }
+                                }
+                                .onErrorResume { error ->
+                                    s3Operations.abortMultipartUpload(response)
+                                        .toMonoAndPublishOn()
+                                        .flatMap {
+                                            Mono.error(error)
+                                        }
                                 }
                         }
-                        .flatMap {
-                            findKey(s3Key)
+                        .flatMap { contentLength ->
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
                                 .switchIfEmptyToNotFound {
                                     "Not found inserted updated key for $key"
                                 }
@@ -97,10 +113,11 @@ class DefaultStorageProjectReactor<K : Any>(
                         .doOnError {
                             s3KeyManager.delete(key)
                         }
-                        .map {
-                            requireNotNull(s3KeyManager.findKey(s3Key)) {
-                                "Not found inserted updated key for $key"
-                            }
+                        .flatMap {
+                            findKeyAndUpdateByContentLength(s3Key, contentLength)
+                                .switchIfEmptyToNotFound {
+                                    "Not found inserted updated key for $key"
+                                }
                         }
                 }
 
@@ -128,8 +145,9 @@ class DefaultStorageProjectReactor<K : Any>(
         .flatMap { s3Key ->
             s3Operations.deleteObject(s3Key).toMonoAndPublishOn()
         }
+        .collectList()
         .flatMap { deleteKeys(keys) }
-        .thenJust(true)
+        .thenReturn(true)
         .defaultIfEmpty(false)
 
     override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
@@ -163,6 +181,13 @@ class DefaultStorageProjectReactor<K : Any>(
 
     private fun findKey(s3Key: String): Mono<K> = s3KeyManager.callAsMono { findKey(s3Key) }
 
+    private fun findKeyAndUpdateByContentLength(s3Key: String, contentLength: Long): Mono<K> = s3KeyManager.callAsMono {
+        findKey(s3Key)?.let {
+            updateKeyByContentLength(it,
+                contentLength)
+        }
+    }
+
     private fun findExistedS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { findExistedS3Key(key) }
 
     private fun createNewS3Key(key: K): Mono<String> = s3KeyManager.callAsMono { createNewS3Key(key) }
@@ -173,4 +198,20 @@ class DefaultStorageProjectReactor<K : Any>(
             } else {
                 { function(this) }.toMono()
             }
+
+    companion object {
+        // https://docs.aws.amazon.com/AmazonS3/latest/userguide/qfacts.html
+        private const val MULTI_PART_UPLOAD_MIN_PART_SIZE_IN_BYTES = 5 * 1024 * 1024
+
+        private fun List<ByteBuffer>.capacity() = sumOf { it.capacity() }
+
+        /**
+         * @property completedPart
+         * @property contentLength
+         */
+        private data class CompletedPartExt(
+            val completedPart: CompletedPart,
+            val contentLength: Long,
+        )
+    }
 }

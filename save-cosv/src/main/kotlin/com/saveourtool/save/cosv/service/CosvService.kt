@@ -21,6 +21,7 @@ import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.sumAll
 
@@ -60,8 +61,11 @@ class CosvService(
                 .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
                     organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
                 }
-                .switchIfErrorToConflict {
-                    "Submitter ${user.name} is not owner of raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                .switchIfEmpty {
+                    log.error {
+                        "Submitter ${user.name} is not the owner of the raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+                    }
+                    Mono.empty()
                 }
                 .flatMap {
                     doProcess(rawCosvFileId, user, organization)
