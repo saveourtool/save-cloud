@@ -17,9 +17,10 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property user
  * @property organization
  * @property status
+ * @property statusMessage
+ * @property contentLength
  * @property createDate
  * @property updateDate
- * @property statusMessage
  */
 @Entity
 @Suppress("LongParameterList")
@@ -34,6 +35,7 @@ class RawCosvFile(
     @Enumerated(EnumType.STRING)
     var status: RawCosvFileStatus,
     var statusMessage: String? = null,
+    var contentLength: Long? = null,
     override var createDate: LocalDateTime? = null,
     override var updateDate: LocalDateTime? = null,
 ) : BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
@@ -44,6 +46,7 @@ class RawCosvFile(
         status = status,
         statusMessage = statusMessage,
         updateDate = requiredUpdateDate().toKotlinLocalDateTime(),
+        contentLength = contentLength,
         id = requiredId(),
     )
 
