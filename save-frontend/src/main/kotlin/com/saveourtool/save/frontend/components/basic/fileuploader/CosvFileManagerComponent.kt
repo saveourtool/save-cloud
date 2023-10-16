@@ -99,6 +99,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         if (response.ok) {
             val deletedFiles: Set<RawCosvFileDto> = response.decodeFromJsonString()
             setAvailableFiles { it.minus(deletedFiles) }
+            setAllAvailableFilesCount { it.minus(deletedFiles.size) }
         } else {
             window.alert("Failed to delete processed files due to ${response.unpackMessageOrHttpStatus()}")
         }
