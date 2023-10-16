@@ -38,7 +38,7 @@ class RawCosvFileStorage(
             s3KeyManager = s3KeyManager,
         )
     }
-        .then(
+        .flatMap {
             underlying.list()
                 .filter { it.contentLength == null }
                 .flatMap { key ->
@@ -48,7 +48,7 @@ class RawCosvFileStorage(
                     s3KeyManager.updateKeyByContentLength(key, contentLength)
                 }
                 .thenJust(Unit)
-        )
+        }
         .publishOn(s3Operations.scheduler)
 
     /**
