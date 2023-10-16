@@ -22,6 +22,8 @@
   ],
   "summary": "Incorrect Authorization",
   "cwe_ids": ["1", "42", "308"],
+  "cwe_names": ["CWE-1", "CWE-42", "CWE-308"],
+  "related": ["32", "65", "108"],
   "details": "In Spring Security versions 5.5.6 and 5.6.3 and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some servlet containers. Applications using RegexRequestMatcher with `.` in the regular expression are possibly vulnerable to an authorization bypass",
   "credits": [
     {
@@ -65,6 +67,7 @@
        "type": "REPORTER"
     }
   ],
+  "confirm_type": "algorithm_confirmed",
   "references": [
     {
       "type": "WEB",
