@@ -42,7 +42,6 @@ class RawCosvFileController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val backendService: IBackendService,
 ) {
-
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
         backendService.workingDir.createDirectories(),
         "archive-"
