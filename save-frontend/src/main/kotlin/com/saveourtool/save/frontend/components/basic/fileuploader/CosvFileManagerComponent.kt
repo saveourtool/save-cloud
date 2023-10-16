@@ -76,12 +76,13 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fileToDelete?.let { file ->
             val response = delete(
                 "$apiUrl/cosv/$selectedOrganization/delete/${file.requiredId()}",
-                jsonHeaders,
+                headers = Headers().withAcceptNdjson(),
                 loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
+                setAllAvailableFilesCount { it.dec() }
                 setFileToDelete(null)
             } else {
                 window.alert("Failed to delete file due to ${response.unpackMessageOrHttpStatus()}")
@@ -96,11 +97,22 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             loadingHandler = ::loadingHandler,
         )
 
-        if (response.ok) {
-            val deletedFiles: Set<RawCosvFileDto> = response.decodeFromJsonString()
-            setAvailableFiles { it.minus(deletedFiles) }
-        } else {
-            window.alert("Failed to delete processed files due to ${response.unpackMessageOrHttpStatus()}")
+        when {
+            response.ok -> {
+                setStreamingOperationActive(true)
+                response
+                    .readLines()
+                    .filter(String::isNotEmpty)
+                    .onCompletion {
+                        setStreamingOperationActive(false)
+                    }
+                    .collect { message ->
+                        val deletedFiles: Set<RawCosvFileDto> = Json.decodeFromString(message)
+                        setAvailableFiles { it.minus(deletedFiles) }
+                        setAllAvailableFilesCount { it.minus(deletedFiles.size) }
+                    }
+            }
+            else -> window.alert("Failed to delete processed files due to ${response.unpackMessageOrHttpStatus()}")
         }
     }
 
@@ -240,7 +252,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert(response.text().await())
+            window.alert("Selected files submitted to be processed")
         }
         setSelectedFiles(emptyList())
     }
@@ -254,7 +266,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert(response.text().await())
+            window.alert("All uploaded files submitted to be processed")
         }
         setSelectedFiles(emptyList())
     }
