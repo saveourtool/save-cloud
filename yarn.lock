@@ -4562,11 +4562,6 @@ msw@^0.40.0:
     type-fest "^1.2.2"
     yargs "^17.3.1"
 
-multi-range-slider-react@^2.0.5:
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/multi-range-slider-react/-/multi-range-slider-react-2.0.5.tgz#f78d3e999ceb2e227a74bad314eb559e17eb6967"
-  integrity sha512-PaGaVzflxWqBCKz5wCOsIpYVKRv+OIGQPfLiyZx93HTZ0oegRj5NrT+Y0ceQo91ID1quDBOXVg55LcZFU7cN8A==
-
 multicast-dns@^7.2.4:
   version "7.2.5"
   resolved "https://registry.yarnpkg.com/multicast-dns/-/multicast-dns-7.2.5.tgz#77eb46057f4d7adbd16d9290fa7299f6fa64cced"
