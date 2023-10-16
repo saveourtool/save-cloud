@@ -52,6 +52,7 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param organizationName
+     * @param userName
      * @param pageRequest
      * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
@@ -60,7 +61,8 @@ class RawCosvFileS3KeyManager(
         userName: String,
         pageRequest: PageRequest? = null,
     ): Collection<RawCosvFileDto> = run {
-        pageRequest?.let { repository.findAllByOrganizationNameAndUserName(organizationName, userName, it) } ?: repository.findAllByOrganizationNameAndUserName(organizationName, userName)
+        pageRequest?.let { repository.findAllByOrganizationNameAndUserName(organizationName, userName, it) }
+            ?: repository.findAllByOrganizationNameAndUserName(organizationName, userName)
     }.map { it.toDto() }
 
     /**
