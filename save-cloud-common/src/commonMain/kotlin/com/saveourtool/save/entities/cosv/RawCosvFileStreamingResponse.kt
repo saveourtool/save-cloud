@@ -9,9 +9,9 @@ import kotlinx.serialization.Serializable
  * @property updateCounters
  */
 @Serializable
-data class UnzipRawCosvFileResponse(
+data class RawCosvFileStreamingResponse(
     val processedSize: Long,
     val fullSize: Long,
-    val result: RawCosvFileDto? = null,
+    val result: List<RawCosvFileDto>? = null,
     val updateCounters: Boolean = false,
 )

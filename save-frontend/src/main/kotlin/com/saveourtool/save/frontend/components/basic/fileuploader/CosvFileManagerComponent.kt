@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
+import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
@@ -39,7 +39,6 @@ import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.json.Json
@@ -225,7 +224,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             setStreamingOperationActive(false)
                         }
                         .collect { message ->
-                            val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
+                            val entryResponse: RawCosvFileStreamingResponse = Json.decodeFromString(message)
                             if (entryResponse.updateCounters) {
                                 setTotalBytes(entryResponse.fullSize)
                                 setProcessedBytes(entryResponse.processedSize)
