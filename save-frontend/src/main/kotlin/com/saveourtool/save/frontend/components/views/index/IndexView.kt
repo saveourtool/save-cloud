@@ -22,7 +22,7 @@ import web.cssom.*
 val indexView: FC<IndexViewProps> = FC { props ->
     val navigate = useNavigate()
     useEffect {
-        if (kotlinx.browser.window.location.run { hostname in setOf("cosv.dev", "https://cosv.gitlink.org.cn/") && pathname == "/"}) {
+        if (kotlinx.browser.window.location.run { hostname in setOf("cosv.dev", "cosv.gitlink.org.cn") && pathname == "/"}) {
             navigate("/vuln")
         }
     }
