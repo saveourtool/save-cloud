@@ -1,21 +1,21 @@
 @file:Suppress(
-    "FILE_NAME_MATCH_CLASS",
     "HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE",
 )
 
 package com.saveourtool.save.frontend.components.basic.organizations
 
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
+import com.saveourtool.save.frontend.components.tables.enableExpanding
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
 import com.saveourtool.save.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendRoutes.VULNERABILITY_SINGLE
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.br
@@ -23,66 +23,74 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
 import react.router.dom.Link
 import web.cssom.ClassName
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-@Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
-private val vulnerabilityTable: FC<TableProps<VulnerabilityDto>> = tableComponent(
+private val vulnerabilitiesUrl = "$apiUrl/vulnerabilities"
+
+private val vulnerabilityTable: FC<VulnerabilityTableProps> = tableComponent(
     columns = {
         columns {
-            column(id = "name", header = "Name", { this.identifier }) { cellContext ->
+            column(id = "name", header = "Name", VulnerabilityDto::identifier) { cellContext ->
                 Fragment.create {
                     td {
                         Link {
-                            to = "/${FrontendRoutes.VULNERABILITY_SINGLE}/${cellContext.row.original.identifier}"
-                            +cellContext.value
+                            val identifier = cellContext.value
+                            to = "/$VULNERABILITY_SINGLE/$identifier"
+                            +identifier
                         }
                     }
                 }
             }
-            column(id = "short_description", header = "Description", { progress }) { cellContext ->
+            column(id = "short_description", header = "Description", VulnerabilityDto::shortDescription) { cellContext ->
                 Fragment.create {
                     td {
-                        +cellContext.row.original.shortDescription
+                        +cellContext.value
                     }
                 }
             }
-            column(id = "progress", header = "Criticality", { progress }) { cellContext ->
+            column(id = "progress", header = "Criticality", VulnerabilityDto::progress) { cellContext ->
                 Fragment.create {
                     td {
-                        +"${ cellContext.row.original.progress }"
+                        +cellContext.value.toString()
                     }
                 }
             }
-            column(id = "language", header = "Language", { language }) { cellContext ->
+            column(id = "language", header = "Language", VulnerabilityDto::language) { cellContext ->
                 Fragment.create {
                     td {
-                        +"${ cellContext.row.original.language }"
+                        +cellContext.value.toString()
                     }
                 }
             }
         }
     },
     initialPageSize = 10,
-    useServerPaging = false,
-)
+    useServerPaging = true,
+    tableOptionsCustomizer = ChildrenBuilder::enableExpanding
+) { props ->
+    arrayOf(props.count)
+}
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = FC { props ->
+    val filter = VulnerabilityFilter.approved.copy(
+        organizationName = props.organizationName,
+    )
+    val filterJson = Json.encodeToString(filter)
+
     val (t) = useTranslation("organization")
-    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
+    var count by useState(initialValue = 0)
     useRequest {
-        val fetchedVulnerabilities: Array<VulnerabilityDto> = get(
-            url = "$apiUrl/vulnerabilities/by-organization-and-status",
-            params = jso<dynamic> {
-                organizationName = props.organizationName
-                status = VulnerabilityStatus.APPROVED
-            },
+        count = post(
+            url = "$vulnerabilitiesUrl/count/by-filter",
             headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
+            body = filterJson,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
-        ).unsafeMap {
-            it.decodeFromJsonString()
+        ).unsafeMap { response ->
+            response.decodeFromJsonString()
         }
-        setVulnerabilities(fetchedVulnerabilities)
     }
     div {
         className = ClassName("col-8 mx-auto mt-1 mb-3")
@@ -94,11 +102,30 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
                 isImage = false
             }
         }
-        if (vulnerabilities.isNotEmpty()) {
+        if (count != 0) {
             vulnerabilityTable {
-                getData = { _, _ ->
-                    vulnerabilities
+                getData = { pageIndex, pageSize ->
+                    post(
+                        url = "$vulnerabilitiesUrl/by-filter",
+                        params = jso<dynamic> {
+                            page = pageIndex
+                            size = pageSize
+                        },
+                        headers = jsonHeaders,
+                        body = filterJson,
+                        loadingHandler = ::loadingHandler,
+                        responseHandler = ::noopResponseHandler,
+                    )
+                        .unsafeMap<Array<out VulnerabilityMetadataDto>> { response ->
+                            response.decodeFromJsonString()
+                        }
+                        .map(VulnerabilityMetadataDto::toVulnerabilityDto)
+                        .toTypedArray()
                 }
+                getPageCount = { pageSize ->
+                    pageCount(count, pageSize)
+                }
+                this.count = count
             }
         } else {
             renderTablePlaceholder("text-center p-4 bg-white", "dashed") {
@@ -116,6 +143,18 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
 }
 
 /**
+ * The properties of [vulnerabilityTable].
+ *
+ * @see vulnerabilityTable
+ */
+external interface VulnerabilityTableProps : TableProps<VulnerabilityDto> {
+    /**
+     * The total count of approved vulnerabilities for this organization.
+     */
+    var count: Int
+}
+
+/**
  * OrganizationVulnerabilitiesMenu component props
  */
 external interface OrganizationVulnerabilitiesMenuProps : Props {
@@ -128,4 +167,26 @@ external interface OrganizationVulnerabilitiesMenuProps : Props {
      * Flag that defines if current user can change anything in this organization
      */
     var isMember: Boolean
+}
+
+/**
+ * @return the page count, using the [total] number of items and the [pageSize]
+ *   items per page.
+ */
+private fun pageCount(total: Int, pageSize: Int): Int {
+    require(total >= 0) {
+        "total should be non-negative: $total"
+    }
+    require(pageSize > 0) {
+        "pageSize should be positive: $pageSize"
+    }
+
+    /*-
+     * Source: "Number Conversion" by Roland Backhouse
+     * (http://www.cs.nott.ac.uk/~psarb2/G51MPC/slides/NumberLogic.pdf).
+     *
+     * This shouldn't be simplified: otherwise, if `total` is 0,
+     * the page count of 1 would still be returned.
+     */
+    return (total + pageSize - 1) / pageSize
 }
