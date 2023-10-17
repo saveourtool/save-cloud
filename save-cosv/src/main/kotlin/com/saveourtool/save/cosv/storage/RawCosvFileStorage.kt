@@ -9,9 +9,7 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.storage.deleteUnexpectedKeys
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.*
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -42,7 +40,19 @@ class RawCosvFileStorage(
             storageName = "${this::class.simpleName}",
             s3KeyManager = s3KeyManager,
         )
-    }.publishOn(s3Operations.scheduler)
+    }
+        .flatMap {
+            underlying.list()
+                .filter { it.contentLength == null }
+                .flatMap { key ->
+                    underlying.contentLength(key).map { key to it }
+                }
+                .blockingMap { (key, contentLength) ->
+                    s3KeyManager.updateKeyByContentLength(key, contentLength)
+                }
+                .thenJust(Unit)
+        }
+        .publishOn(s3Operations.scheduler)
 
     override fun upload(key: RawCosvFileDto, content: Flux<ByteBuffer>): Mono<RawCosvFileDto> {
         val result = key.contentLength?.let {
