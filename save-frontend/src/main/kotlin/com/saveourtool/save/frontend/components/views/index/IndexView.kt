@@ -14,10 +14,18 @@ import react.Props
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
+import react.router.useNavigate
+import react.useEffect
 import web.cssom.*
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<IndexViewProps> = FC { props ->
+    val navigate = useNavigate()
+    useEffect {
+        if (kotlinx.browser.window.location.run { hostname in setOf("cosv.dev", "https://cosv.gitlink.org.cn/") && pathname == "/"}) {
+            navigate("/vuln")
+        }
+    }
     useBackground(Style.INDEX)
     particles()
     main {
