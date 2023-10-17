@@ -121,10 +121,10 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
 
                     div {
                         className = ClassName("col-2")
-                        buttonBuilder(faSearch, classes = "btn mr-1", isOutline = props.filter == filter, style = "secondary") {
+                        buttonBuilder(faSearch, classes = "btn mr-1 icon-2-5rem", title = "Start search", isOutline = props.filter == filter, style = "secondary") {
                             props.onChangeFilter(filter)
                         }
-                        buttonBuilder(faWindowClose, classes = "btn mr-1", title = "Drop filters", isOutline = true, style = "secondary") {
+                        buttonBuilder(faWindowClose, classes = "btn mr-1 icon-2-5rem", title = "Drop filters", isOutline = true, style = "secondary") {
                             props.onChangeFilter(null)
                             // need to drop all tags
                             setFilter { props.filter.copy(tags = emptySet()) }
@@ -195,7 +195,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     div {
                         className = ClassName("col-2")
                         withNavigate { navigateContext ->
-                            buttonBuilder(faPlus, style = "primary mr-1", isOutline = true) {
+                            buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", classes = "icon-2-5rem", isOutline = true) {
                                 navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
                             }
                         }

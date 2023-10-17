@@ -58,12 +58,12 @@ const val COSV_SCHEMA_JSON = """
               "limit": "string"
             }
           ],
-          "ranges.database_specific": { "see description": "" }
+          "ranges.database_specific": { Object }
         }
       ],
       "versions": [ "string" ],
-      "affected.ecosystem_specific": { "see description": "" },
-      "affected.database_specific": { "see description": "" }
+      "affected.ecosystem_specific": { Object },
+      "affected.database_specific": { Object }
     }
   ],
   "patches_detail": [ {
@@ -95,6 +95,6 @@ const val COSV_SCHEMA_JSON = """
       "credits.type": "string"
     }
   ],
-  "database_specific": { "see description": "" }
+  "database_specific": { Object }
 }
 """
