@@ -245,3 +245,18 @@ a:hover {
      0 0 0.45em var(--glow-color);
     text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
+
+// ============= card button border change ==============
+.button_animated_card {
+    transition: 0.4s;
+    border: 0.2rem solid;
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.button_animated_card:hover {
+    transition: 0.4s;
+    border: 0.2rem solid;
+    border-color: #102A71;
+    color: #102A71;
+}

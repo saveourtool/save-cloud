@@ -75,7 +75,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val deleteFile = useDeferredRequest {
         fileToDelete?.let { file ->
             val response = delete(
-                "$apiUrl/cosv/$selectedOrganization/delete/${file.requiredId()}",
+                "$apiUrl/raw-cosv/$selectedOrganization/delete/${file.requiredId()}",
                 headers = Headers().withAcceptNdjson(),
                 loadingHandler = ::loadingHandler,
             )
@@ -92,7 +92,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val deleteProcessedFiles = useDeferredRequest {
         val response = delete(
-            "$apiUrl/cosv/$selectedOrganization/delete-processed",
+            "$apiUrl/raw-cosv/$selectedOrganization/delete-processed",
             jsonHeaders,
             loadingHandler = ::loadingHandler,
         )
@@ -134,7 +134,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         selectedOrganization?.let {
             val newPage = lastPage.inc()
             val response = get(
-                url = "$apiUrl/cosv/$selectedOrganization/list",
+                url = "$apiUrl/raw-cosv/$selectedOrganization/list",
                 params = jso<dynamic> {
                     page = newPage - 1
                     size = DEFAULT_SIZE
@@ -165,7 +165,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val reFetchFiles = useDeferredRequest {
         selectedOrganization?.let {
             val count: Long = get(
-                url = "$apiUrl/cosv/$selectedOrganization/count",
+                url = "$apiUrl/raw-cosv/$selectedOrganization/count",
                 jsonHeaders,
                 loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
@@ -180,7 +180,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val uploadFiles = useDeferredRequest {
         setStreamingOperationActive(true)
         val response = post(
-            url = "$apiUrl/cosv/$selectedOrganization/batch-upload",
+            url = "$apiUrl/raw-cosv/$selectedOrganization/batch-upload",
             headers = Headers().withAcceptNdjson(),
             body = FormData().apply { filesForUploading.forEach { append(FILE_PART_NAME, it) } },
             loadingHandler = ::noopLoadingHandler,
@@ -206,7 +206,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fileToUnzip?.let { file ->
             setStreamingOperationActive(true)
             val response = post(
-                "$apiUrl/cosv/$selectedOrganization/unzip/${file.requiredId()}",
+                "$apiUrl/raw-cosv/$selectedOrganization/unzip/${file.requiredId()}",
                 headers = Headers().withContentTypeJson().withAcceptNdjson(),
                 body = undefined,
                 loadingHandler = ::noopLoadingHandler,
@@ -245,7 +245,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val submitCosvFiles = useDeferredRequest {
         val response = post(
-            url = "$apiUrl/cosv/$selectedOrganization/submit-to-process",
+            url = "$apiUrl/raw-cosv/$selectedOrganization/submit-to-process",
             jsonHeaders,
             body = selectedFiles.map { it.requiredId() },
             loadingHandler = ::loadingHandler,
@@ -259,7 +259,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
     val submitAllUploadedCosvFiles = useDeferredRequest {
         val response = post(
-            url = "$apiUrl/cosv/$selectedOrganization/submit-all-uploaded-to-process",
+            url = "$apiUrl/raw-cosv/$selectedOrganization/submit-all-uploaded-to-process",
             jsonHeaders,
             body = undefined,
             loadingHandler = ::loadingHandler,
@@ -303,14 +303,18 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Delete all processed", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
+                buttonBuilder("Delete all processed", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
                     deleteProcessedFiles()
                 }
-                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
-                    submitCosvFiles()
+                buttonBuilder("Submit", classes = "mr-1", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
+                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                        submitCosvFiles()
+                    }
                 }
-                buttonBuilder("Submit all uploaded", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
-                    submitAllUploadedCosvFiles()
+                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
+                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                        submitAllUploadedCosvFiles()
+                    }
                 }
                 buttonBuilder(faReload, isDisabled = isStreamingOperationActive) {
                     reFetchFiles()
@@ -360,7 +364,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                     }
                     downloadFileButton(file, RawCosvFileDto::fileName) {
-                        "$apiUrl/cosv/$selectedOrganization/download/${file.requiredId()}"
+                        "$apiUrl/raw-cosv/$selectedOrganization/download/${file.requiredId()}"
                     }
                     if (file.fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
                         button {

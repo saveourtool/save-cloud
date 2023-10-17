@@ -47,7 +47,7 @@ enum class FrontendRoutes(val path: String) {
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
     VULNERABILITY_SINGLE("$VULN/collection"),
-    VULN_COSV_SCHEMA("$VULN/cosv/schema"),
+    VULN_COSV_SCHEMA("$VULN/schema"),
     VULN_TOP_RATING("$VULN/top-rating"),
     ;
 

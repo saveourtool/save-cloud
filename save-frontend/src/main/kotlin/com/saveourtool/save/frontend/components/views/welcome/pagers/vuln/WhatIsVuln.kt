@@ -4,16 +4,20 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers.vuln
 
+import com.saveourtool.save.frontend.components.views.welcome.BIG_FONT_SIZE
 import com.saveourtool.save.frontend.components.views.welcome.FIRST_RAW_HEIGHT
+import com.saveourtool.save.frontend.components.views.welcome.SECOND_RAW_HEIGHT
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.pre
+import react.dom.html.ReactHTML.strong
 import react.router.dom.Link
 import web.cssom.*
 
@@ -46,7 +50,12 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
         div {
             className = ClassName("row mt-4 align-middle")
             div {
-                mdCard("Useful links", "/img/undraw_important.svg", t)
+                className = ClassName("col-6 pl-0")
+                linksCard(t)
+            }
+            div {
+                className = ClassName("col-6 pr-0")
+                cosvSchemaCard(t)
             }
         }
     }
@@ -87,38 +96,19 @@ private fun ChildrenBuilder.textCard(
 }
 
 @Suppress("IDENTIFIER_LENGTH")
-private fun ChildrenBuilder.mdCard(
-    title: String,
-    imageUrl: String,
+private fun ChildrenBuilder.linksCard(
     t: TranslationFunction,
 ) {
     div {
         className = ClassName("card border border-primary rounded rounded-pill col")
         style = jso {
-            height = 15.rem
+            height = SECOND_RAW_HEIGHT.rem
         }
         div {
             className = ClassName("row")
+
             div {
-                className = ClassName("col-3 d-flex align-items-center")
-                div {
-                    className = ClassName("")
-                    img {
-                        className = ClassName("rounded pr-4 mx-5 my-3")
-                        src = imageUrl
-                        style = jso {
-                            @Suppress("MAGIC_NUMBER")
-                            height = 8.rem
-                        }
-                    }
-                    h5 {
-                        style = jso { textAlign = TextAlign.center }
-                        +title
-                    }
-                }
-            }
-            div {
-                className = ClassName("col-8 align-middle pr-4 m-3 overflow-x:hidden")
+                className = ClassName("col-12 align-middle pr-4 m-3")
                 pre {
                     Link {
                         +"OSV Schema "
@@ -127,7 +117,7 @@ private fun ChildrenBuilder.mdCard(
                     +"OSV Schema".t()
                     Link {
                         +"COSV Schema 1.0 "
-                        to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
+                        to = "https://www.gitlink.org.cn/zone/CCF-ODC/source/7"
                     }
                     +"COSV Schema".t()
                     Link {
@@ -135,6 +125,39 @@ private fun ChildrenBuilder.mdCard(
                         to = "https://github.com/saveourtool/cosv4k"
                     }
                     +"cosv4k".t()
+                }
+            }
+        }
+    }
+}
+
+@Suppress("IDENTIFIER_LENGTH")
+private fun ChildrenBuilder.cosvSchemaCard(
+    t: TranslationFunction,
+) {
+    Link {
+        to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
+        div {
+            className =
+                    ClassName("card button_animated_card rounded rounded-pill col justify-content-center")
+            style = jso {
+                height = SECOND_RAW_HEIGHT.rem
+            }
+            div {
+                className = ClassName("row justify-content-center")
+
+                h1 {
+                    +"COSV"
+                    style = jso {
+                        fontSize = BIG_FONT_SIZE.rem
+                    }
+                }
+            }
+            div {
+                className = ClassName("row justify-content-center")
+                strong {
+                    className = ClassName("d-inline-block mb-2 card-text")
+                    +"Schema with Documentation and Details".t()
                 }
             }
         }
