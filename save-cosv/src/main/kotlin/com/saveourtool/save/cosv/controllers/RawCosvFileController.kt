@@ -112,6 +112,7 @@ class RawCosvFileController(
             filePart.filename(),
             organizationName = organizationName,
             userName = userName,
+            contentLength = contentLength,
         )
         val content = filePart.content().map { it.asByteBuffer() }
         return contentLength?.let {
@@ -189,6 +190,7 @@ class RawCosvFileController(
                                         concatS3Key(archiveFile.fileName, file.relativeTo(contentDir).toString()),
                                         organizationName = organizationName,
                                         userName = userName,
+                                        contentLength = contentLength,
                                     ),
                                     contentLength = contentLength,
                                     content = file.toByteBufferFlux(),

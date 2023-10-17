@@ -183,8 +183,7 @@ class DefaultStorageProjectReactor<K : Any>(
 
     private fun findKeyAndUpdateByContentLength(s3Key: String, contentLength: Long): Mono<K> = s3KeyManager.callAsMono {
         findKey(s3Key)?.let {
-            updateKeyByContentLength(it,
-                contentLength)
+            updateKeyByContentLength(it, contentLength)
         }
     }
 
