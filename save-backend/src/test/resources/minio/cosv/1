@@ -6,7 +6,7 @@
   "severity": [
     {
       "type": "CVSS_V3",
-      "score": "N/A",
+      "score": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H",
       "score_num": "7.3"
     }
   ],

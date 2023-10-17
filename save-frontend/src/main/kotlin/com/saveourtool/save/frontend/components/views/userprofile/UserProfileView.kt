@@ -7,7 +7,6 @@
 package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -50,7 +49,6 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val (user, setUser) = useState<UserInfo?>(null)
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
-    val (vulnerabilities, setVulnerabilities) = useState<Array<VulnerabilityDto>>(emptyArray())
 
     useRequest {
         val userNew: UserInfo = get(
@@ -70,14 +68,6 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             .decodeFromJsonString()
 
         setOrganizations(organizationsNew)
-
-        val vulnerabilitiesNew: Array<VulnerabilityDto> = get(
-            url = "$apiUrl/vulnerabilities/by-user?userName=$userName",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        ).decodeFromJsonString()
-
-        setVulnerabilities(vulnerabilitiesNew)
     }
 
     div {
@@ -108,7 +98,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
                 UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
-                    this.vulnerabilities = vulnerabilities
+                    this.userName = userName
                 }
                 UserProfileTab.USERS -> renderNewUsersTableForProfileView {}
             }
