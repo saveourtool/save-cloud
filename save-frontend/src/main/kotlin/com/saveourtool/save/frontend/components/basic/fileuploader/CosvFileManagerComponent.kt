@@ -302,10 +302,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     deleteProcessedFiles()
                 }
                 buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
-                    submitCosvFiles()
+                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                        submitCosvFiles()
+                    }
                 }
                 buttonBuilder("Submit all uploaded", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
-                    submitAllUploadedCosvFiles()
+                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                        submitAllUploadedCosvFiles()
+                    }
                 }
                 buttonBuilder(faReload, isDisabled = isStreamingOperationActive) {
                     reFetchFiles()

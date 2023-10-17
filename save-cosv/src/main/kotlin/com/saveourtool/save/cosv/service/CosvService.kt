@@ -107,7 +107,11 @@ class CosvService(
                         rawCosvFileId,
                         RawCosvFileStatus.PROCESSED,
                         "Processed as ${metadataList.map(VulnerabilityMetadataDto::identifier)}"
-                    ).thenReturn(metadataList.size)
+                    )
+                        .flatMap {
+                            rawCosvFileStorage.deleteById(rawCosvFileId)
+                        }
+                        .thenReturn(metadataList.size)
                 }
                 .onErrorResume { error ->
                     log.error(error) { errorMessage }
