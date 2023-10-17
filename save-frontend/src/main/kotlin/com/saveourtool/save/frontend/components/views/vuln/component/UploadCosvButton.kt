@@ -20,7 +20,7 @@ val uploadCosvButton: FC<UploadCosvButtonProps> = FC { props ->
                 navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
             }
         } else {
-            buttonBuilder("Upload COSV files".t(), style = "primary", isOutline = true, classes = "icon-2-5rem") {
+            buttonBuilder("Upload COSV files".t(), style = "primary", isOutline = true) {
                 navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
             }
         }

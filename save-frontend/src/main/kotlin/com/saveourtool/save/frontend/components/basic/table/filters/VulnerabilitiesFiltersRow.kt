@@ -195,7 +195,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                     div {
                         className = ClassName("col-2")
                         withNavigate { navigateContext ->
-                            buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", classes = "icon-2rem", isOutline = true) {
+                            buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", classes = "icon-2-5rem", isOutline = true) {
                                 navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
                             }
                         }
