@@ -78,6 +78,13 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
+        - id: vuln_route
+          uri: ${gateway.frontend.url}
+          predicates:
+            - Path=/
+            - Host=cosv.gitlink.org.cn
+          filters:
+            - RedirectTo=302, https://cosv.gitlink.org.cn/vuln
 
 ---
 spring:
