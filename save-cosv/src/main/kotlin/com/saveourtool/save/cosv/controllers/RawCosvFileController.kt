@@ -115,9 +115,7 @@ class RawCosvFileController(
             contentLength = contentLength,
         )
         val content = filePart.content().map { it.asByteBuffer() }
-        return contentLength?.let {
-            rawCosvFileStorage.upload(key, it, content)
-        } ?: rawCosvFileStorage.upload(key, content)
+        return rawCosvFileStorage.upload(key, content)
     }
 
     /**
@@ -192,7 +190,6 @@ class RawCosvFileController(
                                         userName = userName,
                                         contentLength = contentLength,
                                     ),
-                                    contentLength = contentLength,
                                     content = file.toByteBufferFlux(),
                                 )
                                     .map { UnzipRawCosvFileResponse(contentLength, fullSize, result = it) }
