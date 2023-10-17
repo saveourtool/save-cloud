@@ -26,9 +26,38 @@ import web.cssom.rem
 const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
 
 /**
- * links to avatars: "/img" for static resources, "/api" for uploaded
+ * The base URL for uploaded avatars.
  */
-fun String.avatarRenderer() = if (this.startsWith("/img")) this else "/api/$v1/avatar/$this"
+const val AVATAR_BASE_URL = "/api/$v1/avatar"
+
+/**
+ * links to avatars: `/img` for static resources, `/api` for uploaded.
+ *
+ * @receiver the local avatar URL (w/o the host name), either absolute or relative.
+ * @return the absolute avatar URL (still local to the web server).
+ */
+fun String.avatarRenderer(): String =
+        when {
+            /*
+             * Static resource, such as `/img/avatar_packs/avatar1.png`
+             */
+            startsWith("/img") -> this
+
+            /*
+             * Uploaded resource (absolute), the URL is already processed/canonicalized.
+             */
+            startsWith(AVATAR_BASE_URL) -> this
+
+            /*
+             * Uploaded resource (absolute), such as `/users/admin?1`.
+             */
+            startsWith('/') -> AVATAR_BASE_URL + this
+
+            /*
+             * Uploaded resource (relative).
+             */
+            else -> "$AVATAR_BASE_URL/$this"
+        }
 
 /**
  * Render organization avatar or placeholder
