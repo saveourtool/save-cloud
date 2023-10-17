@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h5
@@ -52,11 +51,11 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
             className = ClassName("row mt-4 align-middle")
             div {
                 className = ClassName("col-6 pl-0")
-                linksCard("Useful links", "/img/undraw_important.svg", t)
+                linksCard(t)
             }
             div {
                 className = ClassName("col-6 pr-0")
-                cosvSchemaCard("Useful links", "/img/undraw_important.svg", t)
+                cosvSchemaCard(t)
             }
         }
     }
@@ -98,8 +97,6 @@ private fun ChildrenBuilder.textCard(
 
 @Suppress("IDENTIFIER_LENGTH")
 private fun ChildrenBuilder.linksCard(
-    title: String,
-    imageUrl: String,
     t: TranslationFunction,
 ) {
     div {
@@ -109,24 +106,7 @@ private fun ChildrenBuilder.linksCard(
         }
         div {
             className = ClassName("row")
-            /*            div {
-                            className = ClassName("col-3 d-flex align-items-center")
-                            div {
-                                className = ClassName("")
-                                img {
-                                    className = ClassName("rounded pr-4 mx-5 my-3")
-                                    src = imageUrl
-                                    style = jso {
-                                        @Suppress("MAGIC_NUMBER")
-                                        height = 8.rem
-                                    }
-                                }
-                                h5 {
-                                    style = jso { textAlign = TextAlign.center }
-                                    +title
-                                }
-                            }
-                        }*/
+
             div {
                 className = ClassName("col-12 align-middle pr-4 m-3")
                 pre {
@@ -153,15 +133,13 @@ private fun ChildrenBuilder.linksCard(
 
 @Suppress("IDENTIFIER_LENGTH")
 private fun ChildrenBuilder.cosvSchemaCard(
-    title: String,
-    imageUrl: String,
     t: TranslationFunction,
 ) {
     Link {
         to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
         div {
             className =
-                ClassName("card button_animated_card rounded rounded-pill col justify-content-center")
+                    ClassName("card button_animated_card rounded rounded-pill col justify-content-center")
             style = jso {
                 height = SECOND_RAW_HEIGHT.rem
             }
@@ -174,15 +152,14 @@ private fun ChildrenBuilder.cosvSchemaCard(
                         fontSize = BIG_FONT_SIZE.rem
                     }
                 }
-
             }
             div {
-            className = ClassName("row justify-content-center")
-            strong {
-                className = ClassName("d-inline-block mb-2 card-text")
-                +"Schema with Documentation and Details".t()
+                className = ClassName("row justify-content-center")
+                strong {
+                    className = ClassName("d-inline-block mb-2 card-text")
+                    +"Schema with Documentation and Details".t()
+                }
             }
-        }
         }
     }
 }

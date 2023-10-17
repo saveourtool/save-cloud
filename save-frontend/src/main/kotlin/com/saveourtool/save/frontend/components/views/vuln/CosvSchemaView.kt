@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.vuln
 
-
 import com.saveourtool.save.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
 import com.saveourtool.save.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
 import com.saveourtool.save.frontend.components.views.vuln.utils.keysOnlyFromCosv
@@ -19,10 +18,7 @@ import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.pre
 import react.useState
-import web.cssom.ClassName
-import web.cssom.Height
-import web.cssom.Width
-import web.cssom.rem
+import web.cssom.*
 
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "PARAMETER_NAME_IN_OUTER_LAMBDA")
 val cosvSchemaView = VFC {
@@ -36,6 +32,22 @@ val cosvSchemaView = VFC {
             className = ClassName("col-3 mt-3 mb-5")
             div {
                 className = ClassName("card card-body bg-light border-dark text-gray-800 shadow")
+                div {
+                    className = ClassName("col-3 d-flex align-items-center")
+                    img {
+                        className = ClassName("rounded pr-4 mx-5 my-3")
+                        src = "/img/undraw_important.svg"
+                        style = jso {
+                            @Suppress("MAGIC_NUMBER")
+                            height = 8.rem
+                        }
+                    }
+                    h5 {
+                        style = jso { textAlign = TextAlign.center }
+                        +title
+                    }
+                }
+
                 // FixMe: JSON.stringify not working in kotlin js
                 COSV_SCHEMA_JSON.drop(1)
                     .dropLast(1)
@@ -85,7 +97,7 @@ val cosvSchemaView = VFC {
                 className = ClassName("card card-body bg-light border-dark text-gray-800 shadow")
                 style = jso {
                     width = "50rem".unsafeCast<Width>()
-                    height = "40rem".unsafeCast<Height>()
+                    height = "36rem".unsafeCast<Height>()
                 }
                 id = "sticky-sidebar"
 
@@ -114,8 +126,6 @@ val cosvSchemaView = VFC {
                             ) { }
                         }
                     }
-
-
                     div {
                         className = ClassName("col-2 text-left")
                         a {
