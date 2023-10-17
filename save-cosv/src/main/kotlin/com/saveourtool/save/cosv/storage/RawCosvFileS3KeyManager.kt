@@ -106,6 +106,12 @@ class RawCosvFileS3KeyManager(
         it.organization to it.user
     }
 
+    @Transactional
     override fun updateKeyByContentLength(key: RawCosvFileDto, contentLength: Long): RawCosvFileDto =
-            key.copy(contentLength = contentLength)
+            key.contentLength?.let {
+                repository.getByIdOrNotFound(key.requiredId())
+                    .let { entity ->
+                        repository.save(entity.apply { this.contentLength = contentLength }).toDto()
+                    }
+            } ?: key
 }

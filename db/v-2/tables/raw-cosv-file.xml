@@ -53,4 +53,10 @@
             <where>status = '3'</where>
         </update>
     </changeSet>
+
+    <changeSet id="raw-cosv-file-3" author="nulls">
+        <addColumn tableName="raw_cosv_file">
+            <column name="content_length" type="bigint"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
