@@ -298,15 +298,15 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Delete all processed", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
+                buttonBuilder("Delete all processed", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
                     deleteProcessedFiles()
                 }
-                buttonBuilder("Submit", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
+                buttonBuilder("Submit", classes = "mr-1", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     if (window.confirm("Processed files will be removed. Do you want to continue?")) {
                         submitCosvFiles()
                     }
                 }
-                buttonBuilder("Submit all uploaded", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
+                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
                     if (window.confirm("Processed files will be removed. Do you want to continue?")) {
                         submitAllUploadedCosvFiles()
                     }
