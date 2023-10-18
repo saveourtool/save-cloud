@@ -101,7 +101,7 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faUser, "Profile".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.PROFILE}/$name")
+                            navigate(to = "/${FrontendRoutes.VULN_PROFILE}/$name")
                         }
                     }
                     dropdownEntry(faCog, "Settings".t()) { attrs ->

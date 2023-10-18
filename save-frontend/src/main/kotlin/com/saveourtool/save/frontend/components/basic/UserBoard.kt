@@ -30,7 +30,7 @@ val userBoard: FC<UserBoardProps> = FC { props ->
                 div {
                     className = ClassName(props.avatarOuterClasses.orEmpty())
                     figure {
-                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.PROFILE}/${user.name}") {
+                        renderAvatar(user, props.avatarInnerClasses.orEmpty(), "/${FrontendRoutes.VULN_PROFILE}/${user.name}") {
                             // just some default values in case you don't want to provide value
                             // in this case you will get small avatar
                             width = props.widthAndHeight ?: 4.rem
