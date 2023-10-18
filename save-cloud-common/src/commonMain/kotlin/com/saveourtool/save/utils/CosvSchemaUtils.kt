@@ -8,9 +8,12 @@ import com.saveourtool.save.entities.vulnerability.*
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto.Companion.vulnerabilityPrefixes
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
+
+typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 private const val SAVEOURTOOL_PROFILE_PREFIX = "https://saveourtool.com/profile/"
 
@@ -21,15 +24,33 @@ private val timelineEntryTypeMapping = mapOf(
     VulnerabilityDateType.INTRODUCED to TimelineEntryType.introduced,
 )
 
+val vulnerabilityPrefixes = listOf(
+    "CVE-",
+)
+
+/**
+ * Validation of [identifier]
+ *
+ * @return true if [identifier] is empty (our own should be set on backend)
+ *   or starts with one of [vulnerabilityPrefixes] (reused existed identifier), false otherwise
+ */
+fun validateIdentifier(identifier: String) = identifier.isEmpty() || vulnerabilityPrefixes.any { identifier.startsWith(it) }
+
 /**
  * @return Save's contributors
  */
 fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
-    ?.flatMap { credit -> credit.contact.orEmpty() }
+    ?.mapNotNull { it.asSaveContribute() }
+    .orEmpty()
+
+/**
+ * @return save's contributor
+ */
+fun Credit.asSaveContribute(): UserInfo? = contact
     ?.filter { it.startsWith(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { it.removePrefix(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { UserInfo(it) }
-    .orEmpty()
+    ?.singleOrNull()
 
 /**
  * @return [Credit]

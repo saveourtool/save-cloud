@@ -28,9 +28,9 @@ val addUserComponent: FC<AddUserComponentProps> = FC { props ->
             onOptionClick = props.onUserAdd
             maxOptions = 2
             getUrlForOptionsFetch = { prefix ->
-                props.idsToSkip.joinToString(DATABASE_DELIMITER)
-                    .let { ids -> if (ids.isNotBlank()) "&ids=$ids" else "" }
-                    .let { ids -> "$apiUrl/users/by-prefix/?prefix=$prefix$ids" }
+                props.namesToSkip.joinToString(DATABASE_DELIMITER)
+                    .let { names -> if (names.isNotBlank()) "&namesToSkip=$names" else "" }
+                    .let { names -> "$apiUrl/users/by-prefix/?prefix=$prefix$names" }
             }
         }
     }
@@ -46,7 +46,7 @@ external interface AddUserComponentProps : Props {
     var onUserAdd: (UserInfo) -> Unit
 
     /**
-     * [Set] of ids to ignore when showing results
+     * [Set] of names to ignore when showing results
      */
-    var idsToSkip: Set<Long>
+    var namesToSkip: Set<String>
 }
