@@ -16,6 +16,7 @@ import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
+import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
@@ -28,6 +29,7 @@ import reactor.kotlin.extra.math.sumAll
 import java.nio.ByteBuffer
 
 import kotlinx.serialization.serializer
+import org.springframework.transaction.annotation.Transactional
 
 private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
@@ -44,7 +46,10 @@ class CosvService(
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
+    private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    @Transactional
+    fun generateId(): String = cosvGeneratedIdRepository.save()
     /**
      * @param rawCosvFileIds
      * @param user

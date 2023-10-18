@@ -78,7 +78,7 @@ import kotlin.io.path.*
     MockBean(RawCosvFileRepository::class),
     MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
-    MockBean(VulnerabilityGeneratedIdRepository::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {

@@ -7,6 +7,7 @@ import com.saveourtool.save.v1
 
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 import java.nio.ByteBuffer
 
@@ -19,6 +20,10 @@ import java.nio.ByteBuffer
 class CosvController(
     private val cosvService: CosvService,
 ) {
+    fun generateId(
+
+    ): Mono<String>
+
     /**
      * @param identifier
      * @return list of cosv files

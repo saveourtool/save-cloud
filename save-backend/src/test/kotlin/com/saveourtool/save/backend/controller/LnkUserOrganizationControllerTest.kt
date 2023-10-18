@@ -43,7 +43,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
     MockBean(RawCosvFileRepository::class),
     MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
-    MockBean(VulnerabilityGeneratedIdRepository::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 class LnkUserOrganizationControllerTest {
