@@ -371,44 +371,52 @@ class RawCosvFileController(
         @PathVariable organizationName: String,
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileStreamingResponseFlux> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
-            .flatMapMany {
-                rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
-                    .map { files ->
-                        files.filter { it.status == RawCosvFileStatus.PROCESSED }
-                            .run {
-                                sumOf { it.requiredContentLength() } to windowed(WINDOW_SIZE_ON_DELETE)
-                            }
-                    }
-                    .flatMapMany { (sizeOfFiles, parts) ->
-                        val fullSize = sizeOfFiles + 1
-                        Flux.concat(
+        .flatMapMany {
+            Flux.concat(
+                firstFakeResponse.toMono(),
+                doDeleteProcessed(organizationName, authentication.name),
+            )
+        }
+        .let {
+            ResponseEntity.ok()
+                .cacheControlForNdjson()
+                .body(it)
+        }
+
+    private fun doDeleteProcessed(
+        organizationName: String,
+        userName: String,
+    ) = rawCosvFileStorage.listByOrganizationAndUser(organizationName, userName)
+        .map { files ->
+            files.filter { it.status == RawCosvFileStatus.PROCESSED }
+                .run {
+                    sumOf { it.requiredContentLength() } to windowed(WINDOW_SIZE_ON_DELETE)
+                }
+        }
+        .flatMapMany { (sizeOfFiles, parts) ->
+            val fullSize = sizeOfFiles + 1
+            Flux.concat(
+                RawCosvFileStreamingResponse(
+                    1,
+                    fullSize,
+                    updateCounters = true,
+                ).toMono(),
+                parts.toFlux().flatMap { keys ->
+                    rawCosvFileStorage.deleteAll(keys)
+                        .filter { it }
+                        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+                            "Failed to delete process raw cosv files: $keys"
+                        }
+                        .thenReturn(
                             RawCosvFileStreamingResponse(
-                                1,
+                                keys.sumOf { it.requiredContentLength() },
                                 fullSize,
-                                updateCounters = true,
-                            ).toMono(),
-                            parts.toFlux().flatMap { keys ->
-                                rawCosvFileStorage.deleteAll(keys)
-                                    .filter { it }
-                                    .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                                        "Failed to delete process raw cosv files: $keys"
-                                    }
-                                    .thenReturn(
-                                        RawCosvFileStreamingResponse(
-                                            keys.sumOf { it.requiredContentLength() },
-                                            fullSize,
-                                            result = keys,
-                                        )
-                                    )
-                            },
+                                result = keys,
+                            )
                         )
-                    }
-            }
-            .let {
-                ResponseEntity.ok()
-                    .cacheControlForNdjson()
-                    .body(it)
-            }
+                },
+            )
+        }
 
     private fun hasPermission(
         authentication: Authentication,
@@ -443,11 +451,10 @@ class RawCosvFileController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
+        private const val WINDOW_SIZE_ON_DELETE = 10
 
         // to show progress bar
         private val firstFakeResponse = RawCosvFileStreamingResponse(5, 100, updateCounters = true)
-
-        private const val WINDOW_SIZE_ON_DELETE = 10
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,
