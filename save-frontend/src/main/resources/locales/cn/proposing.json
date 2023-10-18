@@ -12,7 +12,6 @@
   "Affected projects": "受影响项目",
   "Propose a vulnerability": "提交",
   "Project type": "项目类型",
-  "Versions": "版本范围",
   "Add": "添加",
   "Project Name": "项目名称",
   "Library Name": "三方库名称",
@@ -21,7 +20,5 @@
   "Commit Hash": "提交哈希",
   "Project Url": "项目地址",
   "Name must not be empty": "名称不允许为空",
-  "Hash must not be empty": "哈希不允许为空",
-  "Please input a valid name and URL": "请输入有效的名称和地址",
-  "Please input a valid hash and URL": "请输入有效的哈希和地址"
+  "Please input a valid name and URL": "请输入有效的名称和地址"
 }
