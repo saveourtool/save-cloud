@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.reactivestreams.Publisher
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -21,9 +22,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import kotlin.io.path.*
 
@@ -115,9 +118,7 @@ class RawCosvFileController(
             contentLength = contentLength,
         )
         val content = filePart.content().map { it.asByteBuffer() }
-        return contentLength?.let {
-            rawCosvFileStorage.upload(key, it, content)
-        } ?: rawCosvFileStorage.upload(key, content)
+        return rawCosvFileStorage.uploadAndWrapDuplicateKeyException(key, content)
     }
 
     /**
@@ -185,14 +186,13 @@ class RawCosvFileController(
                                     "Processing ${file.absolutePathString()}"
                                 }
                                 val contentLength = file.fileSize()
-                                rawCosvFileStorage.upload(
+                                rawCosvFileStorage.uploadAndWrapDuplicateKeyException(
                                     key = RawCosvFileDto(
                                         concatS3Key(archiveFile.fileName, file.relativeTo(contentDir).toString()),
                                         organizationName = organizationName,
                                         userName = userName,
                                         contentLength = contentLength,
                                     ),
-                                    contentLength = contentLength,
                                     content = file.toByteBufferFlux(),
                                 )
                                     .map { UnzipRawCosvFileResponse(contentLength, fullSize, result = it) }
@@ -417,5 +417,20 @@ class RawCosvFileController(
 
         // to show progress bar
         private val firstFakeResponse = UnzipRawCosvFileResponse(5, 100, updateCounters = true)
+
+        private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
+            key: RawCosvFileDto,
+            content: Flux<ByteBuffer>,
+        ): Mono<RawCosvFileDto> {
+            val result = key.contentLength?.let {
+                upload(key, it, content)
+            } ?: upload(key, content)
+            return result.onErrorResume { error ->
+                when (error) {
+                    is DataIntegrityViolationException -> Mono.error(ResponseStatusException(HttpStatus.BAD_REQUEST, "Duplicate file name ${key.fileName}", error))
+                    else -> Mono.error(error)
+                }
+            }
+        }
     }
 }
