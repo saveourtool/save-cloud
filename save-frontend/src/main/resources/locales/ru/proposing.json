@@ -24,6 +24,5 @@
   "Commit Hash": "Хэш коммита",
   "Project Url": "URL проекта",
   "Name must not be empty": "Имя должно быть непустым",
-  "Please input a valid name and URL": "Пожалуйста введите корректное имя и URL",
-  "Language": "Язык"
+  "Please input a valid name and URL": "Пожалуйста введите корректное имя и URL"
 }

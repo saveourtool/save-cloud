@@ -24,6 +24,5 @@
   "Commit Hash": "Commit Hash",
   "Project Url": "Project Url",
   "Name must not be empty": "Name must not be empty",
-  "Please input a valid name and URL": "Please input a valid name and URL",
-  "Language": "Language"
+  "Please input a valid name and URL": "Please input a valid name and URL"
 }

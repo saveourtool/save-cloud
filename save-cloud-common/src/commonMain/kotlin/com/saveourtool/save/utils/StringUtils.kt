@@ -13,7 +13,7 @@ const val REAL_NAME_PART_MAX_LENGTH = 20
  */
 fun List<String>?.listToShortString(): String = this?.run {
     if (size <= 2) {
-        this.joinToString(", ")
+        this.joinToString(PRETTY_DELIMITER)
     } else {
         "${first()} ... ${last()}"
     }
