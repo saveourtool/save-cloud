@@ -10700,7 +10700,7 @@
           },
           {
             "in": "query",
-            "name": "ids",
+            "name": "namesToSkip",
             "required": false,
             "schema": {
               "type": "string",

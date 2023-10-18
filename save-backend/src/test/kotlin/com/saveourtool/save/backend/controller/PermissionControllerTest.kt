@@ -52,7 +52,7 @@ import reactor.util.function.Tuples
     MockBean(RawCosvFileRepository::class),
     MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
-    MockBean(VulnerabilityGeneratedIdRepository::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {

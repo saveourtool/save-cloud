@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Import
     MockBean(RawCosvFileRepository::class),
     MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
-    MockBean(VulnerabilityGeneratedIdRepository::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 class JpaSpecificationTest {
     @Autowired

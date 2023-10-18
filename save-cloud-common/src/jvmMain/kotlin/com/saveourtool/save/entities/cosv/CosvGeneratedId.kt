@@ -7,7 +7,7 @@ import javax.persistence.Entity
  * Entity for generated id of vulnerability
  */
 @Entity
-class VulnerabilityGeneratedId : BaseEntityWithDate() {
+class CosvGeneratedId : BaseEntityWithDate() {
     /**
      * @return Vulnerability identifier for saved entity
      */
