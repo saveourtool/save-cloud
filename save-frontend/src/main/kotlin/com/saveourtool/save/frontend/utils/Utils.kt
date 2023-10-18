@@ -32,8 +32,6 @@ import kotlinx.datetime.LocalTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val BYTES_COEFFICIENT = 1024
-
 /**
  * Avatar placeholder if an error was thrown.
  */
@@ -201,13 +199,3 @@ internal fun Double.toFixed(digits: Int) = asDynamic().toFixed(digits)
  * @return rounded value as String
  */
 internal fun Double.toFixedStr(digits: Int) = toFixed(digits).toString()
-
-/**
- * @return converts bytes to kilobytes
- */
-internal fun Long.toKiloBytes() = div(BYTES_COEFFICIENT)
-
-/**
- * @return converts bytes to megabytes
- */
-internal fun Long.toMegabytes() = toDouble().div(BYTES_COEFFICIENT * BYTES_COEFFICIENT)

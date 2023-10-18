@@ -3,15 +3,13 @@ package com.saveourtool.save.entities.cosv
 import kotlinx.serialization.Serializable
 
 /**
- * @property processedSize
- * @property fullSize
+ * @property progress
+ * @property progressMessage
  * @property result
- * @property updateCounters
  */
 @Serializable
 data class RawCosvFileStreamingResponse(
-    val processedSize: Long,
-    val fullSize: Long,
+    val progress: Int,
+    val progressMessage: String,
     val result: List<RawCosvFileDto>? = null,
-    val updateCounters: Boolean = false,
 )
