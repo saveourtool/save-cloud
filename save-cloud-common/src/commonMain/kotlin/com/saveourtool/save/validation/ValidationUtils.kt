@@ -48,7 +48,7 @@ fun String.isValidPath(isRelative: Boolean = true) = run {
  *
  * @return true if url is valid, false otherwise
  */
-fun String.isValidUrl() = ValidationRegularExpressions.URL_VALIDATOR.value.matches(this)
+fun String?.isValidUrl() = this?.let { ValidationRegularExpressions.URL_VALIDATOR.value.matches(it) } ?: false
 
 /**
  * Check if email is valid.

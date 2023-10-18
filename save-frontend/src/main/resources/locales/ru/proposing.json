@@ -12,7 +12,7 @@
   "Collaborators": "Соавторы",
   "Propose a vulnerability": "Предложить уязвимость",
   "Project type": "Тип проекта",
-  "Versions": "Версии",
+  "Affected versions": "Затронутые версии",
   "Add": "Добавить",
   "Cancel": "Отменить",
   "Project Name": "Имя проекта",
@@ -22,7 +22,5 @@
   "Commit Hash": "Хэш коммита",
   "Project Url": "URL проекта",
   "Name must not be empty": "Имя должно быть непустым",
-  "Hash must not be empty": "Хэш должен быть непустым",
-  "Please input a valid name and URL": "Пожалуйста введите корректное имя и URL",
-  "Please input a valid hash and URL": "Пожалуйста введите корректный хэш и URL"
+  "Please input a valid name and URL": "Пожалуйста введите корректное имя и URL"
 }
