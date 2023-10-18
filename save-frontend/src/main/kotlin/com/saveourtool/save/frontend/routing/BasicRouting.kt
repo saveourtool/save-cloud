@@ -206,7 +206,7 @@ val basicRouting: FC<AppProps> = FC { props ->
             uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,
             vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             demoCollectionView.create() to DEMO,
-            userProfileView.create() to "$PROFILE/:name",
+            userProfileView.create() to "$VULN_PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
