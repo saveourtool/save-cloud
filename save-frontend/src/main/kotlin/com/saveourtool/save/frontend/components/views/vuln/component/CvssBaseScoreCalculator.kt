@@ -24,7 +24,7 @@ import web.html.InputType
 import kotlin.Float
 
 val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->
-    val (baseMetrics, setBaseMetrics) = useState(if (props.baseMetricsOfVulnerability == undefined) BaseMetricsV3.empty else props.baseMetricsOfVulnerability!!)
+    val (baseMetrics, setBaseMetrics) = useState(props.baseMetricsOfVulnerability ?: BaseMetricsV3.empty)
 
     div {
         className = ClassName("col-12 text-center")
