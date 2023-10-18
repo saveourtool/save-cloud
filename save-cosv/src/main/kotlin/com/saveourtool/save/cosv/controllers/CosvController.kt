@@ -6,7 +6,6 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
@@ -29,6 +28,13 @@ class CosvController(
     private val cosvService: CosvService,
     private val backendService: IBackendService,
 ) {
+    /**
+     * @param cosv
+     * @param isGenerateIdentifier
+     * @param organizationName
+     * @param authentication
+     * @return saved [VulnerabilityMetadataDto]
+     */
     @RequiresAuthorizationSourceHeader
     @PostMapping("/save")
     fun save(
@@ -46,12 +52,19 @@ class CosvController(
             "COSV identifier should either be empty or start with one of prefixes: $vulnerabilityPrefixes"
         }
         .blockingMap {
-            backendService.getUserByName(authentication.name) to organizationName?.let {
+            val user = backendService.getUserByName(authentication.name)
+            val organization = organizationName?.let {
                 backendService.getOrganizationByName(it)
             }
+            val generatedId = if (isGenerateIdentifier) cosvService.generateIdentifier() else null
+            Triple(user, organization, generatedId)
         }
-        .flatMap { (user, organization) ->
-            cosvService.saveManual(cosv, user, organization)
+        .flatMap { (user, organization, generatedId) ->
+            cosvService.saveManual(
+                generatedId?.let { cosv.copy(id = it) } ?: cosv,
+                user,
+                organization,
+            )
         }
 
     /**

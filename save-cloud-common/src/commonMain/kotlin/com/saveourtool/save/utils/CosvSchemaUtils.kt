@@ -5,15 +5,13 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto.Companion.vulnerabilityPrefixes
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto.Companion.vulnerabilityPrefixes
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
 
 import kotlinx.datetime.LocalDateTime
-
-typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 private const val SAVEOURTOOL_PROFILE_PREFIX = "https://saveourtool.com/profile/"
 
@@ -28,13 +26,7 @@ val vulnerabilityPrefixes = listOf(
     "CVE-",
 )
 
-/**
- * Validation of [identifier]
- *
- * @return true if [identifier] is empty (our own should be set on backend)
- *   or starts with one of [vulnerabilityPrefixes] (reused existed identifier), false otherwise
- */
-fun validateIdentifier(identifier: String) = identifier.isEmpty() || vulnerabilityPrefixes.any { identifier.startsWith(it) }
+typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 /**
  * @return Save's contributors
@@ -106,15 +98,6 @@ fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.fir
 fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
     ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()
 
-/**
- * @return Severity for a single progress
- */
-fun Float.asSeverity(): Severity = Severity(
-    type = SeverityType.CVSS_V3,
-    score = "N/A",
-    scoreNum = toString(),
-)
-
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
@@ -129,3 +112,12 @@ private fun TimelineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimelineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
+
+/**
+ * Validation of [identifier]
+ *
+ * @param identifier
+ * @return true if [identifier] is empty (our own should be set on backend)
+ *   or starts with one of [vulnerabilityPrefixes] (reused existed identifier), false otherwise
+ */
+fun validateIdentifier(identifier: String) = identifier.isEmpty() || vulnerabilityPrefixes.any { identifier.startsWith(it) }
