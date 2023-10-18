@@ -14,7 +14,7 @@
   "Affected projects": "Affected projects",
   "Propose a vulnerability": "Propose a vulnerability",
   "Project type": "Project type",
-  "Versions": "Versions",
+  "Affected versions": "Affected versions",
   "Add": "Add",
   "Cancel": "Cancel",
   "Project Name": "Project Name",
@@ -24,7 +24,5 @@
   "Commit Hash": "Commit Hash",
   "Project Url": "Project Url",
   "Name must not be empty": "Name must not be empty",
-  "Hash must not be empty": "Hash must not be empty",
-  "Please input a valid name and URL": "Please input a valid name and URL",
-  "Please input a valid hash and URL": "Please input a valid hash and URL"
+  "Please input a valid name and URL": "Please input a valid name and URL"
 }

@@ -9,6 +9,7 @@ package com.saveourtool.save.frontend.components.inputform
 import com.saveourtool.save.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
+private const val PURL_PLACEHOLDER = "pkg:example/example.com/version@v1.0.0"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
 private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
 
@@ -49,6 +50,7 @@ enum class InputTypes(
     GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
     PROJECT_PROBLEM_NAME("project problem name", NAME_ERROR_MESSAGE, placeholder = "name"),
+    PURL("purl", placeholder = PURL_PLACEHOLDER),
 
     // ==== signIn view
     PASSWORD("password", null, "*****"),
@@ -59,7 +61,8 @@ enum class InputTypes(
         NAME_ORG_PROJECT_TOOLTIP
     ),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
-    PROJECT_VERSION("project Url", placeholder = "0.0.1; 0.0.3-0.0.5; 1.0.1.RELEASE; etc."),
+    PROJECT_VERSION("project version", placeholder = "0.0.1, 0.0.5, 1.0.1.RELEASE, etc."),
+    VERSION("version", placeholder = "0.0.1"),
 
     // ==== create organization view
     ORGANIZATION_NAME(
