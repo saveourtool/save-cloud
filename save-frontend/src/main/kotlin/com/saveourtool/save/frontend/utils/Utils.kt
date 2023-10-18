@@ -7,6 +7,7 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
+import kotlinx.browser.window
 
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
@@ -31,6 +32,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.w3c.dom.Location
 
 private const val BYTES_COEFFICIENT = 1024
 
@@ -211,3 +213,11 @@ internal fun Long.toKiloBytes() = div(BYTES_COEFFICIENT)
  * @return converts bytes to megabytes
  */
 internal fun Long.toMegabytes() = toDouble().div(BYTES_COEFFICIENT * BYTES_COEFFICIENT)
+
+/**
+ * Dirty hack for the COSV location
+ * Should be removed in future
+ *
+ * @return true if we are in COSV domains range
+ */
+fun Location.isCosvDomain() = this.hostname in setOf("cosv.dev", "cosv.gitlink.org.cn") }

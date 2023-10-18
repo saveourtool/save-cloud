@@ -3,8 +3,10 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.utils.TopBarUrl
+import com.saveourtool.save.frontend.utils.isCosvDomain
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
+import kotlinx.browser.window
 
 import react.FC
 import react.Props
@@ -36,7 +38,7 @@ val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
-                    +"SaveOurTool!"
+                    +if (window.location.isCosvDomain()) "COSV" else "SaveOurTool!"
                 }
             }
             props.location.pathname
