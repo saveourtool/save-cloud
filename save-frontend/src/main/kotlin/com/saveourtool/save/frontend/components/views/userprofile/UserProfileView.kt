@@ -137,7 +137,7 @@ enum class UserProfileTab {
     companion object : TabMenuBar<UserProfileTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserProfileTab = VULNERABILITIES
-        override val regexForUrlClassification = "/${FrontendRoutes.PROFILE}"
+        override val regexForUrlClassification = "/${FrontendRoutes.VULN_PROFILE}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
         override fun values(): Array<UserProfileTab> = UserProfileTab.values()
     }
