@@ -19,7 +19,6 @@ import java.nio.ByteBuffer
 typealias OrganizationAndOwner = Pair<Organization, User>
 typealias RawCosvFileDtoCollection = Collection<RawCosvFileDto>
 
-
 /**
  * S3 storage for [RawCosvFile]
  */
