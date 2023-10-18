@@ -6,7 +6,6 @@ import com.saveourtool.save.frontend.utils.TopBarUrl
 import com.saveourtool.save.frontend.utils.isCosvDomain
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
-import kotlinx.browser.window
 
 import react.FC
 import react.Props
@@ -20,6 +19,8 @@ import react.dom.html.ReactHTML.ol
 import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
+
+import kotlinx.browser.window
 
 /**
  * Displays the URL split with "/".

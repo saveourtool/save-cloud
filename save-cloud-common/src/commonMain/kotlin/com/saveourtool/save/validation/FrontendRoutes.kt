@@ -43,10 +43,10 @@ enum class FrontendRoutes(val path: String) {
     THANKS_FOR_REGISTRATION("thanks-for-registration"),
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
+    VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_COSV_SCHEMA("$VULN/schema"),
     VULN_CREATE("$VULN/create-vulnerability"),
     VULN_PROFILE("$VULN/profile"),
-    VULNERABILITY_SINGLE("$VULN/collection"),
     VULN_TOP_RATING("$VULN/top-rating"),
     VULN_UPLOAD("$VULN/upload-vulnerability"),
     ;
