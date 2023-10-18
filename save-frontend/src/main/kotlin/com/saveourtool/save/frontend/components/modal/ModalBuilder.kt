@@ -102,24 +102,6 @@ fun ChildrenBuilder.displayModal(
 ) = doCreateDisplayModal(false, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
 
 /**
- * @see displayModal
- */
-@Suppress(
-    "LongParameterList",
-    "TOO_MANY_PARAMETERS",
-    "KDOC_WITHOUT_PARAM_TAG",
-    "KDOC_WITHOUT_RETURN_TAG"
-)
-fun ChildrenBuilder.displayModalWithPreTag(
-    isOpen: Boolean,
-    title: String,
-    message: String,
-    modalStyle: Styles = defaultModalStyle,
-    onCloseButtonPressed: (() -> Unit)? = null,
-    buttonBuilder: ChildrenBuilder.() -> Unit,
-) = doCreateDisplayModal(true, isOpen, title, message, modalStyle, onCloseButtonPressed, buttonBuilder)
-
-/**
  * Universal function to create modals with click condition styles inside react modals
  *
  * @param isOpen modal openness indicator - should be in state
@@ -179,39 +161,6 @@ fun ChildrenBuilder.displayModal(
     buttonBuilder: ChildrenBuilder.() -> Unit,
 ) {
     displayModal(opener.isOpen(), title, message, modalStyle, opener.closeWindowAction(), buttonBuilder)
-}
-
-/**
- * Universal function to create modals for confirmation.
- *
- * @param windowOpenness
- * @param title title of the modal that will be shown in top-left corner
- * @param message main text that will be shown in the center of modal
- * @param modalStyle [Styles] that will be applied to react modal
- * @param successAction lambda for success action
- */
-fun ChildrenBuilder.displayConfirmationModal(
-    windowOpenness: WindowOpenness,
-    title: String,
-    message: String,
-    modalStyle: Styles = mediumTransparentModalStyle,
-    successAction: () -> Unit,
-) {
-    displayModal(
-        isOpen = windowOpenness.isOpen(),
-        title = title,
-        message = message,
-        modalStyle = modalStyle,
-        onCloseButtonPressed = windowOpenness.closeWindowAction()
-    ) {
-        buttonBuilder("Ok") {
-            successAction()
-            windowOpenness.closeWindow()
-        }
-        buttonBuilder("Cancel", "secondary") {
-            windowOpenness.closeWindow()
-        }
-    }
 }
 
 /**
