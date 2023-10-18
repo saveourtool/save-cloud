@@ -95,7 +95,7 @@ fun ChildrenBuilder.renderAvatar(
     isLinkActive: Boolean = true,
     styleBuilder: CSSProperties.() -> Unit,
 ) {
-    val newLink = (link ?: "/${FrontendRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
+    val newLink = (link ?: "/${FrontendRoutes.VULN_PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
     return renderAvatar(
         userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
@@ -151,7 +151,7 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
-            to = "/${FrontendRoutes.PROFILE}/${userInfo.name}"
+            to = "/${FrontendRoutes.VULN_PROFILE}/${userInfo.name}"
             renderImg()
         }
     } else {

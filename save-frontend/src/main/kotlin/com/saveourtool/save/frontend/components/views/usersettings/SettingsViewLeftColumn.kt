@@ -80,7 +80,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         Link {
-                                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                            to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
                                             style = jso {
                                                 textDecoration = TextDecoration.underline
                                             }
