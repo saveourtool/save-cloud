@@ -10,7 +10,6 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.*
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
@@ -20,17 +19,17 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
-
-import kotlinx.serialization.serializer
-import reactor.core.scheduler.Schedulers
 import javax.annotation.PostConstruct
+
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.serialization.serializer
 
 /**
  * Service for vulnerabilities
@@ -47,6 +46,9 @@ class CosvService(
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    /**
+     * Init method to restore all raw cosv files with `in progress` state to process
+     */
     @PostConstruct
     fun restoreProcessing() {
         waitReactivelyUntil(
@@ -65,7 +67,7 @@ class CosvService(
                         }
                 } else {
                     log.warn {
-                        "Storage ${RawCosvFileStorage::class.simpleName} is not initialized in ${rawStorageInitTime}"
+                        "Storage ${RawCosvFileStorage::class.simpleName} is not initialized in $rawStorageInitTime"
                     }
                     Mono.empty()
                 }
