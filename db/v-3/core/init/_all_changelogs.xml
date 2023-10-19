@@ -29,5 +29,7 @@
     <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
     <include file="file.xml" relativeToChangelogFile="true"/>
     <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
+    <include file="comments.xml" relativeToChangelogFile="true"/>
+    <include file="tag.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
