@@ -24,9 +24,7 @@
     <include file="after-all-migrations/db.changelog-after-all.xml" relativeToChangelogFile="true" context="dev or prod or test"/>
     <include file="v-2/events/db.changelog-events.xml" relativeToChangelogFile="true"/>
 
-
-    <include file="v-3/events/db.changelog-events.xml" relativeToChangelogFile="true"/>
-    <include file="v-3/core/db.changelog-tables.xml" relativeToChangelogFile="true"/>
+    <include file="v-3/db.changelog-v3.xml" relativeToChangelogFile="true"/>
     <changeSet id="master-v-3" author="nulls">
         <tagDatabase tag="v-3"/>
     </changeSet>

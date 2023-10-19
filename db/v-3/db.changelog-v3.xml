@@ -11,8 +11,4 @@
     <include file="contest/db.changelog.xml" relativeToChangelogFile="true"/>
     <include file="cosv/db.changelog.xml" relativeToChangelogFile="true"/>
 
-    <changeSet id="3-0-tables" author="saveourtool-dev">
-        <tagDatabase tag="v3.0-tables"/>
-    </changeSet>
-
 </databaseChangeLog>
