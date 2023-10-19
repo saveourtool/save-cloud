@@ -12,4 +12,11 @@ data class RawCosvFileStreamingResponse(
     val progress: Int,
     val progressMessage: String,
     val result: List<RawCosvFileDto>? = null,
-)
+) {
+    companion object {
+        /**
+         * Final progress
+         */
+        const val FINAL_PROGRESS = 100
+    }
+}

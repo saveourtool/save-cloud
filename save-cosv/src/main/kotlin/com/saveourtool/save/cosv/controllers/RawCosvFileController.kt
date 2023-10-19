@@ -192,7 +192,8 @@ class RawCosvFileController(
                             tmpDir.deleteRecursivelySafely(log)
                         }
                             .then(rawCosvFileStorage.delete(archiveFile))
-                            .thenReturn(RawCosvFileStreamingResponse(100, "Unzipped ${entryWithSizeList.sumOf { it.second }.toKilobytes()} Kb")),
+                            .thenReturn(RawCosvFileStreamingResponse(RawCosvFileStreamingResponse.FINAL_PROGRESS,
+                                "Unzipped ${entryWithSizeList.sumOf { it.second }.toKilobytes()} Kb")),
                     )
                 }
                 .onErrorResume { error ->
@@ -421,7 +422,6 @@ class RawCosvFileController(
 
         // to show progress bar
         private const val PROGRESS_FOR_ARCHIVE = 5
-        private const val WINDOW_SIZE_ON_DELETE = 10
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,
