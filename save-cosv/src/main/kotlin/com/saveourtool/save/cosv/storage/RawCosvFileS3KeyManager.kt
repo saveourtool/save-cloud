@@ -13,6 +13,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -41,11 +42,28 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param organizationName
-     * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName]
+     * @param userName
+     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
-    fun listByOrganization(
+    fun countByOrganizationAndUser(
         organizationName: String,
-    ): Collection<RawCosvFileDto> = repository.findAllByOrganizationName(organizationName).map { it.toDto() }
+        userName: String,
+    ): Long = repository.countAllByOrganizationNameAndUserName(organizationName, userName)
+
+    /**
+     * @param organizationName
+     * @param userName
+     * @param pageRequest
+     * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
+     */
+    fun listByOrganizationAndUser(
+        organizationName: String,
+        userName: String,
+        pageRequest: PageRequest? = null,
+    ): Collection<RawCosvFileDto> = run {
+        pageRequest?.let { repository.findAllByOrganizationNameAndUserName(organizationName, userName, it) }
+            ?: repository.findAllByOrganizationNameAndUserName(organizationName, userName)
+    }.map { it.toDto() }
 
     /**
      * @param ids
@@ -88,6 +106,16 @@ class RawCosvFileS3KeyManager(
         it.organization to it.user
     }
 
-    override fun updateKeyByContentLength(key: RawCosvFileDto, contentLength: Long): RawCosvFileDto =
-            key.copy(contentLength = contentLength)
+    @Transactional
+    override fun updateKeyByContentLength(
+        key: RawCosvFileDto,
+        contentLength: Long,
+    ): RawCosvFileDto = key.contentLength
+        ?.let { key }
+        ?: run {
+            repository.getByIdOrNotFound(key.requiredId())
+                .let { entity ->
+                    repository.save(entity.apply { this.contentLength = contentLength }).toDto()
+                }
+        }
 }

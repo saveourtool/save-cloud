@@ -32,6 +32,7 @@ import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.ELLIPSIS
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -54,11 +55,6 @@ import kotlinx.serialization.json.Json
  * The maximum length of a test name (in chars), before it gets shortened.
  */
 private const val MAX_TEST_NAME_LENGTH = 35
-
-/**
- * Horizontal Ellipsis (U+2026).
- */
-private const val ELLIPSIS = '\u2026'
 
 /**
  * The infix of the shortened text label.

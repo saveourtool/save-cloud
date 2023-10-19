@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
@@ -140,7 +139,7 @@ val manageUserRoleCardComponent: FC<ManageUserRoleCardProps> = FC { props ->
                             className = ClassName("col-2 align-items-center")
                             img {
                                 className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
-                                src = user.avatar?.let { "/api/$v1/avatar$it" }
+                                src = user.avatar?.let(String::avatarRenderer)
                                     ?: "/img/undraw_profile.svg"
                                 style = jso {
                                     width = "2rem".unsafeCast<Width>()

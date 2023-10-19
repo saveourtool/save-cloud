@@ -26,9 +26,38 @@ import web.cssom.rem
 const val AVATAR_ORGANIZATION_PLACEHOLDER = "/img/company.png"
 
 /**
- * links to avatars: "/img" for static resources, "/api" for uploaded
+ * The base URL for uploaded avatars.
  */
-fun String.avatarRenderer() = if (this.startsWith("/img")) this else "/api/$v1/avatar/$this"
+const val AVATAR_BASE_URL = "/api/$v1/avatar"
+
+/**
+ * links to avatars: `/img` for static resources, `/api` for uploaded.
+ *
+ * @receiver the local avatar URL (w/o the host name), either absolute or relative.
+ * @return the absolute avatar URL (still local to the web server).
+ */
+fun String.avatarRenderer(): String =
+        when {
+            /*
+             * Static resource, such as `/img/avatar_packs/avatar1.png`
+             */
+            startsWith("/img") -> this
+
+            /*
+             * Uploaded resource (absolute), the URL is already processed/canonicalized.
+             */
+            startsWith(AVATAR_BASE_URL) -> this
+
+            /*
+             * Uploaded resource (absolute), such as `/users/admin?1`.
+             */
+            startsWith('/') -> AVATAR_BASE_URL + this
+
+            /*
+             * Uploaded resource (relative).
+             */
+            else -> "$AVATAR_BASE_URL/$this"
+        }
 
 /**
  * Render organization avatar or placeholder
@@ -66,7 +95,7 @@ fun ChildrenBuilder.renderAvatar(
     isLinkActive: Boolean = true,
     styleBuilder: CSSProperties.() -> Unit,
 ) {
-    val newLink = (link ?: "/${FrontendRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
+    val newLink = (link ?: "/${FrontendRoutes.VULN_PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
     return renderAvatar(
         userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
@@ -122,7 +151,7 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
-            to = "/${FrontendRoutes.PROFILE}/${userInfo.name}"
+            to = "/${FrontendRoutes.VULN_PROFILE}/${userInfo.name}"
             renderImg()
         }
     } else {

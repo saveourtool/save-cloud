@@ -31,7 +31,6 @@ enum class FrontendRoutes(val path: String) {
     INDEX(""),
     MANAGE_ORGANIZATIONS("organizations"),
     NOT_FOUND("not-found"),
-    PROFILE("profile"),
     PROJECTS("projects"),
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
@@ -47,7 +46,8 @@ enum class FrontendRoutes(val path: String) {
     VULN("vuln"),
     VULNERABILITIES("$VULN/list"),
     VULNERABILITY_SINGLE("$VULN/collection"),
-    VULN_COSV_SCHEMA("$VULN/cosv/schema"),
+    VULN_COSV_SCHEMA("$VULN/schema"),
+    VULN_PROFILE("$VULN/profile"),
     VULN_TOP_RATING("$VULN/top-rating"),
     ;
 

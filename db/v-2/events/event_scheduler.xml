@@ -44,4 +44,14 @@
         </sql>
     </changeSet>
 
+    <changeSet id="event-delete-all-raw-cosv-file" author="nulls" context="prod">
+        <sql>
+            DROP EVENT IF EXISTS delete_processed_raw_cosv_file;
+            CREATE EVENT delete_processed_raw_cosv_file
+            ON SCHEDULE EVERY 1 DAY
+            STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 HOUR)
+            DO DELETE FROM raw_cosv_file WHERE DATEDIFF(NOW(), update_date) >= 2;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

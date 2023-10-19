@@ -2253,305 +2253,23 @@
         ]
       }
     },
-    "/api/v1/cosv/{organizationName}/batch-upload": {
+    "/api/v1/cosv/save": {
       "post": {
-        "operationId": "batchUpload",
+        "operationId": "save_1",
         "parameters": [
           {
-            "in": "path",
+            "in": "query",
+            "name": "isGenerateIdentifier",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "in": "query",
             "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "required": [
-                  "file"
-                ],
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "binary"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RawCosvFileDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cosv-controller"
-        ]
-      }
-    },
-    "/api/v1/cosv/{organizationName}/delete/{id}": {
-      "delete": {
-        "operationId": "delete_2",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cosv-controller"
-        ]
-      }
-    },
-    "/api/v1/cosv/{organizationName}/download/{id}": {
-      "get": {
-        "operationId": "download_2",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "char": {
-                        "type": "string"
-                      },
-                      "direct": {
-                        "type": "boolean"
-                      },
-                      "double": {
-                        "type": "number",
-                        "format": "double"
-                      },
-                      "float": {
-                        "type": "number",
-                        "format": "float"
-                      },
-                      "int": {
-                        "type": "integer",
-                        "format": "int32"
-                      },
-                      "long": {
-                        "type": "integer",
-                        "format": "int64"
-                      },
-                      "readOnly": {
-                        "type": "boolean"
-                      },
-                      "short": {
-                        "type": "integer",
-                        "format": "int32"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cosv-controller"
-        ]
-      }
-    },
-    "/api/v1/cosv/{organizationName}/list": {
-      "get": {
-        "operationId": "list_2",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RawCosvFileDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "cosv-controller"
-        ]
-      }
-    },
-    "/api/v1/cosv/{organizationName}/submit-to-process": {
-      "post": {
-        "operationId": "submitToProcess",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -2579,11 +2297,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int64"
-                }
+                "$ref": "#/components/schemas/OsvSchemaUnitUnitUnitUnit"
               }
             }
           },
@@ -2594,7 +2308,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                 }
               }
             },
@@ -3706,7 +3420,7 @@
     "/api/v1/files/delete": {
       "delete": {
         "description": "Delete a file by id.",
-        "operationId": "delete_1",
+        "operationId": "delete_2",
         "parameters": [
           {
             "description": "ID of additional file",
@@ -3765,7 +3479,7 @@
     "/api/v1/files/download": {
       "get": {
         "description": "Download a file by id.",
-        "operationId": "download_1",
+        "operationId": "download_2",
         "parameters": [
           {
             "description": "ID of additional file",
@@ -4066,7 +3780,7 @@
     "/api/v1/files/{organizationName}/{projectName}/list": {
       "get": {
         "description": "Get a list by project coordinates.",
-        "operationId": "list_1",
+        "operationId": "list_2",
         "parameters": [
           {
             "description": "organization name of a file key",
@@ -4142,7 +3856,7 @@
     "/api/v1/files/{organizationName}/{projectName}/upload": {
       "post": {
         "description": "Upload a file by project coordinates, name and uploaded time in millis.",
-        "operationId": "upload",
+        "operationId": "upload_1",
         "parameters": [
           {
             "description": "size in bytes of a file",
@@ -6946,7 +6660,7 @@
     "/api/v1/projects/problem/save": {
       "post": {
         "description": "Save project problem.",
-        "operationId": "save_1",
+        "operationId": "save",
         "requestBody": {
           "content": {
             "application/json": {
@@ -7838,6 +7552,693 @@
         "tags": [
           "projects",
           "roles"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/batch-upload": {
+      "post": {
+        "operationId": "batchUpload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/count": {
+      "get": {
+        "operationId": "count",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/delete-processed": {
+      "delete": {
+        "operationId": "deleteProcessed",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
+      "delete": {
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/download/{id}": {
+      "get": {
+        "operationId": "download_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "char": {
+                        "type": "string"
+                      },
+                      "direct": {
+                        "type": "boolean"
+                      },
+                      "double": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "float": {
+                        "type": "number",
+                        "format": "float"
+                      },
+                      "int": {
+                        "type": "integer",
+                        "format": "int32"
+                      },
+                      "long": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "readOnly": {
+                        "type": "boolean"
+                      },
+                      "short": {
+                        "type": "integer",
+                        "format": "int32"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/list": {
+      "get": {
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/submit-all-uploaded-to-process": {
+      "post": {
+        "operationId": "submitAllUploadedToProcess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/submit-to-process": {
+      "post": {
+        "operationId": "submitToProcess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/unzip/{id}": {
+      "post": {
+        "operationId": "unzip",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UnzipRawCosvFileResponse"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/upload": {
+      "post": {
+        "operationId": "upload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Content-Length-Custom",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "file"
+                ],
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RawCosvFileDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
         ]
       }
     },
@@ -10371,7 +10772,7 @@
           },
           {
             "in": "query",
-            "name": "ids",
+            "name": "namesToSkip",
             "required": false,
             "schema": {
               "type": "string",
@@ -10890,126 +11291,6 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/by-organization-and-status": {
-      "get": {
-        "description": "Get list of vulnerabilities by organization name.",
-        "operationId": "getVulnerabilityByOrganization",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APPROVED",
-                "AUTO_APPROVED",
-                "PENDING_REVIEW",
-                "REJECTED"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of vulnerabilities by organization name"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get list of vulnerabilities by organization name.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/by-user": {
-      "get": {
-        "description": "Get list of vulnerabilities by user id.",
-        "operationId": "getVulnerabilityByUser",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "userName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of vulnerabilities by user id"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get list of vulnerabilities by user id.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
     "/api/v1/vulnerabilities/count-by-user": {
       "get": {
         "description": "Get cont of vulnerabilities by user name.",
@@ -11473,64 +11754,6 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/save": {
-      "post": {
-        "description": "Save vulnerability.",
-        "operationId": "save",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "isGenerateIdentifier",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully saved vulnerability"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Save vulnerability.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
     "/api/v1/vulnerabilities/save-date": {
       "post": {
         "description": "Save new date.",
@@ -11987,6 +12210,44 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RangeJsonObject"
+            }
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AffectedUnitUnitUnit": {
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "ecosystem_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "patches_detail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatchDetail"
+            }
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RangeUnit"
             }
           },
           "severity": {
@@ -13316,6 +13577,108 @@
           }
         }
       },
+      "OsvSchemaUnitUnitUnitUnit": {
+        "required": [
+          "id",
+          "modified",
+          "schema_version"
+        ],
+        "type": "object",
+        "properties": {
+          "affected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AffectedUnitUnitUnit"
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirm_type": {
+            "type": "string",
+            "enum": [
+              "manual_confirmed",
+              "algorithm_confirmed",
+              "double_confirmed"
+            ]
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contributor"
+            }
+          },
+          "credits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Credit"
+            }
+          },
+          "cwe_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwe_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "details": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "modified": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "published": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "summary": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            }
+          },
+          "withdrawn": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
       "Package": {
         "required": [
           "ecosystem",
@@ -13684,6 +14047,35 @@
           }
         }
       },
+      "RangeUnit": {
+        "required": [
+          "events",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "repo": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ECOSYSTEM",
+              "GIT",
+              "SEMVER"
+            ]
+          }
+        }
+      },
       "RawCosvFileDto": {
         "required": [
           "fileName",
@@ -13693,6 +14085,10 @@
         ],
         "type": "object",
         "properties": {
+          "contentLength": {
+            "type": "integer",
+            "format": "int64"
+          },
           "fileName": {
             "type": "string"
           },
@@ -14293,6 +14689,30 @@
       "Unit": {
         "type": "object"
       },
+      "UnzipRawCosvFileResponse": {
+        "required": [
+          "fullSize",
+          "processedSize",
+          "updateCounters"
+        ],
+        "type": "object",
+        "properties": {
+          "fullSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "processedSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "result": {
+            "$ref": "#/components/schemas/RawCosvFileDto"
+          },
+          "updateCounters": {
+            "type": "boolean"
+          }
+        }
+      },
       "User": {
         "required": [
           "name",
@@ -14676,6 +15096,8 @@
         "required": [
           "identifierPrefix",
           "isOwner",
+          "maxCriticality",
+          "minCriticality",
           "tags"
         ],
         "type": "object",
@@ -14706,6 +15128,14 @@
               "Sql",
               "TypeScript"
             ]
+          },
+          "maxCriticality": {
+            "type": "number",
+            "format": "float"
+          },
+          "minCriticality": {
+            "type": "number",
+            "format": "float"
           },
           "organizationName": {
             "type": "string"
@@ -14809,15 +15239,26 @@
       },
       "VulnerabilityProjectDto": {
         "required": [
+          "ecosystem",
           "name",
+          "purl",
+          "repository",
           "type",
-          "url",
           "versions",
           "vulnerabilityIdentifier"
         ],
         "type": "object",
         "properties": {
+          "ecosystem": {
+            "type": "string"
+          },
           "name": {
+            "type": "string"
+          },
+          "purl": {
+            "type": "string"
+          },
+          "repository": {
             "type": "string"
           },
           "type": {
@@ -14828,11 +15269,11 @@
               "Project"
             ]
           },
-          "url": {
-            "type": "string"
-          },
           "versions": {
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "vulnerabilityIdentifier": {
             "type": "string"
