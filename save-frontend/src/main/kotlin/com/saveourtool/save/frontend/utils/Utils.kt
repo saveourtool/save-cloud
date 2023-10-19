@@ -8,6 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
+import org.w3c.dom.Location
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -134,6 +135,14 @@ fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = Loc
     LocalDate.parse(this),
     time,
 )
+
+/**
+ * Dirty hack for the COSV location
+ * Should be removed in future
+ *
+ * @return true if we are in COSV domains range
+ */
+fun Location.isCosvDomain() = this.hostname in setOf("cosv.dev", "cosv.gitlink.org.cn")
 
 /**
  * @return `true` if this user is a super-admin, `false` otherwise.
