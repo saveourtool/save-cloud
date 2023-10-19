@@ -35,6 +35,19 @@ fun Location.isVuln() = this.pathname.startsWith("/vuln")
 fun Location.isSettings() = this.pathname.startsWith("/$SETTINGS")
 
 /**
+ * @return true if [Location.pathname] matches organization URL: /org_name
+ *
+ */
+fun Location.isOrganization(): Boolean {
+    // matches all, starting from first `/` and before `?` or second `/`
+    val isPathFollowedFromFirstSlash = ("^/[^?/]*").toRegex().matches(this.pathname)
+    // not in basic frontend routes
+    val isNotInFrontendRoutes = this.pathname.drop(1) !in FrontendRoutes.values().map { it.path }
+
+    return isPathFollowedFromFirstSlash && isNotInFrontendRoutes
+}
+
+/**
  * @return true if we are on a main (index) page
  */
 fun Location.isIndex() = pathname == "/"

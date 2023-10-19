@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.utils.isOrganization
 import com.saveourtool.save.frontend.utils.isSettings
 import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
@@ -58,7 +59,7 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         className = ClassName("navbar-nav mx-auto")
         when {
             props.location.isVuln() -> vulnTopbarLinks
-            props.location.isSettings() -> generalTopbarLinks
+            props.location.isSettings() || props.location.isOrganization() -> generalTopbarLinks
             else -> saveTopbarLinks
         }
             .forEach { elem ->
