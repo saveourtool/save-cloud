@@ -17,8 +17,8 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="source" type="varchar(64)" defaultValue="basic">
-                <constraints nullable="true"/>
+            <column name="source" type="varchar(64)">
+                <constraints nullable="false"/>
             </column>
         </createTable>
         <addUniqueConstraint tableName="original_login" columnNames="name,source"/>
