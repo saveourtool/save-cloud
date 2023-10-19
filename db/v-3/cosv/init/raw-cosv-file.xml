@@ -25,6 +25,9 @@
             <column name="status_message" type="TEXT">
                 <constraints nullable="true"/>
             </column>
+            <column name="content_length" type="bigint">
+                <constraints nullable="true"/>
+            </column>
             <column name="create_date" type="DATETIME(3)">
                 <constraints nullable="false"/>
             </column>
@@ -32,8 +35,8 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id"
-                             constraintName="uq_raw_osv_file_file_name_per_organization"/>
+        <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id,user_id"
+                             constraintName="uq_raw_osv_file_file_name_per_organization_and_user"/>
     </changeSet>
 
     <changeSet id="raw-cosv-file-events" author="saveourtool-dev" context="prod">
@@ -41,7 +44,7 @@
             CREATE EVENT delete_processed_raw_cosv_file
             ON SCHEDULE EVERY 1 DAY
             STARTS TIMESTAMP(CURRENT_DATE + INTERVAL 1 HOUR)
-            DO DELETE FROM raw_cosv_file WHERE status = 'PROCESSED' AND DATEDIFF(NOW(), update_date) >= 7;
+            DO DELETE FROM raw_cosv_file WHERE DATEDIFF(NOW(), update_date) >= 2;
         </sql>
     </changeSet>
 

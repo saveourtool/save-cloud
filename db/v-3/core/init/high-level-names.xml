@@ -11,11 +11,5 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
         </createTable>
-        
-        <rollback>
-            <dropTable
-                    cascadeConstraints="true"
-                    tableName="high_level_names" />
-        </rollback>
     </changeSet>
 </databaseChangeLog>

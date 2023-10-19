@@ -6,11 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="awesome-benchmarks-creation" author="saveourtool-dev">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="awesome_benchmarks"/>
-            </not>
-        </preConditions>
         <createTable tableName="awesome_benchmarks">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -46,11 +41,6 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <rollback>
-            <dropTable
-                    cascadeConstraints="true"
-                    tableName="awesome_benchmarks" />
-        </rollback>
     </changeSet>
 
 </databaseChangeLog>

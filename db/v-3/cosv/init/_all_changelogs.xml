@@ -11,7 +11,7 @@
     <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-metadata-user.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-metadata-project.xml" relativeToChangelogFile="true"/>
-    <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-generated-id.xml" relativeToChangelogFile="true"/>
     <include file="project-problem.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

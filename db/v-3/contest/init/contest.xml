@@ -6,11 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="contest-creation" author="saveourtool-dev">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="contest"/>
-            </not>
-        </preConditions>
         <createTable tableName="contest">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -33,12 +28,6 @@
             </column>
         </createTable>
         <addUniqueConstraint tableName="contest" columnNames="name" constraintName="uq_contest_name"/>
-
-        <rollback>
-            <dropTable
-                    cascadeConstraints="true"
-                    tableName="contest"/>
-        </rollback>
     </changeSet>
 
 </databaseChangeLog>

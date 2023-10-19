@@ -6,11 +6,6 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="lnk-user-project-creation" author="saveourtool-dev">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="lnk_user_project"/>
-            </not>
-        </preConditions>
         <createTable tableName="lnk_user_project">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -29,11 +24,6 @@
         </createTable>
         <addUniqueConstraint tableName="lnk_user_project" columnNames="user_id, project_id"
                              constraintName="user_project_constraint"/>
-        <rollback>
-            <dropTable
-                    cascadeConstraints="true"
-                    tableName="lnk-user-project"/>
-        </rollback>
     </changeSet>
 
 </databaseChangeLog>
