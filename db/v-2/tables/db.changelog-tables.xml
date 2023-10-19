@@ -59,6 +59,7 @@
     <include file="cosv-file.xml" relativeToChangelogFile="true"/>
     <include file="link-between-cosv-file-and-vulnerability-metadata.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-generated-id.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

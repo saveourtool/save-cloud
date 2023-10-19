@@ -2,16 +2,14 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
+import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
+import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.utils.*
 
@@ -19,6 +17,7 @@ import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -28,8 +27,6 @@ import reactor.kotlin.extra.math.sumAll
 import java.nio.ByteBuffer
 
 import kotlinx.serialization.serializer
-
-private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 /**
  * Service for vulnerabilities
@@ -44,7 +41,14 @@ class CosvService(
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
+    private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    /**
+     * @return generated identifier for COSV
+     */
+    @Transactional
+    fun generateIdentifier(): String = cosvGeneratedIdRepository.saveAndFlush(CosvGeneratedId()).getIdentifier()
+
     /**
      * @param rawCosvFileIds
      * @param user
@@ -190,6 +194,18 @@ class CosvService(
                     )
                 }
         }
+
+    /**
+     * @param cosv
+     * @param user
+     * @param organization
+     * @return metadata for saved COSV
+     */
+    fun saveManual(
+        cosv: ManualCosvSchema,
+        user: User,
+        organization: Organization?,
+    ): Mono<VulnerabilityMetadataDto> = save(cosv, user, organization)
 
     private inline fun <reified D, reified A_E, reified A_D, reified A_R_D> save(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
