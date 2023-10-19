@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
+import com.saveourtool.save.frontend.utils.useTooltip
 import js.core.jso
 import react.FC
 import react.Props
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 @Suppress("MAGIC_NUMBER")
 val defaultProgressBarComponent: FC<DefaultProgressBarComponent> = FC { props ->
     val scope = CoroutineScope(Dispatchers.Main)
+    useTooltip()
     useEffect(props.currentProgress) {
         if (props.currentProgress == 100) {
             scope.launch {
@@ -39,17 +41,21 @@ val defaultProgressBarComponent: FC<DefaultProgressBarComponent> = FC { props ->
     if (props.currentProgress >= 0L) {
         div {
             className = ClassName("progress text-center")
+            asDynamic()["data-toggle"] = "tooltip"
+            asDynamic()["data-placement"] = "bottom"
+            asDynamic()["data-original-title"] = props.currentProgressMessage
+            title = props.currentProgressMessage
             if (props.currentProgress == 100) {
                 className = ClassName("progress-bar bg-success")
                 role = "progressbar".unsafeCast<AriaRole>()
                 style = jso { width = "100%".unsafeCast<Width>() }
-                +props.currentProgresMessage
+                +props.currentProgressMessage
             } else if (props.currentProgress >= 0) {
                 div {
                     className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
                     role = "progressbar".unsafeCast<AriaRole>()
                     style = jso { width = "${props.currentProgress}%".unsafeCast<Width>() }
-                    +props.currentProgresMessage
+                    +props.currentProgressMessage
                 }
             }
         }
@@ -68,7 +74,7 @@ external interface DefaultProgressBarComponent : Props {
     /**
      * Current labelText
      */
-    var currentProgresMessage: String
+    var currentProgressMessage: String
 
     /**
      * Callback invoked to reset [currentProgress]

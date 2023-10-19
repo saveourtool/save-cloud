@@ -21,7 +21,7 @@ val progressBarComponent: FC<ProgressBarComponentProps> = FC { props ->
         } else {
             (100 * props.current / props.total).toInt()
         }
-        currentProgresMessage = if (props.current == props.total && props.total != 0L) {
+        currentProgressMessage = if (props.current == props.total && props.total != 0L) {
             "Successfully uploaded ${props.total.toKilobytes()} KB."
         } else {
             "${props.current.toKilobytes()} / ${props.total.toKilobytes()} KB"

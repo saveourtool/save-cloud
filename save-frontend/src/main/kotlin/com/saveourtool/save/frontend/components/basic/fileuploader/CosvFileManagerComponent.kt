@@ -159,6 +159,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     var processedBytes by useState(0L)
     val uploadFiles = useDeferredRequest {
         setStreamingOperationActive(true)
+        setCurrentProgress(0)
+        setCurrentProgressMessage("Initializing...")
         val totalBytes = filesForUploading.sumOf { it.size.toLong() }
         val response = post(
             url = "$apiUrl/raw-cosv/$selectedOrganization/batch-upload",
@@ -323,7 +325,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             }
             defaultProgressBarComponent {
                 this.currentProgress = currentProgress
-                this.currentProgresMessage = currentProgressMessage
+                this.currentProgressMessage = currentProgressMessage
                 reset = {
                     setCurrentProgress(-1)
                     setCurrentProgressMessage("")
