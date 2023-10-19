@@ -23,7 +23,7 @@ import kotlinx.browser.window
 val indexView: FC<IndexViewProps> = FC { props ->
     val navigate = useNavigate()
     useEffect {
-        if (window.location.run { hostname in setOf("cosv.dev", "cosv.gitlink.org.cn") && pathname == "/" }) {
+        if (window.location.run { isCosvDomain() && pathname == "/" }) {
             navigate("/vuln")
         }
     }

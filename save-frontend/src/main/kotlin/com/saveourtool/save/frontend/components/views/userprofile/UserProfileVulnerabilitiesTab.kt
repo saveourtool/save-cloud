@@ -78,7 +78,7 @@ val vulnerabilityTable: FC<VulnerabilityProps> = tableComponent(
 val renderVulnerabilityTableForProfileView: FC<UserProfileVulnerabilitiesTabProps> = FC { props ->
 
     val (countVulnerability, setCountVulnerability) = useState(0)
-    val vulnerabilityFilter = VulnerabilityFilter("", null, isOwner = true)
+    val vulnerabilityFilter = VulnerabilityFilter("", null, authorName = props.userName)
 
     val enrollRequest = useDeferredRequest {
         val count: Int = post(
