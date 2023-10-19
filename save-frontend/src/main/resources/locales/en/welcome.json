@@ -9,7 +9,7 @@
   "Propose vulnerability": "Propose vulnerability",
   "Top rating": "Top rating",
   "What is vulnerability?": "What is vulnerability?",
-  "Why is this archive needed?": "Why is this archive needed?",
+  "What is COSV Archive?": "What is COSV Archive?",
   "Useful links": "Useful links",
   "Vulnerability is a weakness or flaw in a system, network, software, or hardware.": "Vulnerability is a weakness or flaw in a system, network, software, or hardware that can be exploited by unauthorized individuals or malicious software to gain unauthorized access, disrupt operations, or steal sensitive information. Vulnerabilities can arise from programming errors, misconfigurations, outdated software, or design flaws.",
   "Archive importance": "This service operates as a centralized repository, crucial for proposing, and reviewing day-one vulnerabilities. It features an aggregated database that allows security professionals to filter and search for vulnerabilities. Beyond this, our platform provides an API, enabling automated services to disclose, upload, and even download vulnerabilities using automated code analysis tools. Additionally, we introduce a specific Cosv extension to the osv schema. This extension is backward-compatible and offers detailed information vital for vulnerability identification and mitigation. This standard is driven by the China Computer Federation.",
