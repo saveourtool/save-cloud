@@ -203,7 +203,6 @@ class RawCosvFileController(
                 }
         }
 
-
     private fun doUploadArchiveEntries(
         contentDir: Path,
         entriesWithSize: List<PathAndSize>,
@@ -419,10 +418,10 @@ class RawCosvFileController(
     companion object {
         @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
         private val log = getLogger<CosvController>()
-        private const val WINDOW_SIZE_ON_DELETE = 10
 
         // to show progress bar
         private const val PROGRESS_FOR_ARCHIVE = 5
+        private const val WINDOW_SIZE_ON_DELETE = 10
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,

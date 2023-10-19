@@ -6,14 +6,24 @@ package com.saveourtool.save.utils
 
 import kotlinx.coroutines.delay
 
-typealias StringList = List<String>
-
 private const val BYTES_COEFFICIENT = 1024
+
+typealias StringList = List<String>
 
 /**
  * @return true if [this] is not null
  */
 fun <T : Any> T?.isNotNull(): Boolean = this != null
+
+/**
+ * @return converts bytes to kilobytes
+ */
+fun Long.toKilobytes(): Long = div(BYTES_COEFFICIENT)
+
+/**
+ * @return converts bytes to megabytes
+ */
+fun Double.toMegabytes(): Double = div(BYTES_COEFFICIENT * BYTES_COEFFICIENT)
 
 /**
  * Run [action] several [times] with [delayMillis] milliseconds
@@ -66,14 +76,3 @@ suspend fun <T : Any> retrySilently(
     delayMillis: Long = 10_000L,
     action: suspend (Int) -> T?,
 ): T? = retry(times, delayMillis, action).first
-
-
-/**
- * @return converts bytes to kilobytes
- */
-fun Long.toKilobytes(): Long = div(BYTES_COEFFICIENT)
-
-/**
- * @return converts bytes to megabytes
- */
-fun Double.toMegabytes(): Double = div(BYTES_COEFFICIENT * BYTES_COEFFICIENT)

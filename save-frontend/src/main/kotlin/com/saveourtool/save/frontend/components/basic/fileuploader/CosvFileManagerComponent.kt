@@ -156,10 +156,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         }
     }
 
+    var processedBytes by useState(0L)
     val uploadFiles = useDeferredRequest {
         setStreamingOperationActive(true)
         val totalBytes = filesForUploading.sumOf { it.size.toLong() }
-        var processedBytes = 0L
         val response = post(
             url = "$apiUrl/raw-cosv/$selectedOrganization/batch-upload",
             headers = Headers().withAcceptNdjson(),
