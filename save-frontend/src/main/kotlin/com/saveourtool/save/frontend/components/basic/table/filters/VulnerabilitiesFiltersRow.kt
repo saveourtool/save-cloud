@@ -196,7 +196,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         className = ClassName("col-2")
                         withNavigate { navigateContext ->
                             buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", classes = "icon-2-5rem", isOutline = true) {
-                                navigateContext.navigate("/${FrontendRoutes.CREATE_VULNERABILITY}")
+                                navigateContext.navigate("/${FrontendRoutes.VULN_CREATE}")
                             }
                         }
                         uploadCosvButton {
