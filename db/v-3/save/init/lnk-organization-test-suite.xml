@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="lnk-organization-test-suite-creation" author="saveourtool-dev">
+        <createTable tableName="lnk_organization_test_suite">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="organization_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_organization_test_suite_organization" references="organization(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="test_suite_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_organization_test_suite_test_suite" references="test_suite(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="rights" type="varchar(250)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="lnk_organization_test_suite" columnNames="organization_id, test_suite_id"
+                             constraintName="organization_test_suite_constraint"/>
+    </changeSet>
+
+</databaseChangeLog>

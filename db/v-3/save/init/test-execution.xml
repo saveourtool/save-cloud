@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="test-execution-creation" author="saveourtool-dev">
+        <createTable tableName="test_execution">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="test_id" type="bigint">
+                <constraints foreignKeyName="fk_test_execution_test" references="test(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="agent_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="execution_id" type="bigint">
+                <constraints foreignKeyName="fk_test_execution_execution" references="execution(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="status" type="varchar(50)" defaultValue="READY_FOR_TESTING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="end_time" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="unmatched" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="matched" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="unexpected" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="test-execution-events" author="saveourtool-dev" context="prod">
+        <sql>
+            CREATE EVENT delete_test_execution
+            ON SCHEDULE EVERY 1 DAY
+            STARTS TIMESTAMP(CURRENT_DATE)
+            DO DELETE FROM TEST_EXECUTION WHERE DATEDIFF(NOW(), END_TIME) >= 30;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

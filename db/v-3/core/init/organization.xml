@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="organization-creation" author="saveourtool-dev">
+        <createTable tableName="organization">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(250)"/>
+            <column name="status" type="varchar(250)" defaultValue="CREATED"/>
+            <column name="date_created" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="avatar" type="varchar(250)"/>
+            <column name="description" type="varchar(250)"/>
+            <column name="can_create_contests" type="boolean" defaultValue="0"/>
+            <column name="can_bulk_upload" type="boolean" defaultValue="0"/>
+            <column name="rating" type="bigint" defaultValue="0"/>
+        </createTable>
+        <addUniqueConstraint tableName="organization" columnNames="name" constraintName="uq_organization_name"/>
+    </changeSet>
+
+</databaseChangeLog>
