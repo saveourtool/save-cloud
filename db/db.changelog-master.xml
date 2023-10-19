@@ -29,5 +29,5 @@
         <tagDatabase tag="v-3"/>
     </changeSet>
 
-<!--    <include file="test-data/db.changelog-insert.xml" relativeToChangelogFile="true" context="dev"/>-->
+    <include file="test-data/db.changelog-insert.xml" relativeToChangelogFile="true" context="dev"/>
 </databaseChangeLog>
