@@ -49,6 +49,7 @@
             <tableExists tableName="old_user" schemaName="save_cloud"/>
         </preConditions>
         <delete tableName="execution"/>
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_lnk_user_organization_user"/>
         <dropColumn tableName="execution" columnName="user_id"/>
         <addColumn tableName="execution">
             <column name="user_id" type="bigint">
