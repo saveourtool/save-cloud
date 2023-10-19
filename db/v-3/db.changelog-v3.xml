@@ -7,6 +7,7 @@
 
     <include file="_clearing-before-v3.xml" relativeToChangelogFile="true"/>
     <include file="core/db.changelog.xml" relativeToChangelogFile="true"/>
+    <include file="save/db.changelog.xml" relativeToChangelogFile="true"/>
     <include file="contest/db.changelog.xml" relativeToChangelogFile="true"/>
     <include file="cosv/db.changelog.xml" relativeToChangelogFile="true"/>
 
