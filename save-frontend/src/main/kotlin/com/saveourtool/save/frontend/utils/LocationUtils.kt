@@ -42,7 +42,7 @@ fun Location.isOrganization(): Boolean {
     // matches all, starting from first `/` and before `?` or second `/`
     val isPathFollowedFromFirstSlash = ("^/[^?/]*").toRegex().matches(this.pathname)
     // not in basic frontend routes
-    val isNotInFrontendRoutes = this.pathname.drop(1) !in FrontendRoutes.values().map { it.path }
+    val isNotInFrontendRoutes = this.pathname.drop(1) !in FrontendRoutes.getForbiddenWords().toList()
 
     return isPathFollowedFromFirstSlash && isNotInFrontendRoutes
 }
