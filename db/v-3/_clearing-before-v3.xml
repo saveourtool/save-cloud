@@ -5,6 +5,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
+    <changeSet id="rename-users-for-sandbox-before-v3" author="saveourtool-dev">
+        <renameTable oldTableName="user" newTableName="old_user"/>
+    </changeSet>
 
     <changeSet id="cleanup-tables-before-v3" author="saveourtool-dev">
         <sql>
@@ -46,8 +49,7 @@
             DROP TABLE IF EXISTS git;
             DROP TABLE IF EXISTS execution;
             DROP TABLE IF EXISTS project;
-            DROP TABLE IF EXISTS user;
-            DROP TABLE IF EXISTS vulnerability_generated_id;
+            DROP TABLE IF EXISTS cosv_generated_id;
             DROP TABLE IF EXISTS organization;
         </sql>
     </changeSet>
