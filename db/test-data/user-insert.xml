@@ -20,6 +20,8 @@
             <column header="git_hub" name="git_hub" type="varchar(250)" />
             <column header="twitter" name="twitter" type="varchar(250)" />
             <column header="rating" name="rating" type="NUMERIC" />
+            <column header="update_date" name="update_date" type="DATETIME(3)"/>
+            <column header="create_date" name="create_date" type="DATETIME(3)"/>
         </loadData>
     </changeSet>
 
