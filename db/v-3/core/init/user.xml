@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="user-creation" author="saveourtool-dev">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="user"/>
+            </not>
+        </preConditions>
+        <createTable tableName="user">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="varchar(256)"/>
+            <column name="role" type="varchar(64)"/>
+            <column name="avatar" type="varchar(250)"/>
+            <column name="email" type="varchar(250)"/>
+            <column name="company" type="varchar(250)"/>
+            <column name="location" type="varchar(250)"/>
+            <column name="linkedin" type="varchar(250)"/>
+            <column name="git_hub" type="varchar(250)"/>
+            <column name="twitter" type="varchar(250)"/>
+            <column name="website" type="varchar(64)"/>
+            <column name="free_text" type="varchar(1500)"/>
+            <column name="real_name" type="varchar(128)"/>
+            <column name="rating" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(64)" defaultValue="CREATED">
+                <constraints nullable="false"/>
+            </column>
+            <column name="create_date" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="update_date" type="DATETIME(3)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="user" constraintName="uq_user_name" columnNames="name"/>
+        <rollback>
+            <dropTable
+                    cascadeConstraints="true"
+                    tableName="user"/>
+        </rollback>
+    </changeSet>
+
+
+</databaseChangeLog>

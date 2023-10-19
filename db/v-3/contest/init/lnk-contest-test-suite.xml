@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="lnk-contest-test-suite-creation" author="saveourtool-dev">
+
+        <createTable tableName="lnk_contest_test_suite">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="contest_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_contest_test_suite_contest" references="contest(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+            <column name="test_suite_id" type="bigint">
+                <constraints foreignKeyName="fk_lnk_contest_test_suite_test_suite" references="test_suite(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="lnk_contest_test_suite" columnNames="contest_id, test_suite_id"/>
+    </changeSet>
+
+</databaseChangeLog>

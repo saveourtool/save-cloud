@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="_clearing-before-v3.xml" relativeToChangelogFile="true"/>
+    <include file="core/db.changelog.xml" relativeToChangelogFile="true"/>
+    <include file="contest/db.changelog.xml" relativeToChangelogFile="true"/>
+    <include file="cosv/db.changelog.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="3-0-tables" author="saveourtool-dev">
+        <tagDatabase tag="v3.0-tables"/>
+    </changeSet>
+
+</databaseChangeLog>

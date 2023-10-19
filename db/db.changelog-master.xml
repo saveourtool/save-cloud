@@ -26,7 +26,7 @@
 
 
     <include file="v-3/events/db.changelog-events.xml" relativeToChangelogFile="true"/>
-    <include file="v-3/tables/db.changelog-tables.xml" relativeToChangelogFile="true"/>
+    <include file="v-3/core/db.changelog-tables.xml" relativeToChangelogFile="true"/>
     <changeSet id="master-v-3" author="nulls">
         <tagDatabase tag="v-3"/>
     </changeSet>

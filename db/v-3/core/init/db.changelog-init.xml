@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="user.xml" relativeToChangelogFile="true"/>
+    <include file="organization.xml" relativeToChangelogFile="true"/>
+    <include file="project.xml" relativeToChangelogFile="true"/>
+    <include file="git.xml" relativeToChangelogFile="true"/>
+    <include file="test-suites-source.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-snapshot.xml" relativeToChangelogFile="true"/>
+    <include file="tests-source-version.xml" relativeToChangelogFile="true"/>
+    <include file="test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="execution.xml" relativeToChangelogFile="true"/>
+    <include file="test.xml" relativeToChangelogFile="true"/>
+    <include file="test-execution.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-project.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-user-organization.xml" relativeToChangelogFile="true"/>
+    <include file="awesome-benchmarks.xml" relativeToChangelogFile="true"/>
+    <include file="high-level-names.xml" relativeToChangelogFile="true"/>
+    <include file="original-login.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-organization-test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="agent.xml" relativeToChangelogFile="true"/>
+    <include file="agent-status.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-test-suite.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-agent.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-project-github.xml" relativeToChangelogFile="true"/>
+    <include file="file.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-execution-file.xml" relativeToChangelogFile="true"/>
+
+</databaseChangeLog>
