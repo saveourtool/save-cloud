@@ -23,6 +23,11 @@ typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, 
  */
 interface CosvRepository {
     /**
+     * @return true when repository is ready to
+     */
+    fun isReady(): Boolean
+
+    /**
      * Saves [content] in repository
      *
      * @param content

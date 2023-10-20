@@ -132,23 +132,20 @@ class DefaultStorageProjectReactor<K : Any>(
                     delete(source)
                 }
 
-    override fun delete(key: K): Mono<Boolean> = findExistedS3Key(key).flatMap { s3Key ->
-        s3Operations.deleteObject(s3Key)
-            .toMonoAndPublishOn()
-    }
+    override fun delete(key: K): Mono<Boolean> = doDeleteOnS3(key)
         .flatMap { deleteKey(key) }
         .thenReturn(true)
         .defaultIfEmpty(false)
 
     override fun deleteAll(keys: Collection<K>): Mono<Boolean> = keys.toFlux()
-        .flatMap { findExistedS3Key(it) }
-        .flatMap { s3Key ->
-            s3Operations.deleteObject(s3Key).toMonoAndPublishOn()
-        }
+        .flatMap { doDeleteOnS3(it) }
         .collectList()
         .flatMap { deleteKeys(keys) }
         .thenReturn(true)
         .defaultIfEmpty(false)
+
+    private fun doDeleteOnS3(key: K): Mono<*> = findExistedS3Key(key)
+        .flatMap { s3Operations.deleteObject(it).toMonoAndPublishOn() }
 
     override fun lastModified(key: K): Mono<Instant> = findExistedS3Key(key).flatMap { s3Key ->
         s3Operations.headObject(s3Key)
