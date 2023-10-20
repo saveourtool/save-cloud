@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.utils.toMegabytes
 
 import js.core.asList
 import react.*
@@ -86,7 +87,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             className = ClassName("list-group shadow")
             @Suppress("MAGIC_NUMBER", "MagicNumber")
             li {
-                val storageSizeMegabytes = storageBytes.toMegabytes()
+                val storageSizeMegabytes = storageBytes.toDouble().toMegabytes()
                 // todo: storage size shouldn't be more then 500MB per project
                 val textColor = when {
                     storageSizeMegabytes > 450 -> "text-danger"
