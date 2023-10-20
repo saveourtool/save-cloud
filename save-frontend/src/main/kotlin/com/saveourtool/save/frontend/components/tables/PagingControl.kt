@@ -24,9 +24,10 @@ import web.html.InputType
 /**
  * @param tableInstance
  * @param setPageIndex
+ * @param initialPageSize
  * @return set entries block
  */
-fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageIndex: StateSetter<Int>) = div {
+fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageIndex: StateSetter<Int>, initialPageSize: Int) = div {
     className = ClassName("row mt-3")
     div {
         className = ClassName("col-0 pt-1 pr-0")
@@ -38,10 +39,12 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
             className = ClassName("input-group-sm input-group")
             select {
                 className = ClassName("form-control custom-select")
-                listOf("10", "25", "50", "100").forEach {
+                val sizes = listOf(10, 25, 50, 100)
+                val newSizes = if (sizes.contains(initialPageSize)) sizes else sizes.plus(initialPageSize).sorted()
+                newSizes.forEach {
                     option {
                         className = ClassName("list-group-item")
-                        val entries = it
+                        val entries = it.toString()
                         value = entries
                         +entries
                     }
@@ -67,6 +70,7 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
  * @param setPageIndex
  * @param pageIndex
  * @param pageCount
+ * @param initialPageSize
  * @return paging control block
  */
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
@@ -75,6 +79,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
     setPageIndex: StateSetter<Int>,
     pageIndex: Int,
     pageCount: Int,
+    initialPageSize: Int,
 ) =
         div {
             className = ClassName("row")
@@ -180,7 +185,7 @@ fun <D : RowData> ChildrenBuilder.pagingControl(
             // Jump to the concrete page
             jumpToPage(tableInstance, setPageIndex, pageCount)
 
-            setEntries(tableInstance, setPageIndex)
+            setEntries(tableInstance, setPageIndex, initialPageSize)
         }
 
 /**
