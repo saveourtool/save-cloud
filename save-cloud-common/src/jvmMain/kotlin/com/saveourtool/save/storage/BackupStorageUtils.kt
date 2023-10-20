@@ -108,7 +108,7 @@ private fun S3Operations.doBackupUnexpectedKeys(
     val backupCommonPrefix = (commonPrefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
         .asS3CommonPrefix()
     log.warn {
-        "Found unexpected keys in storage $storageName, move them to backup common prefix $backupCommonPrefix:  $unexpectedKeys"
+        "Found unexpected keys in storage $storageName, move them to backup common prefix $backupCommonPrefix: $unexpectedKeys"
     }
     return unexpectedKeys
         .map { unexpectedKey ->
