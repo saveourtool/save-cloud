@@ -8,6 +8,7 @@ import com.saveourtool.save.frontend.utils.UsefulUrls
 import com.saveourtool.save.validation.*
 
 private val namingAllowedSymbols = setOf('-', '_', '.', ' ')
+private val extendedNamingAllowedSymbols = namingAllowedSymbols + setOf(',', '\'')
 
 /**
  * @return validation in inputField
@@ -29,13 +30,13 @@ fun String.validateRealName(): String =
  * @return validation in inputField
  */
 fun String.validateCompany(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, namingAllowedSymbols)) "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
 
 /**
  * @return validation in inputField
  */
 fun String.validateLocation(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, namingAllowedSymbols + ',')) {
+        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) {
             "Location should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
         } else {
             ""
