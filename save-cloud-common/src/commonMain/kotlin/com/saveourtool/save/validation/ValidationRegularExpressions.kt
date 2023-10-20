@@ -7,7 +7,7 @@ package com.saveourtool.save.validation
 /**
  * URL name fragment class.
  */
-private const val NAME_FRAGMENT_CLASS = """[-a-zA-Z\d@:%._\\+~#?&/=]"""
+const val NAME_FRAGMENT_CLASS = """[-a-zA-Z\d@:%._\\+~#?&/=]"""
 
 /**
  * @property value [Regex] that is used during validation
