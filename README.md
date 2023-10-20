@@ -13,7 +13,7 @@ Our key focus is to make life of developers who analyze code easier.
     - Use SAVE to create an **online demo for your analyzer** and set it up for your community's use;
     - Benchmarks Archive with the **list of popular benchmarks** (with a reference to [awesome-benchmarks](https://github.com/saveourtool/awesome-benchmarks)).
 
-2. **VULN** - A platform designed for the **reporting**, aggregation, and deduplication of day-one **vulnerabilities**.
+2. **VULN** - A platform designed for the **reporting**, aggregation, and deduplication of one-day **vulnerabilities**.
 
 Additionally, on our platform we host **contests** in the field of code analysis. 
 This provides an opportunity for you to submit your automated solutions for bug detection, and compete with other innovative projects.
