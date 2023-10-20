@@ -24,13 +24,21 @@ fun String.validateUserEmail(): String = if (isValidEmail()) "" else EMAIL_ERROR
  * @return validation in inputField
  */
 fun String.validateRealName(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, namingAllowedSymbols)) "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, namingAllowedSymbols)) {
+            "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
+        } else {
+            ""
+        }
 
 /**
  * @return validation in inputField
  */
 fun String.validateCompany(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) {
+            "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
+        } else {
+            ""
+        }
 
 /**
  * @return validation in inputField
