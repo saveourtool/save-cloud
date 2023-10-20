@@ -39,9 +39,9 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
             className = ClassName("input-group-sm input-group")
             select {
                 className = ClassName("form-control custom-select")
-                val sizes = listOf(10, 25, 50, 100)
-                val newSizes = if (sizes.contains(initialPageSize)) sizes else sizes.plus(initialPageSize).sorted()
-                newSizes.forEach {
+                val defaultEntriesSizes = listOf(10, 25, 50, 100)
+                val adjustedEntriesSizes = if (defaultEntriesSizes.contains(initialPageSize)) defaultEntriesSizes else defaultEntriesSizes.plus(initialPageSize).sorted()
+                adjustedEntriesSizes.forEach {
                     option {
                         className = ClassName("list-group-item")
                         val entries = it.toString()
@@ -49,6 +49,7 @@ fun <D : RowData> ChildrenBuilder.setEntries(tableInstance: Table<D>, setPageInd
                         +entries
                     }
                 }
+                defaultValue = initialPageSize.toString()
                 onChange = {
                     val entries = it.target.value
                     setPageIndexAndGoToPage(tableInstance, setPageIndex, 0)
