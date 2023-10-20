@@ -33,7 +33,11 @@ fun String.validateCompany(): String =
  * @return validation in inputField
  */
 fun String.validateLocation(): String =
-        if (!isValidName()) "Location should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, setOf('-', '_', '.', ' ', ','))) {
+            "Location should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
+        } else {
+            ""
+        }
 
 /**
  * @return validation in inputField
