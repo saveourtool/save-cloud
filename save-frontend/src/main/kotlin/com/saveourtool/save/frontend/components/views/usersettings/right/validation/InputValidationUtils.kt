@@ -7,6 +7,9 @@ package com.saveourtool.save.frontend.components.views.usersettings.right.valida
 import com.saveourtool.save.frontend.utils.UsefulUrls
 import com.saveourtool.save.validation.*
 
+private val namingAllowedSymbols = setOf('-', '_', '.', ' ')
+private val extendedNamingAllowedSymbols = namingAllowedSymbols + setOf(',', '\'')
+
 /**
  * @return validation in inputField
  */
@@ -21,19 +24,27 @@ fun String.validateUserEmail(): String = if (isValidEmail()) "" else EMAIL_ERROR
  * @return validation in inputField
  */
 fun String.validateRealName(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, setOf('-', '_', '.', ' '))) "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, namingAllowedSymbols)) {
+            "Name should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
+        } else {
+            ""
+        }
 
 /**
  * @return validation in inputField
  */
 fun String.validateCompany(): String =
-        if (!isValidName()) "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols" else ""
+        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) {
+            "Affiliation should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
+        } else {
+            ""
+        }
 
 /**
  * @return validation in inputField
  */
 fun String.validateLocation(): String =
-        if (!isValidName(NAMING_ALLOWED_LENGTH, setOf('-', '_', '.', ' ', ','))) {
+        if (!isValidName(NAMING_ALLOWED_LENGTH, extendedNamingAllowedSymbols)) {
             "Location should contain only English letters and be less than $NAMING_ALLOWED_LENGTH symbols"
         } else {
             ""
