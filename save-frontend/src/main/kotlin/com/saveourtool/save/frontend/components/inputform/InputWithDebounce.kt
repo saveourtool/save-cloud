@@ -4,7 +4,6 @@ package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.renderAvatar
-import com.saveourtool.save.frontend.components.modal.MAX_Z_INDEX
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
@@ -34,7 +33,7 @@ val inputWithDebounceForUserInfo = inputWithDebounce(
     asOption = { UserInfo(name = this) },
     asString = { name },
     // for Vulnerability Collection View this index should be bigger than for Organizations
-    zIndexShift = 1,
+    zindexShift = 1,
     decodeListFromJsonString = { decodeFromJsonString() },
 )
 
@@ -173,9 +172,9 @@ internal fun renderString(childrenBuilder: ChildrenBuilder, stringOption: String
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun <T> inputWithDebounce(
+    zindexShift: Int = 0,
     asOption: String.() -> T,
     asString: T.() -> String,
-    zIndexShift: Int = 0,
     decodeListFromJsonString: suspend Response.() -> List<T>,
 ) = FC<InputWithDebounceProps<T>> { props ->
     val (options, setOptions) = useState<List<T>?>(null)
@@ -202,7 +201,7 @@ private fun <T> inputWithDebounce(
         style = jso {
             width = "100%".unsafeCast<Width>()
             position = "relative".unsafeCast<Position>()
-            zIndex = (1 + zIndexShift).unsafeCast<ZIndex>()
+            zIndex = (1 + zindexShift).unsafeCast<ZIndex>()
         }
         onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(null) } }
         div {
