@@ -41,6 +41,14 @@ class RawCosvFileStorage(
     }
         .flatMap {
             underlying.list()
+                .filter { it.status == RawCosvFileStatus.PROCESSED }
+                .collectList()
+                .flatMap { rawCosvFiles ->
+                    underlying.deleteAll(rawCosvFiles)
+                }
+        }
+        .flatMap {
+            underlying.list()
                 .filter { it.contentLength == null }
                 .flatMap { key ->
                     underlying.contentLength(key).map { key to it }
