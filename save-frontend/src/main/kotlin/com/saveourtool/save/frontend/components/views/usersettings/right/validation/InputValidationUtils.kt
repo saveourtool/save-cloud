@@ -42,7 +42,13 @@ fun String.validateLocation(): String =
 /**
  * @return validation in inputField
  */
-fun String.validateWebsite(): String = if (isValidUrl()) "" else URL_ERROR_MESSAGE
+fun String.validateWebsite(): String =
+        when {
+            this == "" -> ""
+            this.matches(UsefulUrls.WEBSITE.regex) -> ""
+            else -> "Url should start with ${UsefulUrls.WEBSITE.basicUrl}"
+        }
+
 
 /**
  * @return validation in inputField
