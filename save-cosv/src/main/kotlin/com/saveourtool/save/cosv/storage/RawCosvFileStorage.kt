@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
 
 typealias OrganizationAndOwner = Pair<Organization, User>
+typealias RawCosvFileDtoCollection = Collection<RawCosvFileDto>
 
 /**
  * S3 storage for [RawCosvFile]
@@ -81,8 +82,8 @@ class RawCosvFileStorage(
         organizationName: String,
         userName: String,
         pageRequest: PageRequest? = null,
-    ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest)
+    ): Mono<RawCosvFileDtoCollection> = blockingToMono {
+        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest).toList()
     }
 
     /**

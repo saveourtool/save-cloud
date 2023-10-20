@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
+import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
@@ -16,6 +16,7 @@ import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import com.saveourtool.save.utils.FILE_PART_NAME
+import com.saveourtool.save.utils.toKilobytes
 import com.saveourtool.save.validation.isValidName
 
 import js.core.asList
@@ -39,7 +40,6 @@ import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window
-import kotlinx.coroutines.await
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.json.Json
@@ -67,8 +67,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     val (fileToDelete, setFileToDelete) = useState<RawCosvFileDto>()
     val (fileToUnzip, setFileToUnzip) = useState<RawCosvFileDto>()
 
-    val (processedBytes, setProcessedBytes) = useState(0L)
-    val (totalBytes, setTotalBytes) = useState(0L)
+    val (currentProgress, setCurrentProgress) = useState(-1)
+    val (currentProgressMessage, setCurrentProgressMessage) = useState("")
+    val resetCurrentProgress = {
+        setCurrentProgress(-1)
+        setCurrentProgressMessage("")
+    }
 
     val (isStreamingOperationActive, setStreamingOperationActive) = useState(false)
 
@@ -76,32 +80,17 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         fileToDelete?.let { file ->
             val response = delete(
                 "$apiUrl/raw-cosv/$selectedOrganization/delete/${file.requiredId()}",
-                jsonHeaders,
+                headers = Headers().withAcceptJson(),
                 loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
+                setAllAvailableFilesCount { it.dec() }
                 setFileToDelete(null)
             } else {
                 window.alert("Failed to delete file due to ${response.unpackMessageOrHttpStatus()}")
             }
-        }
-    }
-
-    val deleteProcessedFiles = useDeferredRequest {
-        val response = delete(
-            "$apiUrl/raw-cosv/$selectedOrganization/delete-processed",
-            jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-
-        if (response.ok) {
-            val deletedFiles: Set<RawCosvFileDto> = response.decodeFromJsonString()
-            setAvailableFiles { it.minus(deletedFiles) }
-            setAllAvailableFilesCount { it.minus(deletedFiles.size) }
-        } else {
-            window.alert("Failed to delete processed files due to ${response.unpackMessageOrHttpStatus()}")
         }
     }
 
@@ -160,15 +149,19 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 responseHandler = ::noopResponseHandler
             ).decodeFromJsonString()
             setAvailableFiles(emptyList())
+            setSelectedFiles(emptyList())
             setAllAvailableFilesCount(count)
             setLastPage(0)
             fetchMoreFiles()
         }
     }
 
+    var processedBytes by useState(0L)
     val uploadFiles = useDeferredRequest {
         setStreamingOperationActive(true)
-        setTotalBytes(filesForUploading.sumOf(File::size).toLong())
+        setCurrentProgress(0)
+        setCurrentProgressMessage("Initializing...")
+        val totalBytes = filesForUploading.sumOf { it.size.toLong() }
         val response = post(
             url = "$apiUrl/raw-cosv/$selectedOrganization/batch-upload",
             headers = Headers().withAcceptNdjson(),
@@ -186,12 +179,18 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 }
                 .collect { message ->
                     val uploadedFile: RawCosvFileDto = Json.decodeFromString(message)
-                    setProcessedBytes { it.plus(uploadedFile.requiredContentLength()) }
+                    processedBytes += uploadedFile.requiredContentLength()
+                    if (processedBytes == totalBytes) {
+                        setCurrentProgress(((processedBytes / totalBytes) * 100).toInt())
+                        setCurrentProgressMessage("${processedBytes.toKilobytes()} / ${totalBytes.toKilobytes()} KB")
+                    } else {
+                        setCurrentProgress(100)
+                        setCurrentProgressMessage("Successfully uploaded ${totalBytes.toKilobytes()} KB.")
+                    }
                 }
             else -> {
                 setStreamingOperationActive(false)
-                setTotalBytes(0)
-                setProcessedBytes(0)
+                resetCurrentProgress()
                 window.alert(response.unpackMessageOrNull().orEmpty())
             }
         }
@@ -218,22 +217,20 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         .filter(String::isNotEmpty)
                         .onCompletion {
                             setStreamingOperationActive(false)
+                            setFileToUnzip(null)
+                            reFetchFiles()
                         }
                         .collect { message ->
-                            val entryResponse: UnzipRawCosvFileResponse = Json.decodeFromString(message)
-                            if (entryResponse.updateCounters) {
-                                setTotalBytes(entryResponse.fullSize)
-                                setProcessedBytes(entryResponse.processedSize)
-                            } else {
-                                setProcessedBytes { it + entryResponse.processedSize }
-                            }
+                            val entryResponse: RawCosvFileStreamingResponse = Json.decodeFromString(message)
+                            setCurrentProgress(entryResponse.progress)
+                            setCurrentProgressMessage(entryResponse.progressMessage)
                         }
                 }
-                else -> window.alert("Failed to unzip ${file.fileName}: ${response.unpackMessageOrNull().orEmpty()}")
-            }
-            if (response.ok) {
-                setFileToUnzip(null)
-                reFetchFiles()
+                else -> {
+                    setStreamingOperationActive(false)
+                    resetCurrentProgress()
+                    window.alert("Failed to unzip ${file.fileName}: ${response.unpackMessageOrNull().orEmpty()}")
+                }
             }
         }
     }
@@ -247,7 +244,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert(response.text().await())
+            window.alert("Selected files submitted to be processed")
         }
         setSelectedFiles(emptyList())
     }
@@ -261,7 +258,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert(response.text().await())
+            window.alert("All uploaded files submitted to be processed")
         }
         setSelectedFiles(emptyList())
     }
@@ -298,9 +295,6 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             // SUBMIT to process
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Delete all processed", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.PROCESSED) || isStreamingOperationActive) {
-                    deleteProcessedFiles()
-                }
                 buttonBuilder("Submit", classes = "mr-1", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
                     if (window.confirm("Processed files will be removed. Do you want to continue?")) {
                         submitCosvFiles()
@@ -329,12 +323,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     }
                 }
             }
-            progressBarComponent {
-                current = processedBytes
-                total = totalBytes
-                flushCounters = {
-                    setTotalBytes(0)
-                    setProcessedBytes(0)
+            defaultProgressBarComponent {
+                this.currentProgress = currentProgress
+                this.currentProgressMessage = currentProgressMessage
+                reset = {
+                    setCurrentProgress(-1)
+                    setCurrentProgressMessage("")
                 }
             }
 
@@ -399,7 +393,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         }
                         +when (file.status) {
                             RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
-                            RawCosvFileStatus.PROCESSED -> " (processed, will be deleted after ${file.updateDate?.date})"
+                            RawCosvFileStatus.PROCESSED -> " (processed, will be deleted shortly)"
                             RawCosvFileStatus.FAILED -> " (with errors)"
                             else -> " "
                         }
