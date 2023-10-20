@@ -134,11 +134,15 @@ private fun S3Operations.doDeleteUnexpectedKeys(
     log.warn {
         "Found unexpected keys in storage $storageName, delete them: $unexpectedKeys"
     }
-    return deleteObjects(unexpectedKeys)
-        .thenApply {
-            log.debug {
-                "Finished deleting of unexpected keys in storage $storageName"
-            }
+    return unexpectedKeys
+        .map { unexpectedKey -> deleteObject(unexpectedKey) }
+        .let { moveResponses ->
+            CompletableFuture.allOf(*moveResponses.toTypedArray())
+                .thenApply {
+                    log.debug {
+                        "Finished deleting of unexpected keys in storage $storageName"
+                    }
+                }
         }
 }
 

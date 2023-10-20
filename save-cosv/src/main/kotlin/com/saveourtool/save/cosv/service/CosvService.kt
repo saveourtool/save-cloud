@@ -57,35 +57,23 @@ class CosvService(
         ) {
             rawCosvFileStorage.isInitDone() && cosvRepository.isReady()
         }
-            .flatMap { isInitDone ->
-                if (isInitDone) {
-                    doRemoveProcessed()
-                        .flatMap {
-                            doRestoreProcessing()
+            .filter { it }
+            .flatMap {
+                doRestoreProcessing()
+                    .map {
+                        log.info {
+                            "Processed all ${RawCosvFileStatus.IN_PROGRESS} files from storage ${RawCosvFileStorage::class.simpleName} after restart"
                         }
-                        .map {
-                            log.info {
-                                "Processed all ${RawCosvFileStatus.IN_PROGRESS} files from storage ${RawCosvFileStorage::class.simpleName} after restart"
-                            }
-                        }
-                } else {
-                    log.warn {
-                        "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
                     }
-                    Mono.empty()
+            }
+            .lazyDefaultIfEmpty {
+                log.warn {
+                    "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
                 }
             }
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe()
     }
-
-    private fun doRemoveProcessed(): Mono<Unit> = rawCosvFileStorage.list()
-        .filter { it.status == RawCosvFileStatus.PROCESSED }
-        .collectList()
-        .flatMap { rawCosvFiles ->
-            rawCosvFileStorage.deleteAll(rawCosvFiles)
-        }
-        .thenReturn(Unit)
 
     private fun doRestoreProcessing(): Mono<Unit> = rawCosvFileStorage.list()
         .filter { it.status == RawCosvFileStatus.IN_PROGRESS }
