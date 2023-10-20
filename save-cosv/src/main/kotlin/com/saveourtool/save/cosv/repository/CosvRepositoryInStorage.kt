@@ -32,6 +32,8 @@ class CosvRepositoryInStorage(
         prettyPrint = false
     }
 
+    override fun isReady(): Boolean = cosvFileStorage.isInitDone()
+
     override fun <D, A_E, A_D, A_R_D> save(
         content: CosvSchema<D, A_E, A_D, A_R_D>,
         serializer: CosvSchemaKSerializer<D, A_E, A_D, A_R_D>,

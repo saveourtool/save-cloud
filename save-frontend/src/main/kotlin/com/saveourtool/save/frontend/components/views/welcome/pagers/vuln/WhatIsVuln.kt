@@ -34,15 +34,15 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
         div {
             className = ClassName("row justify-content-between mt-5")
             textCard(
-                "What is vulnerability?".t(),
-                "/img/undraw_question.svg",
-                "Vulnerability is a weakness or flaw in a system, network, software, or hardware.".t(),
+                "What is COSV Archive?".t(),
+                "/img/undraw_share.svg",
+                "Archive importance".t(),
                 "mr-3 px-4",
             )
             textCard(
-                "Why is this archive needed?".t(),
-                "/img/undraw_share.svg",
-                "Archive importance".t(),
+                "What is vulnerability?".t(),
+                "/img/undraw_question.svg",
+                "Vulnerability is a weakness or flaw in a system, network, software, or hardware.".t(),
                 "ml-3 px-4",
             )
         }
