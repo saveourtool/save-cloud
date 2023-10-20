@@ -62,6 +62,26 @@ inline fun Logger.error(exception: Throwable, msg: () -> String) {
 inline fun <reified T> getLogger(): Logger = getLogger(T::class)
 
 /**
+ * Copied from https://github.com/oshai/kotlin-logging/blob/a7caeef24ecbd392907d377a3120f4515d4ac5a9/src/javaMain/kotlin/io/github/oshai/kotlinlogging/internal/KLoggerNameResolver.kt
+ *
+ * @param func should be {}
+ * @return the logger for util class\file
+ */
+fun getLogger(func: () -> Unit): Logger {
+    val name = func.javaClass.name
+
+    val slicedName =
+            when {
+                name.contains("Kt$") -> name.substringBefore("Kt$")
+                name.contains("$") -> name.substringBefore("$")
+                else -> name
+            }
+    return LoggerFactory.getLogger(
+        slicedName
+    )
+}
+
+/**
  * @param clazz the class to return the logger for.
  * @return the logger for the specified Java [class][clazz].
  */

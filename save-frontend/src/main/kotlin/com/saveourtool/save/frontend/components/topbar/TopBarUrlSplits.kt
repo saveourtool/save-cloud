@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.utils.TopBarUrl
+import com.saveourtool.save.frontend.utils.isCosvDomain
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendRoutes
 
@@ -18,6 +19,8 @@ import react.dom.html.ReactHTML.ol
 import react.router.dom.Link
 import remix.run.router.Location
 import web.cssom.ClassName
+
+import kotlinx.browser.window
 
 /**
  * Displays the URL split with "/".
@@ -36,7 +39,7 @@ val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
                     // if we are on welcome page right now - need to highlight SAVE in menu
                     val textColor = if (props.location.pathname == "/") "text-warning" else "text-light"
                     className = ClassName(textColor)
-                    +"SaveOurTool!"
+                    +if (window.location.isCosvDomain()) "COSV" else "SaveOurTool!"
                 }
             }
             props.location.pathname

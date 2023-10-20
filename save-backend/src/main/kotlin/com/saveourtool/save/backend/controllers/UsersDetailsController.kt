@@ -70,15 +70,15 @@ class UsersDetailsController(
     fun findByPrefix(
         @RequestParam prefix: String,
         @RequestParam(required = false, defaultValue = "5") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "") ids: String,
-    ): Flux<UserInfo> = ids.toMono()
-        .map { stringIds -> stringIds.split(DATABASE_DELIMITER) }
-        .map { stringIdList -> stringIdList.filter { it.isNotBlank() }.map { it.toLong() }.toSet() }
-        .flatMapMany { idList ->
-            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `idList` results with empty list for some reason
+        @RequestParam(required = false, defaultValue = "") namesToSkip: String,
+    ): Flux<UserInfo> = namesToSkip.toMono()
+        .map { stringNames -> stringNames.split(DATABASE_DELIMITER) }
+        .map { stringNameList -> stringNameList.filter { it.isNotBlank() }.toSet() }
+        .flatMapMany { nameList ->
+            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `nameList` results with empty list for some reason
             blockingToFlux {
-                if (idList.isNotEmpty()) {
-                    userRepository.findByNameStartingWithAndIdNotIn(prefix, idList, Pageable.ofSize(pageSize))
+                if (nameList.isNotEmpty()) {
+                    userRepository.findByNameStartingWithAndNameNotIn(prefix, nameList, Pageable.ofSize(pageSize))
                 } else {
                     userRepository.findByNameStartingWith(prefix, Pageable.ofSize(pageSize))
                 }

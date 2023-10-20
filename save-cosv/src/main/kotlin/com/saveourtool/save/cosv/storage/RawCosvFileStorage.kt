@@ -9,9 +9,8 @@ import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.storage.deleteUnexpectedKeys
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
+import com.saveourtool.save.utils.*
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,16 +37,52 @@ class RawCosvFileStorage(
             storageName = "${this::class.simpleName}",
             s3KeyManager = s3KeyManager,
         )
-    }.publishOn(s3Operations.scheduler)
+    }
+        .flatMap {
+            underlying.list()
+                .filter { it.status == RawCosvFileStatus.PROCESSED }
+                .collectList()
+                .flatMap { rawCosvFiles ->
+                    underlying.deleteAll(rawCosvFiles)
+                }
+        }
+        .flatMap {
+            underlying.list()
+                .filter { it.contentLength == null }
+                .flatMap { key ->
+                    underlying.contentLength(key).map { key to it }
+                }
+                .blockingMap { (key, contentLength) ->
+                    s3KeyManager.updateKeyByContentLength(key, contentLength)
+                }
+                .thenJust(Unit)
+        }
+        .publishOn(s3Operations.scheduler)
 
     /**
      * @param organizationName
-     * @return all [RawCosvFileDto]s which has provided [RawCosvFile.organization]
+     * @param userName
+     * @return count of all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
      */
-    fun listByOrganization(
+    fun countByOrganizationAndUser(
         organizationName: String,
+        userName: String,
+    ): Mono<Long> = blockingToMono {
+        s3KeyManager.countByOrganizationAndUser(organizationName, userName)
+    }
+
+    /**
+     * @param organizationName
+     * @param userName
+     * @param pageRequest
+     * @return all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     */
+    fun listByOrganizationAndUser(
+        organizationName: String,
+        userName: String,
+        pageRequest: PageRequest? = null,
     ): Flux<RawCosvFileDto> = blockingToFlux {
-        s3KeyManager.listByOrganization(organizationName)
+        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest)
     }
 
     /**

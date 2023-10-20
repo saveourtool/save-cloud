@@ -34,4 +34,34 @@
         </createTable>
         <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id" constraintName="uq_raw_osv_file_file_name_per_organization"/>
     </changeSet>
+
+    <changeSet id="raw-cosv-file-2" author="nulls">
+        <update tableName="raw_cosv_file">
+            <column name="status" value="FAILED"/>
+            <where>status = '0'</where>
+        </update>
+        <update tableName="raw_cosv_file">
+            <column name="status" value="IN_PROGRESS"/>
+            <where>status = '1'</where>
+        </update>
+        <update tableName="raw_cosv_file">
+            <column name="status" value="PROCESSED"/>
+            <where>status = '2'</where>
+        </update>
+        <update tableName="raw_cosv_file">
+            <column name="status" value="UPLOADED"/>
+            <where>status = '3'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="raw-cosv-file-3" author="nulls">
+        <addColumn tableName="raw_cosv_file">
+            <column name="content_length" type="bigint"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="raw-cosv-file-4" author="nulls">
+        <dropUniqueConstraint tableName="raw_cosv_file" constraintName="uq_raw_osv_file_file_name_per_organization"/>
+        <addUniqueConstraint tableName="raw_cosv_file" columnNames="file_name,organization_id,user_id" constraintName="uq_raw_osv_file_file_name_per_organization_and_user"/>
+    </changeSet>
 </databaseChangeLog>

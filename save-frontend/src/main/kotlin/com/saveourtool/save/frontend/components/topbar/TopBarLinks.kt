@@ -41,8 +41,8 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
 
     @Suppress("MAGIC_NUMBER")
     val vulnTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, text = "Propose vulnerability".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
     )
 

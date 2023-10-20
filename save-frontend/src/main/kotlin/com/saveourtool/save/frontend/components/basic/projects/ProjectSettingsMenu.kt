@@ -212,7 +212,7 @@ val projectSettingsMenu: FC<ProjectSettingsMenuProps> = FC { props ->
                             message = "Are you sure you want to delete the project $projectPath?"
                             clickMessage = "Also ban this project"
                             onActionSuccess = { _ ->
-                                navigate(to = "/organization/${props.project.organizationName}/${OrganizationMenuBar.TOOLS.name.lowercase()}")
+                                navigate(to = "/${props.project.organizationName}")
                             }
                             buttonStyleBuilder = { childrenBuilder ->
                                 with(childrenBuilder) {

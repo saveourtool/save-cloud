@@ -129,6 +129,9 @@ class WebSecurityConfig(
             "/api/$v1/projects/get/organization-name",
             // info on tags should be public
             "/api/$v1/tags/**",
+            // cosv history and changes tabs should be public
+            "/api/$v1/cosv/list-versions",
+            "/api/$v1/cosv/cosv-content",
         )
     }
 }

@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
+import com.saveourtool.save.frontend.utils.toKiloBytes
 import js.core.jso
 import react.FC
 import react.Props
@@ -44,7 +45,7 @@ val progressBarComponent: FC<ProgressBarComponentProps> = FC { props ->
                     className = ClassName("progress-bar progress-bar-striped progress-bar-animated")
                     role = "progressbar".unsafeCast<AriaRole>()
                     style = jso { width = "${(100 * props.current / props.total).toInt()}%".unsafeCast<Width>() }
-                    +props.getLabelText(props.current, props.total)
+                    +"${props.current.toKiloBytes()} / ${props.total.toKiloBytes()} KB"
                 }
             } else if (props.current == props.total) {
                 className = ClassName("progress-bar bg-success")
@@ -69,12 +70,6 @@ external interface ProgressBarComponentProps : Props {
      * Total amount of entity
      */
     var total: Long
-
-    /**
-     * Callback that returns pretty-printed stats (current / total)
-     */
-    @Suppress("TYPE_ALIAS")
-    var getLabelText: (Long, Long) -> String
 
     /**
      * Callback invoked to flush [current] and [total]

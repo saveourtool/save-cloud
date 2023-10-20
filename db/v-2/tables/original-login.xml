@@ -38,4 +38,8 @@
         <addNotNullConstraint tableName="original_login" columnName="name" columnDataType="varchar(64)"/>
         <addNotNullConstraint tableName="original_login" columnName="source" columnDataType="varchar(64)" defaultNullValue="basic"/>
     </changeSet>
+
+    <changeSet id="increase-original-login-name" author="nulls">
+        <modifyDataType tableName="original_login" columnName="name" newDataType="varchar(255)"/>
+    </changeSet>
 </databaseChangeLog>

@@ -88,3 +88,15 @@ const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L
  * directory with the default avatars package
  */
 const val AVATARS_PACKS_DIR: String = "/img/avatar_packs"
+
+/**
+ * `NO-BREAK SPACE` (U+00A0).
+ */
+@Suppress("NON_EXPORTABLE_TYPE")
+const val NO_BREAK_SPACE = '\u00a0'
+
+/**
+ * Horizontal Ellipsis (U+2026).
+ */
+@Suppress("NON_EXPORTABLE_TYPE")
+const val ELLIPSIS = '\u2026'

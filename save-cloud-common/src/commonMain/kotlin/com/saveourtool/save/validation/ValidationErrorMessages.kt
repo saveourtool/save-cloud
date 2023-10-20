@@ -23,7 +23,7 @@ const val URL_ERROR_MESSAGE = "Please input a valid URL that starts either with 
  * Error message that is shown when name input is invalid.
  */
 const val NAME_ERROR_MESSAGE = "Please input a name (not longer than $NAMING_MAX_LENGTH symbols) that contains " +
-        "only letters, numbers; dots and hyphens (but not the first and the last characters)"
+        "only English letters, numbers; dots and hyphens (but not the first and the last characters)"
 
 /**
  * Error message for commit hash

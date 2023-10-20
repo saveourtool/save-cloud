@@ -130,7 +130,6 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             progressBarComponent {
                 current = uploadBytesReceived
                 total = uploadBytesTotal
-                getLabelText = { current, total -> "${current.toKiloBytes()} / ${total.toKiloBytes()} KB" }
                 flushCounters = {
                     setUploadBytesTotal(0)
                     setUploadBytesReceived(0)
@@ -149,9 +148,3 @@ external interface FileManagerProps : Props {
      */
     var projectCoordinates: ProjectCoordinates
 }
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toKiloBytes() = div(1024)
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toMegabytes() = toDouble().div(1024 * 1024)

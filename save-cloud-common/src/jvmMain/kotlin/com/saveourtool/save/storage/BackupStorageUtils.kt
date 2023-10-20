@@ -18,7 +18,8 @@ import java.util.concurrent.CompletableFuture
 
 import kotlinx.datetime.Clock
 
-private val log = getLogger(object {}.javaClass.enclosingClass::class.java)
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+private val log = getLogger {}
 
 /**
  * Back up unexpected s3 key (according to [s3KeyValidator]) which are detected S3 storage (by common prefix [commonPrefix])
@@ -107,7 +108,7 @@ private fun S3Operations.doBackupUnexpectedKeys(
     val backupCommonPrefix = (commonPrefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
         .asS3CommonPrefix()
     log.warn {
-        "Found unexpected keys $unexpectedKeys in storage $storageName. Move them to backup common prefix: $backupCommonPrefix..."
+        "Found unexpected keys in storage $storageName, move them to backup common prefix $backupCommonPrefix: $unexpectedKeys"
     }
     return unexpectedKeys
         .map { unexpectedKey ->
@@ -131,7 +132,7 @@ private fun S3Operations.doDeleteUnexpectedKeys(
     unexpectedKeys: Collection<String>,
 ): CompletableFuture<Unit> {
     log.warn {
-        "Found unexpected keys $unexpectedKeys in storage $storageName. Delete them..."
+        "Found unexpected keys in storage $storageName, delete them: $unexpectedKeys"
     }
     return unexpectedKeys
         .map { unexpectedKey -> deleteObject(unexpectedKey) }

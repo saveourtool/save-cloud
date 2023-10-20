@@ -5,6 +5,8 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.avatarRenderer
+import com.saveourtool.save.frontend.components.views.userprofile.shortenLoginWithTooltipIfNecessary
+import com.saveourtool.save.frontend.components.views.userprofile.shortenRealNameWithTooltipIfNecessary
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
@@ -64,21 +66,21 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     className = ClassName("row justify-content-center")
                                     h4 {
                                         className = ClassName("mb-0 text-gray-800")
-                                        +(props.userInfo?.name ?: "")
+                                        shortenLoginWithTooltipIfNecessary(props.userInfo?.name, this)
                                     }
                                 }
                                 div {
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         className = ClassName("mb-0 text-gray-800")
-                                        +(props.userInfo?.realName.orEmpty())
+                                        shortenRealNameWithTooltipIfNecessary(props.userInfo?.realName, this)
                                     }
                                 }
                                 div {
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         Link {
-                                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                            to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
                                             style = jso {
                                                 textDecoration = TextDecoration.underline
                                             }

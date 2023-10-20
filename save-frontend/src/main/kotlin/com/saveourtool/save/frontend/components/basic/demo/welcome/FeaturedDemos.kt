@@ -5,10 +5,10 @@
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
 import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.frontend.components.basic.AVATAR_BASE_URL
 import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
-import com.saveourtool.save.v1
 
 import react.VFC
 import react.dom.html.ReactHTML.div
@@ -43,7 +43,7 @@ internal val featuredDemos = VFC {
         setAvatars {
             featuredDemos.associate { demoDto ->
                 with(demoDto.projectCoordinates) {
-                    organizationName to "/api/$v1/avatar/organizations/$organizationName"
+                    organizationName to "$AVATAR_BASE_URL/organizations/$organizationName"
                 }
             }
         }

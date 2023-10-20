@@ -17,8 +17,10 @@ import js.core.jso
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.a
+import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.strong
@@ -56,6 +58,13 @@ val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props -
                 h2 {
                     className = ClassName("mx-auto")
                     +"${"Thank you for registration".t()}!"
+                }
+
+                h4 {
+                    className = ClassName("mx-auto")
+                    b {
+                        +"${"You need to wait until you will be reviewed and approved by admins".t()}!"
+                    }
                 }
 
                 p {

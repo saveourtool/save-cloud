@@ -144,8 +144,6 @@ internal fun ChildrenBuilder.welcomeUserMenu(
         div {
             className = ClassName("text-sm")
             renderMenu()
-            hrNoMargin()
-            menuTextAndLink("Go to main page".t(), FrontendRoutes.INDEX, faHome)
         }
     }
 }
@@ -162,12 +160,21 @@ internal fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendRoutes
         className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
         to = "/$route"
         h4 {
-            style = jso {
-                color = "#3075c0".unsafeCast<Color>()
-                marginBottom = "0.0em".unsafeCast<Margin>()
+            div {
+                className = ClassName("row ml-2 align-items-center")
+                style = jso {
+                    color = "#3075c0".unsafeCast<Color>()
+                    marginBottom = "0.0em".unsafeCast<Margin>()
+                }
+                div {
+                    className = ClassName("col-1 d-flex justify-content-center")
+                    fontAwesomeIcon(icon = icon)
+                }
+                div {
+                    className = ClassName("col-11 d-flex justify-content-start")
+                    +text
+                }
             }
-            fontAwesomeIcon(icon = icon, "ml-2 mr-2")
-            +text
         }
     }
 }
