@@ -45,8 +45,8 @@ fun String.validateLocation(): String =
 fun String.validateWebsite(): String =
         when {
             this == "" -> ""
-            this.matches(UsefulUrls.WEBSITE.regex) -> ""
-            else -> "Url should start with ${UsefulUrls.WEBSITE.basicUrl}"
+            this.matches(UsefulUrls.WEBSITE.regex) && isValidLengthWebsite() -> ""
+            else -> "Url should start with ${UsefulUrls.WEBSITE.basicUrl} and be less than $WEBSITE_ALLOWED_LENGTH symbols"
         }
 
 /**
