@@ -49,7 +49,6 @@ fun String.validateWebsite(): String =
             else -> "Url should start with ${UsefulUrls.WEBSITE.basicUrl}"
         }
 
-
 /**
  * @return validation in inputField
  */
