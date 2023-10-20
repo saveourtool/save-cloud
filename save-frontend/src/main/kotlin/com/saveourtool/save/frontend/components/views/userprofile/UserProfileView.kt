@@ -17,15 +17,13 @@ import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.utils.LOGIN_MAX_LENGTH
-import com.saveourtool.save.utils.REAL_NAME_PART_MAX_LENGTH
-import com.saveourtool.save.utils.shortenLogin
-import com.saveourtool.save.utils.shortenRealName
+import com.saveourtool.save.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*
 import react.dom.aria.ariaDescribedBy
+import react.dom.html.AnchorHTMLAttributes
 import react.dom.html.HTMLAttributes
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
@@ -39,6 +37,7 @@ import react.dom.html.ReactHTML.textarea
 import react.router.dom.Link
 import react.router.useNavigate
 import web.cssom.*
+import web.html.HTMLAnchorElement
 import web.html.HTMLHeadingElement
 import web.html.InputType
 
@@ -341,7 +340,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
     user?.linkedin?.let { extraLinks(faLinkedIn, it, listOf(UsefulUrls.LINKEDIN)) }
 
-    user?.website?.let { extraLinks(faLink, it, listOf(UsefulUrls.HTTPS, UsefulUrls.HTTP)) }
+    user?.website?.let { extraLinks(faLink, it, listOf(UsefulUrls.WEBSITE)) }
 
     if (organizations.isNotEmpty()) {
         div {
@@ -369,14 +368,14 @@ fun ChildrenBuilder.renderLeftUserMenu(
 
 /**
  * @param login
- * @param header
+ * @param htmlAttribute
  */
-fun ChildrenBuilder.shortenLoginWithTooltipIfNecessary(login: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+fun ChildrenBuilder.shortenLoginWithTooltipIfNecessary(login: String?, htmlAttribute: HTMLAttributes<HTMLHeadingElement>) {
     login?.let {
         if (it.length > LOGIN_MAX_LENGTH) {
             asDynamic()["data-toggle"] = "tooltip"
             asDynamic()["data-placement"] = "top"
-            header.title = it
+            htmlAttribute.title = it
 
             +(it.shortenLogin())
         } else {
@@ -387,14 +386,14 @@ fun ChildrenBuilder.shortenLoginWithTooltipIfNecessary(login: String?, header: H
 
 /**
  * @param realName
- * @param header
+ * @param htmlAttribute
  */
-fun ChildrenBuilder.shortenRealNameWithTooltipIfNecessary(realName: String?, header: HTMLAttributes<HTMLHeadingElement>) {
+fun ChildrenBuilder.shortenRealNameWithTooltipIfNecessary(realName: String?, htmlAttribute: HTMLAttributes<HTMLHeadingElement>) {
     realName?.let { name ->
         if (name.split(" ").any { it.length > REAL_NAME_PART_MAX_LENGTH }) {
             asDynamic()["data-toggle"] = "tooltip"
             asDynamic()["data-placement"] = "bottom"
-            header.title = name
+            htmlAttribute.title = name
 
             +(name.shortenRealName())
         } else {
@@ -404,15 +403,36 @@ fun ChildrenBuilder.shortenRealNameWithTooltipIfNecessary(realName: String?, hea
 }
 
 /**
+ * @param url
+ * @param tooltipUrl
+ * @param htmlAttribute
+ */
+fun ChildrenBuilder.shortenUrlWithTooltipIfNecessary(url: String, tooltipUrl: String, htmlAttribute: AnchorHTMLAttributes<HTMLAnchorElement>) {
+    if (url.length > URL_MAX_LENGTH) {
+        asDynamic()["data-toggle"] = "tooltip"
+        asDynamic()["data-placement"] = "top"
+        htmlAttribute.title = tooltipUrl
+
+        +(url.shortenUrl())
+    } else {
+        +url
+    }
+}
+
+/**
  * @param icon
  * @param info
  * @param patterns
  */
 fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String, patterns: List<UsefulUrls>) {
-    val foundPattern = patterns.map { it.value }.findLast { info.startsWith(it) }
+    val foundPattern = patterns.find { info.matches(it.regex) }
     foundPattern?.let {
-        val trimmedUserName = info.substringAfterLast(foundPattern)
-        if (trimmedUserName.isNotBlank()) {
+        val trimmedLink = if (foundPattern != UsefulUrls.WEBSITE) {
+            info.substringAfterLast(".com/")
+        } else {
+            info.substringAfter("://")
+        }
+        if (trimmedLink.isNotBlank()) {
             div {
                 className = ClassName("mb-2")
                 fontAwesomeIcon(icon = icon) {
@@ -420,7 +440,7 @@ fun ChildrenBuilder.extraLinks(icon: FontAwesomeIconModule, info: String, patter
                 }
                 a {
                     href = info
-                    +trimmedUserName
+                    shortenUrlWithTooltipIfNecessary(trimmedLink, info, this)
                 }
             }
         }

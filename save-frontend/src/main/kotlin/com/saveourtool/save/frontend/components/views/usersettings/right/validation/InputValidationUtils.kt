@@ -45,7 +45,12 @@ fun String.validateLocation(): String =
 /**
  * @return validation in inputField
  */
-fun String.validateWebsite(): String = if (isValidUrl()) "" else URL_ERROR_MESSAGE
+fun String.validateWebsite(): String =
+        when {
+            this == "" -> ""
+            this.matches(UsefulUrls.WEBSITE.regex) && isValidLengthWebsite() -> ""
+            else -> "Url should start with ${UsefulUrls.WEBSITE.basicUrl} and be less than $WEBSITE_ALLOWED_LENGTH symbols"
+        }
 
 /**
  * @return validation in inputField
@@ -53,8 +58,8 @@ fun String.validateWebsite(): String = if (isValidUrl()) "" else URL_ERROR_MESSA
 fun String.validateLinkedIn(): String =
         when {
             this == "" -> ""
-            this.startsWith(UsefulUrls.LINKEDIN.value) -> ""
-            else -> "Url should start with ${UsefulUrls.LINKEDIN.value}"
+            this.matches(UsefulUrls.LINKEDIN.regex) -> ""
+            else -> "Url should start with ${UsefulUrls.LINKEDIN.basicUrl}"
         }
 
 /**
@@ -63,8 +68,8 @@ fun String.validateLinkedIn(): String =
 fun String.validateGithub(): String =
         when {
             this == "" -> ""
-            this.startsWith(UsefulUrls.GITHUB.value) || this.startsWith(UsefulUrls.GITEE.value) -> ""
-            else -> "Url should start with ${UsefulUrls.GITEE.value} or ${UsefulUrls.GITHUB.value}"
+            this.matches(UsefulUrls.GITHUB.regex) || this.matches(UsefulUrls.GITEE.regex) -> ""
+            else -> "Url should start with ${UsefulUrls.GITEE.basicUrl} or ${UsefulUrls.GITHUB.basicUrl}"
         }
 
 /**
@@ -73,6 +78,6 @@ fun String.validateGithub(): String =
 fun String.validateTwitter(): String =
         when {
             this == "" -> ""
-            this.startsWith(UsefulUrls.XCOM.value) || this.startsWith(UsefulUrls.TWITTER.value) -> ""
-            else -> "Url should start with ${UsefulUrls.XCOM.value} or ${UsefulUrls.TWITTER.value}"
+            this.matches(UsefulUrls.XCOM.regex) || this.matches(UsefulUrls.TWITTER.regex) -> ""
+            else -> "Url should start with ${UsefulUrls.XCOM.basicUrl} or ${UsefulUrls.TWITTER.basicUrl}"
         }
