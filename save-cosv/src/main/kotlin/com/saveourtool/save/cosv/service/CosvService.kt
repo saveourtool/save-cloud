@@ -52,14 +52,17 @@ class CosvService(
     @PostConstruct
     fun restoreProcessing() {
         waitReactivelyUntil(
-            interval = rawStorageCheckingInterval,
-            numberOfChecks = (rawStorageInitTime / rawStorageCheckingInterval).toLong(),
+            interval = initCheckingInterval,
+            numberOfChecks = (initMaxTime / initCheckingInterval).toLong(),
         ) {
-            rawCosvFileStorage.isInitDone()
+            rawCosvFileStorage.isInitDone() && cosvRepository.isReady()
         }
             .flatMap { isInitDone ->
                 if (isInitDone) {
-                    doRestoreProcessing()
+                    doRemoveProcessed()
+                        .flatMap {
+                            doRestoreProcessing()
+                        }
                         .map {
                             log.info {
                                 "Processed all ${RawCosvFileStatus.IN_PROGRESS} files from storage ${RawCosvFileStorage::class.simpleName} after restart"
@@ -67,7 +70,7 @@ class CosvService(
                         }
                 } else {
                     log.warn {
-                        "Storage ${RawCosvFileStorage::class.simpleName} is not initialized in $rawStorageInitTime"
+                        "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
                     }
                     Mono.empty()
                 }
@@ -75,6 +78,14 @@ class CosvService(
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe()
     }
+
+    private fun doRemoveProcessed(): Mono<Unit> = rawCosvFileStorage.list()
+        .filter { it.status == RawCosvFileStatus.PROCESSED }
+        .collectList()
+        .flatMap { rawCosvFiles ->
+            rawCosvFileStorage.deleteAll(rawCosvFiles)
+        }
+        .thenReturn(Unit)
 
     private fun doRestoreProcessing(): Mono<Unit> = rawCosvFileStorage.list()
         .filter { it.status == RawCosvFileStatus.IN_PROGRESS }
@@ -290,8 +301,8 @@ class CosvService(
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
-        private val rawStorageCheckingInterval = 1.seconds
-        private val rawStorageInitTime = 5.minutes
+        private val initCheckingInterval = 1.seconds
+        private val initMaxTime = 5.minutes
 
         private fun Throwable.firstCauseOrThis(): Throwable = generateSequence(this, Throwable::cause).last()
     }

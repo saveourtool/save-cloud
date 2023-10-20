@@ -99,6 +99,12 @@ interface S3Operations {
     fun deleteObject(s3Key: String): CompletableFuture<DeleteObjectResponse?>
 
     /**
+     * @param s3Keys
+     * @return [CompletableFuture] with response
+     */
+    fun deleteObjects(s3Keys: Collection<String>): CompletableFuture<DeleteObjectsResponse?>
+
+    /**
      * @param s3Key
      * @return [CompletableFuture] with response
      */

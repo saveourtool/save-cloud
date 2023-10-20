@@ -181,6 +181,19 @@ class DefaultS3Operations(
             .handleNoSuchKeyException()
     }
 
+    override fun deleteObjects(s3Keys: Collection<String>): CompletableFuture<DeleteObjectsResponse?> {
+        val request = DeleteObjectsRequest.builder()
+            .bucket(bucketName)
+            .delete(Delete.builder()
+                .objects(
+                    s3Keys.map { ObjectIdentifier.builder().key(it).build() }
+                )
+                .build())
+            .build()
+        return s3Client.deleteObjects(request)
+            .handleNoSuchKeyException()
+    }
+
     override fun headObject(s3Key: String): CompletableFuture<HeadObjectResponse?> {
         val request = HeadObjectRequest.builder()
             .bucket(bucketName)
