@@ -10,6 +10,8 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.components.views.usersettings.right.validation.*
+import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 
 import react.ChildrenBuilder
@@ -24,6 +26,8 @@ import web.cssom.*
 const val AVATARS_PACKAGE_COUNT = 9
 
 val profileSettingsCard: FC<SettingsProps> = FC { props ->
+    val (t) = useTranslation("profile")
+
     // === states ===
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
     val saveUser = useSaveUser(props, settingsInputFields, setSettingsInputFields)
@@ -39,7 +43,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
             div {
                 className = ClassName("row mb-2")
                 h4 {
-                    +"Add bio and info:"
+                    +"Add bio and info:".t()
                 }
             }
             div {
@@ -53,7 +57,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
                                     settingsInputFields.updateValue(InputTypes.FREE_TEXT, it.target.value, "")
                             setSettingsInputFields(newSettingsInputFields)
                         }
-                        placeholder = "400 characters"
+                        placeholder = "400 characters".t()
                         defaultValue = props.userInfo?.freeText
                         rows = 10
                         maxLength = 400
@@ -67,7 +71,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
             div {
                 className = ClassName("row mb-2")
                 h4 {
-                    +"Upload or select avatar:"
+                    +"Upload or select avatar:".t()
                 }
             }
 
@@ -83,7 +87,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
 
         div {
             className = ClassName("col mt-2 px-5")
-            extraInformation(props, settingsInputFields, setSettingsInputFields)
+            extraInformation(t, props, settingsInputFields, setSettingsInputFields)
 
             div {
                 className = ClassName("row justify-content-center")
@@ -95,7 +99,9 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
     }
 }
 
+@Suppress("TOO_LONG_FUNCTION")
 private fun ChildrenBuilder.extraInformation(
+    translate: TranslationFunction,
     props: SettingsProps,
     settingsInputFields: SettingsInputFields,
     setSettingsInputFields: FieldsStateSetter
@@ -107,6 +113,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.REAL_NAME,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "e.g. John Smith"
     ) { validateRealName() }
 
@@ -115,6 +122,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.COMPANY,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "e.g. FutureWay Inc."
     ) { validateCompany() }
 
@@ -123,6 +131,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.LOCATION,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "Beijing, China"
     ) { validateLocation() }
 
@@ -131,6 +140,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.WEBSITE,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "https://saveourtool.com"
     ) { validateWebsite() }
 
@@ -139,6 +149,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.LINKEDIN,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "https://linkedin.com/yourname"
     ) { validateLinkedIn() }
 
@@ -147,6 +158,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.GITHUB,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "https://github.com/yourname"
     ) { validateGithub() }
 
@@ -155,6 +167,7 @@ private fun ChildrenBuilder.extraInformation(
         InputTypes.TWITTER,
         settingsInputFields,
         setSettingsInputFields,
+        translate,
         "https://x.com/yourname"
     ) { validateTwitter() }
 
