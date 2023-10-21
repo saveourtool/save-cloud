@@ -99,7 +99,7 @@ val profileSettingsCard: FC<SettingsProps> = FC { props ->
     }
 }
 
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun ChildrenBuilder.extraInformation(
     translate: TranslationFunction,
     props: SettingsProps,
