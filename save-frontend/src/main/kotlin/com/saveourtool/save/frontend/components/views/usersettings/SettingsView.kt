@@ -8,9 +8,8 @@ package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.modal
-import com.saveourtool.save.frontend.components.views.index.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
@@ -124,6 +123,7 @@ external interface SettingsProps : PropsWithChildren {
  * @param settingsInputFields
  * @param colRatio sizes of columns: <TITLE> =====INPUT FIELD=====
  * @param validationFunction
+ * @param translate translation to different languages
  */
 @Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
 fun ChildrenBuilder.inputForm(
@@ -131,6 +131,7 @@ fun ChildrenBuilder.inputForm(
     inputType: InputTypes,
     settingsInputFields: SettingsInputFields,
     setFields: FieldsStateSetter,
+    translate: TranslationFunction,
     placeholderText: String = "",
     colRatio: Pair<String, String> = "col-4" to "col-8",
     validationFunction: String.() -> String,
@@ -139,7 +140,7 @@ fun ChildrenBuilder.inputForm(
         className = ClassName("row justify-content-center")
         div {
             className = ClassName("${colRatio.first} mt-2 text-left align-self-center")
-            +"${inputType.str}:"
+            +"${inputType.str.translate()}:"
         }
         div {
             className = ClassName("${colRatio.second} mt-2 input-group pl-0")

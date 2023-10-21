@@ -159,7 +159,7 @@ private fun ChildrenBuilder.cosvSchemaCard(
                 className = ClassName("row justify-content-center")
                 strong {
                     className = ClassName("d-inline-block mb-2 card-text")
-                    +"Schema with Documentation and Details".t()
+                    +"Schema".t()
                 }
             }
         }
