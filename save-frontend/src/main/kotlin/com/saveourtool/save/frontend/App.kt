@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import org.w3c.fetch.Response
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -76,12 +75,6 @@ val App: VFC = FC {
         scrollToTopButton()
     }
 }
-
-private suspend fun Response.validTextOrNull(): String? = text()
-    .await()
-    .takeIf {
-        ok && it.isNotEmpty() && it != "null"
-    }
 
 fun main() {
     /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
