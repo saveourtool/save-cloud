@@ -11,7 +11,6 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
-import com.saveourtool.save.frontend.components.mobile.AboutUsMobileView
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.agreements.cookieTermsOfUse
 import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
@@ -30,7 +29,6 @@ import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.FrontendRoutes.*
 import js.core.jso
 
@@ -244,7 +242,7 @@ val basicRouting: FC<AppProps> = FC { props ->
                 type = SETTINGS_DELETE
             } to SETTINGS_DELETE,
 
-            ).map { (view, route) ->
+        ).map { (view, route) ->
             jso<RouteObject> {
                 path = "/$route"
                 element = view

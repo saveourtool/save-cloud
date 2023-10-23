@@ -8,8 +8,6 @@ import react.CSSProperties
 import react.ChildrenBuilder
 import react.FC
 import react.Props
-import react.FC
-import react.Props
 import react.dom.html.ReactHTML.abbr
 import react.dom.html.ReactHTML.span
 import web.cssom.ClassName
