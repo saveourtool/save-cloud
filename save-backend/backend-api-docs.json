@@ -7686,62 +7686,6 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/delete-processed": {
-      "delete": {
-        "operationId": "deleteProcessed",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RawCosvFileDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "raw-cosv-file-controller"
-        ]
-      }
-    },
     "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
       "delete": {
         "operationId": "delete_1",
@@ -8141,7 +8085,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UnzipRawCosvFileResponse"
+                    "$ref": "#/components/schemas/RawCosvFileStreamingResponse"
                   }
                 }
               }
@@ -14119,6 +14063,28 @@
           }
         }
       },
+      "RawCosvFileStreamingResponse": {
+        "required": [
+          "progress",
+          "progressMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progressMessage": {
+            "type": "string"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawCosvFileDto"
+            }
+          }
+        }
+      },
       "Reference": {
         "required": [
           "type",
@@ -14688,30 +14654,6 @@
       },
       "Unit": {
         "type": "object"
-      },
-      "UnzipRawCosvFileResponse": {
-        "required": [
-          "fullSize",
-          "processedSize",
-          "updateCounters"
-        ],
-        "type": "object",
-        "properties": {
-          "fullSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "processedSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "result": {
-            "$ref": "#/components/schemas/RawCosvFileDto"
-          },
-          "updateCounters": {
-            "type": "boolean"
-          }
-        }
       },
       "User": {
         "required": [
