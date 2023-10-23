@@ -341,7 +341,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         type = InputType.checkbox
                         id = "checkbox"
                         checked = file in selectedFiles
-                        disabled = file.isNotSelectable()
+                        file.notSelectableReason()?.let { reason ->
+                            asDynamic()["data-toggle"] = "tooltip"
+                            asDynamic()["data-placement"] = "right"
+                            title = reason
+                            disabled = true
+                        } ?: run {
+                            disabled = false
+                        }
                         onChange = { event ->
                             if (event.target.checked) {
                                 setSelectedFiles { it.plus(file) }
@@ -413,6 +420,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 }
 
-private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
+private fun RawCosvFileDto.notSelectableReason() = when {
+    status == RawCosvFileStatus.PROCESSED -> "Already processed"
+    status == RawCosvFileStatus.IN_PROGRESS -> "In progress, please wait"
+    isZipArchive() -> "It's a zip archive, please unzip to get JSON files"
+    else -> null
+}
 
 private fun Collection<RawCosvFileDto>.noneWithStatus(status: RawCosvFileStatus) = none { it.status == status }

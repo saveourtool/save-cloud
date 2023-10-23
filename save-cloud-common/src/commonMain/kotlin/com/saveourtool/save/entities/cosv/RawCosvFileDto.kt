@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.DtoWithId
+import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
@@ -33,4 +34,9 @@ data class RawCosvFileDto(
     fun requiredContentLength(): Long = requireNotNull(contentLength) {
         "contentLength is not provided: $this"
     }
+
+    /**
+     * @return true if this raw cosv file is zip archive, checking by [fileName]
+     */
+    fun isZipArchive(): Boolean = fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
 }
