@@ -3,7 +3,6 @@ package com.saveourtool.save.gateway.service
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
-import com.saveourtool.save.utils.SAVE_USER_DETAILS_ATTIBUTE
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.http.HttpStatus
@@ -64,9 +63,6 @@ class BackendService(
     @Suppress("UnusedParameter")
     fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
         is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
-            .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                "Not found attribute $SAVE_USER_DETAILS_ATTIBUTE for ${OAuth2AuthenticationToken::class}"
-            }
         is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
