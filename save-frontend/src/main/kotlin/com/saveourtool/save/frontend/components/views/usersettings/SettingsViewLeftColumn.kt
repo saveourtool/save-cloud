@@ -98,7 +98,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     }
 }
 
-val settingsTabs = VFC {
+val settingsTab: FC<Props> = FC {
     val (t) = useTranslation("profile")
 
     div {

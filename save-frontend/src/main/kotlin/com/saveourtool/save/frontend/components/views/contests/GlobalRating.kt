@@ -32,7 +32,7 @@ private const val MAX_AMOUNT_OF_RECORDS = 3
 /**
  * @return functional component for the rating card
  */
-internal val globalRating = VFC {
+internal val globalRatin: FC<Props> = FC {
     val (selectedTab, setSelectedTab) = useState(UserRatingTab.ORGS)
 
     val (organizationsWithRating, setOrganizationsWithRating) = useState<Set<OrganizationWithRating>>(emptySet())

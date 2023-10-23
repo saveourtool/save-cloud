@@ -13,13 +13,14 @@ import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
 import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.useBackground
 import com.saveourtool.save.validation.FrontendRoutes
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.useState
 import web.cssom.ClassName
 
-val topRatingView = VFC {
+val topRatingVie: FC<Props> = FC {
     useBackground(Style.SAVE_LIGHT)
 
     val (selectedMenu, setSelectedMenu) = useState(TopRatingTab.USERS)
