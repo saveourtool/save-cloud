@@ -10,6 +10,7 @@ import com.saveourtool.save.frontend.components.views.usersettings.inputForm
 import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateLogin
 import com.saveourtool.save.frontend.components.views.usersettings.right.validation.validateUserEmail
 import com.saveourtool.save.frontend.components.views.usersettings.useSaveUser
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
@@ -26,6 +27,7 @@ import web.cssom.rem
 val emailSettingsCard: FC<SettingsProps> = FC { props ->
     val (settingsInputFields, setSettingsInputFields) = useState(SettingsInputFields())
     val saveUser = useSaveUser(props, settingsInputFields, setSettingsInputFields)
+    val (t) = useTranslation("profile")
 
     div {
         className = ClassName("row justify-content-center mt-5")
@@ -64,6 +66,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
             InputTypes.LOGIN,
             settingsInputFields,
             setSettingsInputFields,
+            translate = t,
             colRatio = "col-2" to "col-6",
         ) { validateLogin() }
 
@@ -72,6 +75,7 @@ val emailSettingsCard: FC<SettingsProps> = FC { props ->
             InputTypes.USER_EMAIL,
             settingsInputFields,
             setSettingsInputFields,
+            translate = t,
             colRatio = "col-2" to "col-6"
         ) { validateUserEmail() }
 
