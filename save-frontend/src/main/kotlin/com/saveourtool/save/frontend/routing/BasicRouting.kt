@@ -23,10 +23,7 @@ import com.saveourtool.save.frontend.components.views.projectcollection.Collecti
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.components.views.usersettings.*
-import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.vuln.uploadVulnerabilityView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
+import com.saveourtool.save.frontend.components.views.vuln.*
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
@@ -205,15 +202,16 @@ val basicRouting: FC<AppProps> = FC { props ->
             cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
             vulnerabilityCollectionView.create() to "$VULN/list/:params?",
-            createVulnerabilityView.create() to CREATE_VULNERABILITY,
-            uploadVulnerabilityView.create() to UPLOAD_VULNERABILITY,
+            createVulnerabilityView.create() to VULN_CREATE,
+            uploadVulnerabilityView.create() to VULN_UPLOAD,
             vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             demoCollectionView.create() to DEMO,
-            userProfileView.create() to "$PROFILE/:name",
+            userProfileView.create() to "$VULN_PROFILE/:name",
             topRatingView.create() to VULN_TOP_RATING,
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
             thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
+            cosvSchemaView.create() to VULN_COSV_SCHEMA,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter

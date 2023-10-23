@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.cosv.CosvFile
+import com.saveourtool.save.entities.cosv.CosvFileDto
 
 import com.saveourtool.osv4k.OsvSchema
 import reactor.core.publisher.Flux
@@ -21,6 +22,11 @@ typealias CosvSchemaKSerializer<D, A_E, A_D, A_R_D> = KSerializer<CosvSchema<D, 
  * A repository for COSV
  */
 interface CosvRepository {
+    /**
+     * @return true when repository is ready to
+     */
+    fun isReady(): Boolean
+
     /**
      * Saves [content] in repository
      *
@@ -56,6 +62,16 @@ interface CosvRepository {
     ): Flux<ByteBuffer>
 
     /**
+     * Downloads COSV from repository as [Flux] of [ByteBuffer] (stream)
+     *
+     * @param keyId
+     * @return [Flux] of [ByteBuffer] with content of COSV
+     */
+    fun downloadAsStream(
+        keyId: Long,
+    ): Flux<ByteBuffer>
+
+    /**
      * Deletes provided version
      *
      * @param key
@@ -74,4 +90,14 @@ interface CosvRepository {
     fun deleteAll(
         identifier: String,
     ): Flux<LocalDateTime>
+
+    /**
+     * Get all COSV files (versions) with provided [identifier]
+     *
+     * @param identifier
+     * @return [Flux] with all COSV files versions
+     */
+    fun listVersions(
+        identifier: String,
+    ): Flux<CosvFileDto>
 }

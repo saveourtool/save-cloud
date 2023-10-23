@@ -58,7 +58,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 className = ClassName(stringClassName)
                                 when (organization.status) {
                                     OrganizationStatus.CREATED -> Link {
-                                        to = "/organization/$organizationName/tools"
+                                        to = "/$organizationName"
                                         +organizationName
                                     }
                                     else -> +organizationName

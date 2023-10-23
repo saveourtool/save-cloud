@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
@@ -83,15 +82,15 @@ class UsersDetailsController(
     fun findByPrefix(
         @RequestParam prefix: String,
         @RequestParam(required = false, defaultValue = "5") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "") ids: String,
-    ): Flux<UserInfo> = ids.toMono()
-        .map { stringIds -> stringIds.split(DATABASE_DELIMITER) }
-        .map { stringIdList -> stringIdList.filter { it.isNotBlank() }.map { it.toLong() }.toSet() }
-        .flatMapMany { idList ->
-            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `idList` results with empty list for some reason
+        @RequestParam(required = false, defaultValue = "") namesToSkip: String,
+    ): Flux<UserInfo> = namesToSkip.toMono()
+        .map { stringNames -> stringNames.split(DATABASE_DELIMITER) }
+        .map { stringNameList -> stringNameList.filter { it.isNotBlank() }.toSet() }
+        .flatMapMany { nameList ->
+            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `nameList` results with empty list for some reason
             blockingToFlux {
-                if (idList.isNotEmpty()) {
-                    userRepository.findByNameStartingWithAndIdNotIn(prefix, idList, Pageable.ofSize(pageSize))
+                if (nameList.isNotEmpty()) {
+                    userRepository.findByNameStartingWithAndNameNotIn(prefix, nameList, Pageable.ofSize(pageSize))
                 } else {
                     userRepository.findByNameStartingWith(prefix, Pageable.ofSize(pageSize))
                 }
@@ -188,12 +187,12 @@ class UsersDetailsController(
 
     /**
      * @param authentication
-     * @return global [Role] of authenticated user
+     * @return [UserInfo] of authenticated user
      */
-    @GetMapping("/global-role")
-    @PreAuthorize("isAuthenticated()")
-    fun getSelfGlobalRole(authentication: Authentication): Mono<Role> =
-            Mono.just(userDetailsService.getGlobalRole(authentication))
+    @GetMapping("/user-info")
+    fun getSelfUserInfo(authentication: Authentication?): Mono<UserInfo> = blockingToMono {
+        authentication?.userId()?.let { userDetailsService.findById(it) }?.toUserInfo()
+    }
 
     /**
      * @param userName

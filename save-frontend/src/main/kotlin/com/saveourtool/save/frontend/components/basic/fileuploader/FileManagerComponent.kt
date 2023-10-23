@@ -12,6 +12,7 @@ import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.utils.toMegabytes
 
 import js.core.asList
 import react.*
@@ -86,7 +87,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             className = ClassName("list-group shadow")
             @Suppress("MAGIC_NUMBER", "MagicNumber")
             li {
-                val storageSizeMegabytes = storageBytes.toMegabytes()
+                val storageSizeMegabytes = storageBytes.toDouble().toMegabytes()
                 // todo: storage size shouldn't be more then 500MB per project
                 val textColor = when {
                     storageSizeMegabytes > 450 -> "text-danger"
@@ -130,7 +131,6 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             progressBarComponent {
                 current = uploadBytesReceived
                 total = uploadBytesTotal
-                getLabelText = { current, total -> "${current.toKiloBytes()} / ${total.toKiloBytes()} KB" }
                 flushCounters = {
                     setUploadBytesTotal(0)
                     setUploadBytesReceived(0)
@@ -149,9 +149,3 @@ external interface FileManagerProps : Props {
      */
     var projectCoordinates: ProjectCoordinates
 }
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toKiloBytes() = div(1024)
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toMegabytes() = toDouble().div(1024 * 1024)

@@ -326,7 +326,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                 if (tableInstance.getPageCount() > 1) {
                     div {
                         className = ClassName("wrapper container m-0 p-0 mt-2")
-                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount)
+                        pagingControl(tableInstance, setPageIndex, pageIndex, pageCount, initialPageSize)
 
                         div {
                             className = ClassName("row ml-1")

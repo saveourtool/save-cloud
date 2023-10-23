@@ -140,6 +140,17 @@ class DefaultS3Operations(
         return s3Client.completeMultipartUpload(request)
     }
 
+    override fun abortMultipartUpload(
+        createResponse: CreateMultipartUploadResponse,
+    ): CompletableFuture<AbortMultipartUploadResponse> {
+        val request = AbortMultipartUploadRequest.builder()
+            .bucket(createResponse.bucket())
+            .key(createResponse.key())
+            .uploadId(createResponse.uploadId())
+            .build()
+        return s3Client.abortMultipartUpload(request)
+    }
+
     private fun putObjectRequest(s3Key: String, contentLength: Long): PutObjectRequest = PutObjectRequest.builder()
         .bucket(bucketName)
         .contentType(MediaType.APPLICATION_OCTET_STREAM_VALUE)

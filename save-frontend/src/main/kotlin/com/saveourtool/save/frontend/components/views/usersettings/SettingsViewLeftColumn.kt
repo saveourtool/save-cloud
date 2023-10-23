@@ -5,13 +5,14 @@
 package com.saveourtool.save.frontend.components.views.usersettings
 
 import com.saveourtool.save.frontend.components.basic.avatarRenderer
+import com.saveourtool.save.frontend.components.views.userprofile.shortenLoginWithTooltipIfNecessary
+import com.saveourtool.save.frontend.components.views.userprofile.shortenRealNameWithTooltipIfNecessary
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
-import react.ChildrenBuilder
-import react.FC
-import react.VFC
+import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form
 import react.dom.html.ReactHTML.h4
@@ -19,7 +20,6 @@ import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.nav
 import react.router.dom.Link
-import react.useState
 import web.cssom.Background
 import web.cssom.ClassName
 import web.cssom.TextDecoration
@@ -29,6 +29,7 @@ internal const val AVATAR_TITLE = "Upload avatar"
 
 val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
+    val (t) = useTranslation("profile")
 
     div {
         className = ClassName("card card-body pt-0 px-0 shadow")
@@ -64,25 +65,25 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     className = ClassName("row justify-content-center")
                                     h4 {
                                         className = ClassName("mb-0 text-gray-800")
-                                        +(props.userInfo?.name ?: "")
+                                        shortenLoginWithTooltipIfNecessary(props.userInfo?.name, this)
                                     }
                                 }
                                 div {
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         className = ClassName("mb-0 text-gray-800")
-                                        +(props.userInfo?.realName.orEmpty())
+                                        shortenRealNameWithTooltipIfNecessary(props.userInfo?.realName, this)
                                     }
                                 }
                                 div {
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         Link {
-                                            to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                            to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
                                             style = jso {
                                                 textDecoration = TextDecoration.underline
                                             }
-                                            +"profile"
+                                            +"profile".t()
                                         }
                                     }
                                 }
@@ -98,42 +99,44 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
 }
 
 val settingsTabs = VFC {
+    val (t) = useTranslation("profile")
+
     div {
         className = ClassName("col mr-2 px-0")
         nav {
             div {
                 className = ClassName("px-3 mt-3 ui vertical menu profile-setting")
                 form {
-                    settingMenuHeader("Basic Settings")
+                    settingMenuHeader("Basic Settings".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_PROFILE, "Profile settings", faUser)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_EMAIL, "Login and email", faEnvelope)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_ORGANIZATIONS, "Organizations", faCity)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_PROFILE, "Profile settings".t(), faUser)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_EMAIL, "Login and email".t(), faEnvelope)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_ORGANIZATIONS, "Organizations".t(), faCity)
                     }
                 }
                 form {
                     div {
                         className = ClassName("separator mt-3 mb-3")
                     }
-                    settingMenuHeader("Security Settings")
+                    settingMenuHeader("Security Settings".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal access tokens", faKey)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "OAuth accounts", faGithub)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal access tokens".t(), faKey)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "OAuth accounts".t(), faGithub)
                     }
                 }
                 form {
                     div {
                         className = ClassName("separator mt-3 mb-3")
                     }
-                    settingMenuHeader("Other")
+                    settingMenuHeader("Other".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics", faPlus)
+                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics".t(), faPlus)
                         settingsMenuTab(
                             FrontendRoutes.SETTINGS_DELETE,
-                            "Delete Profile",
+                            "Delete Profile".t(),
                             faWindowClose,
                             "btn-outline-danger"
                         )

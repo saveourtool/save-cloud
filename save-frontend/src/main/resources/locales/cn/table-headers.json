@@ -3,9 +3,11 @@
   "Identifier": "编号",
   "Organization": "组织",
   "Description": "描述",
-  "Author": "作者",
+  "COSV Submitter": "作者",
   "Criticality": "危险程度",
   "Language": "语言",
   "Status": "状态",
-  "Tag": "标签"
+  "Tag": "标签",
+  "Version": "版本",
+  "Updated date": "更新日期"
 }

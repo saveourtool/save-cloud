@@ -82,7 +82,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                 }
                 +"${"Welcome".t()}${props.userInfo?.name?.let { ", " } ?: ""}"
                 Link {
-                    to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                    to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
                     b {
                         +(props.userInfo?.name?.let { " @$it " } ?: "")
                     }
@@ -242,7 +242,7 @@ val cardUser: FC<IndexViewProps> = FC { props ->
                         className = ClassName("col-3")
                         p {
                             Link {
-                                to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
+                                to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
                                 +countVulnerability.toString()
                             }
                         }

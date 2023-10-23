@@ -32,6 +32,8 @@ private const val DROPDOWN_ID = "option-dropdown"
 val inputWithDebounceForUserInfo = inputWithDebounce(
     asOption = { UserInfo(name = this) },
     asString = { name },
+    // for Vulnerability Collection View this index should be bigger than for Organizations
+    zindexShift = 1,
     decodeListFromJsonString = { decodeFromJsonString() },
 )
 
@@ -170,6 +172,7 @@ internal fun renderString(childrenBuilder: ChildrenBuilder, stringOption: String
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
 private fun <T> inputWithDebounce(
+    zindexShift: Int = 0,
     asOption: String.() -> T,
     asString: T.() -> String,
     decodeListFromJsonString: suspend Response.() -> List<T>,
@@ -198,7 +201,7 @@ private fun <T> inputWithDebounce(
         style = jso {
             width = "100%".unsafeCast<Width>()
             position = "relative".unsafeCast<Position>()
-            zIndex = "2".unsafeCast<ZIndex>()
+            zIndex = (1 + zindexShift).unsafeCast<ZIndex>()
         }
         onBlur = { setTimeout(ON_BLUR_TIMEOUT_MILLIS.milliseconds) { setOptions(null) } }
         div {
@@ -229,6 +232,9 @@ private fun <T> inputWithDebounce(
                 if (props.selectedOption.asString().isNotEmpty() && options?.isEmpty() == true) {
                     div {
                         className = ClassName("list-group-item")
+                        style = jso {
+                            zIndex = "4".unsafeCast<ZIndex>()
+                        }
                         +"Could not find anything that starts with ${props.selectedOption.asString()}..."
                     }
                 } else {
@@ -236,6 +242,9 @@ private fun <T> inputWithDebounce(
                         ?.forEachIndexed { idx, option ->
                             div {
                                 className = ClassName("list-group-item list-group-item-action")
+                                style = jso {
+                                    zIndex = "4".unsafeCast<ZIndex>()
+                                }
                                 id = "$DROPDOWN_ID-$idx"
                                 onClick = { props.onOptionClick(option) }
                                 props.renderOption(this, option)

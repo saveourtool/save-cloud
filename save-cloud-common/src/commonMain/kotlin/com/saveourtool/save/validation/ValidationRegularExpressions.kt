@@ -5,6 +5,11 @@
 package com.saveourtool.save.validation
 
 /**
+ * URL name fragment class.
+ */
+const val NAME_FRAGMENT_CLASS = """[-a-zA-Z\d@:%._\\+~#?&/=]"""
+
+/**
  * @property value [Regex] that is used during validation
  */
 enum class ValidationRegularExpressions(val value: Regex) {
@@ -14,6 +19,6 @@ enum class ValidationRegularExpressions(val value: Regex) {
 
     RELATIVE_PATH_VALIDATOR("([^/ \\n]+/?)*[^/ \\n]+".toRegex()),
 
-    URL_VALIDATOR("((http|https)://)(www.)?[a-zA-Z\\d@:%._\\\\+~#?&/=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z\\d@:%._\\\\+~#?&/=]*)".toRegex()),
+    URL_VALIDATOR("""https?://(?:www\.)?$NAME_FRAGMENT_CLASS{2,256}\.[a-z]{2,6}\b$NAME_FRAGMENT_CLASS*""".toRegex()),
     ;
 }

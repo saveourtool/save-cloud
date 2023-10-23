@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * @property status
  * @property statusMessage
  * @property updateDate
+ * @property contentLength
  * @property id
  */
 @Serializable
@@ -23,5 +24,13 @@ data class RawCosvFileDto(
     val status: RawCosvFileStatus = RawCosvFileStatus.UPLOADED,
     val statusMessage: String? = null,
     val updateDate: LocalDateTime? = null,
+    val contentLength: Long? = null,
     override val id: Long? = null,
-) : DtoWithId()
+) : DtoWithId() {
+    /**
+     * @return non-nullable [contentLength]
+     */
+    fun requiredContentLength(): Long = requireNotNull(contentLength) {
+        "contentLength is not provided: $this"
+    }
+}

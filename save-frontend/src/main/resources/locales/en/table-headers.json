@@ -3,9 +3,11 @@
   "Identifier": "Identifier",
   "Organization": "Organization",
   "Description": "Description",
-  "Author": "Author",
+  "COSV Submitter": "COSV Submitter",
   "Criticality": "Criticality",
   "Language": "Language",
   "Status": "Status",
-  "Tag": "Tag"
+  "Tag": "Tag",
+  "Version": "Version",
+  "Updated date": "Updated date"
 }

@@ -4,9 +4,8 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateType
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDto.Companion.vulnerabilityPrefixes
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
@@ -23,15 +22,27 @@ private val timelineEntryTypeMapping = mapOf(
     VulnerabilityDateType.INTRODUCED to TimelineEntryType.introduced,
 )
 
+val vulnerabilityPrefixes = listOf(
+    "CVE-",
+)
+
+typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
+
 /**
  * @return Save's contributors
  */
 fun CosvSchema<*, *, *, *>.getSaveContributes(): List<UserInfo> = credits
-    ?.flatMap { credit -> credit.contact.orEmpty() }
+    ?.mapNotNull { it.asSaveContribute() }
+    .orEmpty()
+
+/**
+ * @return save's contributor
+ */
+fun Credit.asSaveContribute(): UserInfo? = contact
     ?.filter { it.startsWith(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { it.removePrefix(SAVEOURTOOL_PROFILE_PREFIX) }
     ?.map { UserInfo(it) }
-    .orEmpty()
+    ?.singleOrNull()
 
 /**
  * @return [Credit]
@@ -56,7 +67,6 @@ fun List<UserInfo>.asCredits(): List<Credit> = map { it.asCredit() }
  */
 fun CosvSchema<*, *, *, *>.getTimeline(): List<VulnerabilityDateDto> = buildList {
     timeline?.map { it.asVulnerabilityDateDto(id) }?.let { addAll(it) }
-    add(modified.asVulnerabilityDateDto(id, VulnerabilityDateType.MODIFIED))  // TODO: do we need it?
     published?.asVulnerabilityDateDto(id, VulnerabilityDateType.PUBLISHED)?.run { add(this) }
     withdrawn?.asVulnerabilityDateDto(id, VulnerabilityDateType.WITHDRAWN)?.run { add(this) }
 }
@@ -88,15 +98,6 @@ fun CosvSchema<*, *, *, *>.getLanguage(): VulnerabilityLanguage? = affected?.fir
 fun CosvSchema<*, *, *, *>.getRelatedLink(): String? = references
     ?.filter { it.type == ReferenceType.WEB }?.map { it.url }?.firstOrNull()
 
-/**
- * @return Severity for a single progress
- */
-fun Float.asSeverity(): Severity = Severity(
-    type = SeverityType.CVSS_V3,
-    score = "N/A",
-    scoreNum = toString(),
-)
-
 private fun LocalDateTime.asVulnerabilityDateDto(cosvId: String, type: VulnerabilityDateType) = VulnerabilityDateDto(
     date = this,
     type = type,
@@ -111,3 +112,12 @@ private fun TimelineEntry.asVulnerabilityDateDto(cosvId: String) = value.asVulne
         TimelineEntryType.disclosed -> VulnerabilityDateType.DISCLOSED
     }
 )
+
+/**
+ * Validation of [identifier]
+ *
+ * @param identifier
+ * @return true if [identifier] is empty (our own should be set on backend)
+ *   or starts with one of [vulnerabilityPrefixes] (reused existed identifier), false otherwise
+ */
+fun validateIdentifier(identifier: String) = identifier.isEmpty() || vulnerabilityPrefixes.any { identifier.startsWith(it) }

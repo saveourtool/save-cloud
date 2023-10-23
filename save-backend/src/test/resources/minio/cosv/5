@@ -16,11 +16,14 @@
   "severity": [
     {
       "type": "CVSS_V3",
-      "score": "N/A",
-      "score_num": "98"
+      "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "score_num": "9.8"
     }
   ],
   "summary": "Incorrect Authorization",
+  "cwe_ids": ["CWE-79", "CWE-89", "CWE-78"],
+  "cwe_names": ["Improper Neutralization of Input During Web Page Generation (‘Cross-site Scripting’)", "Improper Neutralization of Special Elements used in an SQL Command (‘SQL Injection’)", "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"],
+  "related": ["CWE-32", "CWE-65", "CWE-108"],
   "details": "In Spring Security versions 5.5.6 and 5.6.3 and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some servlet containers. Applications using RegexRequestMatcher with `.` in the regular expression are possibly vulnerable to an authorization bypass",
   "credits": [
     {
@@ -64,6 +67,7 @@
        "type": "REPORTER"
     }
   ],
+  "confirm_type": "algorithm_confirmed",
   "references": [
     {
       "type": "WEB",
