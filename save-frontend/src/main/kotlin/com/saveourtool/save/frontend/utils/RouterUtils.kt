@@ -44,7 +44,7 @@ fun ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionConte
  * @return a function component
  */
 @Suppress("TYPE_ALIAS")
-fun <T : Props> withRouter(handler: ChildrenBuilder.(Location, Params) -> Unit) = FC<T> {
+fun <T : Props> withRouter(handler: ChildrenBuilder.(Location<*>, Params) -> Unit) = FC<T> {
     val location = useLocation()
     val params = useParams()
     handler(location, params)

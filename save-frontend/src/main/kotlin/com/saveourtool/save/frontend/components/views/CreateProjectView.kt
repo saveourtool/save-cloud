@@ -46,7 +46,7 @@ import kotlinx.serialization.json.Json
 
 private val organizationSelectForm: SelectFormFunctionalComponent = selectFormRequired()
 
-val createProjectVie: FC<Props> = FC {
+val createProjectView: FC<Props> = FC {
     useBackground(Style.SAVE_DARK)
     particles()
     val params = useParams()

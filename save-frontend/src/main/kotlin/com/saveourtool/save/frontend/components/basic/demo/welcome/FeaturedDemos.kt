@@ -22,7 +22,7 @@ import react.useEffect
 import react.useState
 import web.cssom.ClassName
 
-internal val featuredDemos = FC<Props> {
+internal val featuredDemos: FC<Props> = FC {
     val (featuredDemos, setFeaturedDemos) = useState(
         listOf(
             DemoDto.emptyForProject("saveourtool", "Diktat"),
