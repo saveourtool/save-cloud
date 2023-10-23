@@ -76,7 +76,7 @@ const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
 /**
  * An attribute to store info about save user
  */
-const val SAVE_USER_DETAILS_ATTIBUTE = "save-user-details"
+const val SAVE_USER_DETAILS_ATTRIBUTE = "save-user-details"
 
 /**
  * Default time to execute setup.sh
