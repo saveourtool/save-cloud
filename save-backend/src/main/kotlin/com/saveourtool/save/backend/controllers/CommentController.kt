@@ -60,16 +60,31 @@ class CommentController(
     @PostMapping("/get-all")
     @Operation(
         method = "POST",
-        summary = "Save new comment.",
-        description = "Save new comment.",
+        summary = "Get all comments in section.",
+        description = "Get all comments in section.",
     )
-    @ApiResponse(responseCode = "200", description = "Successfully saved project problem")
+    @ApiResponse(responseCode = "200", description = "Successfully return all comments in section")
     @PreAuthorize("permitAll()")
     @Suppress("TYPE_ALIAS")
     fun getAllBySection(
         @RequestBody section: String,
     ): Mono<List<CommentDto>> = blockingToMono {
         commentService.findAllBySection(section).map(Comment::toDto)
+    }
+
+    @PostMapping("/get-all-count")
+    @Operation(
+        method = "POST",
+        summary = "Get count comments in section.",
+        description = "Get count comments in section.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully return count comments in section")
+    @PreAuthorize("permitAll()")
+    @Suppress("TYPE_ALIAS")
+    fun getAllCountBySection(
+        @RequestBody section: String,
+    ): Mono<Int> = blockingToMono {
+        commentService.countBySection(section)
     }
 
     @PostMapping("/delete")
