@@ -72,9 +72,9 @@ class CommentController(
         commentService.findAllBySection(section).map(Comment::toDto)
     }
 
-    @PostMapping("/get-all-count")
+    @GetMapping("/get-all-count")
     @Operation(
-        method = "POST",
+        method = "Get",
         summary = "Get count comments in section.",
         description = "Get count comments in section.",
     )
@@ -82,7 +82,7 @@ class CommentController(
     @PreAuthorize("permitAll()")
     @Suppress("TYPE_ALIAS")
     fun getAllCountBySection(
-        @RequestBody section: String,
+        @RequestParam section: String,
     ): Mono<Int> = blockingToMono {
         commentService.countBySection(section)
     }
