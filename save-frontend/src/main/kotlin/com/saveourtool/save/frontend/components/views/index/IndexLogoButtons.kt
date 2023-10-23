@@ -18,7 +18,7 @@ import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import web.cssom.*
 
-val logoButton: FC<Props> = FC {
+val logoButtons: FC<Props> = FC {
     val (t) = useTranslation("index")
     div {
         className = ClassName("row logo-parent mb-5 d-flex justify-content-center")
