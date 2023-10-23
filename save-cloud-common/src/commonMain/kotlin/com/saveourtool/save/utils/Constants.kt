@@ -54,13 +54,49 @@ const val FILE_PART_NAME = "file"
 const val CONTENT_LENGTH_CUSTOM = "Content-Length-Custom"
 
 /**
- * `X-Authorization-Source`, used to specify an _OAuth_ provider (`basic`,
- * `github`, `dex`, etc.).
+ * `X-Authorization-Roles` used to specify SAVE user id
  */
-const val AUTHORIZATION_SOURCE = "X-Authorization-Source"
+const val AUTHORIZATION_ID = "X-Authorization-Id"
+
+/**
+ * `X-Authorization-Status` used to specify SAVE user status
+ */
+const val AUTHORIZATION_STATUS = "X-Authorization-Status"
+
+/**
+ * `X-Authorization-Roles` used to specify SAVE username
+ */
+const val AUTHORIZATION_NAME = "X-Authorization-Name"
+
+/**
+ * `X-Authorization-Roles` used to specify SAVE user roles
+ */
+const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
+
+/**
+ * An attribute to store info about save user
+ */
+const val SAVE_USER_DETAILS_ATTIBUTE = "save-user-details"
 
 /**
  * Default time to execute setup.sh
  */
 @Suppress("NON_EXPORTABLE_TYPE")
 const val DEFAULT_SETUP_SH_TIMEOUT_MILLIS: Long = 60_000L
+
+/**
+ * directory with the default avatars package
+ */
+const val AVATARS_PACKS_DIR: String = "/img/avatar_packs"
+
+/**
+ * `NO-BREAK SPACE` (U+00A0).
+ */
+@Suppress("NON_EXPORTABLE_TYPE")
+const val NO_BREAK_SPACE = '\u00a0'
+
+/**
+ * Horizontal Ellipsis (U+2026).
+ */
+@Suppress("NON_EXPORTABLE_TYPE")
+const val ELLIPSIS = '\u2026'

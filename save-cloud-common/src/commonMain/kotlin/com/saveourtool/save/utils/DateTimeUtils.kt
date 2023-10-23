@@ -8,6 +8,8 @@ import io.ktor.util.*
 import kotlin.time.Duration
 import kotlinx.datetime.*
 
+private const val MILLS_IN_NANOS = 1_000_000
+
 /**
  * @return [Instant] from epoch time in mills
  */
@@ -30,12 +32,13 @@ fun LocalDateTime.prettyPrint(timeZone: TimeZone = TimeZone.UTC) = toInstant(Tim
 
 /**
  * @param timeZone timezone to print the date time in
+ * @param isSeconds flag for added seconds
  * @return string representation of [LocalDateTime] in [Thursday, 1 Jan 1970 00:00] format
  */
-fun LocalDateTime.toUnixCalendarFormat(timeZone: TimeZone = TimeZone.UTC) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
+fun LocalDateTime.toUnixCalendarFormat(timeZone: TimeZone = TimeZone.UTC, isSeconds: Boolean = false) = toInstant(TimeZone.UTC).toLocalDateTime(timeZone)
     .let {
         "${it.dayOfWeek.name.toLowerCaseWithFirstCharUpperCase()}, ${it.dayOfMonth} ${it.month.name.toLowerCaseWithFirstCharUpperCase()} ${it.year} ${it.hour.plusZero()}:${it
-            .minute.plusZero()}"
+            .minute.plusZero()}${if (isSeconds)":${it.second.plusZero()}" else ""}"
     }
 
 /**
@@ -47,6 +50,13 @@ operator fun LocalDateTime.plus(duration: Duration) = toInstant(TimeZone.UTC).pl
  * @param duration
  */
 operator fun LocalDateTime.minus(duration: Duration) = toInstant(TimeZone.UTC).minus(duration).toLocalDateTime(TimeZone.UTC)
+
+/**
+ * @return [LocalDateTime] truncated to mills
+ */
+fun LocalDateTime.truncatedToMills(): LocalDateTime = LocalDateTime(
+    year, month, dayOfMonth, hour, minute, second, nanosecond / MILLS_IN_NANOS * MILLS_IN_NANOS
+)
 
 @Suppress(
     "MAGIC_NUMBER",

@@ -12,20 +12,24 @@ import react.react
  * @param lineWidth of the circle's stroke
  * @param color of percentage text and "progress" portion of circle
  * @param handler
+ * @param showPercentageSymbol
  */
-@Suppress("MAGIC_NUMBER")
+@Suppress("LongParameterList", "TOO_MANY_PARAMETERS")
 fun ChildrenBuilder.progressBar(
-    progress: Int,
-    size: Int = 100,
-    lineWidth: Int = 50,
+    progress: Float,
+    size: String = "10rem",
+    lineWidth: String = "5rem",
     color: String = Colors.SUCCESS.value,
+    showPercentageSymbol: Boolean = false,
     handler: ChildrenBuilder.(ReactCircleProps) -> Unit = {},
 ) {
+    // FixMe: setting textStyle as jso this does not work in Circle, investigate why
     ReactCircle::class.react {
-        this.size = size.toString()
-        this.lineWidth = lineWidth.toString()
+        this.size = size
+        this.lineWidth = lineWidth
         this.progress = progress.toString()
         this.progressColor = color
+        this.showPercentageSymbol = showPercentageSymbol
         this.textColor = color
         handler(this)
     }

@@ -30,7 +30,7 @@ typealias ByteBufferFluxResponse = ResponseEntity<Flux<ByteBuffer>>
  * Sandbox implementation of endpoints which are required for save-agent
  */
 @RestController
-@RequestMapping("/sandbox/internal")
+@RequestMapping("/internal/sandbox")
 class SandboxInternalController(
     private val storage: SandboxStorage,
     private val objectMapper: ObjectMapper,

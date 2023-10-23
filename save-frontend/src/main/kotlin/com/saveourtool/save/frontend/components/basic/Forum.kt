@@ -6,11 +6,12 @@ import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.externals.fontawesome.faPaperPlane
 import com.saveourtool.save.frontend.externals.fontawesome.faTimes
+import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.toUnixCalendarFormat
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -36,20 +37,18 @@ import kotlinx.serialization.json.Json
 /**
  * @return a function component
  */
-@Suppress(
-    "GENERIC_VARIABLE_WRONG_DECLARATION",
-    "MAGIC_NUMBER",
-)
+@Suppress("MAGIC_NUMBER")
 val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
     val (comment, setComment) = useState(CommentDto.empty)
+    val (t) = useTranslation("comments")
 
     val enrollRequest = useDeferredRequest {
-        val commentNew = comment.copy(section = window.location.hash)
+        val commentNew = comment.copy(section = window.location.pathname)
         val response = post(
             url = "$apiUrl/comments/save",
             headers = jsonHeaders,
             body = Json.encodeToString(commentNew),
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
             responseHandler = ::noopResponseHandler,
         )
         if (response.ok) {
@@ -66,7 +65,8 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
                 props.currentUserInfo.avatar,
                 props.currentUserInfo.name,
                 props.currentUserInfo.rating,
-                "#f7f5fb"
+                t,
+                "#f7f5fb",
             )
             div {
                 className = ClassName("col")
@@ -82,7 +82,7 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
                     rows = 5
                     id = InputTypes.COMMENT.name
                     required = true
-                    placeholder = "Write a comment"
+                    placeholder = "Write a comment".t()
                 }
             }
         }
@@ -104,14 +104,16 @@ val newCommentWindow: FC<NewCommentWindowProps> = FC { props ->
 /**
  * [FC] for comment displaying
  */
-@Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "MAGIC_NUMBER")
+@Suppress("MAGIC_NUMBER")
 val commentWindow: FC<CommentWindowProps> = FC { props ->
+    val (t) = useTranslation("comments")
     div {
         className = ClassName("shadow input-group row no-gutters mx-auto border-secondary")
         renderLeftColumn(
             props.comment.userAvatar,
             props.comment.userName,
             props.comment.userRating,
+            t,
         )
         div {
             className = ClassName("shadow-none card col-10 text-left border-0")
@@ -121,12 +123,12 @@ val commentWindow: FC<CommentWindowProps> = FC { props ->
                 style = jso { background = "#f1f1f1".unsafeCast<Background>() }
                 span {
                     className = ClassName("ml-1")
-                    +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown")
+                    +(comment.createDate?.toUnixCalendarFormat(TimeZone.currentSystemDefault()) ?: "Unknown".t())
                 }
                 div {
                     if (props.currentUserInfo?.canDelete(props.comment) == true) {
                         buttonBuilder(faTimes, style = "", classes = "btn-sm") {
-                            if (window.confirm("Are you sure you want to delete a comment?")) {
+                            if (window.confirm("Are you sure you want to delete a comment?".t())) {
                                 props.setCommentForDeletion(props.comment)
                             }
                         }
@@ -178,14 +180,15 @@ external interface NewCommentWindowProps : PropsWithChildren {
 
 private fun UserInfo.canDelete(commentDto: CommentDto) = isSuperAdmin() || name == commentDto.userName
 
-@Suppress("MAGIC_NUMBER")
+@Suppress("MAGIC_NUMBER", "IDENTIFIER_LENGTH")
 private fun ChildrenBuilder.renderLeftColumn(
     userAvatar: String?,
     name: String,
     rating: Long,
+    t: TranslationFunction,
     color: String = "#f1f1f1",
 ) {
-    val (avatar, setAvatar) = useState(userAvatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER)
+    val (avatar, setAvatar) = useState(userAvatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER)
 
     div {
         className = ClassName("input-group-prepend col-2")
@@ -207,7 +210,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                                 width = 80.0
                                 onError = { setAvatar(AVATAR_PLACEHOLDER) }
                             }
-                            to = "/${FrontendRoutes.PROFILE}/$name"
+                            to = "/${FrontendRoutes.VULN_PROFILE}/$name"
                         }
                     }
                     div {
@@ -218,7 +221,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                         }
                         div {
                             className = ClassName("col-12 text-center text-xs font-weight-bold text-info text-uppercase")
-                            +"Rating"
+                            +"Rating".t()
                         }
                         div {
                             className = ClassName("col-12 text-center text-xs")
@@ -227,7 +230,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                         h1 {
                             className = ClassName("col-12 text-center font-weight-bold h5")
                             Link {
-                                to = "/${FrontendRoutes.PROFILE}/$name"
+                                to = "/${FrontendRoutes.VULN_PROFILE}/$name"
                                 +name
                             }
                         }

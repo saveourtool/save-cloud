@@ -17,7 +17,7 @@ import reactor.kotlin.core.util.function.component2
  * Internal controller that allows to create demos
  */
 @RestController
-@RequestMapping("/demo/internal/manager")
+@RequestMapping("/internal/demo/manager")
 class ManagementController(
     private val downloadToolService: DownloadToolService,
     private val demoService: DemoService,

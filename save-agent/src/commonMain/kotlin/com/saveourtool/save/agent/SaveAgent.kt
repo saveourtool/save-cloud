@@ -30,7 +30,6 @@ import okio.use
 
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -90,7 +89,6 @@ class SaveAgent(
 
     // a temporary workaround for python integration
     private fun executeAdditionallySetup(
-        targetDirectory: Path,
         additionalFileNames: Collection<String>,
         setupShTimeoutMillis: Long,
     ) = runCatching {
@@ -98,15 +96,15 @@ class SaveAgent(
         additionalFileNames
             .singleOrNull { it == "setup.sh" }
             ?.let { fileName ->
-                val targetFile = targetDirectory / fileName
-                logDebugCustom("Additionally setup of evaluated tool by $targetFile")
+                logDebugCustom("Additionally setup of evaluated tool by $fileName")
                 val setupResult = ProcessBuilder(true, fs)
                     .exec(
-                        "./$targetFile",
-                        "",
+                        "./$fileName",
+                        // setup.sh should always be run from test-suites dir
+                        TEST_SUITES_DIR_NAME,  // <- cd test-suites/
                         null,
                         setupShTimeoutMillis,
-                    )
+                    )  // < - cd test-suites && ./setup.sh
                 if (setupResult.code != 0) {
                     throw IllegalStateException("$fileName} is failed with error: ${setupResult.stderr}")
                 }
@@ -210,7 +208,7 @@ class SaveAgent(
             }
 
         // a temporary workaround for python integration
-        executeAdditionallySetup(targetDirectory, agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
+        executeAdditionallySetup(agentInitConfig.additionalFileNameToUrl.keys, agentInitConfig.setupShTimeoutMillis)
             .runIf(
                 failureResultPredicate
             ) {

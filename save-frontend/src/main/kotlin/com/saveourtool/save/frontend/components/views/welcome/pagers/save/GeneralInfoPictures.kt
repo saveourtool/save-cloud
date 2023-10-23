@@ -35,7 +35,7 @@ object GeneralInfoFirstPicture : WelcomePager {
             style = jso {
                 width = 30.rem
             }
-            src = "img/run_view.png"
+            src = "/img/run_view.png"
         }
     }
 }
@@ -61,7 +61,7 @@ object GeneralInfoSecondPicture : WelcomePager {
             style = jso {
                 width = 30.rem
             }
-            src = "img/exec_view.png"
+            src = "/img/exec_view.png"
         }
     }
 }
@@ -88,7 +88,7 @@ object GeneralInfoThirdPicture : WelcomePager {
             style = jso {
                 width = 30.rem
             }
-            src = "img/stat_view.png"
+            src = "/img/stat_view.png"
         }
     }
 }
@@ -114,7 +114,7 @@ object GeneralInfoFourthPicture : WelcomePager {
             style = jso {
                 width = 30.rem
             }
-            src = "img/organization_view.png"
+            src = "/img/organization_view.png"
         }
     }
 }

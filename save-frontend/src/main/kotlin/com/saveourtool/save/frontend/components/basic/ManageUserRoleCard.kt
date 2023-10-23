@@ -15,7 +15,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.v1
 
 import js.core.jso
 import react.*
@@ -30,33 +29,6 @@ import web.cssom.Width
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val manageUserRoleCardComponent = manageUserRoleCardComponent()
-
-/**
- * [Props] for card component
- */
-external interface ManageUserRoleCardProps : Props {
-    /**
-     * Information about user who is seeing the view
-     */
-    var selfUserInfo: UserInfo
-
-    /**
-     * Full name of a group
-     */
-    var groupPath: String
-
-    /**
-     * Kind of a group that will be shown ("project" or "organization" for now)
-     */
-    var groupType: String
-
-    /**
-     * Lambda to get users from project/organization
-     */
-    var getUserGroups: (UserInfo) -> Map<String, Role>
-}
-
 /**
  * A functional `Component` for a card that shows users from the group and their permissions.
  *
@@ -67,9 +39,8 @@ external interface ManageUserRoleCardProps : Props {
     "EMPTY_BLOCK_STRUCTURE_ERROR",
     "TOO_LONG_FUNCTION",
     "MAGIC_NUMBER",
-    "ComplexMethod",
 )
-private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props ->
+val manageUserRoleCardComponent: FC<ManageUserRoleCardProps> = FC { props ->
     val (usersFromGroup, setUsersFromGroup) = useState(emptyList<UserInfo>())
     val getUsersFromGroup = useDeferredRequest {
         val usersFromDb = get(
@@ -168,8 +139,8 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                             className = ClassName("col-2 align-items-center")
                             img {
                                 className = ClassName("avatar avatar-user border color-bg-default rounded-circle pl-0")
-                                src = user.avatar?.let { "/api/$v1/avatar$it" }
-                                    ?: "img/undraw_profile.svg"
+                                src = user.avatar?.let(String::avatarRenderer)
+                                    ?: "/img/undraw_profile.svg"
                                 style = jso {
                                     width = "2rem".unsafeCast<Width>()
                                     height = "2rem".unsafeCast<Height>()
@@ -182,7 +153,7 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                         }
                     }
                     div {
-                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end")
+                        className = ClassName("col-5 align-self-right d-flex align-items-center justify-content-end pr-0")
                         select {
                             className = ClassName("custom-select col-9")
                             onChange = { event ->
@@ -205,16 +176,15 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
                                     !(selfRole.isHigherOrEqualThan(OWNER) || userRole.isLowerThan(selfRole))
                         }
                         div {
-                            className = ClassName("btn col-2 align-items-center mr-2")
-                            fontAwesomeIcon(icon = faTimesCircle)
+                            className = ClassName("col-2 align-items-center mr-2")
                             val canDelete = selfRole.isSuperAdmin() ||
                                     selfRole == OWNER && !isSelfRecord(props.selfUserInfo, user) ||
                                     userRole.isLowerThan(selfRole)
-                            id = "remove-user-$userIndex"
-                            hidden = !canDelete
-                            onClick = {
-                                setUserToDelete(usersFromGroup[userIndex])
-                                deleteUser()
+                            if (canDelete) {
+                                buttonBuilder(faTimesCircle, "") {
+                                    setUserToDelete(usersFromGroup[userIndex])
+                                    deleteUser()
+                                }
                             }
                         }
                     }
@@ -222,6 +192,31 @@ private fun manageUserRoleCardComponent() = FC<ManageUserRoleCardProps> { props 
             }
         }
     }
+}
+
+/**
+ * [Props] for card component
+ */
+external interface ManageUserRoleCardProps : Props {
+    /**
+     * Information about user who is seeing the view
+     */
+    var selfUserInfo: UserInfo
+
+    /**
+     * Full name of a group
+     */
+    var groupPath: String
+
+    /**
+     * Kind of a group that will be shown ("project" or "organization" for now)
+     */
+    var groupType: String
+
+    /**
+     * Lambda to get users from project/organization
+     */
+    var getUserGroups: (UserInfo) -> Map<String, Role>
 }
 
 private fun isSelfRecord(selfUserInfo: UserInfo, otherUserInfo: UserInfo) = otherUserInfo.name == selfUserInfo.name

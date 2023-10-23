@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="rename-users-for-sandbox-before-v3" author="saveourtool-dev">
+        <renameTable oldTableName="user" newTableName="old_user"/>
+    </changeSet>
+
+    <changeSet id="cleanup-tables-before-v3" author="saveourtool-dev">
+        <sql>
+            DROP TABLE IF EXISTS lnk_contest_execution;
+            DROP TABLE IF EXISTS lnk_contest_project;
+            DROP TABLE IF EXISTS lnk_contest_test_suite;
+            DROP TABLE IF EXISTS lnk_execution_agent;
+            DROP TABLE IF EXISTS lnk_execution_file;
+            DROP TABLE IF EXISTS lnk_execution_test_suite;
+            DROP TABLE IF EXISTS lnk_organization_test_suite;
+            DROP TABLE IF EXISTS lnk_project_github;
+            DROP TABLE IF EXISTS lnk_user_organization;
+            DROP TABLE IF EXISTS lnk_user_project;
+            DROP TABLE IF EXISTS lnk_vulnerability_metadata_tag;
+            DROP TABLE IF EXISTS lnk_vulnerability_metadata_user;
+            DROP TABLE IF EXISTS agent_status;
+            DROP TABLE IF EXISTS agent;
+            DROP TABLE IF EXISTS awesome_benchmarks;
+            DROP TABLE IF EXISTS comments;
+            DROP TABLE IF EXISTS contest;
+            DROP TABLE IF EXISTS contest_sample_field;
+            DROP TABLE IF EXISTS contest_sample;
+            DROP TABLE IF EXISTS featured_contests;
+            DROP TABLE IF EXISTS file;
+            DROP TABLE IF EXISTS high_level_names;
+            DROP TABLE IF EXISTS original_login;
+            DROP TABLE IF EXISTS project_problem;
+            DROP TABLE IF EXISTS vulnerability_metadata_project;
+            DROP TABLE IF EXISTS vulnerability_metadata;
+            DROP TABLE IF EXISTS raw_cosv_file;
+            DROP TABLE IF EXISTS cosv_file;
+            DROP TABLE IF EXISTS tag;
+            DROP TABLE IF EXISTS test_execution;
+            DROP TABLE IF EXISTS test;
+            DROP TABLE IF EXISTS test_suite;
+            DROP TABLE IF EXISTS tests_source_version;
+            DROP TABLE IF EXISTS tests_source_snapshot;
+            DROP TABLE IF EXISTS test_suites_source;
+            DROP TABLE IF EXISTS git;
+            DROP TABLE IF EXISTS execution;
+            DROP TABLE IF EXISTS project;
+            DROP TABLE IF EXISTS cosv_generated_id;
+            DROP TABLE IF EXISTS organization;
+        </sql>
+    </changeSet>
+
+    <changeSet id="cleanup-events-before-v3" author="saveourtool-dev">
+        <sql>
+            DROP EVENT IF EXISTS delete_test_execution;
+            DROP EVENT IF EXISTS delete_execution;
+            DROP EVENT IF EXISTS delete_test;
+            DROP EVENT IF EXISTS delete_processed_raw_cosv_file;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

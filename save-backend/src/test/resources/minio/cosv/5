@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "id": "CVE-2022-22978",
+  "modified": "2021-01-01T00:00:00.000Z",
+  "published": "2021-01-01T00:00:00.000Z",
+  "timeline": [
+    {
+      "type": "found",
+      "value": "2022-01-01T00:00:00.000Z"
+    },
+    {
+      "type": "introduced",
+      "value": "2022-02-02T00:00:00Z"
+    }
+  ],
+  "severity": [
+    {
+      "type": "CVSS_V3",
+      "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "score_num": "9.8"
+    }
+  ],
+  "summary": "Incorrect Authorization",
+  "cwe_ids": ["CWE-79", "CWE-89", "CWE-78"],
+  "cwe_names": ["Improper Neutralization of Input During Web Page Generation (‘Cross-site Scripting’)", "Improper Neutralization of Special Elements used in an SQL Command (‘SQL Injection’)", "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"],
+  "related": ["CWE-32", "CWE-65", "CWE-108"],
+  "details": "In Spring Security versions 5.5.6 and 5.6.3 and older unsupported versions, RegexRequestMatcher can easily be misconfigured to be bypassed on some servlet containers. Applications using RegexRequestMatcher with `.` in the regular expression are possibly vulnerable to an authorization bypass",
+  "credits": [
+    {
+       "name": "admin",
+       "contact": [ "https://saveourtool.com/profile/admin" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "JohnDoe",
+       "contact": [ "https://saveourtool.com/profile/JohnDoe" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "admin",
+       "contact": [ "https://saveourtool.com/profile/admin" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "user",
+       "contact": [ "https://saveourtool.com/profile/user" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "user1",
+       "contact": [ "https://saveourtool.com/profile/user1" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "user2",
+       "contact": [ "https://saveourtool.com/profile/user2" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "user3",
+       "contact": [ "https://saveourtool.com/profile/user3" ],
+       "type": "REPORTER"
+    },
+    {
+       "name": "user4",
+       "contact": [ "https://saveourtool.com/profile/user4" ],
+       "type": "REPORTER"
+    }
+  ],
+  "confirm_type": "algorithm_confirmed",
+  "references": [
+    {
+      "type": "WEB",
+      "url": "https://spring.io/security/cve-2022-22978"
+    }
+  ]
+}

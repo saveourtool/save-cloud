@@ -37,6 +37,8 @@ abstract class AbstractS3KeyManager<K : Any>(
 
     override fun delete(key: K): Unit = Unit
 
+    override fun deleteAll(keys: Collection<K>) = Unit
+
     companion object {
         private fun String.validateSuffix(): String = also { suffix ->
             require(!suffix.startsWith(PATH_DELIMITER)) {

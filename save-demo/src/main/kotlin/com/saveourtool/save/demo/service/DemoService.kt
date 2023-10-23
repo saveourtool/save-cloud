@@ -12,6 +12,7 @@ import com.saveourtool.save.demo.storage.DependencyStorage
 import com.saveourtool.save.filters.DemoFilter
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
+import com.saveourtool.save.utils.kFindAll
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.springframework.data.domain.PageRequest
@@ -94,7 +95,7 @@ class DemoService(
      * @param pageSize amount of [Demo]s that should be fetched
      * @return list of [Demo]s that match [DemoFilter]
      */
-    fun getFiltered(demoFilter: DemoFilter, pageSize: Int): List<Demo> = demoRepository.findAll({ root, _, cb ->
+    fun getFiltered(demoFilter: DemoFilter, pageSize: Int): List<Demo> = demoRepository.kFindAll(PageRequest.ofSize(pageSize)) { root, _, cb ->
         with(demoFilter) {
             val organizationNamePredicate = if (organizationName.isBlank()) {
                 cb.and()
@@ -112,7 +113,7 @@ class DemoService(
                 projectNamePredicate,
             )
         }
-    }, PageRequest.ofSize(pageSize))
+    }
         .filter { demoFilter.statuses.isEmpty() || getStatus(it).block() in demoFilter.statuses }
         .toList()
 

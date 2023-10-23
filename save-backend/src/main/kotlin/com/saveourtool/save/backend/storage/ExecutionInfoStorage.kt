@@ -11,7 +11,7 @@ import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.upload
+import com.saveourtool.save.utils.uploadAndReturnContentSize
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
@@ -69,11 +69,11 @@ class ExecutionInfoStorage(
             }
         }
         .flatMap { executionInfoToSafe ->
-            log.debug { "Writing debug info for ${executionInfoToSafe.id} to storage" }
-            upload(executionInfoToSafe.id, objectMapper.writeValueAsBytes(executionInfoToSafe))
+            log.debug { "Writing execution info for ${executionInfoToSafe.id} to storage" }
+            uploadAndReturnContentSize(executionInfoToSafe.id, objectMapper.writeValueAsBytes(executionInfoToSafe))
         }
         .map { bytesCount ->
-            log.debug { "Wrote $bytesCount bytes of debug info for ${executionInfo.id} to storage" }
+            log.debug { "Wrote $bytesCount bytes of execution info for ${executionInfo.id} to storage" }
         }
 
     override fun doBuildKeyFromSuffix(s3KeySuffix: String): Long = s3KeySuffix.toLong()

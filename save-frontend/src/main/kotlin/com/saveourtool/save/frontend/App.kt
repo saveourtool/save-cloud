@@ -4,164 +4,105 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
+import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
+import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
-import com.saveourtool.save.frontend.http.getUser
 import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.validation.FrontendRoutes
 
+import org.w3c.fetch.Response
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.*
-import react.router.dom.HashRouter
+import react.router.dom.BrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-
-/**
- * Top-level state of the whole App
- */
-external interface AppState : State {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-}
 
 /**
  * Main component for the whole App
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-class App : ComponentWithScope<PropsWithChildren, AppState>() {
-    init {
-        state.userInfo = null
-    }
+@Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE", "EMPTY_BLOCK_STRUCTURE_ERROR")
+val App: VFC = FC {
+    val (userInfo, setUserInfo) = useState<UserInfo?>(null)
+    useRequest {
+        val userName: String? = get(
+            "${window.location.origin}/sec/user",
+            jsonHeaders,
+            loadingHandler = ::loadingHandler,
+            responseHandler = ::noopResponseHandler
+        ).validTextOrNull()
 
-    override fun componentDidMount() {
-        getUser()
-    }
-
-    @Suppress("TOO_LONG_FUNCTION", "NULLABLE_PROPERTY_TYPE")
-    private fun getUser() {
-        scope.launch {
-            val userName: String? = get(
-                "${window.location.origin}/sec/user",
+        val globalRole: Role? = userName?.let {
+            get(
+                "$apiUrl/users/global-role",
                 jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
                 responseHandler = ::noopResponseHandler
-            ).run {
-                val responseText = text().await()
-                if (!ok || responseText == "null") null else responseText
-            }
+            )
+                .validTextOrNull()
+                ?.let { Json.decodeFromString(it) }
+        }
 
-            val globalRole: Role? = get(
-                "${window.location.origin}/api/$v1/users/global-role",
-                jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler
-            ).run {
-                val responseText = text().await()
-                if (!ok || responseText == "null") null else Json.decodeFromString(responseText)
-            }
+        val user: UserInfo? = userName?.let {
+            get("$apiUrl/users/$userName", jsonHeaders, loadingHandler = ::loadingHandler)
+                .decodeFromJsonString<UserInfo>()
+        }
 
-            val user: UserInfo? = userName
-                ?.let { getUser(it) }
+        val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole)
+            ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
 
-            val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole) ?: userName?.let {
-                UserInfo(
-                    name = userName,
-                    globalRole = globalRole,
-                )
-            }
-
-            userInfoNew?.let {
-                setState {
-                    userInfo = userInfoNew
+        userInfoNew?.let { setUserInfo(userInfoNew) }
+    }
+    BrowserRouter {
+        basename = "/"
+        requestModalHandler {
+            this.userInfo = userInfo
+            div {
+                className = ClassName("d-flex flex-column")
+                id = "content-wrapper"
+                ErrorBoundary::class.react {
+                    topBarComponent { this.userInfo = userInfo }
+                    div {
+                        className = ClassName("container-fluid")
+                        id = "common-save-container"
+                        basicRouting {
+                            this.userInfo = userInfo
+                            this.userInfoSetter = setUserInfo
+                        }
+                    }
+                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                        cookieBanner { }
+                    }
+                    footer { }
                 }
             }
         }
-    }
-
-    @Suppress(
-        "EMPTY_BLOCK_STRUCTURE_ERROR",
-        "TOO_LONG_FUNCTION",
-        "LongMethod",
-        "ComplexMethod",
-    )
-    override fun ChildrenBuilder.render() {
-        HashRouter {
-            requestModalHandler {
-                userInfo = state.userInfo
-
-                if (state.userInfo?.status == UserStatus.CREATED) {
-                    Navigate {
-                        to = "/${FrontendRoutes.REGISTRATION}"
-                        replace = false
-                    }
-                }
-
-                div {
-                    className = ClassName("d-flex flex-column")
-                    id = "content-wrapper"
-                    ErrorBoundary::class.react {
-                        topBarComponent {
-                            userInfo = state.userInfo
-                        }
-                        div {
-                            className = ClassName("container-fluid")
-                            id = "common-save-container"
-                            basicRouting {
-                                userInfo = state.userInfo
-                            }
-                        }
-                        footer { }
-                    }
-                }
-            }
-            scrollToTopButton()
-        }
+        scrollToTopButton()
     }
 }
 
-/**
- * The function creates routers with the given [basePath] and ending of string with all the elements given Enum<T>
- *
- * @param basePath
- * @param routeElement
- */
-inline fun <reified T : Enum<T>> ChildrenBuilder.createRoutersWithPathAndEachListItem(
-    basePath: String,
-    routeElement: FC<Props>
-) {
-    enumValues<T>().map { it.name.lowercase() }.forEach { item ->
-        PathRoute {
-            path = "$basePath/$item"
-            element = routeElement.create()
-        }
+private suspend fun Response.validTextOrNull(): String? = text()
+    .await()
+    .takeIf {
+        ok && it.isNotEmpty() && it != "null"
     }
-    PathRoute {
-        path = basePath
-        element = routeElement.create()
-    }
-}
 
-@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 fun main() {
     /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
+    @Suppress("UnsafeCastFromDynamic")
     if (window.asDynamic().__karma__) {
         return
     }
@@ -170,6 +111,7 @@ fun main() {
     kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
+    initI18n()
     val mainDiv = document.getElementById("wrapper") as HTMLElement
-    createRoot(mainDiv).render(App::class.react.create())
+    createRoot(mainDiv).render(App.create())
 }

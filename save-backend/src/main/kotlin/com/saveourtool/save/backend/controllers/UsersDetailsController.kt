@@ -6,16 +6,18 @@ import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
-import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
+import com.saveourtool.save.validation.isValidLengthName
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -57,22 +59,27 @@ class UsersDetailsController(
     )
     @Parameters(
         Parameter(name = "prefix", `in` = ParameterIn.QUERY, description = "username prefix", required = true),
-        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of users that should be returned, default: 5", required = false),
+        Parameter(
+            name = "pageSize",
+            `in` = ParameterIn.QUERY,
+            description = "amount of users that should be returned, default: 5",
+            required = false
+        ),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched users.")
     @RequiresAuthorizationSourceHeader
     fun findByPrefix(
         @RequestParam prefix: String,
         @RequestParam(required = false, defaultValue = "5") pageSize: Int,
-        @RequestParam(required = false, defaultValue = "") ids: String,
-    ): Flux<UserInfo> = ids.toMono()
-        .map { stringIds -> stringIds.split(DATABASE_DELIMITER) }
-        .map { stringIdList -> stringIdList.filter { it.isNotBlank() }.map { it.toLong() }.toSet() }
-        .flatMapMany { idList ->
-            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `idList` results with empty list for some reason
+        @RequestParam(required = false, defaultValue = "") namesToSkip: String,
+    ): Flux<UserInfo> = namesToSkip.toMono()
+        .map { stringNames -> stringNames.split(DATABASE_DELIMITER) }
+        .map { stringNameList -> stringNameList.filter { it.isNotBlank() }.toSet() }
+        .flatMapMany { nameList ->
+            // `userRepository.findByNameStartingWithAndIdNotIn` with empty `nameList` results with empty list for some reason
             blockingToFlux {
-                if (idList.isNotEmpty()) {
-                    userRepository.findByNameStartingWithAndIdNotIn(prefix, idList, Pageable.ofSize(pageSize))
+                if (nameList.isNotEmpty()) {
+                    userRepository.findByNameStartingWithAndNameNotIn(prefix, nameList, Pageable.ofSize(pageSize))
                 } else {
                     userRepository.findByNameStartingWith(prefix, Pageable.ofSize(pageSize))
                 }
@@ -95,28 +102,47 @@ class UsersDetailsController(
      */
     @PostMapping("/save")
     @PreAuthorize("isAuthenticated()")
+    @Suppress("MagicNumber")
     fun saveUser(@RequestBody newUserInfo: UserInfo, authentication: Authentication): Mono<StringResponse> = Mono.just(newUserInfo)
-        .map {
-            val user: User = userRepository.findByName(newUserInfo.oldName ?: newUserInfo.name).orNotFound()
-            val response = if (user.id == authentication.userId()) {
-                userDetailsService.saveUser(user.apply {
-                    name = newUserInfo.name
-                    email = newUserInfo.email
-                    company = newUserInfo.company
-                    location = newUserInfo.location
-                    gitHub = newUserInfo.gitHub
-                    linkedin = newUserInfo.linkedin
-                    twitter = newUserInfo.twitter
-                    status = newUserInfo.status
-                }, newUserInfo.oldName)
-            } else {
-                UserSaveStatus.CONFLICT
+        .filter { newUserInfo.name.isValidLengthName() }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.INVALID_NAME.message
+        }
+        .blockingMap {
+            userRepository.findByIdOrNull(authentication.userId())
+        }
+        .switchIfEmptyToNotFound {
+            "User with id ${authentication.userId()} not found in database"
+        }
+        .blockingMap { user ->
+            val oldName = user.name.takeUnless { it == newUserInfo.name }
+            val oldStatus = user.status
+            val newStatus = when (oldStatus) {
+                UserStatus.CREATED -> UserStatus.NOT_APPROVED
+                UserStatus.ACTIVE -> UserStatus.ACTIVE
+                else -> null
             }
-            response
+            newStatus?.let {
+                userDetailsService.saveUser(
+                    user.apply {
+                        name = newUserInfo.name
+                        email = newUserInfo.email
+                        company = newUserInfo.company
+                        location = newUserInfo.location
+                        gitHub = newUserInfo.gitHub
+                        linkedin = newUserInfo.linkedin
+                        twitter = newUserInfo.twitter
+                        status = newStatus
+                        website = newUserInfo.website
+                        realName = newUserInfo.realName
+                        freeText = newUserInfo.freeText
+                    },
+                    oldName,
+                    oldStatus,
+                )
+            } ?: UserSaveStatus.FORBIDDEN
         }
-        .filter { status ->
-            status == UserSaveStatus.UPDATE
-        }
+        .filter { status -> status == UserSaveStatus.UPDATE }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message
         }
@@ -160,16 +186,62 @@ class UsersDetailsController(
      * @param userName
      * @param authentication
      */
-    @GetMapping("/delete/{userName}")
+    @GetMapping("/delete")
     @PreAuthorize("isAuthenticated()")
     fun deleteUser(
-        @PathVariable userName: String,
+        @RequestParam userName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
+        .map { status ->
+            when (status) {
+                UserSaveStatus.DELETED ->
+                    ResponseEntity.ok(status.message)
+                else ->
+                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+            }
+        }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/ban")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun banUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.banUser(userName)
+    }
         .filter { status ->
-            status == UserSaveStatus.DELETED
+            status == UserSaveStatus.BANNED
+        }
+        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
+            UserSaveStatus.CONFLICT.message
+        }
+        .map { status ->
+            ResponseEntity.ok(status.message)
+        }
+
+    /**
+     * @return list of [UserInfo] info about users
+     */
+    @GetMapping("/new-users")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun findNewUsers(): Flux<UserInfo> = blockingToFlux { userRepository.findByStatus(UserStatus.NOT_APPROVED).map { it.toUserInfo() } }
+
+    /**
+     * @param userName
+     */
+    @GetMapping("/approve")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun approveUser(
+        @RequestParam userName: String,
+    ): Mono<StringResponse> = blockingToMono {
+        userDetailsService.approveUser(userName)
+    }
+        .filter { status ->
+            status == UserSaveStatus.APPROVED
         }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             UserSaveStatus.CONFLICT.message

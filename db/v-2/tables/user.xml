@@ -93,4 +93,32 @@
         <dropColumn tableName="user" columnName="source"/>
     </changeSet>
 
+    <changeSet id="user-add-site" author="kuleshov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="website" type="varchar(64)"/>
+            <column name="free_text" type="varchar(1500)"/>
+            <column name="real_name" type="varchar(128)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="user-add-date" author="frolov" context="dev or prod">
+        <addColumn tableName="user">
+            <column name="create_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="update_date" type="DATETIME(3)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <sql>
+            UPDATE user SET create_date = '2022-01-01 00:00:00';
+            UPDATE user SET create_date = '2022-01-01 00:00:00';
+        </sql>
+    </changeSet>
+
+    <changeSet id="increase-user-name" author="nulls">
+        <modifyDataType tableName="user" columnName="name" newDataType="varchar(255)"/>
+    </changeSet>
+
 </databaseChangeLog>

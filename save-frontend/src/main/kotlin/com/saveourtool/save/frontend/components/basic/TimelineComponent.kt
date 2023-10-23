@@ -2,17 +2,21 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.frontend.externals.fontawesome.faPlus
+import com.saveourtool.save.entities.cosv.VulnerabilityExt
+import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.buttonBuilder
-import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
 import web.cssom.*
 
 import kotlinx.datetime.LocalDateTime
 
+const val HOVERABLE_CONST = "hoverable"
+
 val timelineComponent: FC<TimelineComponentProps> = FC { props ->
-    val hoverable = props.onNodeClick?.let { "hoverable" }.orEmpty()
+    val (t) = useTranslation("dates")
+    val hoverable = props.onNodeClick?.let { HOVERABLE_CONST }.orEmpty()
 
     div {
         className = ClassName("mb-3")
@@ -22,46 +26,50 @@ val timelineComponent: FC<TimelineComponentProps> = FC { props ->
                 +title
             }
         }
+
+        props.onAddClick?.let { onClickCallback ->
+            buttonBuilder(
+                label = "Add date".t(),
+                style = "secondary",
+                isOutline = true,
+                classes = "btn btn-sm btn-primary"
+            ) {
+                onClickCallback()
+            }
+        }
+
         div {
             className = ClassName("p-0 timeline-container")
             div {
                 className = ClassName("steps-container")
                 div {
-                    style = jso {
-                        position = "absolute".unsafeCast<Position>()
-                        right = "1%".unsafeCast<Right>()
-                        top = "0%".unsafeCast<Top>()
-                        zIndex = "4".unsafeCast<ZIndex>()
-                    }
-                    props.onAddClick?.let { onClickCallback ->
-                        buttonBuilder(faPlus, style = "secondary", isOutline = true, classes = "rounded-circle btn-sm mt-1 mr-1") {
-                            onClickCallback()
-                        }
-                    }
+                    className = ClassName("line")
                 }
-                div {
-                    className = ClassName("line completed")
-                }
-                props.dates.toList()
-                    .sortedBy { it.first }
+
+                // <published> is nullable field in schema, so if it is null we should not be showing it
+                props.dates
+                    .toList()
+                    .sortedBy { it.date }
                     .forEach { (dateTime, label) ->
                         div {
-                            className = ClassName("step completed $hoverable")
-                            props.onNodeClick?.let { onClickCallback ->
-                                style = jso { cursor = "pointer".unsafeCast<Cursor>() }
-                                onClick = { onClickCallback(dateTime, label) }
+                            className =
+                                    ClassName(if (!label.isSystemDateType()) "step $hoverable" else "step-non-editable")
+                            if (!label.isSystemDateType()) {
+                                props.onNodeClick?.let { onClickCallback ->
+                                    onClick = { onClickCallback(dateTime, label.value) }
+                                }
                             }
                             div {
-                                className = ClassName("text-label completed")
-                                +label
+                                className = ClassName("text-label")
+                                +label.value.t()
                             }
                             div {
-                                className = ClassName("date-label completed")
+                                className = ClassName("date-label")
                                 +dateTime.date.toString()
                             }
                         }
                         div {
-                            className = ClassName("line completed")
+                            className = ClassName("line")
                         }
                     }
                 div {
@@ -84,7 +92,7 @@ external interface TimelineComponentProps : Props {
     /**
      * Map with dates where key is [LocalDateTime] and value is label
      */
-    var dates: Map<LocalDateTime, String>
+    var dates: List<VulnerabilityDateDto>
 
     /**
      * Callback that should be invoked on add button click
@@ -96,4 +104,9 @@ external interface TimelineComponentProps : Props {
      */
     @Suppress("TYPE_ALIAS")
     var onNodeClick: ((LocalDateTime, String) -> Unit)?
+
+    /**
+     * Vulnerability dto of vulnerability
+     */
+    var vulnerability: VulnerabilityExt
 }

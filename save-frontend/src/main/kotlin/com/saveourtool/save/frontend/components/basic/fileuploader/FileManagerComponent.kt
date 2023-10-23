@@ -9,23 +9,18 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
-import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.utils.toMegabytes
 
 import js.core.asList
 import react.*
-import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ul
 import web.cssom.ClassName
 import web.file.File
-import web.html.ButtonType
-
-import kotlinx.browser.window
 
 /**
  * [FC] for file uploading
@@ -62,7 +57,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             val response = delete(
                 "$apiUrl/files/delete?fileId=${file.requiredId()}",
                 jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
+                loadingHandler = ::loadingHandler,
             )
 
             if (response.ok) {
@@ -92,7 +87,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             className = ClassName("list-group shadow")
             @Suppress("MAGIC_NUMBER", "MagicNumber")
             li {
-                val storageSizeMegabytes = storageBytes.toMegabytes()
+                val storageSizeMegabytes = storageBytes.toDouble().toMegabytes()
                 // todo: storage size shouldn't be more then 500MB per project
                 val textColor = when {
                     storageSizeMegabytes > 450 -> "text-danger"
@@ -106,28 +101,12 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             availableFiles.map { file ->
                 li {
                     className = ClassName("list-group-item")
-                    a {
-                        button {
-                            type = ButtonType.button
-                            className = ClassName("btn")
-                            fontAwesomeIcon(icon = faDownload)
-                        }
-                        download = file.name
-                        href = "$apiUrl/files/download?fileId=${file.requiredId()}"
+                    downloadFileButton(file, FileDto::name) {
+                        "$apiUrl/files/download?fileId=${it.requiredId()}"
                     }
-                    button {
-                        type = ButtonType.button
-                        className = ClassName("btn")
-                        fontAwesomeIcon(icon = faTrash)
-                        onClick = {
-                            val confirm = window.confirm(
-                                "Are you sure you want to delete ${file.name} file?"
-                            )
-                            if (confirm) {
-                                setFileToDelete(file)
-                                deleteFile()
-                            }
-                        }
+                    deleteFileButton(file, FileDto::name) {
+                        setFileToDelete(it)
+                        deleteFile()
                     }
 
                     +file.prettyPrint()
@@ -138,6 +117,7 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             li {
                 className = ClassName("list-group-item p-0 d-flex bg-light")
                 dragAndDropForm {
+                    isDisabled = false
                     isMultipleFilesSupported = true
                     tooltipMessage = "Regular files/Executable files/ZIP Archives"
                     onChangeEventHandler = { files ->
@@ -151,7 +131,6 @@ val fileManagerComponent: FC<FileManagerProps> = FC { props ->
             progressBarComponent {
                 current = uploadBytesReceived
                 total = uploadBytesTotal
-                getLabelText = { current, total -> "${current.toKiloBytes()} / ${total.toKiloBytes()} KB" }
                 flushCounters = {
                     setUploadBytesTotal(0)
                     setUploadBytesReceived(0)
@@ -170,9 +149,3 @@ external interface FileManagerProps : Props {
      */
     var projectCoordinates: ProjectCoordinates
 }
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toKiloBytes() = div(1024)
-
-@Suppress("MagicNumber", "MAGIC_NUMBER")
-private fun Long.toMegabytes() = toDouble().div(1024 * 1024)

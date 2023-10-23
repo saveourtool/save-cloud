@@ -8,6 +8,8 @@ import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.validation.isValidLengthName
+import org.springframework.data.domain.Pageable
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -33,7 +35,9 @@ class OrganizationService(
     @Suppress("UnsafeCallOnNullableType", "TooGenericExceptionCaught")
     @Transactional
     fun saveOrganization(organization: Organization): Pair<Long, OrganizationSaveStatus> {
-        val (organizationId, organizationSaveStatus) = if (organizationRepository.validateName(organization.name) != 0L) {
+        val (organizationId, organizationSaveStatus) = if (!organization.name.isValidLengthName()) {
+            Pair(0L, OrganizationSaveStatus.INVALID_NAME)
+        } else if (organizationRepository.validateName(organization.name) != 0L) {
             organizationRepository.saveHighLevelName(organization.name)
             Pair(organizationRepository.save(organization).id, OrganizationSaveStatus.NEW)
         } else {
@@ -147,11 +151,13 @@ class OrganizationService(
 
     /**
      * @param organizationFilter
+     * @param pageable [Pageable]
      * @return list of organizations with that match [organizationFilter]
      */
-    fun getFiltered(organizationFilter: OrganizationFilter): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
+    fun getFiltered(organizationFilter: OrganizationFilter, pageable: Pageable): List<Organization> = organizationRepository.findByNameStartingWithAndStatusIn(
         organizationFilter.prefix,
         organizationFilter.statuses,
+        pageable,
     )
 
     /**
@@ -161,17 +167,23 @@ class OrganizationService(
     fun updateOrganization(organization: Organization): Organization = organizationRepository.save(organization)
 
     /**
+     * We change the version just to work-around the caching on the frontend
+     *
      * @param name
+     * @return the id (version) of new avatar
      * @throws NoSuchElementException
      */
-    fun updateAvatarVersion(name: String) {
+    fun updateAvatarVersion(name: String): String {
         val organization = organizationRepository.findByName(name).orNotFound()
         var version = organization.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        val newAvatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
 
         organization.apply {
-            avatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
+            avatar = newAvatar
         }.orNotFound { "Organization with name [$name] was not found." }
         organization.let { organizationRepository.save(it) }
+
+        return newAvatar
     }
 
     /**

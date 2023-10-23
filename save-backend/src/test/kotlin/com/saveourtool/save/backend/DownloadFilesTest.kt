@@ -2,21 +2,21 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.controllers.FileController
 import com.saveourtool.save.backend.controllers.internal.FileInternalController
-import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
+import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.collectToInputStream
 import com.saveourtool.save.v1
@@ -50,7 +50,6 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 
 import java.time.LocalDateTime
-import java.util.*
 import java.util.concurrent.Future
 import kotlin.io.path.*
 
@@ -71,6 +70,15 @@ import kotlin.io.path.*
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(DebugInfoStorage::class),
     MockBean(ExecutionInfoStorage::class),
+    MockBean(IBackendService::class),
+    MockBean(VulnerabilityMetadataRepository::class),
+    MockBean(LnkVulnerabilityMetadataTagRepository::class),
+    MockBean(LnkVulnerabilityMetadataUserRepository::class),
+    MockBean(VulnerabilityMetadataProjectRepository::class),
+    MockBean(RawCosvFileRepository::class),
+    MockBean(CosvFileRepository::class),
+    MockBean(BlockingBridge::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 class DownloadFilesTest {
     private val organization = Organization.stub(2).apply {
@@ -121,9 +129,7 @@ class DownloadFilesTest {
     @Suppress("TOO_LONG_FUNCTION")
     @WithMockUser(roles = ["USER"])
     fun `should download a file`() {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val fileContent = "Lorem ipsum"
         whenever(fileStorage.doesExist(file1.toDto()))
@@ -178,9 +184,7 @@ class DownloadFilesTest {
     @Test
     @WithMockUser(roles = ["ADMIN"])
     fun checkUpload(@TempDir tmpDir: Path) {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = 1)
-        }
+        mutateMockedUser(id = 1)
 
         val fileContent = "Some content"
         val file = (tmpDir / file2.name).createFile()

@@ -27,6 +27,29 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: sandbox-api_route
+          uri: ${gateway.sandbox.url}
+          predicates:
+            - Path=/api/sandbox/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - AuthorizationHeaders=
+        - id: demo-api_route
+          uri: ${gateway.demo.url}
+          predicates:
+            - Path=/api/demo/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - AuthorizationHeaders=
+        - id: demo-cpg-api_route
+          uri: ${gateway.demo-cpg.url}
+          predicates:
+            - Path=/api/cpg/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
         - id: api_route
           uri: ${gateway.backend.url}
           predicates:
@@ -34,18 +57,13 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: index_route
-          uri: ${gateway.frontend.url}/index.html
+            - AuthorizationHeaders=
+        - id: neo4j_route
+          uri: ${gateway.neo4j-browser.url}
           predicates:
-            - Path=/
+            - Path=/neo4j/browser/**
           filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-        - id: error_route
-          uri: ${gateway.backend.url}/error
-          predicates:
-            - Path=/error
+            - StripPrefix=1
         - id: resource_route
           uri: ${gateway.frontend.url}
           predicates:
@@ -53,35 +71,13 @@ spring:
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-        - id: sandbox-api_route
-          uri: ${gateway.sandbox.url}
+        - id: index_route
+          uri: ${gateway.frontend.url}/index.html
           predicates:
-            - Path=/sandbox/api/**
+            - Path=/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
             - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: demo-api_route
-          uri: ${gateway.demo.url}
-          predicates:
-            - Path=/demo/api/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-            - ConvertAuthorizationHeader=
-        - id: demo-cpg-api_route
-          uri: ${gateway.demo-cpg.url}
-          predicates:
-            - Path=/cpg/api/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-        - id: neo4j_route
-          uri: ${gateway.neo4j-browser.url}
-          predicates:
-            - Path=/neo4j/browser/**
-          filters:
-            - StripPrefix=1
 
 ---
 spring:
@@ -101,6 +97,13 @@ spring:
             # until we have fixed https://github.com/saveourtool/save-cloud/issues/2336
             # (now we use sub as a default user-name-attribute)
             # ===================
+          huawei:
+            authorization-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/authorize
+            token-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/token
+            jwk-set-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/certs
+            user-info-uri: https://account.cloud.huawei.com/rest.php?nsp_svc=GOpen.User.getInfo
+            user-name-attribute: openID
+            user-info-authentication-method: post
           gitee:
             authorization-uri: https://gitee.com/oauth/authorize
             token-uri: https://gitee.com/oauth/token
@@ -111,12 +114,29 @@ spring:
             # https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
             user-name-attribute: login
         registration:
+          huawei:
+            provider: huawei
+            # hardcoded as for gitee
+            redirect-uri: '{baseUrl}/login/oauth2/code/huawei'
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            # can be
+            #  - openid (doesn't work due to invalid_nonce)
+            #  - email (works but user allowed to not select to share an email)
+            #  - profile
+            scope: profile
           gitee:
             client-name: Gitee
             provider: gitee
             # it can be '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}',
             # but for security reasons I would like to hardcode a domain name
-            redirect-uri: 'https://saveourtool.com/login/oauth2/code/gitee'
+            redirect-uri: '{baseUrl}/login/oauth2/code/gitee'
             authorization-grant-type: authorization_code
             scope:
               - user_info
+---
+# logout timeout
+server:
+  servlet:
+    session:
+      timeout: 15m

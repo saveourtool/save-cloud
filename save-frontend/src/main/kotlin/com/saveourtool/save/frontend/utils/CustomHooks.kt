@@ -8,7 +8,9 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.lodash.debounce
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
+import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import org.w3c.dom.EventSource
@@ -18,11 +20,46 @@ import org.w3c.dom.events.Event
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import react.*
+import react.router.useNavigate
 
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onCompletion
+
+/**
+ * Hook that redirects to special pages depending on [status]
+ *
+ * @param status [UserStatus] of current user
+ */
+fun useUserStatusRedirects(status: UserStatus?) {
+    val navigate = useNavigate()
+    useEffect(status, window.location.pathname) {
+        if (status == UserStatus.CREATED && window.location.pathname != "/${FrontendRoutes.TERMS_OF_USE}") {
+            navigate("/${FrontendRoutes.REGISTRATION}", jso { replace = false })
+        } else if (status == UserStatus.BANNED) {
+            navigate("/${FrontendRoutes.BAN}", jso { replace = false })
+        } else if (status == UserStatus.NOT_APPROVED) {
+            navigate(to = "/${FrontendRoutes.THANKS_FOR_REGISTRATION}", jso { replace = false })
+        }
+    }
+}
+
+/**
+ * Hook that redirects to index view when [predicate] is true
+ *
+ * @param dependencies dependencies to be put to underlying [useEffect]
+ * @param predicate callback that defines whether redirect should be performed or not
+ */
+fun useRedirectToIndexIf(vararg dependencies: Any?, predicate: () -> Boolean) {
+    val navigate = useNavigate()
+    useEffect(dependencies) {
+        if (predicate()) {
+            navigate("/", jso { replace = true })
+        }
+    }
+}
 
 /**
  * Runs the provided [action] only once of first render

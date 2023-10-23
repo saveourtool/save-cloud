@@ -1,7 +1,7 @@
 package com.saveourtool.save.storage.key
 
 import com.saveourtool.save.entities.DtoWithId
-import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
+import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.orNotFound
@@ -14,7 +14,7 @@ import org.springframework.data.repository.findByIdOrNull
  * @param repository repository for [E] which is entity for [K]
  * @param blockingBridge
  */
-abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithId<K>, R : BaseEntityRepository<E>>(
+abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDto<K>, R : BaseEntityRepository<E>>(
     prefix: String,
     repository: R,
     blockingBridge: BlockingBridge,
@@ -26,7 +26,7 @@ abstract class AbstractS3KeyDtoManager<K : DtoWithId, E : BaseEntityWithDtoWithI
     override fun findEntity(key: K): E? = key.id
         ?.let { id ->
             repository.findByIdOrNull(id)
-                .orNotFound { "Failed to find entity for $this by id = $id" }
+                .orNotFound { "Failed to find entity for ${this.javaClass.simpleName} by id = $id" }
         }
         ?: findByDto(key)
 

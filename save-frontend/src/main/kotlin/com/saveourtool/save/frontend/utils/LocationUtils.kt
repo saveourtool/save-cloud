@@ -3,6 +3,7 @@
 package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.SETTINGS
 import remix.run.router.Location
 
 /**
@@ -18,15 +19,20 @@ fun Location.not(url: String) = pathname != url
 fun Location.notIn(urls: List<String>) = urls.all { not(it) }
 
 /**
- * @param routes list of [FrontendRoutes]
+ * @param routes array of [FrontendRoutes]
  * @return true of [Location] is not in [FrontendRoutes.path] of [routes]
  */
-fun Location.notIn(routes: List<FrontendRoutes>) = notIn(routes.map { "/$it" })
+fun Location.notIn(routes: Array<FrontendRoutes>) = notIn(routes.map { "/$it" })
 
 /**
  * @return true if [Location.pathname] starts with `/vuln`, false otherwise
  */
-fun Location.isVuln() = pathname.startsWith("/vuln")
+fun Location.isVuln() = this.pathname.startsWith("/vuln")
+
+/**
+ * @return true if [Location.pathname] starts with `/settings`, false otherwise
+ */
+fun Location.isSettings() = this.pathname.startsWith("/$SETTINGS")
 
 /**
  * @return true if we are on a main (index) page

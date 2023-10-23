@@ -3,15 +3,14 @@
 package com.saveourtool.save.frontend.components.basic.table.filters
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.buttonBuilder
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.useEffect
 import react.useState
 import web.cssom.ClassName
-import web.html.ButtonType
 import web.html.InputType
 
 val nameFiltersRow: FC<NameFilterRowProps> = FC { props ->
@@ -32,37 +31,29 @@ val nameFiltersRow: FC<NameFilterRowProps> = FC { props ->
                 fontAwesomeIcon(icon = faFilter)
             }
             div {
-                className = ClassName("row")
-                div {
-                    className = ClassName("col-auto align-self-center")
-                    +"Name: "
-                }
-                div {
-                    className = ClassName("col-auto mr-3")
-                    input {
-                        type = InputType.text
-                        className = ClassName("form-control")
-                        value = filtersName ?: ""
-                        required = false
-                        onChange = {
-                            setFiltersName(it.target.value)
-                        }
+                className = ClassName("col-auto align-self-center")
+                +"Name: "
+            }
+            div {
+                className = ClassName("col-8")
+                input {
+                    type = InputType.text
+                    className = ClassName("form-control")
+                    value = filtersName ?: ""
+                    required = false
+                    onChange = {
+                        setFiltersName(it.target.value)
                     }
                 }
             }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mr-3")
-                fontAwesomeIcon(icon = faSearch)
-                onClick = {
+
+            div {
+                className = ClassName("col-auto ml-auto d-flex justify-content-between align-items-center")
+                buttonBuilder(faSearch, "secondary", isOutline = true, classes = "mr-1 btn-sm") {
                     props.onChangeFilters(filtersName)
                 }
-            }
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary")
-                fontAwesomeIcon(icon = faWindowClose)
-                onClick = {
+
+                buttonBuilder(faWindowClose, "secondary", isOutline = true, classes = "ml-1 btn-sm") {
                     setFiltersName(null)
                     props.onChangeFilters(null)
                 }

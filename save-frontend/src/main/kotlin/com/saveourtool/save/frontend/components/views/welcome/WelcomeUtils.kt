@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.welcome
 
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.OauthProvidersFeConfig
 import com.saveourtool.save.frontend.utils.processRegistrationId
@@ -21,19 +22,27 @@ import react.dom.html.ReactHTML.p
 import react.router.dom.Link
 import web.cssom.*
 
+const val INPUT_CREDENTIALS_VIEW_CUSTOM_BG = "rgb(240, 240, 240)"
+
 /**
  * @param oauthProviders
  * @param primaryColor color of a shield
  * @param continueLink link for `continue` button
+ * @param t [TranslationFunction] received from [com.saveourtool.save.frontend.externals.i18next.useTranslation] hook
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress("TOO_LONG_FUNCTION", "IDENTIFIER_LENGTH")
 internal fun ChildrenBuilder.inputCredentialsView(
     oauthProviders: List<OauthProviderInfo>,
     primaryColor: Colors,
     continueLink: String,
+    t: TranslationFunction,
 ) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
+        style = jso {
+            background = INPUT_CREDENTIALS_VIEW_CUSTOM_BG.unsafeCast<Background>()
+            border = "1px solid".unsafeCast<Border>()
+        }
         div {
             className = ClassName("shadow-primary border-radius-lg py-3 pe-1 rounded")
             style = jso {
@@ -41,18 +50,18 @@ internal fun ChildrenBuilder.inputCredentialsView(
             }
             h4 {
                 className = ClassName("text-white font-weight-bolder text-center mt-2 mb-3")
-                +"Sign in with"
+                +"Sign in with".t()
             }
-            div {
-                className = ClassName("row")
-                oauthProviders.map {
-                    processRegistrationId(
-                        OauthProvidersFeConfig(
-                            size = @Suppress("MAGIC_NUMBER") 3.rem,
-                            it,
-                        )
+        }
+        div {
+            className = ClassName("row")
+            oauthProviders.map {
+                processRegistrationId(
+                    OauthProvidersFeConfig(
+                        size = @Suppress("MAGIC_NUMBER") 3.rem,
+                        it,
                     )
-                }
+                )
             }
         }
     }
@@ -65,7 +74,7 @@ internal fun ChildrenBuilder.inputCredentialsView(
                 className = ClassName("mt-4 text-sm text-center")
                 p {
                     className = ClassName("mb-0")
-                    +"Don't have an account?"
+                    +"Don't have an account?".t()
                 }
 
                 div {
@@ -77,11 +86,11 @@ internal fun ChildrenBuilder.inputCredentialsView(
                         Link {
                             to = continueLink
                             className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
-                            +"Continue "
+                            +"Continue".t()
                             fontAwesomeIcon(icon = faSignInAlt)
                         }
                     }
-                    +"with limited functionality"
+                    +"with limited functionality".t()
                 }
             }
         }
@@ -93,12 +102,15 @@ internal fun ChildrenBuilder.inputCredentialsView(
  *
  * @param userInfo current [UserInfo]
  * @param primaryColor color of `Welcome, {username}` shield
+ * @param t [TranslationFunction] received from [com.saveourtool.save.frontend.externals.i18next.useTranslation] hook
  * @param renderMenu callback to render menu options
  */
+@Suppress("IDENTIFIER_LENGTH")
 internal fun ChildrenBuilder.welcomeUserMenu(
     userInfo: UserInfo?,
     primaryColor: Colors,
-    renderMenu: ChildrenBuilder.() -> Unit
+    t: TranslationFunction,
+    renderMenu: ChildrenBuilder.() -> Unit,
 ) {
     div {
         className = ClassName("card-header p-0 position-relative mt-n4 mx-3 z-index-2 rounded")
@@ -122,7 +134,7 @@ internal fun ChildrenBuilder.welcomeUserMenu(
                         }
                     }
                 }
-                +"Welcome, ${userInfo?.name}!"
+                +"${"Welcome".t()}, ${userInfo?.name}!"
             }
         }
     }
@@ -132,8 +144,6 @@ internal fun ChildrenBuilder.welcomeUserMenu(
         div {
             className = ClassName("text-sm")
             renderMenu()
-            hrNoMargin()
-            menuTextAndLink("Go to main page", FrontendRoutes.INDEX, faHome)
         }
     }
 }
@@ -150,12 +160,21 @@ internal fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendRoutes
         className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
         to = "/$route"
         h4 {
-            style = jso {
-                color = "#3075c0".unsafeCast<Color>()
-                marginBottom = "0.0em".unsafeCast<Margin>()
+            div {
+                className = ClassName("row ml-2 align-items-center")
+                style = jso {
+                    color = "#3075c0".unsafeCast<Color>()
+                    marginBottom = "0.0em".unsafeCast<Margin>()
+                }
+                div {
+                    className = ClassName("col-1 d-flex justify-content-center")
+                    fontAwesomeIcon(icon = icon)
+                }
+                div {
+                    className = ClassName("col-11 d-flex justify-content-start")
+                    +text
+                }
             }
-            fontAwesomeIcon(icon = icon, "ml-2 mr-2")
-            +text
         }
     }
 }

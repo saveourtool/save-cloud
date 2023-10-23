@@ -16,6 +16,7 @@ import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
+import react.router.useNavigate
 import web.cssom.ClassName
 import web.html.ButtonType
 
@@ -26,7 +27,7 @@ import kotlinx.browser.window
  */
 @Suppress("MAGIC_NUMBER")
 val ringLoader = ringLoader(jso {
-    this.size = 70
+    this.size = 80
     this.loading = true
     this.color = "#3a00c2"
 })
@@ -56,6 +57,8 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
     val (loadingState, setLoadingState) = useState(LoadingModalState(
         false,
     ))
+
+    val navigate = useNavigate()
 
     useEffect(response) {
         val newModalState = when (response?.status) {
@@ -101,7 +104,7 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
                 onClick = {
                     if (response?.status == 401.toShort()) {
                         // if 401 - change current URL to the main page (with login screen)
-                        window.location.href = "${window.location.origin}/#"
+                        navigate(to = "/")
                         window.location.reload()
                     }
                     setResponse(null)

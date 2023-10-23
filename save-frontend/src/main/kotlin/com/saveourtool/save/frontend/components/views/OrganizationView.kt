@@ -20,7 +20,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.v1
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -79,7 +78,7 @@ external interface OrganizationProps : PropsWithChildren {
 /**
  * [State] of project view component
  */
-external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu<OrganizationMenuBar> {
+external interface OrganizationViewState : StateWithRole, State {
     /**
      * Organization
      */
@@ -136,9 +135,9 @@ external interface OrganizationViewState : StateWithRole, State, HasSelectedMenu
     var draftOrganizationDescription: String
 
     /**
-     * Contains the paths of default and other tabs
+     * Currently selected [OrganizationMenuBar] tab
      */
-    var paths: PathsForTabs
+    var selectedMenu: OrganizationMenuBar
 
     /**
      * Flag to handle avatar Window
@@ -177,14 +176,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    override fun componentDidUpdate(prevProps: OrganizationProps, prevState: OrganizationViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, OrganizationMenuBar, state.paths)
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(OrganizationMenuBar, state.selfRole, state.organization?.canCreateContests)
-        }
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
         val comparator: Comparator<ProjectDto> =
@@ -198,20 +189,17 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
-                paths = PathsForTabs("/${props.organizationName}", "#/${OrganizationMenuBar.nameOfTheHeadUrlSection}/${props.organizationName}")
                 organization = organizationLoaded
                 draftOrganizationDescription = organizationLoaded.description
                 projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
-                avatar = organizationLoaded.avatar?.let { "/api/$v1/avatar$it" } ?: AVATAR_PROFILE_PLACEHOLDER
+                avatar = organizationLoaded.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
             }
-            urlAnalysis(OrganizationMenuBar, highestRole, organizationLoaded.canCreateContests)
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod", "MAGIC_NUMBER")
     override fun ChildrenBuilder.render() {
         val errorCloseCallback = {
             setState {
@@ -242,32 +230,32 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     private fun ChildrenBuilder.renderInfo() {
-        // ================= Title for TOP projects ===============
-        div {
-            className = ClassName("row justify-content-center mb-2")
-            h4 {
-                +"Top Tools"
-            }
-        }
-
         // ================= Rows for TOP projects ================
         val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
 
-        div {
-            className = ClassName("row justify-content-center")
+        if (topProjects.isNotEmpty()) {
+            // ================= Title for TOP projects ===============
+            div {
+                className = ClassName("row justify-content-center mb-2")
+                h4 {
+                    +"Top Tools"
+                }
+            }
+            div {
+                className = ClassName("row justify-content-center")
 
-            renderTopProject(topProjects.getOrNull(0))
-            renderTopProject(topProjects.getOrNull(1))
+                renderTopProject(topProjects.getOrNull(0))
+                renderTopProject(topProjects.getOrNull(1))
+            }
+
+            @Suppress("MAGIC_NUMBER")
+            div {
+                className = ClassName("row justify-content-center")
+
+                renderTopProject(topProjects.getOrNull(2))
+                renderTopProject(topProjects.getOrNull(3))
+            }
         }
-
-        @Suppress("MAGIC_NUMBER")
-        div {
-            className = ClassName("row justify-content-center")
-
-            renderTopProject(topProjects.getOrNull(2))
-            renderTopProject(topProjects.getOrNull(3))
-        }
-
         div {
             className = ClassName("row justify-content-center")
 
@@ -412,6 +400,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     private fun ChildrenBuilder.renderVulnerabilities() {
         organizationVulnerabilitiesTab {
             organizationName = props.organizationName
+            isMember = state.usersInOrganization?.let { usersInOrg ->
+                props.currentUserInfo in usersInOrg || props.currentUserInfo.isSuperAdmin()
+            } ?: false
         }
     }
 
@@ -430,6 +421,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             updateNotificationMessage = ::showNotification
             organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
+            onCanBulkUploadCosvFilesChange = ::onCanBulkUploadCosvFilesChange
         }
     }
 
@@ -465,6 +457,25 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
+    private fun onCanBulkUploadCosvFilesChange(canBulkUpload: Boolean) {
+        scope.launch {
+            val response = post(
+                "$apiUrl/organizations/${props.organizationName}/manage-bulk-upload-permission",
+                params = jso<dynamic> {
+                    isAbleToToBulkUpload = !state.organization!!.canBulkUpload
+                },
+                headers = jsonHeaders,
+                undefined,
+                loadingHandler = ::classLoadingHandler,
+            )
+            if (response.ok) {
+                setState {
+                    organization = organization?.copy(canBulkUpload = canBulkUpload)
+                }
+            }
+        }
+    }
+
     private suspend fun getRoleInOrganization(): Role = get(
         url = "$apiUrl/organizations/${props.organizationName}/users/roles",
         headers = Headers().also {
@@ -479,14 +490,10 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     private suspend fun getUsers(): List<UserInfo> = get(
         url = "$apiUrl/organizations/${props.organizationName}/users",
-        headers = Headers().also {
-            it.set("Accept", "application/json")
-        },
+        headers = jsonHeaders,
         loadingHandler = ::classLoadingHandler,
     )
-        .unsafeMap {
-            it.decodeFromJsonString()
-        }
+        .unsafeMap { it.decodeFromJsonString() }
 
     private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
         div {
@@ -543,7 +550,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         }
                         onError = {
                             setState {
-                                avatar = ORGANIZATION_AVATAR_PLACEHOLDER
+                                avatar = AVATAR_ORGANIZATION_PLACEHOLDER
                             }
                         }
                     }

@@ -9,10 +9,19 @@ package com.saveourtool.save.frontend.components.inputform
 import com.saveourtool.save.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
+private const val PURL_PLACEHOLDER = "pkg:example/example.com/version@v1.0.0"
 private const val EMAIL_PLACEHOLDER = "test@example.com"
+private const val SEVERITY_VECTOR_PLACEHOLDER = "CVSS:3.1/AV:_/AC:_/PR:_/UI:_/S:_/C:_/I:_/A:_"
 
-private const val NAME_TOOLTIP = "Allowed symbols: letters, digits, dots, hyphens and underscores." +
+private const val NAME_TOOLTIP = "Allowed symbols: English letters, digits, dots, hyphens and underscores." +
         "No dot, hyphen or underscore at the beginning and at the end of the line."
+
+private const val NAME_ORG_PROJECT_TOOLTIP = "Name must not be longer than $NAMING_MAX_LENGTH characters." +
+        "Allowed symbols: English letters, digits, dots, hyphens and underscores." +
+        "No dot, hyphen or underscore at the beginning and at the end of the line."
+
+private const val SEVERITY_VECTOR_TOOLTIP = "It's a string representation of the Common Vulnerability Scoring System (CVSS)." +
+        "If you know it, please indicate in this field."
 
 /**
  * @property str
@@ -41,40 +50,44 @@ enum class InputTypes(
     GIT_USER("git username", null, "username"),
     PROJECT_EMAIL("project email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
     PROJECT_PROBLEM_NAME("project problem name", NAME_ERROR_MESSAGE, placeholder = "name"),
+    PURL("purl", placeholder = PURL_PLACEHOLDER),
 
     // ==== signIn view
-    LOGIN(
-        "login",
-        null,
-        "login",
-        NAME_TOOLTIP
-    ),
     PASSWORD("password", null, "*****"),
     PROJECT_NAME(
         "project name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
     PROJECT_URL("project Url", URL_ERROR_MESSAGE, URL_PLACEHOLDER),
-    PROJECT_VERSION("project Url", placeholder = "0.0.1; 0.0.3-0.0.5; 1.0.1.RELEASE; etc."),
+    PROJECT_VERSION("project version", placeholder = "0.0.1, 0.0.5, 1.0.1.RELEASE, etc."),
+    VERSION("version", placeholder = "0.0.1"),
 
     // ==== create organization view
     ORGANIZATION_NAME(
         "organization name",
         NAME_ERROR_MESSAGE,
         "name",
-        NAME_TOOLTIP
+        NAME_ORG_PROJECT_TOOLTIP
     ),
 
     // ==== user setting view
-    USER_EMAIL("user email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
-    USER_NAME("user name", NAME_ERROR_MESSAGE, "name"),
-    COMPANY("company"),
-    LOCATION("location"),
-    GIT_HUB("git hub"),
-    LINKEDIN("linkedin"),
-    TWITTER("twitter"),
+    USER_EMAIL("User Email", EMAIL_ERROR_MESSAGE, EMAIL_PLACEHOLDER),
+    LOGIN(
+        "Login",
+        NAME_ERROR_MESSAGE,
+        "name",
+        tooltip = "Name must not be longer than $NAMING_MAX_LENGTH characters"
+    ),
+    COMPANY("Company/Affiliation"),
+    REAL_NAME("Your name"),
+    LOCATION("Location"),
+    GITHUB("GitHub", placeholder = "GitHub"),
+    LINKEDIN("Linkedin"),
+    TWITTER("Twitter/X"),
+    WEBSITE("Website", placeholder = "Website"),
+    FREE_TEXT("Info"),
 
     // ==== contest creation component
     CONTEST_NAME(
@@ -128,6 +141,12 @@ enum class InputTypes(
     ACE_THEME_SELECTOR("theme"),
     ACE_MODE_SELECTOR("mode"),
 
+    COMMIT_HASH(
+        "commit hash",
+        COMMIT_HASH_ERROR_MESSAGE,
+        "hash",
+    ),
+
     // ==== vulnerability
     CVE_NAME(
         "CVE identifier",
@@ -136,6 +155,12 @@ enum class InputTypes(
         tooltip = "If you know the vulnerability identifier, you can enter it here",
     ),
     CVE_DATE("CVE date"),
+    COSV_VECTORE(
+        "Severity score vector",
+        SEVERITY_VECTOR_ERROR_MESSAGE,
+        placeholder = SEVERITY_VECTOR_PLACEHOLDER,
+        tooltip = SEVERITY_VECTOR_TOOLTIP,
+    ),
     ;
 }
 

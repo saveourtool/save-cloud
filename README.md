@@ -13,16 +13,16 @@ Our key focus is to make life of developers who analyze code easier.
     - Use SAVE to create an **online demo for your analyzer** and set it up for your community's use;
     - Benchmarks Archive with the **list of popular benchmarks** (with a reference to [awesome-benchmarks](https://github.com/saveourtool/awesome-benchmarks)).
 
-2. **VULN** - A platform designed for the **reporting**, aggregation, and deduplication of day-one **vulnerabilities**.
+2. **VULN** - A platform designed for the **reporting**, aggregation, and deduplication of one-day **vulnerabilities**.
 
 Additionally, on our platform we host **contests** in the field of code analysis. 
 This provides an opportunity for you to submit your automated solutions for bug detection, and compete with other innovative projects.
 
 ## Links
-- Collection of Code Analyzers Demo: [Demo](https://saveourtool.com/#/demo)
-- Benchmarks Archive: [Benchmarks](https://saveourtool.com/#/awesome-benchmarks)
-- CI projects: [CI Projects](https://saveourtool.com/#/projects)
-- Vulnerabilities Collection: [1-day Vulnerabilities](https://saveourtool.com/#/vuln/list)
+- Collection of Code Analyzers Demo: [Demo](https://saveourtool.com/demo)
+- Benchmarks Archive: [Benchmarks](https://saveourtool.com/awesome-benchmarks)
+- CI projects: [CI Projects](https://saveourtool.com/projects)
+- Vulnerabilities Collection: [1-day Vulnerabilities](https://saveourtool.com/vuln/list)
 
 ## Motivation
 - [Motivation of **SAVE** and more details](info/SaveMotivation.md)
@@ -37,6 +37,7 @@ To build the project and run all tests, execute `./gradlew build`.
 For more detailed instructions, including **deployment instructions**, see [save-deploy/README.md](save-deploy/README.md).
 
 ## Local deployment
+0. Install Java 17 (LTS). We recommend [azul](https://www.azul.com/downloads/#downloads-table-zulu).
 1. Ensure that docker daemon is running and `docker compose` is installed. We suggest [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 2. Run `./gradlew deployLocal -Psave.profile=dev` to start the MySql DB, Minio and will run all Spring Microservices with Docker Compose.
 3. Run `./gradlew -Psave.profile=dev :save-frontend:run` to start save-frontend using webpack-dev-server, requests to REST API will be

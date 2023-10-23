@@ -7,7 +7,7 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.OrganizationSaveStatus
+import com.saveourtool.save.domain.OrganizationSaveStatus.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilter
@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -71,11 +72,15 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched all registered organizations")
     fun getAllOrganizationsByFilters(
-        @RequestBody organizationFilter: OrganizationFilter
-    ): Mono<OrganizationDtoList> = blockingToMono { organizationService.getFiltered(organizationFilter).map(Organization::toDto) }
+        @RequestBody organizationFilter: OrganizationFilter,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+    ): Mono<OrganizationDtoList> = blockingToMono {
+        organizationService.getFiltered(organizationFilter, Pageable.ofSize(pageSize)).map(Organization::toDto)
+    }
 
     @PostMapping("/by-filters-with-rating")
     @PreAuthorize("permitAll()")
@@ -86,12 +91,14 @@ internal class OrganizationController(
     )
     @Parameters(
         Parameter(name = "organizationFilter", `in` = ParameterIn.DEFAULT, description = "organization filters", required = true),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched non-deleted organizations.")
     fun getFilteredOrganizationsWithRating(
         @RequestBody organizationFilter: OrganizationFilter,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
         authentication: Authentication?,
-    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter)
+    ): Flux<OrganizationWithRating> = getFilteredOrganizationDtoList(organizationFilter, pageSize)
         .flatMap { organizationDto ->
             organizationService.getGlobalRating(organizationDto.name, authentication)
                 .map { rating ->
@@ -145,6 +152,27 @@ internal class OrganizationController(
             it.organization.toDto()
         }
 
+    @GetMapping("/with-allow-bulk-upload")
+    @PreAuthorize("permitAll()")
+    @Operation(
+        method = "GET",
+        summary = "Get your organizations.",
+        description = "Get list of all organizations where current user is a participant.",
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
+    fun getOrganizationsByUserAndBulkUpload(
+        authentication: Authentication?,
+    ): Flux<OrganizationDto> = authentication.toMono()
+        .map { auth ->
+            auth.userId()
+        }
+        .flatMapMany {
+            lnkUserOrganizationService.findAllByAuthenticationAndStatusesAndBulkUpload(it)
+        }
+        .map {
+            it.organization.toDto()
+        }
+
     @GetMapping("/get/list-by-user-name")
     @PreAuthorize("permitAll()")
     @Operation(
@@ -153,10 +181,10 @@ internal class OrganizationController(
         description = "Get list of all organizations where current user is a participant.",
     )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
-    fun getOrganizationsByUserName(
+    fun getOrganizationsByUserNameAndCreatedStatus(
         @RequestParam userName: String,
     ): Flux<OrganizationDto> = blockingToFlux {
-        lnkUserOrganizationService.findAllByUserName(userName).map { it.organization.toDto() }
+        lnkUserOrganizationService.getOrganizationsByUserNameAndCreatedStatus(userName).map { it.organization.toDto() }
     }
 
     @GetMapping("/get/by-prefix")
@@ -166,11 +194,15 @@ internal class OrganizationController(
         summary = "Get organization by prefix.",
         description = "Get list of organizations matching prefix.",
     )
+    @Parameters(
+        Parameter(name = "prefix", `in` = ParameterIn.QUERY, description = "organization name prefix", required = false),
+        Parameter(name = "pageSize", `in` = ParameterIn.QUERY, description = "amount of organizations that should be returned, default: 5", required = false),
+    )
     @ApiResponse(responseCode = "200", description = "Successfully fetched list of organizations.")
     fun getOrganizationNamesByPrefix(
-        @RequestParam prefix: String
-    ): Mono<List<String>> = getFilteredOrganizationDtoList(OrganizationFilter(prefix))
-        .map { it.name }
+        @RequestParam prefix: String,
+        @RequestParam(required = false, defaultValue = "5") pageSize: Int,
+    ): Mono<OrganizationDtoList> = getFilteredOrganizationDtoList(OrganizationFilter(prefix), pageSize)
         .collectList()
 
     @PostMapping("/{organizationName}/manage-contest-permission")
@@ -215,6 +247,41 @@ internal class OrganizationController(
             ResponseEntity.ok("Organization updated")
         }
 
+    @PostMapping("/{organizationName}/manage-bulk-upload-permission")
+    @RequiresAuthorizationSourceHeader
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    @Operation(
+        method = "POST",
+        summary = "Make an organization to be able to bulk upload files.",
+        description = "Make an organization to be able to bulk upload files.",
+    )
+    @Parameters(
+        Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of an organization", required = true),
+        Parameter(name = "isAbleToToBulkUpload", `in` = ParameterIn.QUERY, description = "new flag for bulk upload files ability", required = true),
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully changed ability to bulk upload files.")
+    @ApiResponse(responseCode = "403", description = "Could not change ability to bulk upload files due to lack of permission.")
+    @ApiResponse(responseCode = "404", description = "Organization with such name was not found.")
+    @Suppress("UnsafeCallOnNullableType")
+    fun setAbilityToBulkUpload(
+        @PathVariable organizationName: String,
+        @RequestParam isAbleToToBulkUpload: Boolean,
+    ): Mono<StringResponse> = Mono.just(
+        organizationName
+    )
+        .flatMap {
+            organizationService.findByNameAndCreatedStatus(organizationName).toMono()
+        }
+        .switchIfEmptyToNotFound {
+            "No organization with name $organizationName was found."
+        }
+        .map { organization ->
+            organizationService.updateOrganization(
+                organization.copy(canBulkUpload = isAbleToToBulkUpload).apply { id = organization.id }
+            )
+            ResponseEntity.ok("Organization updated")
+        }
+
     @PostMapping("/save")
     @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
@@ -230,13 +297,14 @@ internal class OrganizationController(
         authentication: Authentication,
     ): Mono<StringResponse> = blockingToMono {
         organizationService.saveOrganization(newOrganization.toOrganization())
+    }.map {
+        when (it.second) {
+            CONFLICT -> throw ResponseStatusException(HttpStatus.CONFLICT, CONFLICT.message)
+            // Small hack here just not to affect frontend rendering: we return CONFLICT status
+            INVALID_NAME -> throw ResponseStatusException(HttpStatus.CONFLICT, INVALID_NAME.message)
+            else -> it
+        }
     }
-        .filter { (_, status) ->
-            status == OrganizationSaveStatus.NEW
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            OrganizationSaveStatus.CONFLICT.message
-        }
         .map { (organizationId, organizationStatus) ->
             lnkUserOrganizationService.setRoleByIds(
                 authentication.userId(),
@@ -265,7 +333,7 @@ internal class OrganizationController(
     @Suppress("UnsafeCallOnNullableType")
     fun updateOrganization(
         @PathVariable organizationName: String,
-        @RequestBody organization: Organization,
+        @RequestBody organization: OrganizationDto,
         authentication: Authentication,
     ): Mono<StringResponse> = Mono.just(
         organizationName
@@ -290,7 +358,10 @@ internal class OrganizationController(
         }
         .map { organizationFromDb ->
             organizationService.updateOrganization(
-                organization.copy(canCreateContests = organizationFromDb.canCreateContests).apply { id = organizationFromDb.id }
+                organizationFromDb.apply {
+                    description = organization.description
+                    rating = organization.rating
+                }
             )
             ResponseEntity.ok("Organization updated")
         }
@@ -520,8 +591,8 @@ internal class OrganizationController(
             organizationService.getGlobalRating(organizationName, authentication)
         }
 
-    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter): Flux<OrganizationDto> = blockingToFlux {
-        organizationService.getFiltered(filters)
+    private fun getFilteredOrganizationDtoList(filters: OrganizationFilter, pageSize: Int): Flux<OrganizationDto> = blockingToFlux {
+        organizationService.getFiltered(filters, Pageable.ofSize(pageSize))
     }.map { it.toDto() }
 
     private fun upsertGitCredential(
@@ -542,7 +613,7 @@ internal class OrganizationController(
         .zipWith(validateGitCredential(gitDto))
         .filter { (_, isValid) -> isValid }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            "Invalid git credential for url [${gitDto.url}]"
+            "Invalid git credential or connection problems (check you firewall) for url [${gitDto.url}]"
         }
         .flatMap { (organization, _) ->
             val existedGit = blockingToMono {

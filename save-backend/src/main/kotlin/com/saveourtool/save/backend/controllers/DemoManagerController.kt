@@ -94,7 +94,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.post()
-                .uri("/demo/internal/manager/save-or-update")
+                .uri("/internal/demo/manager/save-or-update")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.demoDto)
                 .retrieve()
@@ -113,7 +113,7 @@ class DemoManagerController(
         }
         .doOnSuccess {
             webClientDemo.post()
-                .uri("/demo/internal/files/${demoCreationRequest.demoDto.projectCoordinates}/upload?version=manual")
+                .uri("/internal/demo/files/${demoCreationRequest.demoDto.projectCoordinates}/upload?version=manual")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(demoCreationRequest.manuallyUploadedFileDtos)
                 .retrieve()
@@ -146,7 +146,7 @@ class DemoManagerController(
         authentication: Authentication,
     ): Mono<FileDto> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) {
         webClientDemo.post()
-            .uri("/demo/internal/files/$organizationName/$projectName/upload?version=$version")
+            .uri("/internal/demo/files/$organizationName/$projectName/upload?version=$version")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("file", file))
             .retrieve()
@@ -182,7 +182,7 @@ class DemoManagerController(
         }
         .flatMap {
             webClientDemo.get()
-                .uri("/demo/internal/files/$organizationName/$projectName/list-file?version=$version")
+                .uri("/internal/demo/files/$organizationName/$projectName/list-file?version=$version")
                 .retrieve()
                 .defaultNotFoundProcessing(organizationName, projectName)
                 .bodyToMono<List<FileDto>>()
@@ -213,7 +213,7 @@ class DemoManagerController(
         authentication: Authentication,
     ): Mono<Boolean> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) {
         webClientDemo.delete()
-            .uri("/demo/internal/files/$organizationName/$projectName/delete?version=$version&fileName=$fileName")
+            .uri("/internal/demo/files/$organizationName/$projectName/delete?version=$version&fileName=$fileName")
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
             .bodyToMono()
@@ -239,7 +239,7 @@ class DemoManagerController(
         authentication: Authentication,
     ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.DELETE, organizationName, projectName, authentication) { project ->
         webClientDemo.post()
-            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/delete")
+            .uri("/internal/demo/manager/${project.toProjectCoordinates()}/delete")
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
             .toEntity()
@@ -265,7 +265,7 @@ class DemoManagerController(
         authentication: Authentication,
     ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.WRITE, organizationName, projectName, authentication) { project ->
         webClientDemo.post()
-            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/start")
+            .uri("/internal/demo/manager/${project.toProjectCoordinates()}/start")
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
             .toEntity()
@@ -291,7 +291,7 @@ class DemoManagerController(
         authentication: Authentication,
     ): Mono<StringResponse> = forwardRequestCheckingPermission(Permission.WRITE, organizationName, projectName, authentication) { project ->
         webClientDemo.post()
-            .uri("/demo/internal/manager/${project.toProjectCoordinates()}/stop")
+            .uri("/internal/demo/manager/${project.toProjectCoordinates()}/stop")
             .retrieve()
             .defaultNotFoundProcessing(organizationName, projectName)
             .toEntity()

@@ -14,6 +14,7 @@ import com.saveourtool.save.execution.ExecutionUpdateDto
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.filters.ExecutionFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.blockingMap
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.v1
@@ -190,7 +191,7 @@ class ExecutionController(private val executionService: ExecutionService,
         Permission.DELETE,
         messageIfNotFound = "Could not find the project with name: $name and owner: $organizationName or related objects",
     )
-        .map { project ->
+        .blockingMap { project ->
             executionService.deleteExecutionExceptParticipatingInContestsByProjectNameAndProjectOrganization(project.name, project.organization)
             ResponseEntity.ok().build<String>()
         }

@@ -8,11 +8,11 @@ package com.saveourtool.save.frontend.routing
 
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.benchmarks.BenchmarkCategoryEnum
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
+import com.saveourtool.save.frontend.components.views.agreements.cookieTermsOfUse
 import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
 import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
@@ -22,16 +22,10 @@ import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsEmailMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsOrganizationsMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsProfileMenuView
-import com.saveourtool.save.frontend.components.views.usersettings.UserSettingsTokenMenuView
-import com.saveourtool.save.frontend.components.views.vuln.createVulnerabilityView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityCollectionView
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityView
+import com.saveourtool.save.frontend.components.views.usersettings.*
+import com.saveourtool.save.frontend.components.views.vuln.*
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
-import com.saveourtool.save.frontend.createRoutersWithPathAndEachListItem
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
@@ -41,16 +35,15 @@ import org.w3c.dom.url.URLSearchParams
 import react.*
 import react.router.*
 
-val testExecutionDetailsView = testExecutionDetailsView()
-
 /**
  * Just put a map: View -> Route URL to this list
  */
 val basicRouting: FC<AppProps> = FC { props ->
-
+    useUserStatusRedirects(props.userInfo?.status)
     val userProfileView: VFC = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
+            currentUserInfo = props.userInfo
         }
     }
 
@@ -89,6 +82,8 @@ val basicRouting: FC<AppProps> = FC { props ->
 
     val executionView: VFC = withRouter { location, params ->
         ExecutionView::class.react {
+            organization = params["organization"]!!
+            project = params["project"]!!
             executionId = params["executionId"]!!
             filters = web.url.URLSearchParams(location.search).let { params ->
                 TestExecutionFilter(
@@ -99,12 +94,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 )
             }
             testAnalysisEnabled = true
-        }
-    }
-
-    val creationView: VFC = withRouter { _, params ->
-        CreationView::class.react {
-            organizationName = params["owner"]
         }
     }
 
@@ -146,15 +135,16 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: VFC = VFC {
+    val vulnerabilityCollectionView: VFC = withRouter { location, _ ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
+            filter = URLSearchParams(location.search).toVulnerabilitiesFilter()
         }
     }
 
     val vulnerabilityView: VFC = withRouter { _, params ->
         vulnerabilityView {
-            name = requireNotNull(params["vulnerabilityName"])
+            identifier = requireNotNull(params["identifier"])
             currentUserInfo = props.userInfo
         }
     }
@@ -177,71 +167,90 @@ val basicRouting: FC<AppProps> = FC { props ->
     Routes {
         listOf(
             indexView.create { userInfo = props.userInfo } to "/",
-            saveWelcomeView.create { userInfo = props.userInfo } to "/$SAVE",
-            vulnWelcomeView.create { userInfo = props.userInfo } to "/$VULN",
-            sandboxView.create() to "/$SANDBOX",
-            AboutUsView::class.react.create() to "/$ABOUT_US",
-            CreationView::class.react.create() to "/$CREATE_PROJECT",
-            CreateOrganizationView::class.react.create() to "/$CREATE_ORGANIZATION",
-            registrationView.create { userInfo = props.userInfo } to "/$REGISTRATION",
-            CollectionView::class.react.create { currentUserInfo = props.userInfo } to "/$PROJECTS",
-            contestListView.create { currentUserInfo = props.userInfo } to "/$CONTESTS",
+            saveWelcomeView.create { userInfo = props.userInfo } to SAVE,
+            vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
+            sandboxView.create() to SANDBOX,
+            AboutUsView::class.react.create() to ABOUT_US,
+            createOrganizationView.create() to CREATE_ORGANIZATION,
+            registrationView.create {
+                userInfo = props.userInfo
+                userInfoSetter = props.userInfoSetter
+            } to REGISTRATION,
+            CollectionView::class.react.create { currentUserInfo = props.userInfo } to PROJECTS,
+            contestListView.create { currentUserInfo = props.userInfo } to CONTESTS,
 
-            contestGlobalRatingView.create() to "/$CONTESTS_GLOBAL_RATING",
-            contestView.create() to "/$CONTESTS/:contestName",
-            createContestTemplateView.create() to "/$CREATE_CONTESTS_TEMPLATE",
-            contestTemplateView.create() to "/$CONTESTS_TEMPLATE/:id",
-            contestExecutionView.create() to "/$CONTESTS/:contestName/:organizationName/:projectName",
-            awesomeBenchmarksView.create() to "/$AWESOME_BENCHMARKS",
-            creationView.create() to "/$CREATE_PROJECT/:owner",
-            organizationView.create() to "/:owner",
-            organizationView.create() to "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
-            historyView.create() to "/:owner/:name/history",
-            projectView.create() to "/:owner/:name",
+            FallbackView::class.react.create {
+                bigText = "404"
+                smallText = "Page not found"
+                withRouterLink = true
+            } to ERROR_404,
+            banView.create { userInfo = props.userInfo } to BAN,
+            contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
+            contestView.create() to "$CONTESTS/:contestName",
+            createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
+            contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
+            contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
+            awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
+            createProjectView.create() to "$CREATE_PROJECT/:organization?",
+            organizationView.create() to ":owner",
+            historyView.create() to ":owner/:name/history",
+            projectView.create() to ":owner/:name",
             createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
             projectProblemView.create() to "project/:owner/:name/security/problems/:id",
-            executionView.create() to "/:owner/:name/history/execution/:executionId",
-            demoView.create() to "/$DEMO/:organizationName/:projectName",
-            cpgView.create() to "/$DEMO/cpg",
-            testExecutionDetailsView.create() to "/:owner/:name/history/execution/:executionId/details/:testSuiteName/:pluginName/*",
-            vulnerabilityCollectionView.create() to "$VULN/list",
-            createVulnerabilityView.create() to "/$CREATE_VULNERABILITY",
-            vulnerabilityView.create() to "/$VULN/:vulnerabilityName",
-            demoCollectionView.create() to "/$DEMO",
-            userProfileView.create() to "/$PROFILE/:name",
-            topRatingView.create() to "/$TOP_RATING",
+            executionView.create() to ":organization/:project/history/execution/:executionId",
+            demoView.create() to "$DEMO/:organizationName/:projectName",
+            cpgView.create() to "$DEMO/cpg",
+            testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
+            vulnerabilityCollectionView.create() to "$VULN/list/:params?",
+            createVulnerabilityView.create() to VULN_CREATE,
+            uploadVulnerabilityView.create() to VULN_UPLOAD,
+            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
+            demoCollectionView.create() to DEMO,
+            userProfileView.create() to "$VULN_PROFILE/:name",
+            topRatingView.create() to VULN_TOP_RATING,
+            termsOfUsageView.create() to TERMS_OF_USE,
+            cookieTermsOfUse.create() to COOKIE,
+            thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
+            cosvSchemaView.create() to VULN_COSV_SCHEMA,
 
-            termsOfUsageView.create() to "/$TERMS_OF_USE",
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
 
-            props.viewWithFallBack(
-                UserSettingsProfileMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_PROFILE",
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
 
-            props.viewWithFallBack(
-                UserSettingsEmailMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_EMAIL",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
 
-            props.viewWithFallBack(
-                UserSettingsTokenMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_TOKEN",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
 
-            props.viewWithFallBack(
-                UserSettingsOrganizationsMenuView::class.react.create { userName = props.userInfo?.name }
-            ) to "/${props.userInfo?.name}/$SETTINGS_ORGANIZATIONS",
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_DELETE
+            } to SETTINGS_DELETE,
 
-        ).forEach {
+        ).forEach { (view, route) ->
             PathRoute {
-                this.element = it.first
-                this.path = "/${it.second}"
+                this.element = view
+                this.path = "/$route"
             }
         }
 
-        props.userInfo?.name.run {
+        props.userInfo?.name?.run {
             PathRoute {
                 path = "/$this"
-                element = Navigate.create {
-                    to = "/$this/$SETTINGS_PROFILE"
-                }
+                element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
             }
         }
 
@@ -252,31 +261,6 @@ val basicRouting: FC<AppProps> = FC { props ->
                 else -> fallbackNode
             }
         }
-
-        createRoutersWithPathAndEachListItem<ProjectMenuBar>(
-            "/${ProjectMenuBar.nameOfTheHeadUrlSection}/:owner/:name",
-            projectView
-        )
-
-        createRoutersWithPathAndEachListItem<OrganizationMenuBar>(
-            "/${OrganizationMenuBar.nameOfTheHeadUrlSection}/:owner",
-            organizationView
-        )
-
-        createRoutersWithPathAndEachListItem<ContestMenuBar>(
-            "/$CONTESTS/:contestName",
-            contestView
-        )
-
-        createRoutersWithPathAndEachListItem<BenchmarkCategoryEnum>(
-            "/${BenchmarkCategoryEnum.nameOfTheHeadUrlSection}/$AWESOME_BENCHMARKS",
-            awesomeBenchmarksView
-        )
-
-        createRoutersWithPathAndEachListItem<UserRatingTab>(
-            "/$CONTESTS_GLOBAL_RATING",
-            contestGlobalRatingView
-        )
 
         PathRoute {
             path = "*"
@@ -303,6 +287,11 @@ external interface AppProps : PropsWithChildren {
      * Currently logged-in user or null
      */
     var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**

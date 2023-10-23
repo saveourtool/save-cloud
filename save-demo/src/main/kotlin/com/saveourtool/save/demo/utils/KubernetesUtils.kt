@@ -87,7 +87,7 @@ fun getJobObjectForDemo(
     spec = JobSpec().apply {
         parallelism = REPLICAS_PER_DEMO
         ttlSecondsAfterFinished = TTL_AFTER_COMPLETED
-        backoffLimit = 0
+        backoffLimit = kubernetesSettings.podBackoffLimit
         template = PodTemplateSpec().apply {
             spec = PodSpec().apply {
                 subdomain = kubernetesSettings.agentSubdomainName
@@ -181,7 +181,7 @@ fun serviceNameForDemo(demo: Demo) = with(demo) {
 
 @Suppress("SameParameterValue")
 private fun getConfigureMeUrl(baseUrl: String, demo: Demo, version: String) = with(demo) {
-    "$baseUrl/demo/internal/manager/$organizationName/$projectName/configure-me?version=$version"
+    "$baseUrl/internal/demo/manager/$organizationName/$projectName/configure-me?version=$version"
 }
 
 @Suppress("TOO_LONG_FUNCTION")

@@ -58,7 +58,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         val newComments = post(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.hash,
+            body = window.location.pathname,
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()
@@ -71,7 +71,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
         val newComments = post(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.hash,
+            body = window.location.pathname,
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()
@@ -200,9 +200,9 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                                         className = ClassName("menu")
                                         div {
                                             className = ClassName("mt-2 pl-2")
-                                            projectProblem.vulnerabilityName?.let {
+                                            projectProblem.identifier?.let {
                                                 Link {
-                                                    to = "/${FrontendRoutes.VULN}/${projectProblem.vulnerabilityName}"
+                                                    to = "/${FrontendRoutes.VULN}/${projectProblem.identifier}"
                                                     +it
                                                 }
                                             } ?: +"No known CVE"

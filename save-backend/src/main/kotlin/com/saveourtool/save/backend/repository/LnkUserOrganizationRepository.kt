@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.repository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -76,8 +77,30 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     fun findByUserId(userId: Long): List<LnkUserOrganization>
 
     /**
+     * @param userId
+     * @param canBulkUpload
+     * @param statuses
+     * @return List of [LnkUserOrganization] in which user with [userId] participates
+     */
+    fun findByUserIdAndOrganizationCanBulkUploadAndOrganizationStatusIn(userId: Long, canBulkUpload: Boolean, statuses: Set<OrganizationStatus>): List<LnkUserOrganization>
+
+    /**
      * @param userName
+     * @param status status of organization
      * @return List of [LnkUserOrganization] in which user with [userName] participates
      */
-    fun findByUserName(userName: String): List<LnkUserOrganization>
+    fun findByUserNameAndOrganizationStatus(userName: String, status: OrganizationStatus): List<LnkUserOrganization>
+
+    /**
+     * @param userName
+     * @param organizationName
+     * @param status status of organization
+     * @return List of [LnkUserOrganization] in which user with [userName] participates
+     */
+    fun findByUserNameAndOrganizationStatusAndOrganizationName(userName: String, status: OrganizationStatus, organizationName: String): LnkUserOrganization?
+
+    /**
+     * @param userId id of user
+     */
+    fun deleteByUserId(userId: Long)
 }

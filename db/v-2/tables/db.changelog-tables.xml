@@ -38,12 +38,28 @@
     <include file="vulnerability.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-description.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-project.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-metadata.xml" relativeToChangelogFile="true"/>
     <include file="project-problem.xml" relativeToChangelogFile="true"/>
     <include file="comments.xml" relativeToChangelogFile="true"/>
     <include file="contest-sample.xml" relativeToChangelogFile="true"/>
     <include file="contest-sample-field.xml" relativeToChangelogFile="true"/>
     <include file="vulnerability-date.xml" relativeToChangelogFile="true"/>
     <include file="lnk-vulnerability-user.xml" relativeToChangelogFile="true"/>
+    <include file="tags.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-cosv-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-cosv-metadata-user.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-metadata-project.xml" relativeToChangelogFile="true"/>
+    <include file="drop-old-vulnerability-tables.xml" relativeToChangelogFile="true"/>
+    <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-user.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata-project.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="link-between-cosv-file-and-vulnerability-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-generated-id.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-generated-id.xml" relativeToChangelogFile="true"/>
 
     <changeSet id="02-tables" author="frolov">
         <tagDatabase tag="v2.0-tables"/>

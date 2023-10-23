@@ -2,13 +2,12 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.domain.Role
+import com.saveourtool.save.frontend.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -24,11 +23,6 @@ import react.dom.html.ReactHTML.ul
 import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.rem
-
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
 
 @Suppress("MAGIC_NUMBER")
 val logoSize: CSSProperties = jso {
@@ -46,18 +40,11 @@ val logoSize: CSSProperties = jso {
     "LOCAL_VARIABLE_EARLY_DECLARATION"
 )
 val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
-    val scope = CoroutineScope(Dispatchers.Default)
+    val (t) = useTranslation("topbar")
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
-    val (avatar, setAvatar) = useStateFromProps("/api/$v1/avatar${props.userInfo?.avatar}")
-    useEffect {
-        cleanup {
-            if (scope.isActive) {
-                scope.cancel()
-            }
-        }
-    }
+
     ul {
         className = ClassName("navbar-nav ml-auto")
         div {
@@ -81,17 +68,16 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                     div {
                         className = ClassName("d-flex flex-column")
                         span {
-                            className = ClassName("mr-2 d-none d-lg-inline text-gray-600")
+                            className = ClassName("mr-2 text-white-400")
                             +(props.userInfo?.name.orEmpty())
                         }
-                        val globalRole = props.userInfo?.globalRole ?: Role.VIEWER
                         small {
                             className = ClassName("text-gray-400 text-justify")
                             props.userInfo?.let {
-                                if (globalRole.isHigherOrEqualThan(Role.ADMIN)) {
-                                    +"Super user"
+                                if (props.userInfo.isSuperAdmin()) {
+                                    +"Super user".t()
                                 } else {
-                                    +"User settings"
+                                    +"User settings".t()
                                 }
                             }
                         }
@@ -100,11 +86,8 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = userInfo.avatar?.let { avatar } ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                             style = logoSize
-                            onError = {
-                                setAvatar { AVATAR_PLACEHOLDER }
-                            }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
@@ -116,31 +99,31 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
                 className = ClassName("dropdown-menu dropdown-menu-right shadow animated--grow-in${if (isAriaExpanded) " show" else ""}")
                 ariaLabelledBy = "userDropdown"
                 props.userInfo?.name?.let { name ->
-                    dropdownEntry(faUser, "Profile") { attrs ->
+                    dropdownEntry(faUser, "Profile".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.PROFILE}/$name")
+                            navigate(to = "/${FrontendRoutes.VULN_PROFILE}/$name")
                         }
                     }
-                    dropdownEntry(faCog, "Settings") { attrs ->
+                    dropdownEntry(faCog, "Settings".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_EMAIL}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
                         }
                     }
                     dropdownEntry(
                         faCity,
-                        "Manage organizations"
+                        "Manage organizations".t()
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/$name/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
+                            navigate(to = "/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
-                    dropdownEntry(faSignOutAlt, "Log out") { attrs ->
+                    dropdownEntry(faSignOutAlt, "Log out".t()) { attrs ->
                         attrs.onClick = {
                             isLogoutModalOpen = true
                         }
                     }
                 } ?: run {
-                    dropdownEntry(faSignInAlt, "Log in") { attrs ->
+                    dropdownEntry(faSignInAlt, "Log in".t()) { attrs ->
                         attrs.onClick = {
                             navigate(to = "/")
                         }

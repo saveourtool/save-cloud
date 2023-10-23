@@ -95,7 +95,7 @@ private fun ChildrenBuilder.inputTextFormRequired(
     div {
         className = ClassName(classes)
         label {
-            className = ClassName("form-label")
+            className = ClassName("form-label mb-0")
             htmlFor = form.name
             +name
             span {

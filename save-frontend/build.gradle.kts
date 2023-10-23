@@ -112,6 +112,9 @@ kotlin {
             implementation(npm("react-ace", "^10.1.0"))
             implementation(npm("react-avatar-image-cropper", "^1.4.2"))
             implementation(npm("react-circle", "^1.1.1"))
+            implementation(npm("react-diff-viewer-continued", "^3.2.6"))
+            implementation(npm("react-json-view", "^1.21.3"))
+            implementation(npm("multi-range-slider-react", "^2.0.5"))
             // react-sigma
             implementation(npm("@react-sigma/core", "^3.1.0"))
             implementation(npm("sigma", "^2.4.0"))
@@ -124,6 +127,11 @@ kotlin {
             implementation(npm("@react-sigma/layout-forceatlas2", "^3.1.0"))
             implementation(npm("react-graph-viz-engine", "^0.1.0"))
             implementation(npm("cytoscape", "^3.25.0"))
+            // translation
+            implementation(npm("i18next", "^23.4.5"))
+            implementation(npm("react-i18next", "^13.2.0"))
+            implementation(npm("i18next-http-backend", "^2.2.2"))
+            implementation(npm("js-cookie", "^3.0.5"))
             // transitive dependencies with explicit version ranges required for security reasons
             compileOnly(devNpm("minimist", "^1.2.6"))
             compileOnly(devNpm("async", "^2.6.4"))

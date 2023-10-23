@@ -2,9 +2,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.frontend.TabMenuBar
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
 import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
@@ -12,12 +10,8 @@ import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMen
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.getContest
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.HasSelectedMenu
-import com.saveourtool.save.frontend.utils.changeUrl
 import com.saveourtool.save.frontend.utils.classLoadingHandler
-import com.saveourtool.save.frontend.utils.urlAnalysis
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
 import react.dom.html.ReactHTML.div
@@ -42,14 +36,8 @@ enum class ContestMenuBar {
     SUMMARY,
     ;
 
-    companion object : TabMenuBar<ContestMenuBar> {
-        // The string is the postfix of a [regexForUrlClassification] for parsing the url
-        private val postfixInRegex = values().joinToString("|") { it.name.lowercase() }
-        override val nameOfTheHeadUrlSection = ""
-        override val defaultTab: ContestMenuBar = INFO
-        override val regexForUrlClassification = "/${FrontendRoutes.CONTESTS}/[^/]+/($postfixInRegex)"
-        override fun valueOf(elem: String): ContestMenuBar = ContestMenuBar.valueOf(elem)
-        override fun values(): Array<ContestMenuBar> = ContestMenuBar.values()
+    companion object {
+        val defaultTab: ContestMenuBar = INFO
     }
 }
 
@@ -66,7 +54,7 @@ external interface ContestViewProps : Props {
 /**
  * [State] for [ContestView]
  */
-external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
+external interface ContestViewState : State {
     /**
      * Flag that shows if current contest is featured or not
      */
@@ -78,9 +66,9 @@ external interface ContestViewState : State, HasSelectedMenu<ContestMenuBar> {
     var contest: ContestDto
 
     /**
-     * Contains the paths of default and other tabs
+     * Currently selected [ContestMenuBar] tab
      */
-    var paths: PathsForTabs
+    var selectedMenu: ContestMenuBar
 }
 
 /**
@@ -95,20 +83,8 @@ class ContestView : AbstractView<ContestViewProps, ContestViewState>(Style.SAVE_
         state.contest = ContestDto.empty
     }
 
-    override fun componentDidUpdate(prevProps: ContestViewProps, prevState: ContestViewState, snapshot: Any) {
-        if (state.selectedMenu != prevState.selectedMenu) {
-            changeUrl(state.selectedMenu, ContestMenuBar, state.paths)
-        } else if (props.location != prevProps.location) {
-            urlAnalysis(ContestMenuBar, Role.NONE, false)
-        } else if (props.currentContestName != prevProps.currentContestName) {
-            fetchContest()
-        }
-    }
-
     override fun componentDidMount() {
         super.componentDidMount()
-        setState { paths = PathsForTabs("/${FrontendRoutes.CONTESTS}/${props.currentContestName}", "#/${FrontendRoutes.CONTESTS.path}/${props.currentContestName}") }
-        urlAnalysis(ContestMenuBar, Role.NONE, false)
         getIsFeaturedAndSetState()
         fetchContest()
     }

@@ -29,12 +29,6 @@ jobs:
           - base_image_name: python
             base_image_tag: 2.7
           - base_image_name: python
-            base_image_tag: 3.2
-          - base_image_name: python
-            base_image_tag: 3.3
-          - base_image_name: python
-            base_image_tag: 3.4
-          - base_image_name: python
             base_image_tag: 3.5
           - base_image_name: python
             base_image_tag: 3.6
@@ -62,7 +56,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Prepare formatted tags
         run: |
-          echo FORMATTED_TAG=${{ matrix.base_image_tag }} | sed -e "s/-focal$//" >> $GITHUB_ENV
+          echo FORMATTED_TAG=${{ matrix.base_image_tag }} | sed -e "s/-focal$//" | sed -e "s/20.04$/latest/" >> $GITHUB_ENV
       - uses: docker/build-push-action@v4
         with:
           context: save-deploy/base-images
@@ -70,8 +64,8 @@ jobs:
           # https://github.com/marketplace/actions/build-and-push-docker-images#inputs
           # '`List` type is a newline-delimited string'
           build-args: |
+            BASE_IMAGE=${{ matrix.base_image_name }}:${{ matrix.base_image_tag }}
             BASE_IMAGE_NAME=${{ matrix.base_image_name }}
-            BASE_IMAGE_TAG=${{ matrix.base_image_tag }}
           tags: ghcr.io/saveourtool/save-base:${{ matrix.base_image_name }}-${{ env.FORMATTED_TAG }}
 
   build_custom_builder_image:

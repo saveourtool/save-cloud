@@ -53,7 +53,7 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
     awesomeIcon: dynamic
 ) {
     div {
-        className = ClassName("animated-provider col animate__animated ${oauthProvidersFeConfig.animate}")
+        className = ClassName("animated-provider col animate__animated ${oauthProvidersFeConfig.animate} mb-4")
         a {
             href = oauthProvidersFeConfig.provider.authorizationLink
             className = ClassName("text-center")
@@ -102,9 +102,9 @@ fun mapKnownFontAwesomeIcons(registrationId: String) =
  */
 fun mapKnownUploadedIcons(registrationId: String) =
         when (registrationId) {
-            "huawei" -> "img/huawei.svg"
-            "gitee" -> "img/gitee.svg"
-            "github" -> "img/github.svg"
-            "google" -> "img/google.svg"
+            "huawei" -> "/img/huawei.svg"
+            "gitee" -> "/img/gitee.svg"
+            "github" -> "/img/github.svg"
+            "google" -> "/img/google.svg"
             else -> ""
         }

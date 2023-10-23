@@ -5,9 +5,6 @@
 package com.saveourtool.save.utils
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
-import io.ktor.client.statement.*
-import io.ktor.client.utils.*
-import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import org.jetbrains.annotations.NonBlocking
@@ -285,7 +282,19 @@ fun <T> Mono<T>.switchIfErrorToConflict(
  * @see ResponseSpec.blockingToBodilessEntity
  * @see BlockingBridge
  */
-fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R): Mono<R> = flatMap { value ->
+fun <T : Any, R : Any> Mono<T>.blockingMap(function: (T) -> R?): Mono<R> = flatMap { value ->
+    blockingToMono { function(value) }
+}
+
+/**
+ * @param function blocking operation like JDBC
+ * @return [Flux] from result of blocking operation [R] for each element
+ * @see blockingToMono
+ * @see ResponseSpec.blockingBodyToMono
+ * @see ResponseSpec.blockingToBodilessEntity
+ * @see BlockingBridge
+ */
+fun <T : Any, R : Any> Flux<T>.blockingMap(function: (T) -> R): Flux<R> = flatMap { value ->
     blockingToMono { function(value) }
 }
 

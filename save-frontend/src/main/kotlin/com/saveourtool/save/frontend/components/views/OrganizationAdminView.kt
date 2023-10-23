@@ -33,9 +33,8 @@ import kotlinx.serialization.json.Json
  * The list of all organizations, visible to super-users.
  */
 internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminState>(Style.SAVE_LIGHT) {
-    private val comparator: Comparator<OrganizationDto> =
-            compareBy<OrganizationDto> { it.status.ordinal }
-                .thenBy { it.name }
+    private val comparator: Comparator<OrganizationDto> = compareBy<OrganizationDto> { it.status.ordinal }
+        .thenBy { it.name }
 
     @Suppress("TYPE_ALIAS")
     private val organizationTable: FC<TableProps<OrganizationDto>> = tableComponent(
@@ -59,7 +58,7 @@ internal class OrganizationAdminView : AbstractView<Props, OrganizationAdminStat
                                 className = ClassName(stringClassName)
                                 when (organization.status) {
                                     OrganizationStatus.CREATED -> Link {
-                                        to = "/organization/$organizationName/tools"
+                                        to = "/$organizationName"
                                         +organizationName
                                     }
                                     else -> +organizationName

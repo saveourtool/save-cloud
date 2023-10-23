@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Headers
 import react.FC
+import react.router.useNavigate
 
 import kotlinx.browser.window
 
@@ -20,6 +21,8 @@ import kotlinx.browser.window
 fun logoutModal(
     closeCallback: () -> Unit
 ) = FC<ModalProps> { props ->
+    val navigate = useNavigate()
+
     val doLogoutRequest = useDeferredRequest {
         val replyToLogout = post(
             "${window.location.origin}/logout",
@@ -29,7 +32,7 @@ fun logoutModal(
         )
         if (replyToLogout.ok) {
             // logout went good, need either to reload page or to setUserInfo(null) and use redirection like `window.location.href = window.location.origin`
-            window.location.href = "${window.location.origin}/#"
+            navigate("/")
             window.location.reload()
         } else {
             // close this modal to allow user to see modal with error description

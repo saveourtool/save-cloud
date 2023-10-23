@@ -8,6 +8,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
+import org.w3c.dom.Location
 import org.w3c.files.Blob
 import org.w3c.files.BlobPropertyBag
 import org.w3c.xhr.FormData
@@ -35,14 +36,17 @@ import kotlinx.serialization.json.Json
 /**
  * Avatar placeholder if an error was thrown.
  */
-internal const val AVATAR_PLACEHOLDER = "img/undraw_image_not_found.png"
+internal const val AVATAR_PLACEHOLDER = "/img/undraw_image_not_found.png"
 
 /**
  * Avatar profile for those who don't want to upload it
  */
-internal const val AVATAR_PROFILE_PLACEHOLDER = "img/undraw_profile.svg"
+internal const val AVATAR_PROFILE_PLACEHOLDER = "/img/avatar_placeholder.png"
 
-const val ON_BLUR_TIMEOUT_MILLIS = 100
+/**
+ * Timeout after `onBlur` event takes place but before the component is hidden
+ */
+const val ON_BLUR_TIMEOUT_MILLIS = 200
 
 /**
  * The body of a [useDeferredRequest] invocation.
@@ -129,6 +133,14 @@ fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = Loc
     LocalDate.parse(this),
     time,
 )
+
+/**
+ * Dirty hack for the COSV location
+ * Should be removed in future
+ *
+ * @return true if we are in COSV domains range
+ */
+fun Location.isCosvDomain() = this.hostname in setOf("cosv.dev", "cosv.gitlink.org.cn")
 
 /**
  * @return `true` if this user is a super-admin, `false` otherwise.

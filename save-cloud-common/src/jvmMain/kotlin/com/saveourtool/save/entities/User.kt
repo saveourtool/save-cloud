@@ -3,11 +3,13 @@ package com.saveourtool.save.entities
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.spring.entity.BaseEntity
+import com.saveourtool.save.spring.entity.BaseEntityWithDate
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 import javax.persistence.*
+
+import kotlinx.datetime.toKotlinLocalDateTime
 
 /**
  * @property name
@@ -23,6 +25,9 @@ import javax.persistence.*
  * @property status
  * @property originalLogins
  * @property rating rating of user
+ * @property website
+ * @property freeText
+ * @property realName
  */
 @Entity
 @Suppress("LongParameterList")
@@ -47,7 +52,10 @@ class User(
     @JsonIgnore
     var originalLogins: List<OriginalLogin> = emptyList(),
     var rating: Long = 0,
-) : BaseEntity() {
+    var website: String? = null,
+    var freeText: String? = null,
+    var realName: String? = null,
+) : BaseEntityWithDate() {
     /**
      * @param projects roles in projects
      * @param organizations roles in organizations
@@ -56,7 +64,7 @@ class User(
     fun toUserInfo(projects: Map<String, Role> = emptyMap(), organizations: Map<String, Role> = emptyMap()) = UserInfo(
         id = id,
         name = name,
-        originalLogins = originalLogins.map { it.name },
+        originalLogins = originalLogins.associate { it.source to it.name },
         projects = projects,
         organizations = organizations,
         email = email,
@@ -68,5 +76,9 @@ class User(
         location = location,
         status = status,
         rating = rating,
+        website = website,
+        freeText = freeText,
+        realName = realName,
+        createDate = createDate?.toKotlinLocalDateTime(),
     )
 }

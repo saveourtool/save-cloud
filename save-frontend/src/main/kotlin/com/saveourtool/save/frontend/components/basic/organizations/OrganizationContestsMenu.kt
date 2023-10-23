@@ -10,16 +10,17 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.frontend.components.basic.contests.showContestCreationModal
-import com.saveourtool.save.frontend.components.modal.displayConfirmationModal
-import com.saveourtool.save.frontend.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
 import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.externals.fontawesome.faPlus
+import com.saveourtool.save.frontend.externals.fontawesome.faTrash
 import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Response
 import react.*
+import react.dom.html.ReactHTML.br
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.td
@@ -28,13 +29,9 @@ import react.router.useNavigate
 import web.cssom.ClassName
 import web.html.InputType
 
+import kotlinx.browser.window
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-/**
- * CONTESTS tab in OrganizationView
- */
-val organizationContestsMenu = organizationContestsMenu()
 
 @Suppress("MAGIC_NUMBER", "TYPE_ALIAS")
 private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tableComponent(
@@ -75,6 +72,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
                 Fragment.create {
                     td {
                         input {
+                            className = ClassName("mx-auto")
                             type = InputType.checkbox
                             id = "checkbox"
                             defaultChecked = props.selectedContestDtos.contains(cellContext.row.original)
@@ -95,6 +93,129 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
     useServerPaging = false
 ) {
     arrayOf(it.isContestCreated)
+}
+
+@Suppress(
+    "EMPTY_BLOCK_STRUCTURE_ERROR",
+)
+/**
+ * CONTESTS tab in OrganizationView
+ */
+val organizationContestsMenu: FC<OrganizationContestsMenuProps> = FC { props ->
+    useTooltip()
+    val (isToUpdateTable, setIsToUpdateTable) = useState(false)
+    val contestCreationWindowOpenness = useWindowOpenness()
+    val (selectedContests, setSelectedContests) = useState<Set<ContestDto>>(setOf())
+    val (contests, setContests) = useState<Set<ContestDto>>(setOf())
+    val refreshTable = { setIsToUpdateTable { !it } }
+    val addSelectedContestsFun: (ContestDto) -> Unit = { contest ->
+        setSelectedContests { it.plus(contest) }
+    }
+    val removeSelectedContestsFun: (ContestDto) -> Unit = { contest ->
+        setSelectedContests { it.minus(contest) }
+    }
+    val deleteContestsFun = useDeferredRequest {
+        val deleteContests = selectedContests.map { it.copy(status = ContestStatus.DELETED) }
+        val response = post(
+            "$apiUrl/contests/update-all",
+            jsonHeaders,
+            Json.encodeToString(deleteContests),
+            loadingHandler = ::noopLoadingHandler,
+        )
+        if (response.ok) {
+            setContests(contests.minus(selectedContests))
+            setSelectedContests(setOf())
+            refreshTable()
+        }
+    }
+    val navigate = useNavigate()
+
+    useRequest {
+        val response = get(
+            url = "$apiUrl/contests/by-organization?organizationName=${props.organizationName}",
+            headers = jsonHeaders,
+            loadingHandler = ::loadingHandler,
+        )
+        val newContests = if (response.ok) {
+            response.unsafeMap { it.decodeFromJsonString<List<ContestDto>>() }.toSet()
+        } else {
+            emptySet()
+        }
+        setContests(newContests)
+        refreshTable()
+    }
+
+    showContestCreationModal(
+        props.organizationName,
+        contestCreationWindowOpenness.isOpen(),
+        {
+            contestCreationWindowOpenness.closeWindow()
+            navigate(
+                to = it,
+            )
+        },
+        {
+            contestCreationWindowOpenness.closeWindow()
+            props.updateErrorMessage(it)
+        }
+    ) {
+        contestCreationWindowOpenness.closeWindow()
+    }
+
+    div {
+        className = ClassName("col-8 mx-auto")
+        div {
+            className = ClassName("d-flex justify-content-end mb-1")
+            if (selectedContests.isNotEmpty()) {
+                buttonBuilder(
+                    faTrash,
+                    classes = "mr-2 text-sm btn-sm",
+                    title = "Delete selected contests",
+                    style = "danger",
+                ) {
+                    if (window.confirm("Are you sure you want to delete selected contests?")) {
+                        deleteContestsFun()
+                    }
+                }
+            }
+            if (props.selfRole.hasDeletePermission()) {
+                buttonBuilder(
+                    faPlus,
+                    title = "Create contest",
+                    isOutline = true,
+                    classes = "text-sm btn-sm",
+                ) {
+                    contestCreationWindowOpenness.openWindow()
+                }
+            }
+        }
+        div {
+            className = ClassName("my-3")
+            if (contests.isNotEmpty()) {
+                contestsTable {
+                    getData = { _, _ -> contests.toTypedArray() }
+                    isContestCreated = isToUpdateTable
+                    addSelectedContests = addSelectedContestsFun
+                    removeSelectedContests = removeSelectedContestsFun
+                    selectedContestDtos = selectedContests
+                }
+            } else {
+                renderTablePlaceholder("text-center p-4 bg-white text-sm", "dashed") {
+                    +"This organization has not created any contest yet."
+                    if (props.selfRole.hasDeletePermission()) {
+                        br { }
+                        buttonBuilder(
+                            "You can be the first contest creator in ${props.organizationName}.",
+                            style = "",
+                            classes = "text-sm text-primary"
+                        ) {
+                            contestCreationWindowOpenness.openWindow()
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -140,132 +261,4 @@ external interface OrganizationContestsTableProps<D : Any> : TableProps<D> {
      * Selected contests
      */
     var selectedContestDtos: Set<ContestDto>
-}
-
-@Suppress(
-    "TOO_LONG_FUNCTION",
-    "LongMethod",
-    "MAGIC_NUMBER",
-    "ComplexMethod",
-    "GENERIC_VARIABLE_WRONG_DECLARATION",
-)
-private fun organizationContestsMenu() = FC<OrganizationContestsMenuProps> { props ->
-    val (isToUpdateTable, setIsToUpdateTable) = useState(false)
-    val (isContestCreationModalOpen, setIsContestCreationModalOpen) = useState(false)
-    val (selectedContests, setSelectedContests) = useState<Set<ContestDto>>(setOf())
-    val (contests, setContests) = useState<Set<ContestDto>>(setOf())
-    val refreshTable = { setIsToUpdateTable { !it } }
-    val addSelectedContestsFun: (ContestDto) -> Unit = { contest ->
-        setSelectedContests {
-            it.plus(contest)
-        }
-    }
-    val removeSelectedContestsFun: (ContestDto) -> Unit = { contest ->
-        setSelectedContests {
-            it.minus(contest)
-        }
-    }
-    val deleteContestsFun = useDeferredRequest {
-        val deleteContests = mutableListOf<ContestDto>()
-        selectedContests.map {
-            deleteContests.add(it.copy(status = ContestStatus.DELETED))
-        }
-        val response = post(
-            "$apiUrl/contests/update-all",
-            jsonHeaders,
-            Json.encodeToString(deleteContests),
-            loadingHandler = ::noopLoadingHandler,
-        )
-        if (response.ok) {
-            setContests(contests.minus(selectedContests))
-            setSelectedContests(setOf())
-            refreshTable()
-        }
-    }
-    val windowOpenness = useWindowOpenness()
-    val windowErrorOpenness = useWindowOpenness()
-    val navigate = useNavigate()
-
-    useRequest {
-        val response = get(
-            url = "$apiUrl/contests/by-organization?organizationName=${props.organizationName}",
-            headers = jsonHeaders,
-            loadingHandler = ::loadingHandler,
-        )
-        val newContests = if (response.ok) {
-            response.unsafeMap {
-                it.decodeFromJsonString<List<ContestDto>>()
-            }
-                .toSet()
-        } else {
-            setOf()
-        }
-        setContests(newContests)
-        refreshTable()
-    }
-
-    displayConfirmationModal(
-        windowOpenness,
-        "",
-        "Are you sure you want to delete selected contests?",
-    ) {
-        if (selectedContests.isNotEmpty()) {
-            deleteContestsFun()
-        } else {
-            windowErrorOpenness.openWindow()
-        }
-    }
-
-    displaySimpleModal(
-        windowErrorOpenness,
-        title = "Error",
-        "You have not selected contests to delete."
-    )
-
-    showContestCreationModal(
-        props.organizationName,
-        isContestCreationModalOpen,
-        {
-            setIsContestCreationModalOpen(false)
-            navigate(
-                to = it,
-            )
-        },
-        {
-            setIsContestCreationModalOpen(false)
-            props.updateErrorMessage(it)
-        }
-    ) {
-        setIsContestCreationModalOpen(false)
-    }
-
-    div {
-        className = ClassName("d-flex justify-content-end")
-        buttonBuilder(
-            classes = "mb-4 mr-2",
-            label = "Delete selected contests",
-            style = "danger",
-        ) {
-            windowOpenness.openWindow()
-        }
-        buttonBuilder(
-            classes = "mb-4",
-            label = "Create contest",
-            isDisabled = !props.selfRole.hasDeletePermission(),
-        ) {
-            setIsContestCreationModalOpen(true)
-        }
-    }
-    div {
-        className = ClassName("mb-2")
-        contestsTable {
-            getData = { _, _ ->
-                contests.toTypedArray()
-            }
-            isContestCreated = isToUpdateTable
-            addSelectedContests = addSelectedContestsFun
-            removeSelectedContests = removeSelectedContestsFun
-            selectedContestDtos = selectedContests
-        }
-    }
 }

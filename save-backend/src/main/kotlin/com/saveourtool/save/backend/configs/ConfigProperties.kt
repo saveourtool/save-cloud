@@ -4,6 +4,7 @@ import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.service.LokiConfig
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import java.nio.file.Path
 
 /**
  * Class for properties
@@ -17,6 +18,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
  * @property agentSettings properties for save-agents
  * @property testAnalysisSettings properties of the flaky test detector.
  * @property loki config of loki service for logging
+ * @property workingDir a local folder for tmp files
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "backend")
@@ -30,6 +32,7 @@ data class ConfigProperties(
     val agentSettings: AgentSettings = AgentSettings(),
     val testAnalysisSettings: TestAnalysisSettings = TestAnalysisSettings(),
     val loki: LokiConfig? = null,
+    val workingDir: Path,
 ) : S3OperationsProperties.Provider {
     /**
      * @property standardSuitesUpdateCron cron expression to schedule update of standard test suites (by default, every hour)

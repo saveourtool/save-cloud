@@ -29,7 +29,7 @@ object Contests : WelcomePager {
                 width = 80.rem
                 height = "auto".unsafeCast<Height>()
             }
-            src = "img/contests.png"
+            src = "/img/contests.png"
         }
     }
 }

@@ -12,6 +12,11 @@ import java.time.Instant
  */
 interface StorageProjectReactor<K> {
     /**
+     * @return true if init is done already
+     */
+    fun isInitDone(): Boolean = true
+
+    /**
      * @return list of keys in storage
      */
     fun list(): Flux<K>
@@ -39,6 +44,12 @@ interface StorageProjectReactor<K> {
      * @return true if the object deleted, otherwise false
      */
     fun delete(key: K): Mono<Boolean>
+
+    /**
+     * @param keys keyes to be deleted
+     * @return true if all objects deleted, otherwise false
+     */
+    fun deleteAll(keys: Collection<K>): Mono<Boolean>
 
     /**
      * @param key a key for provided content

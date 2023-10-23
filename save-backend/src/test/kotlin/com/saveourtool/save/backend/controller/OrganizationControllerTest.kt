@@ -7,16 +7,18 @@ import com.saveourtool.save.backend.repository.*
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.authservice.utils.AuthenticationDetails
 import com.saveourtool.save.backend.S11nTestConfig
+import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
+import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.info
 import com.saveourtool.save.v1
@@ -53,7 +55,6 @@ import java.util.concurrent.TimeUnit
     OrganizationService::class,
     OrganizationPermissionEvaluator::class,
     LnkUserOrganizationService::class,
-    UserDetailsService::class,
     NoopWebSecurityConfig::class,
     GitService::class,
     TestSuitesSourceService::class,
@@ -80,10 +81,21 @@ import java.util.concurrent.TimeUnit
     MockBean(AgentRepository::class),
     MockBean(ProjectRepository::class),
     MockBean(LnkUserProjectRepository::class),
+    MockBean(LnkUserOrganizationRepository::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(LnkContestProjectService::class),
     MockBean(LnkOrganizationTestSuiteService::class),
     MockBean(LnkExecutionTestSuiteService::class),
+    MockBean(AvatarStorage::class),
+    MockBean(IBackendService::class),
+    MockBean(VulnerabilityMetadataRepository::class),
+    MockBean(LnkVulnerabilityMetadataTagRepository::class),
+    MockBean(LnkVulnerabilityMetadataUserRepository::class),
+    MockBean(VulnerabilityMetadataProjectRepository::class),
+    MockBean(RawCosvFileRepository::class),
+    MockBean(CosvFileRepository::class),
+    MockBean(BlockingBridge::class),
+    MockBean(CosvGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 @Suppress("UnsafeCallOnNullableType")
@@ -307,9 +319,7 @@ class OrganizationControllerTest {
             gitDto.url == url && gitDto.username == password && gitDto.password == password
 
     private fun mutateMockedUserAndLink(organization: Organization, user: User, userRole: Role) {
-        mutateMockedUser {
-            details = AuthenticationDetails(id = user.requiredId())
-        }
+        mutateMockedUser(id = user.requiredId())
         prepareLink(organization, user, userRole)
     }
 

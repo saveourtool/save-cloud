@@ -28,9 +28,7 @@ import kotlinx.browser.window
  */
 suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: String) = get(
     "$apiUrl/projects/get/organization-name?name=$name&organizationName=$organizationName",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
+    jsonHeaders,
     loadingHandler = ::classLoadingHandler,
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
@@ -44,9 +42,7 @@ suspend fun ComponentWithScope<*, *>.getProject(name: String, organizationName: 
  */
 suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
     "$apiUrl/organizations/$name",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
+    jsonHeaders,
     loadingHandler = ::classLoadingHandler,
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
@@ -58,9 +54,7 @@ suspend fun ComponentWithScope<*, *>.getOrganization(name: String) = get(
  */
 suspend fun ComponentWithScope<*, *>.getContest(name: String) = get(
     "$apiUrl/contests/$name",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
+    jsonHeaders,
     loadingHandler = ::classLoadingHandler,
     responseHandler = ::classComponentRedirectOnFallbackResponseHandler,
 )
@@ -72,9 +66,7 @@ suspend fun ComponentWithScope<*, *>.getContest(name: String) = get(
  */
 suspend fun ComponentWithScope<*, *>.getUser(name: String) = get(
     "$apiUrl/users/$name",
-    Headers().apply {
-        set("Accept", "application/json")
-    },
+    jsonHeaders,
     loadingHandler = ::classLoadingHandler,
 )
     .decodeFromJsonString<UserInfo>()
@@ -97,12 +89,8 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
             owner = name
             this.type = type
         },
-        Headers().apply {
-            append(CONTENT_LENGTH_CUSTOM, file.size.toString())
-        },
-        FormData().apply {
-            set(FILE_PART_NAME, file)
-        },
+        Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
+        FormData().apply { set(FILE_PART_NAME, file) },
         loadingHandler,
     )
     if (response.ok) {
@@ -118,7 +106,7 @@ suspend fun ComponentWithScope<*, *>.postImageUpload(
  */
 suspend fun WithRequestStatusContext.postImageUpload(
     file: File,
-    name: String,
+    name: String?,
     type: AvatarType,
     loadingHandler: suspend (suspend () -> Response) -> Response,
 ) {
@@ -149,35 +137,31 @@ suspend fun WithRequestStatusContext.postUploadFile(
     loadingHandler: suspend (suspend () -> Response) -> Response,
 ): Response = post(
     url,
-    Headers().apply {
-        append(CONTENT_LENGTH_CUSTOM, file.size.toString())
-    },
-    FormData().apply {
-        set(FILE_PART_NAME, file)
-    },
+    Headers().apply { append(CONTENT_LENGTH_CUSTOM, file.size.toString()) },
+    FormData().apply { set(FILE_PART_NAME, file) },
     loadingHandler = loadingHandler,
 )
 
 /**
  * Fetch debug info for test execution
  *
- * @param testExecutionDto
+ * @param testExecutionId id of a particular test execution
  * @return Response
  */
 @Suppress("TYPE_ALIAS")
 suspend fun ComponentWithScope<*, *>.getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
-) = getDebugInfoFor(testExecutionDto, this::get)
+    testExecutionId: Long,
+) = getDebugInfoFor(testExecutionId, this::get)
 
 /**
  * Fetch debug info for test execution
  *
- * @param testExecutionDto
+ * @param testExecutionId id of a particular test execution
  * @return Response
  */
 suspend fun WithRequestStatusContext.getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
-) = getDebugInfoFor(testExecutionDto, this::get)
+    testExecutionId: Long,
+) = getDebugInfoFor(testExecutionId, this::get)
 
 /**
  * Fetch execution info for test execution
@@ -190,9 +174,7 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     testExecutionDto: TestExecutionDto,
 ) = get(
     "$apiUrl/files/get-execution-info",
-    params = jso<dynamic> {
-        executionId = testExecutionDto.executionId
-    },
+    params = jso<dynamic> { executionId = testExecutionDto.executionId },
     jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler
@@ -200,13 +182,11 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
 
 @Suppress("TYPE_ALIAS")
 private suspend fun getDebugInfoFor(
-    testExecutionDto: TestExecutionDto,
+    testExecutionId: Long,
     get: suspend (String, dynamic, Headers, suspend (suspend () -> Response) -> Response, (Response) -> Unit) -> Response,
 ) = get(
     "$apiUrl/files/get-debug-info",
-    jso {
-        testExecutionId = testExecutionDto.requiredId()
-    },
+    jso { this.testExecutionId = testExecutionId },
     jsonHeaders,
     ::noopLoadingHandler,
     ::noopResponseHandler,

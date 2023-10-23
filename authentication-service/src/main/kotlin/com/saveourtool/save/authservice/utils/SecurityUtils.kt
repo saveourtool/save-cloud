@@ -5,43 +5,43 @@
 package com.saveourtool.save.authservice.utils
 
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.core.userdetails.User as SpringUser
-import org.springframework.security.core.userdetails.UserDetails
 
 /**
  * Extract userId from this [Authentication]
+ * We assume that the authentication uses [SaveUserDetails] as principal
  *
  * @return userId
  */
-fun Authentication.userId() = (this.details as AuthenticationDetails).id
+fun Authentication.userId() = (principal as SaveUserDetails).id
 
 /**
  * Extract username from this [Authentication].
- * We assume here that most of the authentications are created by [ConvertingAuthenticationManager],
- * so `principal` is a String
+ * We assume that the authentication uses [SaveUserDetails] as principal
  *
  * @return username
  */
-fun Authentication.username(): String = when (principal) {
-    // this should be the most common branch, as requests are authenticated by `ConvertingAuthenticationManager`
-    is String -> principal as String
-    is UserDetails -> (principal as UserDetails).username
-    else -> error("Authentication instance $this has unsupported type of principal: $principal of type ${principal::class}")
-}
+fun Authentication.username(): String = (principal as SaveUserDetails).name
 
 /**
- * @return Spring's [UserDetails] created from save's [User]
+ * Extract status from this [Authentication].
+ * We assume that the authentication uses [SaveUserDetails] as principal
+ *
+ * @return status as [String]
  */
-fun User.toSpringUserDetails(): UserDetails = SpringUser.withUsername(name)
-    .password(password.orEmpty())
-    .authorities(AuthorityUtils.commaSeparatedStringToAuthorityList(role))
-    .build()
+fun Authentication.status(): String = (principal as SaveUserDetails).status
+
+/**
+ * Extract status from this [Authentication] and check if it is [UserStatus.ACTIVE].
+ * We assume that the authentication uses [SaveUserDetails] as principal
+ *
+ * @return true if [status] is [UserStatus.ACTIVE], false otherwise
+ */
+fun Authentication.isActive(): Boolean = status() == UserStatus.ACTIVE.toString()
 
 /**
  * Set role hierarchy for spring security

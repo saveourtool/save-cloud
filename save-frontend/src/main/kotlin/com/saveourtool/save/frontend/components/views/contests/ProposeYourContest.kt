@@ -23,7 +23,7 @@ internal fun ChildrenBuilder.proposeContest() {
         div {
             className = ClassName("col-3 pr-0")
             img {
-                src = "img/undraw_mailbox_re_dvds.svg"
+                src = "/img/undraw_mailbox_re_dvds.svg"
                 @Suppress("MAGIC_NUMBER")
                 style = jso {
                     width = 5.rem

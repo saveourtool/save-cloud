@@ -38,6 +38,8 @@ abstract class AbstractReactiveStorage<K : Any>(
         }
     }
 
+    override fun isInitDone() = initializer.isDone()
+
     /**
      * @param underlying
      * @return result of init method as [Mono] without body, it's [Mono.empty] by default
@@ -53,6 +55,8 @@ abstract class AbstractReactiveStorage<K : Any>(
     override fun upload(key: K, contentLength: Long, content: Flux<ByteBuffer>): Mono<K> = initializer.validateAndRun { storageProjectReactor.upload(key, contentLength, content) }
 
     override fun delete(key: K): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.delete(key) }
+
+    override fun deleteAll(keys: Collection<K>): Mono<Boolean> = initializer.validateAndRun { storageProjectReactor.deleteAll(keys) }
 
     override fun lastModified(key: K): Mono<Instant> = initializer.validateAndRun { storageProjectReactor.lastModified(key) }
 

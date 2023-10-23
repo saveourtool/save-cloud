@@ -1,6 +1,7 @@
 package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -18,6 +19,12 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
     fun findByName(username: String): User?
 
     /**
+     * @param status
+     * @return users with status
+     */
+    fun findByStatus(status: UserStatus): List<User>
+
+    /**
      * @param username
      * @param ids set of id of people that should not be found
      * @return list of users with [username] except those whose ids are in [ids]
@@ -31,6 +38,14 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
      * @return [Page] of users with names that start with [prefix] and id not in [ids]
      */
     fun findByNameStartingWithAndIdNotIn(prefix: String, ids: Set<Long>, page: Pageable): Page<User>
+
+    /**
+     * @param prefix
+     * @param names
+     * @param page
+     * @return [Page] of users with names that start with [prefix] and name not in [names]
+     */
+    fun findByNameStartingWithAndNameNotIn(prefix: String, names: Set<String>, page: Pageable): Page<User>
 
     /**
      * @param prefix

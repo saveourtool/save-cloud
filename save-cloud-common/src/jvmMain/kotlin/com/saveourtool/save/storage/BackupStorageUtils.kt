@@ -5,6 +5,7 @@
 package com.saveourtool.save.storage
 
 import com.saveourtool.save.s3.S3Operations
+import com.saveourtool.save.storage.key.AbstractS3KeyDatabaseManager
 import com.saveourtool.save.utils.ListCompletableFuture
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
@@ -17,7 +18,8 @@ import java.util.concurrent.CompletableFuture
 
 import kotlinx.datetime.Clock
 
-private val log = getLogger(object {}.javaClass.enclosingClass::class.java)
+@Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+private val log = getLogger {}
 
 /**
  * Back up unexpected s3 key (according to [s3KeyValidator]) which are detected S3 storage (by common prefix [commonPrefix])
@@ -41,6 +43,22 @@ fun S3Operations.backupUnexpectedKeys(
     }
 
 /**
+ * Back up unexpected s3 key (according to [AbstractS3KeyDatabaseManager]) which are detected S3 storage (by [AbstractS3KeyDatabaseManager])
+ *
+ * @param storageName
+ * @param s3KeyManager
+ * @return [CompletableFuture] without body
+ */
+fun S3Operations.backupUnexpectedKeys(
+    storageName: String,
+    s3KeyManager: AbstractS3KeyDatabaseManager<*, *, *>,
+): CompletableFuture<Unit> = backupUnexpectedKeys(
+    storageName = storageName,
+    commonPrefix = s3KeyManager.commonPrefix,
+    s3KeyValidator = s3KeyManager.asS3KeyValidator(),
+)
+
+/**
  * Delete unexpected s3 key (according to [s3KeyValidator]) which are detected S3 storage (by common prefix [commonPrefix])
  *
  * @param storageName
@@ -61,6 +79,27 @@ fun S3Operations.deleteUnexpectedKeys(
         }
     }
 
+/**
+ * Delete unexpected s3 key (according to [AbstractS3KeyDatabaseManager]) which are detected S3 storage (by [AbstractS3KeyDatabaseManager])
+ *
+ * @param storageName
+ * @param s3KeyManager
+ * @return [CompletableFuture] without body
+ */
+fun S3Operations.deleteUnexpectedKeys(
+    storageName: String,
+    s3KeyManager: AbstractS3KeyDatabaseManager<*, *, *>,
+): CompletableFuture<Unit> = deleteUnexpectedKeys(
+    storageName = storageName,
+    commonPrefix = s3KeyManager.commonPrefix,
+    s3KeyValidator = s3KeyManager.asS3KeyValidator(),
+)
+
+private fun AbstractS3KeyDatabaseManager<*, *, *>.asS3KeyValidator(): (String) -> Boolean = { s3Key ->
+    val id = s3Key.removePrefix(commonPrefix).toLong()
+    findKeyByEntityId(id) == null
+}
+
 private fun S3Operations.doBackupUnexpectedKeys(
     storageName: String,
     commonPrefix: String,
@@ -69,7 +108,7 @@ private fun S3Operations.doBackupUnexpectedKeys(
     val backupCommonPrefix = (commonPrefix.removeSuffix(PATH_DELIMITER) + "-backup-${Clock.System.now().epochSeconds}")
         .asS3CommonPrefix()
     log.warn {
-        "Found unexpected keys $unexpectedKeys in storage $storageName. Move them to backup common prefix: $backupCommonPrefix..."
+        "Found unexpected keys in storage $storageName, move them to backup common prefix $backupCommonPrefix: $unexpectedKeys"
     }
     return unexpectedKeys
         .map { unexpectedKey ->
@@ -93,7 +132,7 @@ private fun S3Operations.doDeleteUnexpectedKeys(
     unexpectedKeys: Collection<String>,
 ): CompletableFuture<Unit> {
     log.warn {
-        "Found unexpected keys $unexpectedKeys in storage $storageName. Delete them..."
+        "Found unexpected keys in storage $storageName, delete them: $unexpectedKeys"
     }
     return unexpectedKeys
         .map { unexpectedKey -> deleteObject(unexpectedKey) }

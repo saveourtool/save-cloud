@@ -32,6 +32,7 @@ import com.saveourtool.save.frontend.http.getDebugInfoFor
 import com.saveourtool.save.frontend.http.getExecutionInfoFor
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.utils.ELLIPSIS
 
 import js.core.jso
 import org.w3c.fetch.Headers
@@ -56,11 +57,6 @@ import kotlinx.serialization.json.Json
 private const val MAX_TEST_NAME_LENGTH = 35
 
 /**
- * Horizontal Ellipsis (U+2026).
- */
-private const val ELLIPSIS = '\u2026'
-
-/**
  * The infix of the shortened text label.
  */
 private const val TEXT_LABEL_INFIX = " $ELLIPSIS "
@@ -69,6 +65,16 @@ private const val TEXT_LABEL_INFIX = " $ELLIPSIS "
  * [Props] for execution results view
  */
 external interface ExecutionProps : PropsWithChildren {
+    /**
+     * Organization name
+     */
+    var organization: String
+
+    /**
+     * Project name
+     */
+    var project: String
+
     /**
      * ID of execution
      */
@@ -219,20 +225,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                         }
                     }
                 }
-                column(id = "containerName", header = "Container Name") {
-                    Fragment.create {
-                        td {
-                            +"${it.value.testExecution.agentContainerName}"
-                        }
-                    }
-                }
-                column(id = "containerId", header = "Container ID") {
-                    Fragment.create {
-                        td {
-                            +"${it.value.testExecution.agentContainerId}"
-                        }
-                    }
-                }
 
                 if (props.testAnalysisEnabled) {
                     column(id = "testMetrics", header = "Test Metrics") {
@@ -281,8 +273,16 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                 }
                 trei?.failReason != null || trdi != null -> {
                     trei?.failReason?.let { executionStatusComponent(it, tableInstance)() }
-                    trdi?.let { testStatusComponent(it, tableInstance)() }
+                    trdi?.let {
+                        testStatusComponent(
+                            "${props.organization}/${props.project}",
+                            it,
+                            tableInstance,
+                            row.original.testExecution
+                        )()
+                    }
                 }
+
                 else -> tr {
                     td {
                         colSpan = tableInstance.visibleColumnsCount()
@@ -291,28 +291,6 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                 }
             }
         },
-        commonHeader = { tableInstance, navigate ->
-            tr {
-                th {
-                    colSpan = tableInstance.visibleColumnsCount()
-                    testExecutionFiltersRow {
-                        filters = state.filters
-                        onChangeFilters = { filterValue ->
-                            setState {
-                                filters = filters.copy(
-                                    status = filterValue.status?.takeIf { it.name != "ANY" },
-                                    fileName = filterValue.fileName?.ifEmpty { null },
-                                    testSuite = filterValue.testSuite?.ifEmpty { null },
-                                    tag = filterValue.tag?.ifEmpty { null },
-                                )
-                            }
-                            tableInstance.resetPageIndex(true)
-                            navigate(getUrlWithFiltersParams(filterValue))
-                        }
-                    }
-                }
-            }
-        }
     ) {
         arrayOf(it.filters)
     }
@@ -331,7 +309,8 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
     } ?: ""
 
     private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
-        val trDebugInfoResponse = getDebugInfoFor(testExecution)
+        val trDebugInfoResponse = getDebugInfoFor(testExecution.requiredId())
+        // FixMe: invalid setup of execution because of the invalid propagated ID
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
         // there may be errors during deserialization, which will otherwise be silently ignored
         try {
@@ -407,6 +386,30 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
         // fixme: table is rendered twice because of state change when `executionDto` is fetched
         testExecutionsTable {
             filters = state.filters
+            commonHeaderBuilder = { cb, tableInstance, navigate ->
+                with(cb) {
+                    tr {
+                        th {
+                            colSpan = tableInstance.visibleColumnsCount()
+                            testExecutionFiltersRow {
+                                filters = state.filters
+                                onChangeFilters = { filterValue ->
+                                    setState {
+                                        filters = filters.copy(
+                                            status = filterValue.status?.takeIf { it.name != "ANY" },
+                                            fileName = filterValue.fileName?.ifEmpty { null },
+                                            testSuite = filterValue.testSuite?.ifEmpty { null },
+                                            tag = filterValue.tag?.ifEmpty { null },
+                                        )
+                                    }
+                                    tableInstance.resetPageIndex(true)
+                                    navigate(getUrlWithFiltersParams(filterValue))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             getData = { page, size ->
                 post(
                     url = "$apiUrl/test-executions",
@@ -462,7 +465,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
 
     private fun getUrlWithFiltersParams(filterValue: TestExecutionFilter) =
             // fixme: relies on the usage of HashRouter, hence hash.drop leading `#`
-            "${window.location.hash.drop(1)}${filterValue.toQueryParams()}"
+            "${window.location.pathname}${filterValue.toQueryParams()}"
 
     /**
      * @param maxLength the maximum desired length of a text label.

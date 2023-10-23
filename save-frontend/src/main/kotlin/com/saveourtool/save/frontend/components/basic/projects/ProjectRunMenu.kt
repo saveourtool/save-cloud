@@ -31,58 +31,8 @@ private val projectInfoCard = cardComponent(isBordered = true, hasBg = true)
 /**
  * RUN tab in ProjectView
  */
-val projectRunMenu = projectRunMenu()
-
-/**
- * ProjectRunMenu component props
- */
-external interface ProjectRunMenuProps : Props {
-    /**
-     * Project name
-     */
-    var projectName: String
-
-    /**
-     * Organization name
-     */
-    var organizationName: String
-
-    /**
-     * ID of the latest execution
-     */
-    var latestExecutionId: Long?
-
-    /**
-     * Path to the default tab of this project's view
-     */
-    var pathToView: String
-
-    /**
-     * Callback to send execution request
-     */
-    @Suppress("TYPE_ALIAS")
-    var submitExecutionRequest: (NavigateFunctionContext, CreateExecutionRequest) -> Unit
-}
-
-private fun ChildrenBuilder.testingTypeButton(
-    selectedTestingType: TestingType,
-    text: String,
-    divClass: String,
-    testingType: TestingType,
-    setTestingType: (TestingType) -> Unit,
-) {
-    div {
-        className = ClassName(divClass)
-        buttonBuilder(text, isOutline = true, isActive = testingType == selectedTestingType) {
-            setTestingType(selectedTestingType)
-        }
-    }
-}
-
-private fun Collection<TestSuiteVersioned>.extractIdsAndVersion() = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version).takeIf { it.isNotEmpty() }?.single()
-
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
+val projectRunMenu: FC<ProjectRunMenuProps> = FC { props ->
     val (project, setProject) = useState(ProjectDto.empty)
     useRequest {
         val projectFromBackend: ProjectDto = get(
@@ -276,7 +226,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                     fontAwesomeIcon(icon = faHistory)
                     withNavigate { navigateContext ->
                         buttonBuilder("Latest Execution", "link", isDisabled = props.latestExecutionId == null, classes = "text-left") {
-                            navigateContext.navigateToLinkWithSuffix(props.pathToView, "history/execution/${props.latestExecutionId}")
+                            navigateContext.navigate("history/execution/${props.latestExecutionId}")
                         }
                     }
                 }
@@ -285,7 +235,7 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
                     fontAwesomeIcon(icon = faCalendarAlt)
                     withNavigate { navigateContext ->
                         buttonBuilder("Execution History", "link", classes = "text-left") {
-                            navigateContext.navigateToLinkWithSuffix(props.pathToView, "history")
+                            navigateContext.navigate("history")
                         }
                     }
                 }
@@ -293,3 +243,49 @@ private fun projectRunMenu() = FC<ProjectRunMenuProps> { props ->
         }
     }
 }
+
+/**
+ * ProjectRunMenu component props
+ */
+external interface ProjectRunMenuProps : Props {
+    /**
+     * Project name
+     */
+    var projectName: String
+
+    /**
+     * Organization name
+     */
+    var organizationName: String
+
+    /**
+     * ID of the latest execution
+     */
+    var latestExecutionId: Long?
+
+    /**
+     * Callback to send execution request
+     */
+    @Suppress("TYPE_ALIAS")
+    var submitExecutionRequest: (NavigateFunctionContext, CreateExecutionRequest) -> Unit
+}
+
+private fun ChildrenBuilder.testingTypeButton(
+    selectedTestingType: TestingType,
+    text: String,
+    divClass: String,
+    testingType: TestingType,
+    setTestingType: (TestingType) -> Unit,
+) {
+    div {
+        className = ClassName(divClass)
+        buttonBuilder(text, isOutline = true, isActive = testingType == selectedTestingType) {
+            setTestingType(selectedTestingType)
+        }
+    }
+}
+
+private fun Collection<TestSuiteVersioned>.extractIdsAndVersion(): Pair<List<Long>, String?> = this.map(TestSuiteVersioned::id) to this.map(TestSuiteVersioned::version)
+    .distinct()
+    .single()
+    .takeIf { it.isNotEmpty() }

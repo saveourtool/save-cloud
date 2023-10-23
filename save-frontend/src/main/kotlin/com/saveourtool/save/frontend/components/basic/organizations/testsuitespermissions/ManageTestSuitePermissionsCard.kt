@@ -6,6 +6,7 @@
 
 package com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions
 
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.MESSAGE
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.PUBLISH
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.SUITE_SELECTOR_FOR_PUBLISH
@@ -13,7 +14,8 @@ import com.saveourtool.save.frontend.components.basic.organizations.testsuitespe
 import com.saveourtool.save.frontend.components.basic.organizations.testsuitespermissions.PermissionManagerMode.TRANSFER
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.TestSuiteSelectorPurpose
 import com.saveourtool.save.frontend.components.basic.testsuiteselector.testSuiteSelector
-import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForString
+import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForOrganizationDto
+import com.saveourtool.save.frontend.components.inputform.renderOrganizationWithAvatar
 import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
 import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.modal.modalBuilder
@@ -24,7 +26,6 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h5
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import web.cssom.ClassName
@@ -72,10 +73,10 @@ external interface ManageTestSuitePermissionsComponentProps : Props {
 )
 private fun ChildrenBuilder.displayPermissionManager(
     selectedTestSuites: List<TestSuiteVersioned>,
-    organizationName: String,
+    organization: OrganizationDto,
     requestedRights: Rights,
     openTestSuiteSelector: () -> Unit,
-    setOrganizationName: (String) -> Unit,
+    setOrganization: (OrganizationDto) -> Unit,
     setRequestedRights: (Rights) -> Unit,
 ) {
     div {
@@ -109,14 +110,12 @@ private fun ChildrenBuilder.displayPermissionManager(
             }
             div {
                 className = ClassName("pl-0 col-11")
-                inputWithDebounceForString {
-                    selectedOption = organizationName
-                    setSelectedOption = { setOrganizationName(it) }
+                inputWithDebounceForOrganizationDto {
+                    selectedOption = organization
+                    setSelectedOption = { setOrganization(it) }
                     getUrlForOptionsFetch = { prefix -> "$apiUrl/organizations/get/by-prefix?prefix=$prefix" }
                     placeholder = "Start typing organization name..."
-                    renderOption = { childrenBuilder, organizationName ->
-                        with(childrenBuilder) { h5 { +organizationName } }
-                    }
+                    renderOption = ::renderOrganizationWithAvatar
                 }
             }
         }
@@ -222,7 +221,7 @@ private fun ChildrenBuilder.displayMassPermissionManager(
 @Suppress("TOO_LONG_FUNCTION", "LongMethod", "ComplexMethod")
 private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermissionsComponentProps> { props ->
     val (selectedTestSuites, setSelectedTestSuites) = useState<List<TestSuiteVersioned>>(emptyList())
-    val (organizationName, setOrganizationName) = useState("")
+    val (organization, setOrganization) = useState(OrganizationDto.empty)
     val (requiredRights, setRequiredRights) = useState(Rights.NONE)
 
     val (isToBePublic, setIsToBePublic) = useState(true)
@@ -238,7 +237,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         val response = post(
             url = "$apiUrl/test-suites/${props.organizationName}/batch-set-rights",
             headers = jsonHeaders,
-            body = Json.encodeToString(SetRightsRequest(organizationName, requiredRights, selectedTestSuites.map { it.id })),
+            body = Json.encodeToString(SetRightsRequest(organization.name, requiredRights, selectedTestSuites.map { it.id })),
             loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler,
         )
@@ -271,7 +270,7 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
         setCurrentMode(TRANSFER)
         setBackendResponseMessage("")
         setRequiredRights(Rights.NONE)
-        setOrganizationName("")
+        setOrganization(OrganizationDto.empty)
         setIsToBePublic(true)
     }
 
@@ -289,10 +288,10 @@ private fun manageTestSuitePermissionsComponent() = FC<ManageTestSuitePermission
                 when (currentMode) {
                     TRANSFER -> displayPermissionManager(
                         selectedTestSuites,
-                        organizationName,
+                        organization,
                         requiredRights,
                         { setCurrentMode(SUITE_SELECTOR_FOR_RIGHTS) },
-                        { setOrganizationName(it) }
+                        { setOrganization(it) }
                     ) { setRequiredRights(it) }
                     SUITE_SELECTOR_FOR_PUBLISH, SUITE_SELECTOR_FOR_RIGHTS -> testSuiteSelector {
                         this.onTestSuiteUpdate = {

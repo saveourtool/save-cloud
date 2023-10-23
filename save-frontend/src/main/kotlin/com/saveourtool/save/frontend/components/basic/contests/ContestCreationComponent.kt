@@ -87,14 +87,9 @@ fun ChildrenBuilder.showContestCreationModal(
             onSaveError = onFailure
         }
         div {
-            className = ClassName("d-flex justify-content-center")
-            button {
-                type = ButtonType.button
-                className = ClassName("btn btn-secondary mt-4")
-                +"Cancel"
-                onClick = {
-                    onClose()
-                }
+            className = ClassName("d-flex justify-content-center mt-4")
+            buttonBuilder("Cancel", "secondary", isOutline = true) {
+                onClose()
             }
         }
     }
@@ -163,7 +158,7 @@ private fun contestCreationComponent() = FC<ContestCreationComponentProps> { pro
                         inputTextFormRequired {
                             form = InputTypes.CONTEST_NAME
                             textValue = contestDto.name
-                            validInput = (contestDto.name.isBlank() || contestDto.name.isValidName()) && conflictErrorMessage == null
+                            validInput = contestDto.name.isNotEmpty() && contestDto.name.isValidName() && conflictErrorMessage == null
                             classes = "col-12 pl-2 pr-2"
                             name = "Contest name"
                             conflictMessage = conflictErrorMessage

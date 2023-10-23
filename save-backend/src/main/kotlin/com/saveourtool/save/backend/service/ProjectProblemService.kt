@@ -4,7 +4,7 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.repository.vulnerability.VulnerabilityRepository
+import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.entities.ProjectProblem
 import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.save.filters.ProjectProblemFilter
@@ -19,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional
  *
  * @property projectRepository
  * @property projectProblemRepository
- * @property vulnerabilityRepository
+ * @property vulnerabilityMetadataRepository
  * @property userRepository
  */
 @Service
 class ProjectProblemService(
     private val projectRepository: ProjectRepository,
     private val projectProblemRepository: ProjectProblemRepository,
-    private val vulnerabilityRepository: VulnerabilityRepository,
+    private val vulnerabilityMetadataRepository: VulnerabilityMetadataRepository,
     private val userRepository: UserRepository,
 ) {
     /**
@@ -49,7 +49,7 @@ class ProjectProblemService(
      */
     @Transactional
     fun saveProjectProblem(problem: ProjectProblemDto, authentication: Authentication) {
-        val vulnerability = problem.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val vulnerabilityMetadata = problem.identifier?.let { vulnerabilityMetadataRepository.findByIdentifier(it) }
         val project = projectRepository.findByNameAndOrganizationName(problem.projectName, problem.organizationName).orNotFound()
         val userId = authentication.userId()
         val user = userRepository.getByIdOrNotFound(userId)
@@ -58,7 +58,7 @@ class ProjectProblemService(
             name = problem.name,
             description = problem.description,
             critical = problem.critical,
-            vulnerability = vulnerability,
+            vulnerabilityMetadata = vulnerabilityMetadata,
             project = project,
             userId = user.requiredId(),
             isClosed = false,
@@ -72,13 +72,13 @@ class ProjectProblemService(
     @Transactional
     fun updateProjectProblem(projectProblemDto: ProjectProblemDto) {
         val problem = projectProblemDto.id?.let { projectProblemRepository.getByIdOrNotFound(it) }.orNotFound()
-        val vulnerabilityNew = projectProblemDto.vulnerabilityName?.let { vulnerabilityRepository.findByName(it) }
+        val vulnerabilityMetadata = projectProblemDto.identifier?.let { vulnerabilityMetadataRepository.findByIdentifier(it) }
         problem.apply {
             name = projectProblemDto.name
             description = projectProblemDto.description
             critical = projectProblemDto.critical
             isClosed = projectProblemDto.isClosed
-            vulnerability = vulnerabilityNew
+            this.vulnerabilityMetadata = vulnerabilityMetadata
         }
         projectProblemRepository.save(problem)
     }

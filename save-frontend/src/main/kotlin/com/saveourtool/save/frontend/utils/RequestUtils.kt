@@ -32,18 +32,16 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 val apiUrl = "${window.location.origin}/api/$v1"
-val demoApiUrl = "${window.location.origin}/demo/api"
-val cpgDemoApiUrl = "${window.location.origin}/cpg/api"
+val demoApiUrl = "${window.location.origin}/api/demo"
+val cpgDemoApiUrl = "${window.location.origin}/api/cpg"
 
-val jsonHeaders = Headers().apply {
-    set("Accept", "application/json")
-    set("Content-Type", "application/json")
-}
+val jsonHeaders = Headers()
+    .withAcceptJson()
+    .withContentTypeJson()
 
 /**
  * The chunk of data read from the body of an HTTP response.
@@ -76,6 +74,34 @@ interface WithRequestStatusContext {
      * @param transform
      */
     fun setLoadingCounter(transform: (oldValue: Int) -> Int)
+}
+
+/**
+ * @return [this] headers with `content-type` for JSON
+ */
+fun Headers.withContentTypeJson() = apply {
+    set("Content-Type", "application/json")
+}
+
+/**
+ * @return [this] headers with `accept` for JSON
+ */
+fun Headers.withAcceptJson() = apply {
+    set("Accept", "application/json")
+}
+
+/**
+ * @return [this] headers with `accept` for NDJSON
+ */
+fun Headers.withAcceptNdjson() = apply {
+    set("Accept", "application/x-ndjson")
+}
+
+/**
+ * @return [this] headers with `accept` for octet-stream (bytes)
+ */
+fun Headers.withAcceptOctetStream() = apply {
+    set("Accept", "application/octet-stream")
 }
 
 /**
@@ -169,13 +195,12 @@ suspend fun ComponentWithScope<*, *>.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        get<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = get<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `GET` request from a class component. See [request] for parameter
@@ -200,14 +225,13 @@ suspend fun <T : Any> ComponentWithScope<*, *>.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "GET",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "GET",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform POST request from a class component. See [request] for parameter description.
@@ -221,14 +245,13 @@ suspend fun ComponentWithScope<*, *>.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        post<dynamic>(
-            url = url,
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = post<dynamic>(
+    url = url,
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `POST` request from a class component.
@@ -261,15 +284,14 @@ suspend fun <T : Any> ComponentWithScope<*, *>.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "POST",
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "POST",
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform DELETE request from a class component. See [request] for parameter description.
@@ -282,13 +304,12 @@ suspend fun ComponentWithScope<*, *>.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        delete<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = delete<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `DELETE` request from a class component.
@@ -318,14 +339,13 @@ suspend fun <T : Any> ComponentWithScope<*, *>.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::classComponentResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "DELETE",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "DELETE",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform GET request from a functional component
@@ -341,13 +361,12 @@ suspend fun WithRequestStatusContext.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        get<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = get<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `GET` request from a functional component. See [request] for
@@ -373,14 +392,13 @@ suspend fun <T : Any> WithRequestStatusContext.get(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "GET",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "GET",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform POST request from a functional component
@@ -397,14 +415,13 @@ suspend fun WithRequestStatusContext.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        post<dynamic>(
-            url = url,
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = post<dynamic>(
+    url = url,
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `POST` request from a functional component.
@@ -440,15 +457,14 @@ suspend fun <T : Any> WithRequestStatusContext.post(
     body: dynamic,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "POST",
-            headers = headers,
-            body = body,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "POST",
+    headers = headers,
+    body = body,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Perform a `DELETE` request from a functional component.
@@ -479,13 +495,12 @@ suspend fun WithRequestStatusContext.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        delete<dynamic>(
-            url = url,
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = delete<dynamic>(
+    url = url,
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Performs a `DELETE` request from a functional component.
@@ -518,14 +533,13 @@ suspend fun <T : Any> WithRequestStatusContext.delete(
     headers: Headers,
     loadingHandler: suspend (suspend () -> Response) -> Response,
     responseHandler: (Response) -> Unit = this::withModalResponseHandler,
-): Response =
-        request(
-            url = url.withParams(params),
-            method = "DELETE",
-            headers = headers,
-            loadingHandler = loadingHandler,
-            responseHandler = responseHandler,
-        )
+): Response = request(
+    url = url.withParams(params),
+    method = "DELETE",
+    headers = headers,
+    loadingHandler = loadingHandler,
+    responseHandler = responseHandler,
+)
 
 /**
  * Handler that allows to show loading modal
@@ -550,6 +564,12 @@ suspend fun WithRequestStatusContext.loadingHandler(request: suspend () -> Respo
 fun Response.isConflict(): Boolean = this.status == 409.toShort()
 
 /**
+ * @return true if given [Response] has 409 code, false otherwise
+ */
+@Suppress("MAGIC_NUMBER")
+fun Response.isBadRequest(): Boolean = this.status == 400.toShort()
+
+/**
  * @return true if given [Response] has 401 code, false otherwise
  */
 @Suppress("MAGIC_NUMBER")
@@ -561,8 +581,24 @@ fun Response.isUnauthorized(): Boolean = this.status == 401.toShort()
  * @return the string  flow produced from the body of this HTTP response.
  * @see Response.inputStream
  */
-suspend fun Response.readLines(): Flow<String> =
-        inputStream().decodeToString()
+suspend fun Response.readLines(): Flow<String> = inputStream().decodeToString()
+
+/**
+ * Appends the [parameters][params] to this URL.
+ *
+ * @param params
+ * @return final URL with appended parameters after a `question` symbol
+ */
+fun <T : Any> String.withParams(params: T): String {
+    val paramString = URLSearchParams(params).toString()
+
+    return when {
+        paramString.isEmpty() -> this
+        endsWith('?') -> this + paramString
+        contains('?') -> "$this&$paramString"
+        else -> "$this?$paramString"
+    }
+}
 
 /**
  * If this component has context, set [response] in this context. Otherwise, fallback to redirect.
@@ -741,27 +777,51 @@ private suspend fun Response.inputStream(): Flow<Byte> {
  * @return the converted instance.
  */
 @Suppress("UnsafeCastFromDynamic")
-private fun Uint8Array.asByteArray(): ByteArray =
-        Int8Array(
-            buffer = buffer.unsafeCast<ArrayBuffer>(),
-            byteOffset = byteOffset,
-            length = length,
-        )
-            .asDynamic()
+private fun Uint8Array.asByteArray(): ByteArray = Int8Array(
+    buffer = buffer.unsafeCast<ArrayBuffer>(),
+    byteOffset = byteOffset,
+    length = length,
+)
+    .asDynamic()
 
 /**
- * Appends the [parameters][params] to this URL.
+ * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
+ *
+ * @param url request URL
+ * @param method HTTP request method
+ * @param headers HTTP headers
+ * @param body request body
+ * @param credentials [RequestCredentials] for fetch API
+ * @param loadingHandler
+ * @param responseHandler
+ * @return [Response] instance
  */
-private fun <T : Any> String.withParams(params: T): String {
-    val paramString = URLSearchParams(params).toString()
-
-    return when {
-        paramString.isEmpty() -> this
-        endsWith('?') -> this + paramString
-        contains('?') -> "$this&$paramString"
-        else -> "$this?$paramString"
-    }
+@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
+suspend fun request(
+    url: String,
+    method: String,
+    headers: Headers,
+    body: dynamic = undefined,
+    credentials: RequestCredentials? = undefined,
+    loadingHandler: suspend (suspend () -> Response) -> Response,
+    responseHandler: (Response) -> Unit = ::noopResponseHandler,
+): Response = loadingHandler {
+    window.fetch(
+        input = url,
+        RequestInit(
+            method = method,
+            headers = headers,
+            body = body,
+            credentials = credentials,
+        )
+    )
+        .await()
 }
+    .also { response ->
+        if (responseHandler != undefined) {
+            responseHandler(response)
+        }
+    }
 
 /**
  * Handler that allows to skip loading modal
@@ -778,41 +838,3 @@ internal suspend fun noopLoadingHandler(request: suspend () -> Response) = reque
  * @return Unit
  */
 internal fun noopResponseHandler(@Suppress("UNUSED_PARAMETER") response: Response) = Unit
-
-/**
- * Perform an HTTP request using Fetch API. Suspending function that returns a [Response] - a JS promise with result.
- *
- * @param url request URL
- * @param method HTTP request method
- * @param headers HTTP headers
- * @param body request body
- * @param credentials [RequestCredentials] for fetch API
- * @return [Response] instance
- */
-@Suppress("TOO_MANY_PARAMETERS", "LongParameterList")
-private suspend fun request(
-    url: String,
-    method: String,
-    headers: Headers,
-    body: dynamic = undefined,
-    credentials: RequestCredentials? = undefined,
-    loadingHandler: suspend (suspend () -> Response) -> Response,
-    responseHandler: (Response) -> Unit = ::noopResponseHandler,
-): Response =
-        loadingHandler {
-            window.fetch(
-                input = url,
-                RequestInit(
-                    method = method,
-                    headers = headers,
-                    body = body,
-                    credentials = credentials,
-                )
-            )
-                .await()
-        }
-            .also { response ->
-                if (responseHandler != undefined) {
-                    responseHandler(response)
-                }
-            }

@@ -12,6 +12,6 @@ external val faGithub: FontAwesomeIconModule
 @JsNonModule
 external val faTwitter: FontAwesomeIconModule
 
-@JsModule("@fortawesome/free-brands-svg-icons/faLinkedIn")
+@JsModule("@fortawesome/free-brands-svg-icons/faLinkedinIn")
 @JsNonModule
 external val faLinkedIn: FontAwesomeIconModule

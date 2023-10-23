@@ -141,7 +141,7 @@ private fun ChildrenBuilder.contestListTable(
             className = ClassName("media text-muted pb-3")
             img {
                 className = ClassName("rounded")
-                src = "img/undraw_code_inspection_bdl7.svg"
+                src = "/img/undraw_code_inspection_bdl7.svg"
                 style = jso {
                     @Suppress("MAGIC_NUMBER")
                     width = 4.2.rem

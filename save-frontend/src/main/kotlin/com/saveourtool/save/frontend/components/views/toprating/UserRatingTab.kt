@@ -3,67 +3,52 @@
 package com.saveourtool.save.frontend.components.views.toprating
 
 import com.saveourtool.save.frontend.components.basic.renderUserAvatarWithName
+import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
 import com.saveourtool.save.frontend.components.tables.*
-import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
-import js.core.jso
-import react.FC
-import react.Fragment
-import react.Props
-import react.create
+import react.*
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
+import react.dom.html.ReactHTML.th
+import react.dom.html.ReactHTML.tr
 import web.cssom.*
 
-val userRatingTable: FC<Props> = FC { _ ->
+private const val DEFAULT_PAGE_SIZE = 10_000
 
-    @Suppress(
-        "TOO_MANY_LINES_IN_LAMBDA",
-        "MAGIC_NUMBER",
-    )
+val userRatingTable: FC<Props> = FC { _ ->
+    val (userNamePrefix, setUserNamePrefix) = useState("")
+
+    val fetchUserRequest: suspend WithRequestStatusContext.(String) -> UserArray = { prefix ->
+        get(
+            "$apiUrl/users/by-prefix?prefix=$prefix&pageSize=$DEFAULT_PAGE_SIZE",
+            jsonHeaders,
+            ::loadingHandler,
+            ::noopResponseHandler,
+        )
+            .decodeFromJsonString<UserArray>()
+            .also { array -> array.sortByDescending { it.rating } }
+    }
+
+    // Temp hack for correct position displaying
+    val (users, setUsers) = useState<UserArray>(emptyArray())
+    val doOnce = useOnceAction()
+
+    @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
     val userRatingTable: FC<TableProps<UserInfo>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "Position") { cellContext ->
-                    Fragment.create {
-                        td {
-                            val index = cellContext.row.index + 1 + cellContext.pageIndex * cellContext.pageSize
-                            var isTrophy = false
-                            var newColor = ""
-                            when (index) {
-                                1 -> {
-                                    isTrophy = true
-                                    newColor = "#ebcc36"
-                                }
-                                2 -> {
-                                    isTrophy = true
-                                    newColor = "#7d7d7d"
-                                }
-                                3 -> {
-                                    isTrophy = true
-                                    newColor = "#a15703"
-                                }
-                            }
-                            if (isTrophy) {
-                                style = jso {
-                                    color = newColor.unsafeCast<Color>()
-                                }
-                                fontAwesomeIcon(icon = faTrophy)
-                            }
-                            +" $index"
-                        }
-                    }
+                    Fragment.create { renderRatingPosition(cellContext.value, users) }
                 }
                 column(id = "name", header = "Name", { name }) { cellContext ->
                     Fragment.create {
                         td {
-                            renderUserAvatarWithName(cellContext.row.original) {
-                                height = 2.rem
-                                width = 2.rem
+                            className = ClassName("align-middle")
+                            renderUserAvatarWithName(cellContext.row.original, isHorizontal = true, classes = "mr-2") {
+                                height = 3.rem
+                                width = 3.rem
                             }
                         }
                     }
@@ -71,6 +56,7 @@ val userRatingTable: FC<Props> = FC { _ ->
                 column(id = "rating", header = "Rating") { cellContext ->
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle")
                             +cellContext.value.rating.toString()
                         }
                     }
@@ -85,22 +71,29 @@ val userRatingTable: FC<Props> = FC { _ ->
     div {
         className = ClassName("row justify-content-center")
         div {
-            className = ClassName("col-8")
+            className = ClassName("col-5")
             userRatingTable {
                 getData = { _, _ ->
-                    get(
-                        url = "$apiUrl/users/all",
-                        headers = jsonHeaders,
-                        loadingHandler = ::noopLoadingHandler,
-                        responseHandler = ::noopResponseHandler,
-                    ).unsafeMap {
-                        it.decodeFromJsonString<Array<UserInfo>>()
-                    }.let { array ->
-                        array.sortByDescending { it.rating }
-                        array
+                    fetchUserRequest(userNamePrefix).also {
+                        doOnce { setUsers(it) }
+                    }
+                }
+                commonHeaderBuilder = { cb, tableInstance, _ ->
+                    with(cb) {
+                        tr {
+                            th {
+                                colSpan = tableInstance.visibleColumnsCount()
+                                nameFiltersRow {
+                                    name = userNamePrefix
+                                    onChangeFilters = { setUserNamePrefix(it.orEmpty()) }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
+private typealias UserArray = Array<UserInfo>

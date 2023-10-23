@@ -165,7 +165,7 @@ private fun contestEnrollerComponent() = FC<ContestEnrollerProps> { props ->
                 "$apiUrl/contests/$contestName/eligible-projects"
             },
             headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
+            loadingHandler = ::loadingHandler,
         )
             .unsafeMap {
                 it.decodeFromJsonString<List<String>>()

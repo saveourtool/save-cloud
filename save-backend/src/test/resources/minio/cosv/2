@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "CVE-2022-25365",
+  "modified": "2021-01-01T00:00:00.000Z",
+  "published": "2021-01-01T00:00:00.000Z",
+  "severity": [
+    {
+      "type": "CVSS_V3",
+      "score": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+      "score_num": "7.8"
+    }
+  ],
+  "summary": "New description",
+  "details": "Short description",
+  "credits": [
+    {
+       "name": "admin",
+       "contact": [ "https://saveourtool.com/profile/admin" ],
+       "type": "REPORTER"
+    }
+  ]
+}
