@@ -20,7 +20,7 @@
         "*"
       ],
       "excludePackagePatterns": [
-        "^org\\.jetbrains\\.kotlin[.:]",
+        "^org\\.jetbrains\\.kotlinx?[.:]",
         "^org\\.neo4j\\:neo4j-ogm-bolt-driver",
         "^org\\.neo4j\\:neo4j-ogm-core",
         "^org\\.neo4j\\.driver\\:neo4j-java-driver"
@@ -54,7 +54,7 @@
     {
       "managers": ["gradle"],
       "matchPackagePatterns": [
-        "^org\\.jetbrains\\.kotlin[.:]"
+        "^org\\.jetbrains\\.kotlinx?[.:]"
       ],
       "groupName": "Kotlin core dependencies",
       "groupSlug": "core-kotlin"
