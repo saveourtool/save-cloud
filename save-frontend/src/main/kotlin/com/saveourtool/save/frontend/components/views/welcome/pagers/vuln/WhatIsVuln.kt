@@ -34,8 +34,8 @@ fun ChildrenBuilder.renderVulnerabilityGeneralInfo(t: TranslationFunction) {
         div {
             className = ClassName("row justify-content-between mt-5")
             textCard(
-                "What is COSV Archive?".t(),
-                "/img/undraw_share.svg",
+                "COSV Platform".t(),
+                "/img/vuln-logo-bg.png",
                 "Archive importance".t(),
                 "mr-3 px-4",
             )
@@ -75,12 +75,14 @@ private fun ChildrenBuilder.textCard(
         div {
             className = ClassName("d-flex justify-content-center")
             img {
-                className = ClassName("rounded m-3")
+                className = ClassName("m-3")
                 src = imageUrl
                 style = jso {
                     @Suppress("MAGIC_NUMBER")
+                    borderRadius = "50%".unsafeCast<BorderRadius>()
                     height = 9.rem
                 }
+                alt = "Avatar"
             }
         }
         h5 {
@@ -157,7 +159,7 @@ private fun ChildrenBuilder.cosvSchemaCard(
                 className = ClassName("row justify-content-center")
                 strong {
                     className = ClassName("d-inline-block mb-2 card-text")
-                    +"Schema with Documentation and Details".t()
+                    +"Schema".t()
                 }
             }
         }

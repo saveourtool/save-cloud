@@ -6,12 +6,24 @@ package com.saveourtool.save.utils
 
 import kotlinx.coroutines.delay
 
+private const val BYTES_COEFFICIENT = 1024
+
 typealias StringList = List<String>
 
 /**
  * @return true if [this] is not null
  */
 fun <T : Any> T?.isNotNull(): Boolean = this != null
+
+/**
+ * @return converts bytes to kilobytes
+ */
+fun Long.toKilobytes(): Long = div(BYTES_COEFFICIENT)
+
+/**
+ * @return converts bytes to megabytes
+ */
+fun Double.toMegabytes(): Double = div(BYTES_COEFFICIENT * BYTES_COEFFICIENT)
 
 /**
  * Run [action] several [times] with [delayMillis] milliseconds
