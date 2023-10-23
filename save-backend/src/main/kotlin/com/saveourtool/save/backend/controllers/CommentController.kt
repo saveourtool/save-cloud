@@ -57,9 +57,9 @@ class CommentController(
         ResponseEntity.ok("User comment was successfully saved")
     }
 
-    @PostMapping("/get-all")
+    @GetMapping("/get-all")
     @Operation(
-        method = "POST",
+        method = "GET",
         summary = "Get all comments in section.",
         description = "Get all comments in section.",
     )
@@ -67,14 +67,14 @@ class CommentController(
     @PreAuthorize("permitAll()")
     @Suppress("TYPE_ALIAS")
     fun getAllBySection(
-        @RequestBody section: String,
+        @RequestParam section: String,
     ): Mono<List<CommentDto>> = blockingToMono {
         commentService.findAllBySection(section).map(Comment::toDto)
     }
 
     @GetMapping("/get-all-count")
     @Operation(
-        method = "Get",
+        method = "GET",
         summary = "Get count comments in section.",
         description = "Get count comments in section.",
     )
