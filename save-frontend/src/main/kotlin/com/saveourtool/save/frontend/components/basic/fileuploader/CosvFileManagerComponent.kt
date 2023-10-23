@@ -292,10 +292,25 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
         ul {
             className = ClassName("list-group")
 
-            // SUBMIT to process
+            // ===== UPLOAD FILES FIELD =====
             li {
-                className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
-                buttonBuilder("Submit", classes = "mr-1", isDisabled = selectedFiles.isEmpty() || isStreamingOperationActive) {
+                className = ClassName("list-group-item p-0 d-flex bg-light")
+                dragAndDropForm {
+                    isDisabled = selectedOrganization.isNullOrEmpty() || isStreamingOperationActive
+                    isMultipleFilesSupported = true
+                    tooltipMessage = "Only JSON files or ZIP archives"
+                    onChangeEventHandler = { files ->
+                        setFilesForUploading(files!!.asList())
+                        uploadFiles()
+                    }
+                }
+            }
+
+            // ===== SUBMIT BUTTONS =====
+            li {
+                className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
+                buttonBuilder("Submit", classes = "mr-1",
+                    isDisabled = selectedFiles.isEmpty() || selectedFiles.anyWithoutStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
                     if (window.confirm("Processed files will be removed. Do you want to continue?")) {
                         submitCosvFiles()
                     }
@@ -310,19 +325,51 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 }
             }
 
-            // ===== UPLOAD FILES BUTTON =====
-            li {
-                className = ClassName("list-group-item p-0 d-flex bg-light")
-                dragAndDropForm {
-                    isDisabled = selectedOrganization.isNullOrEmpty() || isStreamingOperationActive
-                    isMultipleFilesSupported = true
-                    tooltipMessage = "Only JSON files or ZIP archives"
-                    onChangeEventHandler = { files ->
-                        setFilesForUploading(files!!.asList())
-                        uploadFiles()
+            // ===== STATUS BAR =====
+            if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
+                li {
+                    className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
+                    val uploadedFilesCount = availableFiles.count { it.status == RawCosvFileStatus.UPLOADED }
+                    val processedFilesCount = availableFiles.count { it.status == RawCosvFileStatus.PROCESSED }
+                    val progressFilesCount = availableFiles.count { it.status == RawCosvFileStatus.IN_PROGRESS }
+                    val duplicateFilesCount = availableFiles.count { it.isDuplicate() }
+                    val errorFilesCount = availableFiles.count { it.status == RawCosvFileStatus.FAILED } - duplicateFilesCount
+
+                    if (uploadedFilesCount > 0) {
+                        val uploadedArchivesCount = availableFiles.count { it.isArchive() }
+                        val uploadedJsonCount = uploadedFilesCount - availableFiles.count { it.isArchive() }
+
+                        if (uploadedJsonCount > 0) {
+                            +"Uploaded $uploadedJsonCount new json files"
+                            if (uploadedArchivesCount > 0) {
+                                +" and $uploadedArchivesCount archives."
+                            } else {
+                                +"."
+                            }
+                        } else if (uploadedArchivesCount > 0) {
+                            +"Uploaded $uploadedArchivesCount new archives."
+                        }
+                    }
+
+                    if (processedFilesCount > 0 || progressFilesCount > 0) {
+                        val processingFiles = processedFilesCount + progressFilesCount
+                        +" Still processing $processingFiles files."
+                    }
+
+                    if (duplicateFilesCount > 0) {
+                        +" Failed $duplicateFilesCount duplicates"
+                        if (errorFilesCount > 0) {
+                            +", $errorFilesCount with another errors."
+                        } else {
+                            +"."
+                        }
+                    } else if (errorFilesCount > 0) {
+                        +" Failed $errorFilesCount with errors."
                     }
                 }
             }
+
+            // ===== PROGRESS BAR =====
             defaultProgressBarComponent {
                 this.currentProgress = currentProgress
                 this.currentProgressMessage = currentProgressMessage
@@ -332,7 +379,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                 }
             }
 
-            // ===== SELECTED FILES =====
+            // ===== AVAILABLE FILES =====
             availableFiles.map { file ->
                 li {
                     className = ClassName("list-group-item text-left")
@@ -381,7 +428,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                             cursor = "pointer".unsafeCast<Cursor>()
                         }
                         val textColor = if (file.status == RawCosvFileStatus.FAILED) {
-                            "text-danger"
+                            if (file.isDuplicate()) {
+                                "text-warning"
+                            } else {
+                                "text-danger"
+                            }
                         } else {
                             "text-gray-400"
                         }
@@ -394,7 +445,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         +when (file.status) {
                             RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
                             RawCosvFileStatus.PROCESSED -> " (processed, will be deleted shortly)"
-                            RawCosvFileStatus.FAILED -> " (with errors)"
+                            RawCosvFileStatus.FAILED -> if (file.isDuplicate()) " (duplicate)" else " (error)"
                             else -> " "
                         }
                     }
@@ -413,6 +464,11 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 }
 
+private fun RawCosvFileDto.isDuplicate() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate entry") == true
+
+private fun RawCosvFileDto.isArchive() = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+
 private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
 
 private fun Collection<RawCosvFileDto>.noneWithStatus(status: RawCosvFileStatus) = none { it.status == status }
+private fun Collection<RawCosvFileDto>.anyWithoutStatus(status: RawCosvFileStatus) = any { it.status != status }
