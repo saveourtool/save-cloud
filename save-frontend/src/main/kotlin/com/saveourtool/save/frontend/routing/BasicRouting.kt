@@ -166,6 +166,30 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
+    val routeToUserProfileView: RouteObject? = props.userInfo?.name?.let { userName ->
+        jso {
+            path = "/$userName"
+            element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
+        }
+    }
+
+    val routeToManageOrganizationView: RouteObject = jso {
+        path = "/$MANAGE_ORGANIZATIONS"
+        element = when (props.userInfo.isSuperAdmin()) {
+            true -> OrganizationAdminView::class.react.create()
+            else -> fallbackNode
+        }
+    }
+
+    val routeToFallbackView: RouteObject = jso {
+        path = "*"
+        element = FallbackView::class.react.create {
+            bigText = "404"
+            smallText = "Page not found"
+            withRouterLink = true
+        }
+    }
+
     createBrowserRouter(
         routes = listOf(
             indexView.create { userInfo = props.userInfo } to "/",
@@ -249,39 +273,20 @@ val basicRouting: FC<AppProps> = FC { props ->
             }
         }
             .let { routes ->
-                props.userInfo?.name?.let { userName ->
-                    routes.plus(
-                        jso<RouteObject> {
-                            path = "/$userName"
-                            element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
-                        }
-                    )
-                } ?: routes
+                routeToUserProfileView?.let { routes + it } ?: routes
             }
-            .plus(
-                jso<RouteObject> {
-                    path = "/$MANAGE_ORGANIZATIONS"
-                    element = when (props.userInfo.isSuperAdmin()) {
-                        true -> OrganizationAdminView::class.react.create()
-                        else -> fallbackNode
-                    }
-                }
-            )
-            .plus(
-                jso<RouteObject> {
-                    path = "*"
-                    element = FallbackView::class.react.create {
-                        bigText = "404"
-                        smallText = "Page not found"
-                        withRouterLink = true
-                    }
-                }
-            )
+            .plus(routeToManageOrganizationView)
+            .plus(routeToFallbackView)
             .toTypedArray(),
         opts = jso {
             basename = "/"
         }
     )
+        .let {
+            RouterProvider {
+                router = it
+            }
+        }
 }
 
 private val fallbackNode = FallbackView::class.react.create {
