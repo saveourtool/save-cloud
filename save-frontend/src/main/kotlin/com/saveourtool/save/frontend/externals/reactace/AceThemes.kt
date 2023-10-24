@@ -25,7 +25,7 @@ enum class AceThemes(val themeName: String) {
     /**
      * Method that includes required theme
      */
-    fun require() = kotlinext.js.require("ace-builds/src-min-noconflict/theme-$themeName")
+    fun require() = kotlinext.js.require<dynamic>("ace-builds/src-min-noconflict/theme-$themeName")
     companion object {
         /**
          * Theme that is recommended to be used everywhere

@@ -23,7 +23,7 @@ import org.w3c.fetch.RequestCredentials
 import org.w3c.fetch.RequestInit
 import org.w3c.fetch.Response
 import web.streams.ReadableStream
-import web.streams.ReadableStreamDefaultReadValueResult
+import web.streams.ReadableStreamReadValueResult
 
 import kotlin.js.Promise
 import kotlinx.browser.window
@@ -49,7 +49,7 @@ val jsonHeaders = Headers()
  *
  * @param T the type of the data (usually a byte array).
  */
-private typealias ResultAsync<T> = Promise<ReadableStreamDefaultReadValueResult<T>>
+private typealias ResultAsync<T> = Promise<ReadableStreamReadValueResult<T>>
 
 /**
  * Interface for objects that have access to [requestStatusContext]
