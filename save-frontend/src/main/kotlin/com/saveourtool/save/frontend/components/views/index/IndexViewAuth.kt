@@ -11,7 +11,6 @@ import com.saveourtool.save.info.OauthProviderInfo
 
 import org.w3c.fetch.Headers
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.useState
 import web.cssom.ClassName

@@ -8,7 +8,6 @@ import com.saveourtool.save.frontend.components.basic.markdown
 
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong

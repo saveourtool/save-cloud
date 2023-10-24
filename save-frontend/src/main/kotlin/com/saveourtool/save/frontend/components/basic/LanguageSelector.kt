@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.externals.i18next.language
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.aria.AriaHasPopup
 import react.dom.aria.ariaExpanded
 import react.dom.aria.ariaHasPopup

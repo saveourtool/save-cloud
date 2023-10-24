@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.FC
-import react.Props
 import react.dom.aria.ariaDescribedBy
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.form

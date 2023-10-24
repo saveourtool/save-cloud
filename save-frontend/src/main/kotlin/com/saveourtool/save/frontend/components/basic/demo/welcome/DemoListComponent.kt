@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.ul

@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 

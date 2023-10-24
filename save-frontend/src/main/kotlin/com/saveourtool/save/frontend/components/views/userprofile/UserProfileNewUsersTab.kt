@@ -11,13 +11,12 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import react.FC
 import react.Fragment
-import react.Props
 import react.create
 import react.dom.html.ReactHTML.td
 import web.cssom.ClassName
 import web.cssom.rem
 
-val renderNewUsersTableForProfileView = FC { _ ->
+val renderNewUsersTableForProfileView = FC {
 
     @Suppress(
         "TYPE_ALIAS",

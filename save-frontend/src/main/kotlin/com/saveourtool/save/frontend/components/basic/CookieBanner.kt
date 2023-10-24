@@ -12,7 +12,6 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.router.useNavigate
 import react.useState

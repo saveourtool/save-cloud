@@ -5,7 +5,6 @@ package com.saveourtool.save.frontend.components.views.contests
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img

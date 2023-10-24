@@ -23,7 +23,6 @@ import js.core.asList
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
@@ -46,7 +45,7 @@ import kotlinx.serialization.json.Json
 
 private const val DEFAULT_SIZE = 10
 
-val cosvFileManagerComponent = FC { _ ->
+val cosvFileManagerComponent = FC {
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
 

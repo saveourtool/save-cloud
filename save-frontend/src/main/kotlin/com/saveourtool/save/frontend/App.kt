@@ -14,11 +14,13 @@ import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 
+import js.core.jso
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.dom.RouterProvider
+import react.router.dom.createBrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
@@ -26,8 +28,6 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
-import react.router.dom.RouterProvider
-import react.router.dom.createBrowserRouter
 
 /**
  * Main component for the whole App
@@ -95,8 +95,8 @@ fun main() {
         return
     }
 
-    kotlinext.js.require<Any>("../scss/save-frontend.scss")  // this is needed for webpack to include resource
-    kotlinext.js.require<Any>("bootstrap")  // this is needed for webpack to include bootstrap
+    kotlinext.js.require<dynamic>("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    kotlinext.js.require<dynamic>("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     initI18n()
