@@ -7735,6 +7735,59 @@
         ]
       }
     },
+    "/api/v1/raw-cosv/{organizationName}/delete-all-duplicated-files": {
+      "delete": {
+        "operationId": "deleteAllDuplicatedFiles",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
     "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
       "delete": {
         "operationId": "delete_1",
@@ -7998,73 +8051,6 @@
             "required": true
           }
         ],
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "raw-cosv-file-controller"
-        ]
-      }
-    },
-    "/api/v1/raw-cosv/{organizationName}/submit-to-process": {
-      "post": {
-        "operationId": "submitToProcess",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "401": {
             "content": {
