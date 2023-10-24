@@ -82,7 +82,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             val response = delete(
                 "$apiUrl/raw-cosv/$selectedOrganization/delete/${file.requiredId()}",
                 headers = Headers().withAcceptJson(),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
             )
 
             if (response.ok) {
@@ -119,7 +119,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     size = DEFAULT_SIZE
                 },
                 headers = Headers().withAcceptNdjson().withContentTypeJson(),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             )
             when {
@@ -141,12 +141,13 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             }
         }
     }
+
     val reFetchFiles = useDeferredRequest {
         selectedOrganization?.let {
             val count: Long = get(
                 url = "$apiUrl/raw-cosv/$selectedOrganization/count",
                 jsonHeaders,
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             ).decodeFromJsonString()
             setAvailableFiles(emptyList())
@@ -241,14 +242,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-to-process",
             jsonHeaders,
             body = selectedFiles.map { it.requiredId() },
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
+            reFetchFiles()
             setCurrentProgress(100)
             setCurrentProgressMessage("Selected files submitted to be processed")
         }
-        reFetchFiles()
     }
 
     val submitAllUploadedCosvFiles = useDeferredRequest {
@@ -256,14 +257,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-all-uploaded-to-process",
             jsonHeaders,
             body = undefined,
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
+            reFetchFiles()
             setCurrentProgress(100)
             setCurrentProgressMessage("All uploaded files submitted to be processed")
         }
-        reFetchFiles()
     }
 
     div {
