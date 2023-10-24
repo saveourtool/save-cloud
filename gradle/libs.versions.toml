@@ -207,3 +207,4 @@ aws-sdk-netty-nio = { module = "software.amazon.awssdk:netty-nio-client" }
 
 # vulnerability
 cosv4k = { module = "com.saveourtool.cosv4k:cosv4k", version.ref = "cosv4k" }
+
