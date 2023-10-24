@@ -18,7 +18,6 @@ import com.saveourtool.save.frontend.components.views.contests.*
 import com.saveourtool.save.frontend.components.views.demo.cpgView
 import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
-import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.toprating.topRatingView
 import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
@@ -29,7 +28,6 @@ import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.FrontendRoutes.*
 import js.core.jso
 
@@ -39,8 +37,56 @@ import react.router.*
 import react.router.dom.createBrowserRouter
 
 /**
+ * Just put a map: View -> Route URL to this list
+ */
+val basicRouting: FC<AppProps> = FC { props ->
+    useUserStatusRedirects(props.userInfo?.status)
+    createBasicRoutes(props.userInfo, props.userInfoSetter)
+        .let {
+            RouterProvider {
+                router = createBrowserRouter(
+                    routes = it,
+                    opts = jso {
+                        basename = "/"
+                    }
+                )
+            }
+        }
+}
+
+private val fallbackNode = FallbackView::class.react.create {
+    bigText = "404"
+    smallText = "Page not found"
+    withRouterLink = false
+}
+
+/**
+ * Property to propagate user info from App
+ */
+external interface AppProps : PropsWithChildren {
+    /**
+     * Currently logged-in user or null
+     */
+    var userInfo: UserInfo?
+
+    /**
+     * Setter of user info (it can be updated in settings on several views)
+     */
+    var userInfoSetter: StateSetter<UserInfo?>
+}
+
+/**
+ * @param view
+ * @return a view or a fallback of user info is null
+ */
+fun AppProps.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
+    view
+} ?: fallbackNode
+
+/**
  * @param userInfo currently logged-in user or null
  * @param userInfoSetter setter of user info (it can be updated in settings on several views)
+ * @return
  */
 fun createBasicRoutes(
     userInfo: UserInfo?,
@@ -197,7 +243,7 @@ fun createBasicRoutes(
     }
 
     return listOf(
-//        indexView.create { this.userInfo = userInfo } to "/",
+        // indexView.create { this.userInfo = userInfo } to "/",
         saveWelcomeView.create { this.userInfo = userInfo } to SAVE,
         vulnWelcomeView.create { this.userInfo = userInfo } to VULN,
         sandboxView.create() to SANDBOX,
@@ -271,7 +317,7 @@ fun createBasicRoutes(
             type = SETTINGS_DELETE
         } to SETTINGS_DELETE,
 
-        )
+    )
         .map { (view, route) ->
             jso<RouteObject> {
                 path = "/$route"
@@ -285,50 +331,3 @@ fun createBasicRoutes(
         .plus(routeToManageOrganizationView)
         .plus(routeToFallbackView)
 }
-
-/**
- * Just put a map: View -> Route URL to this list
- */
-val basicRouting: FC<AppProps> = FC { props ->
-    useUserStatusRedirects(props.userInfo?.status)
-    createBasicRoutes(props.userInfo, props.userInfoSetter)
-        .let {
-            RouterProvider {
-                router = createBrowserRouter(
-                    routes = it,
-                    opts = jso {
-                        basename = "/"
-                    }
-                )
-            }
-        }
-}
-
-private val fallbackNode = FallbackView::class.react.create {
-    bigText = "404"
-    smallText = "Page not found"
-    withRouterLink = false
-}
-
-/**
- * Property to propagate user info from App
- */
-external interface AppProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
-     * Setter of user info (it can be updated in settings on several views)
-     */
-    var userInfoSetter: StateSetter<UserInfo?>
-}
-
-/**
- * @param view
- * @return a view or a fallback of user info is null
- */
-fun AppProps.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
-    view
-} ?: fallbackNode

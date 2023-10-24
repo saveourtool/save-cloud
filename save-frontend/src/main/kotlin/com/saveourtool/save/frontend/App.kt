@@ -13,16 +13,16 @@ import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
-import com.saveourtool.save.frontend.routing.basicRouting
-import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 
+import js.core.jso
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
+import react.router.dom.RouterProvider
+import react.router.dom.createBrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
@@ -30,8 +30,6 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
-import react.router.dom.RouterProvider
-import react.router.dom.createBrowserRouter
 
 /**
  * Main component for the whole App
@@ -99,7 +97,6 @@ val App = FC {
             )
         )
     }
-
 }
 
 fun main() {
