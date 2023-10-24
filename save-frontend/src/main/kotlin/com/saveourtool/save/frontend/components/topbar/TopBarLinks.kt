@@ -96,7 +96,7 @@ external interface TopBarLinksProps : Props {
     /**
      * The location is needed to change the color of the text.
      */
-    var location: Location
+    var location: Location<*>
 }
 
 /**
@@ -112,7 +112,7 @@ data class TopBarLink(
 
 private fun textColor(
     hrefAnchor: String,
-    location: Location,
+    location: Location<*>,
 ) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
     "text-warning"
 } else {

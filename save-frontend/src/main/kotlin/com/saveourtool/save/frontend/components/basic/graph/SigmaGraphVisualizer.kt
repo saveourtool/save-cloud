@@ -19,9 +19,9 @@ import web.cssom.*
  * Graph visualizer based on Sigma and Graphology libs
  */
 val sigmaGraphVisualizer: FC<SigmaGraphVisualizerProps> = FC { props ->
-    kotlinext.js.require("@react-sigma/core/lib/react-sigma.min.css")
+    kotlinext.js.require<dynamic>("@react-sigma/core/lib/react-sigma.min.css")
     val (selectedNodeName, setSelectedNodeName) = useState<String?>(null)
-    val graphology = kotlinext.js.require("graphology")
+    val graphology = kotlinext.js.require<dynamic>("graphology")
     sigmaContainer {
         settings = getSigmaContainerSettings()
         this.graph = graphology.MultiDirectedGraph

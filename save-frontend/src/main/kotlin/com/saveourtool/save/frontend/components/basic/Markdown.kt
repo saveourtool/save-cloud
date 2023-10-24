@@ -15,8 +15,8 @@ import react.ChildrenBuilder
  * @param classes class names that should be applied to high-level div
  */
 fun ChildrenBuilder.markdown(text: String, classes: String? = null) {
-    child(reactMarkdown(jso {
+    +reactMarkdown(jso {
         this.children = text
         this.className = classes
-    }))
+    })
 }
