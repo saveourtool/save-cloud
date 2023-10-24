@@ -243,20 +243,6 @@ class RawCosvFileController(
 
     /**
      * @param organizationName
-     * @param ids
-     * @param authentication
-     * @return [StringResponse]
-     */
-    @RequiresAuthorizationSourceHeader
-    @PostMapping("/submit-to-process")
-    fun submitToProcess(
-        @PathVariable organizationName: String,
-        @RequestBody ids: List<Long>,
-        authentication: Authentication,
-    ): Mono<StringResponse> = doSubmitToProcess(organizationName, ids, authentication)
-
-    /**
-     * @param organizationName
      * @param authentication
      * @return [StringResponse]
      */
@@ -383,6 +369,34 @@ class RawCosvFileController(
                 }
                 .map {
                     ResponseEntity.ok("Raw COSV file deleted successfully")
+                }
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return [StringResponse]
+     */
+    @RequiresAuthorizationSourceHeader
+    @DeleteMapping("/delete-all-duplicated-files")
+    fun deleteAllDuplicatedFiles(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
+        .map { files ->
+            files.filter { it.status == RawCosvFileStatus.FAILED && it.statusMessage?.contains("Duplicate entry") == true }.map { it.requiredId() }
+        }
+        .flatMap { ids ->
+            hasPermission(authentication, organizationName, Permission.DELETE, "delete")
+                .flatMap {
+                    rawCosvFileStorage.deleteAllByIds(ids)
+                        .filter { it }
+                        .switchIfEmptyToNotFound {
+                            "Some duplicated COSV files was not found by $ids"
+                        }
+                        .map {
+                            ResponseEntity.ok("Duplicated COSV files deleted successfully")
+                        }
                 }
         }
 
