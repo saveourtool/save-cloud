@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+  <changeSet id="lnk-user-notification-creation" author="saveourtool-dev">
+    <createTable tableName="lnk_user_notification">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="notification_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_notification_notification" references="notification(id)"
+          nullable="false" deleteCascade="true"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints foreignKeyName="fk_lnk_user_notification_user" references="user(id)"
+          nullable="false" deleteCascade="true"/>
+      </column>
+      <column name="is_show" type="boolean" defaultValue="0"/>
+    </createTable>
+    <addUniqueConstraint tableName="lnk_user_notification" columnNames="user_id, notification_id"/>
+  </changeSet>
+
+</databaseChangeLog>
