@@ -426,19 +426,19 @@
       }
     },
     "/api/v1/comments/get-all": {
-      "post": {
-        "description": "Save new comment.",
+      "get": {
+        "description": "Get all comments in section.",
         "operationId": "getAllBySection",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -451,7 +451,7 @@
                 }
               }
             },
-            "description": "Successfully saved project problem"
+            "description": "Successfully return all comments in section"
           },
           "401": {
             "content": {
@@ -472,7 +472,56 @@
             "basic": []
           }
         ],
-        "summary": "Save new comment.",
+        "summary": "Get all comments in section.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/comments/get-all-count": {
+      "get": {
+        "description": "Get count comments in section.",
+        "operationId": "getAllCountBySection",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Successfully return count comments in section"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get count comments in section.",
         "tags": [
           "comments"
         ]
@@ -10793,33 +10842,6 @@
         ]
       }
     },
-    "/api/v1/users/global-role": {
-      "get": {
-        "operationId": "getSelfGlobalRole",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ADMIN",
-                    "NONE",
-                    "OWNER",
-                    "SUPER_ADMIN",
-                    "VIEWER"
-                  ]
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "users-details-controller"
-        ]
-      }
-    },
     "/api/v1/users/new-users": {
       "get": {
         "operationId": "findNewUsers",
@@ -10922,6 +10944,26 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/users/user-info": {
+      "get": {
+        "operationId": "getSelfUserInfo",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
                 }
               }
             },
