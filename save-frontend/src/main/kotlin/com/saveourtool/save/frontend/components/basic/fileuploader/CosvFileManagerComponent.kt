@@ -4,6 +4,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
@@ -244,9 +245,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("Selected files submitted to be processed")
+            setCurrentProgress(100)
+            setCurrentProgressMessage("Selected files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
+        reFetchFiles()
     }
 
     val submitAllUploadedCosvFiles = useDeferredRequest {
@@ -258,9 +260,10 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("All uploaded files submitted to be processed")
+            setCurrentProgress(100)
+            setCurrentProgressMessage("All uploaded files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
+        reFetchFiles()
     }
 
     div {
@@ -336,8 +339,8 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     val errorFilesCount = availableFiles.count { it.status == RawCosvFileStatus.FAILED } - duplicateFilesCount
 
                     if (uploadedFilesCount > 0) {
-                        val uploadedArchivesCount = availableFiles.count { it.isArchive() }
-                        val uploadedJsonCount = uploadedFilesCount - availableFiles.count { it.isArchive() }
+                        val uploadedArchivesCount = availableFiles.count { it.isZipArchive() }
+                        val uploadedJsonCount = uploadedFilesCount - uploadedArchivesCount
 
                         if (uploadedJsonCount > 0) {
                             +"Uploaded $uploadedJsonCount new json files"
@@ -473,14 +476,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
 
 private fun RawCosvFileDto.isDuplicate() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate entry") == true
 
-private fun RawCosvFileDto.isArchive() = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
-
 private fun RawCosvFileDto.notSelectableReason() = when {
     status == RawCosvFileStatus.PROCESSED -> "Already processed"
     status == RawCosvFileStatus.IN_PROGRESS -> "In progress, please wait"
+    isDuplicate() -> "Duplicate, the vulnerability with such ID already uploaded"
     isZipArchive() -> "It's a zip archive, please unzip to get JSON files"
     else -> null
 }
 
 private fun Collection<RawCosvFileDto>.noneWithStatus(status: RawCosvFileStatus) = none { it.status == status }
+
 private fun Collection<RawCosvFileDto>.anyWithoutStatus(status: RawCosvFileStatus) = any { it.status != status }

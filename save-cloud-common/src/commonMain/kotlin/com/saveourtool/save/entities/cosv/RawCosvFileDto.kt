@@ -35,8 +35,12 @@ data class RawCosvFileDto(
         "contentLength is not provided: $this"
     }
 
-    /**
-     * @return true if this raw cosv file is zip archive, checking by [fileName]
-     */
-    fun isZipArchive(): Boolean = fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+    companion object {
+        /**
+         * Extracted as extension to avoid Jackson issue with encoding this field
+         *
+         * @return true if this raw cosv file is zip archive, checking by [fileName]
+         */
+        fun RawCosvFileDto.isZipArchive(): Boolean = fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+    }
 }
