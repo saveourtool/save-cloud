@@ -6,8 +6,9 @@ import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 import com.saveourtool.save.frontend.routing.basicRouting
 import web.html.HTMLHeadingElement
-import react.create
-import react.router.MemoryRouter
+import react.router.RouterProvider
+import react.router.createMemoryRouter
+import react.router.dom.RouterProvider
 import kotlin.js.Promise
 import kotlin.test.*
 import kotlin.test.Test
@@ -16,12 +17,13 @@ class BasicRoutingTest {
     @Test
     fun basicRoutingShouldRenderIndexViewTest(): Promise<Unit> {
         // App uses `BrowserRouter`, while `MemoryRouter` should be used for tests. Thus, app cannot be rendered
-        render(
-            MemoryRouter.create {
-                initI18n()
+        val routerProvider = RouterProvider {
+            router = createMemoryRouter(
                 basicRouting()
-            }
-        )
+            )
+            initI18n()
+        }
+        render(routerProvider)
 
         screen.findByTextAndCast<HTMLHeadingElement>(
             "Cloud Platform for CI and Benchmarking of Code Analyzers"

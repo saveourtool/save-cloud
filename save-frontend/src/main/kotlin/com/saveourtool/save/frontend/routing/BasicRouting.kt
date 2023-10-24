@@ -29,6 +29,7 @@ import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.FrontendRoutes.*
 import js.core.jso
 
@@ -38,51 +39,54 @@ import react.router.*
 import react.router.dom.createBrowserRouter
 
 /**
- * Just put a map: View -> Route URL to this list
+ * @param userInfo currently logged-in user or null
+ * @param userInfoSetter setter of user info (it can be updated in settings on several views)
  */
-val basicRouting: FC<AppProps> = FC { props ->
-    useUserStatusRedirects(props.userInfo?.status)
-    val userProfileView: FC<Props> = withRouter { _, params ->
+fun createBasicRoutes(
+    userInfo: UserInfo?,
+    userInfoSetter: StateSetter<UserInfo?>,
+): Array<RouteObject> {
+    val userProfileView = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
         }
     }
 
-    val contestView: FC<Props> = withRouter { location, params ->
+    val contestView = withRouter { location, params ->
         ContestView::class.react {
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
             currentContestName = params["contestName"]
             this.location = location
         }
     }
 
-    val contestExecutionView: FC<Props> = withRouter { _, params ->
+    val contestExecutionView = withRouter { _, params ->
         ContestExecutionView::class.react {
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
             contestName = params["contestName"]!!
             organizationName = params["organizationName"]!!
             projectName = params["projectName"]!!
         }
     }
 
-    val projectView: FC<Props> = withRouter { location, params ->
+    val projectView = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
             this.location = location
         }
     }
 
-    val historyView: FC<Props> = withRouter { _, params ->
+    val historyView = withRouter { _, params ->
         HistoryView::class.react {
             name = params["name"]!!
             organizationName = params["owner"]!!
         }
     }
 
-    val executionView: FC<Props> = withRouter { location, params ->
+    val executionView = withRouter { location, params ->
         ExecutionView::class.react {
             organization = params["organization"]!!
             project = params["project"]!!
@@ -99,21 +103,21 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val organizationView: FC<Props> = withRouter { location, params ->
+    val organizationView = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
             this.location = location
         }
     }
 
-    val awesomeBenchmarksView: FC<Props> = withRouter { location, _ ->
+    val awesomeBenchmarksView = withRouter { location, _ ->
         AwesomeBenchmarksView::class.react {
             this.location = location
         }
     }
 
-    val contestGlobalRatingView: FC<Props> = withRouter { location, _ ->
+    val contestGlobalRatingView = withRouter { location, _ ->
         ContestGlobalRatingView::class.react {
             organizationName = URLSearchParams(location.search).get("organizationName")
             projectName = URLSearchParams(location.search).get("projectName")
@@ -121,14 +125,14 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val contestTemplateView: FC<Props> = withRouter { _, params ->
+    val contestTemplateView = withRouter { _, params ->
         contestTemplateView {
             id = requireNotNull(params["id"]).toLong()
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
         }
     }
 
-    val demoView: FC<Props> = withRouter { _, params ->
+    val demoView = withRouter { _, params ->
         demoView {
             projectCoordinates = ProjectCoordinates(
                 requireNotNull(params["organizationName"]),
@@ -137,28 +141,28 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: FC<Props> = withRouter { location, _ ->
+    val vulnerabilityCollectionView = withRouter { location, _ ->
         vulnerabilityCollectionView {
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
             filter = URLSearchParams(location.search).toVulnerabilitiesFilter()
         }
     }
 
-    val vulnerabilityView: FC<Props> = withRouter { _, params ->
+    val vulnerabilityView = withRouter { _, params ->
         vulnerabilityView {
             identifier = requireNotNull(params["identifier"])
-            currentUserInfo = props.userInfo
+            currentUserInfo = userInfo
         }
     }
 
-    val createProjectProblemView: FC<Props> = withRouter { _, params ->
+    val createProjectProblemView = withRouter { _, params ->
         createProjectProblem {
             organizationName = requireNotNull(params["owner"])
             projectName = requireNotNull(params["name"])
         }
     }
 
-    val projectProblemView: FC<Props> = withRouter { _, params ->
+    val projectProblemView = withRouter { _, params ->
         projectProblem {
             organizationName = requireNotNull(params["owner"])
             projectName = requireNotNull(params["name"])
@@ -166,16 +170,18 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val routeToUserProfileView: RouteObject? = props.userInfo?.name?.let { userName ->
+    val routeToUserProfileView: RouteObject? = userInfo?.name?.let { userName ->
         jso {
             path = "/$userName"
-            element = Navigate.create { to = "/$this/$SETTINGS_PROFILE" }
+            element = Navigate.create {
+                to = "/$this/$SETTINGS_PROFILE"
+            }
         }
     }
 
     val routeToManageOrganizationView: RouteObject = jso {
         path = "/$MANAGE_ORGANIZATIONS"
-        element = when (props.userInfo.isSuperAdmin()) {
+        element = when (userInfo.isSuperAdmin()) {
             true -> OrganizationAdminView::class.react.create()
             else -> fallbackNode
         }
@@ -190,101 +196,110 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    createBrowserRouter(
-        routes = listOf(
-            indexView.create { userInfo = props.userInfo } to "/",
-            saveWelcomeView.create { userInfo = props.userInfo } to SAVE,
-            vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
-            sandboxView.create() to SANDBOX,
-            AboutUsView::class.react.create() to ABOUT_US,
-            createOrganizationView.create() to CREATE_ORGANIZATION,
-            registrationView.create {
-                userInfo = props.userInfo
-                userInfoSetter = props.userInfoSetter
-            } to REGISTRATION,
-            CollectionView::class.react.create { currentUserInfo = props.userInfo } to PROJECTS,
-            contestListView.create { currentUserInfo = props.userInfo } to CONTESTS,
+    return listOf(
+//        indexView.create { this.userInfo = userInfo } to "/",
+        saveWelcomeView.create { this.userInfo = userInfo } to SAVE,
+        vulnWelcomeView.create { this.userInfo = userInfo } to VULN,
+        sandboxView.create() to SANDBOX,
+        AboutUsView::class.react.create() to ABOUT_US,
+        createOrganizationView.create() to CREATE_ORGANIZATION,
+        registrationView.create {
+            this.userInfo = userInfo
+            this.userInfoSetter = userInfoSetter
+        } to REGISTRATION,
+        CollectionView::class.react.create { currentUserInfo = userInfo } to PROJECTS,
+        contestListView.create { currentUserInfo = userInfo } to CONTESTS,
 
-            FallbackView::class.react.create {
-                bigText = "404"
-                smallText = "Page not found"
-                withRouterLink = true
-            } to ERROR_404,
-            banView.create { userInfo = props.userInfo } to BAN,
-            contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
-            contestView.create() to "$CONTESTS/:contestName",
-            createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
-            contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
-            contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
-            awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
-            createProjectView.create() to "$CREATE_PROJECT/:organization?",
-            organizationView.create() to ":owner",
-            historyView.create() to ":owner/:name/history",
-            projectView.create() to ":owner/:name",
-            createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
-            projectProblemView.create() to "project/:owner/:name/security/problems/:id",
-            executionView.create() to ":organization/:project/history/execution/:executionId",
-            demoView.create() to "$DEMO/:organizationName/:projectName",
-            cpgView.create() to "$DEMO/cpg",
-            testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
-            vulnerabilityCollectionView.create() to "$VULN/list/:params?",
-            createVulnerabilityView.create() to VULN_CREATE,
-            uploadVulnerabilityView.create() to VULN_UPLOAD,
-            vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
-            demoCollectionView.create() to DEMO,
-            userProfileView.create() to "$VULN_PROFILE/:name",
-            topRatingView.create() to VULN_TOP_RATING,
-            termsOfUsageView.create() to TERMS_OF_USE,
-            cookieTermsOfUse.create() to COOKIE,
-            thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
-            cosvSchemaView.create() to VULN_COSV_SCHEMA,
+        FallbackView::class.react.create {
+            bigText = "404"
+            smallText = "Page not found"
+            withRouterLink = true
+        } to ERROR_404,
+        banView.create { this.userInfo = userInfo } to BAN,
+        contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
+        contestView.create() to "$CONTESTS/:contestName",
+        createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
+        contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
+        contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
+        awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
+        createProjectView.create() to "$CREATE_PROJECT/:organization?",
+        organizationView.create() to ":owner",
+        historyView.create() to ":owner/:name/history",
+        projectView.create() to ":owner/:name",
+        createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
+        projectProblemView.create() to "project/:owner/:name/security/problems/:id",
+        executionView.create() to ":organization/:project/history/execution/:executionId",
+        demoView.create() to "$DEMO/:organizationName/:projectName",
+        cpgView.create() to "$DEMO/cpg",
+        testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
+        vulnerabilityCollectionView.create() to "$VULN/list/:params?",
+        createVulnerabilityView.create() to VULN_CREATE,
+        uploadVulnerabilityView.create() to VULN_UPLOAD,
+        vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
+        demoCollectionView.create() to DEMO,
+        userProfileView.create() to "$VULN_PROFILE/:name",
+        topRatingView.create() to VULN_TOP_RATING,
+        termsOfUsageView.create() to TERMS_OF_USE,
+        cookieTermsOfUse.create() to COOKIE,
+        thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
+        cosvSchemaView.create() to VULN_COSV_SCHEMA,
 
-            userSettingsView.create {
-                this.userInfoSetter = props.userInfoSetter
-                userInfo = props.userInfo
-                type = SETTINGS_PROFILE
-            } to SETTINGS_PROFILE,
+        userSettingsView.create {
+            this.userInfo = userInfo
+            this.userInfoSetter = userInfoSetter
+            type = SETTINGS_PROFILE
+        } to SETTINGS_PROFILE,
 
-            userSettingsView.create {
-                this.userInfoSetter = props.userInfoSetter
-                userInfo = props.userInfo
-                type = SETTINGS_EMAIL
-            } to SETTINGS_EMAIL,
+        userSettingsView.create {
+            this.userInfo = userInfo
+            this.userInfoSetter = userInfoSetter
+            type = SETTINGS_EMAIL
+        } to SETTINGS_EMAIL,
 
-            userSettingsView.create {
-                userInfo = props.userInfo
-                type = SETTINGS_TOKEN
-            } to SETTINGS_TOKEN,
+        userSettingsView.create {
+            this.userInfo = userInfo
+            type = SETTINGS_TOKEN
+        } to SETTINGS_TOKEN,
 
-            userSettingsView.create {
-                userInfo = props.userInfo
-                type = SETTINGS_ORGANIZATIONS
-            } to SETTINGS_ORGANIZATIONS,
+        userSettingsView.create {
+            this.userInfo = userInfo
+            type = SETTINGS_ORGANIZATIONS
+        } to SETTINGS_ORGANIZATIONS,
 
-            userSettingsView.create {
-                userInfo = props.userInfo
-                type = SETTINGS_DELETE
-            } to SETTINGS_DELETE,
+        userSettingsView.create {
+            this.userInfo = userInfo
+            type = SETTINGS_DELETE
+        } to SETTINGS_DELETE,
 
-        ).map { (view, route) ->
+        )
+        .map { (view, route) ->
             jso<RouteObject> {
                 path = "/$route"
                 element = view
             }
         }
-            .let { routes ->
-                routeToUserProfileView?.let { routes + it } ?: routes
-            }
-            .plus(routeToManageOrganizationView)
-            .plus(routeToFallbackView)
-            .toTypedArray(),
-        opts = jso {
-            basename = "/"
+        .toTypedArray()
+        .let { routes ->
+            routeToUserProfileView?.let { routes + it } ?: routes
         }
-    )
+        .plus(routeToManageOrganizationView)
+        .plus(routeToFallbackView)
+}
+
+/**
+ * Just put a map: View -> Route URL to this list
+ */
+val basicRouting: FC<AppProps> = FC { props ->
+    useUserStatusRedirects(props.userInfo?.status)
+    createBasicRoutes(props.userInfo, props.userInfoSetter)
         .let {
             RouterProvider {
-                router = it
+                router = createBrowserRouter(
+                    routes = it,
+                    opts = jso {
+                        basename = "/"
+                    }
+                )
             }
         }
 }

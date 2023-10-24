@@ -8,12 +8,17 @@ import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
+import com.saveourtool.save.frontend.components.views.index.indexView
+import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
+import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.basicRouting
+import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
+import js.core.jso
 
 import react.*
 import react.dom.client.createRoot
@@ -25,6 +30,8 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
+import react.router.dom.RouterProvider
+import react.router.dom.createBrowserRouter
 
 /**
  * Main component for the whole App
@@ -48,29 +55,51 @@ val App = FC {
         }
     }
 
-    requestModalHandler {
-        this.userInfo = userInfo
-        div {
-            className = ClassName("d-flex flex-column")
-            id = "content-wrapper"
-            ErrorBoundary::class.react {
-                topBarComponent { this.userInfo = userInfo }
-                div {
-                    className = ClassName("container-fluid")
-                    id = "common-save-container"
-                    basicRouting {
-                        this.userInfo = userInfo
-                        this.userInfoSetter = setUserInfo
+    val root = FC {
+        requestModalHandler {
+            this.userInfo = userInfo
+            div {
+                className = ClassName("d-flex flex-column")
+                id = "content-wrapper"
+
+                ErrorBoundary::class.react {
+                    topBarComponent { this.userInfo = userInfo }
+                    div {
+                        className = ClassName("container-fluid")
+                        id = "common-save-container"
+                        indexView {
+                            this.userInfo = userInfo
+                        }
                     }
+                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                        cookieBanner { }
+                    }
+                    footer { }
                 }
-                if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                    cookieBanner { }
-                }
-                footer { }
             }
         }
+        scrollToTopButton()
     }
-    scrollToTopButton()
+
+    RouterProvider {
+        router = createBrowserRouter(
+            routes = arrayOf(
+                jso {
+                    path = "/"
+                    element = root.create()
+                },
+                jso {
+                    path = "/${FrontendRoutes.SAVE.path}"
+                    element = saveWelcomeView.create { this.userInfo = userInfo }
+                },
+                jso {
+                    path = "/${FrontendRoutes.VULN.path}"
+                    element = vulnWelcomeView.create { this.userInfo = userInfo }
+                },
+            )
+        )
+    }
+
 }
 
 fun main() {
