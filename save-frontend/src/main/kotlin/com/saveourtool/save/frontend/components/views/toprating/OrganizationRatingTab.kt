@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 
 private const val DEFAULT_PAGE_SIZE = 10_000
 
-val organizationRatingTab: FC<Props> = FC { _ ->
+val organizationRatingTab = FC { _ ->
     val (organizationFilter, setOrganizationFilter) = useState(OrganizationFilter.created)
 
     val fetchOrganizationRequest: suspend WithRequestStatusContext.(OrganizationFilter) -> OrganizationArray = { filter ->

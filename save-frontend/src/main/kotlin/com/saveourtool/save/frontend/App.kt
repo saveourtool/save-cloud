@@ -14,11 +14,11 @@ import com.saveourtool.save.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
+import js.core.jso
 
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.dom.BrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
@@ -26,6 +26,8 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
+import react.router.dom.RouterProvider
+import react.router.dom.createBrowserRouter
 
 /**
  * Main component for the whole App
@@ -33,7 +35,7 @@ import kotlinx.serialization.json.Json
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE", "EMPTY_BLOCK_STRUCTURE_ERROR")
-val App: VFC = FC {
+val App = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
         get(
@@ -48,8 +50,8 @@ val App: VFC = FC {
             }
         }
     }
-    BrowserRouter {
-        basename = "/"
+
+    val index = FC {
         requestModalHandler {
             this.userInfo = userInfo
             div {
@@ -73,6 +75,16 @@ val App: VFC = FC {
             }
         }
         scrollToTopButton()
+    }
+    RouterProvider {
+        router = createBrowserRouter(
+            routes = arrayOf(
+                jso {
+                    path = "/"
+                    element = index.create()
+                }
+            )
+        )
     }
 }
 

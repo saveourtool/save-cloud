@@ -61,7 +61,7 @@ class ServerSentEventTest {
         val messages = mutableListOf<TestMessage>()
         var responseStatus: Short = 0
 
-        val testComponent: FC<Props> = FC {
+        val testComponent = FC {
             useNdjson(
                 url = "${window.location.origin}/test",
                 onCompletion = { responseStatus = OK },

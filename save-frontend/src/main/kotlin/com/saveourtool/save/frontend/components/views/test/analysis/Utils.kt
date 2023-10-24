@@ -34,7 +34,7 @@ internal val listStyle: CSSProperties = jso {
 /**
  * The placeholder displayed when there's no data available.
  */
-internal val noDataAvailable: FC<Props> = FC {
+internal val noDataAvailable = FC {
     span {
         className = ClassName("noDataAvailable")
 

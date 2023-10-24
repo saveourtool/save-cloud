@@ -38,7 +38,7 @@ val sandboxApiUrl = "${window.location.origin}/api/sandbox"
 /**
  * A view for testing config files
  */
-val sandboxView: FC<Props> = FC {
+val sandboxView = FC {
     useBackground(Style.SAVE_DARK)
     val (debugInfo, setDebugInfo) = useState<TestResultDebugInfo?>(null)
     val (selectedSdk, setSelectedSdk) = useState<Sdk>(Sdk.Default)

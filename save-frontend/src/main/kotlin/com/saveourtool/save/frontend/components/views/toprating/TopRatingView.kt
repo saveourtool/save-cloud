@@ -20,7 +20,7 @@ import react.dom.html.ReactHTML.h1
 import react.useState
 import web.cssom.ClassName
 
-val topRatingView: FC<Props> = FC {
+val topRatingView = FC {
     useBackground(Style.SAVE_LIGHT)
 
     val (selectedMenu, setSelectedMenu) = useState(TopRatingTab.USERS)

@@ -19,7 +19,7 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.ZIndex
 
-val cookieBanner: FC<Props> = FC {
+val cookieBanner = FC {
     val (isOpen, setIsOpen) = useState(!cookie.isAccepted())
     val navigate = useNavigate()
     val (t) = useTranslation("cookies")

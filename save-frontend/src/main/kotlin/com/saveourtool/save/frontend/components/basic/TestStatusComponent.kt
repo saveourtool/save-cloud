@@ -41,7 +41,7 @@ fun testStatusComponent(
     testResultDebugInfo: TestResultDebugInfo,
     tableInstance: Table<TestExecutionExtDto>,
     testExecutionDto: TestExecutionDto,
-): FC<Props> = FC {
+) = FC {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
@@ -121,7 +121,7 @@ fun testStatusComponent(
 fun <D : Any> executionStatusComponent(
     failReason: String,
     tableInstance: Table<D>
-): FC<Props> = FC {
+) = FC {
     tr {
         td {
             colSpan = 2

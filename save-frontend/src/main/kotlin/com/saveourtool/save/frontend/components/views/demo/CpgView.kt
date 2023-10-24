@@ -42,7 +42,7 @@ private val backgroundCard = cardComponent(hasBg = false, isPaddingBottomNull = 
 @Suppress(
     "EMPTY_BLOCK_STRUCTURE_ERROR",
 )
-val cpgView: FC<Props> = FC {
+val cpgView = FC {
     useBackground(Style.SAVE_LIGHT)
     val (cpgResult, setCpgResult) = useState(CpgResult.empty)
     val (isLogs, setIsLogs) = useState(false)

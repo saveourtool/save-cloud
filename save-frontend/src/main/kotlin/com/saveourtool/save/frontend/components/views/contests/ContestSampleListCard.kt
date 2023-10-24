@@ -45,7 +45,7 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
     useServerPaging = false,
 )
 
-internal val contestSampleList: FC<Props> = FC {
+internal val contestSampleList = FC {
     div {
         className = ClassName("col")
         div {

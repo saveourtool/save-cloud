@@ -14,6 +14,7 @@ import com.saveourtool.save.v1
 
 import js.buffer.ArrayBuffer
 import js.core.jso
+import js.promise.asDeferred
 import js.typedarrays.Int8Array
 import js.typedarrays.Uint8Array
 import org.w3c.dom.url.URLSearchParams

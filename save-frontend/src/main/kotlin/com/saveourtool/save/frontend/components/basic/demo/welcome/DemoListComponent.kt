@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
 
 private val withBackground = cardComponent(isBordered = true, hasBg = true, isPaddingBottomNull = true)
 
-val demoList: FC<Props> = FC {
+val demoList = FC {
     val (filter, setFilter) = useState(DemoFilter.running)
 
     val (demoDtos, setDemoDtos) = useState<List<DemoDto>>(emptyList())

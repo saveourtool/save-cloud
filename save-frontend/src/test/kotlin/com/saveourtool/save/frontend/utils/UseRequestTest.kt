@@ -31,7 +31,7 @@ class UseRequestTest {
     @Test
     fun test(): Promise<Unit> {
         val worker = createWorker()
-        val testComponent: FC<Props> = FC {
+        val testComponent = FC {
             val (sendSecond, setSendSecond) = useState(false)
             val (sendThird, setSendThird) = useState(false)
             useRequest(dependencies = arrayOf(sendSecond)) {

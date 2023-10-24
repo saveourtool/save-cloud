@@ -27,7 +27,7 @@ import web.cssom.*
 import web.html.ButtonType
 
 @Suppress("MAGIC_NUMBER")
-internal val featuredContest: FC<Props> = FC {
+internal val featuredContest = FC {
     val (featuredContests, setFeaturedContests) = useState<List<ContestDto>>(emptyList())
     useRequest {
         val contests: List<ContestDto> = get(

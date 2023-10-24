@@ -23,7 +23,7 @@ import web.cssom.rem
 /**
  * rendering of newly added contests
  */
-internal val newContests: FC<Props> = FC {
+internal val newContests = FC {
     val (newContests, setNewContests) = useState<List<ContestDto>>(emptyList())
     useRequest {
         val contests: List<ContestDto> = get(

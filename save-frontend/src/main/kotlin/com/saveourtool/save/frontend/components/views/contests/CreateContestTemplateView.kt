@@ -30,7 +30,7 @@ import web.html.InputType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val createContestTemplateView: FC<Props> = FC {
+val createContestTemplateView = FC {
     useBackground(Style.SAVE_DARK)
 
     val (contestTemplate, setContestTemplate) = useState(ContestSampleDto.empty)

@@ -15,7 +15,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
-val demoCollectionView: FC<Props> = FC {
+val demoCollectionView = FC {
     useBackground(Style.SAVE_DARK)
 
     main {

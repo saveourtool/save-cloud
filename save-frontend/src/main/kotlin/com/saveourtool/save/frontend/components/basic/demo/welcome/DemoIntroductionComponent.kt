@@ -34,7 +34,7 @@ private val saveDemoHowToMd = """
 """.trimMargin()
 
 @Suppress("MAGIC_NUMBER")
-internal val introductionSection: FC<Props> = FC {
+internal val introductionSection = FC {
     div {
         className = ClassName("card flex-md-column mb-1 box-shadow")
         style = jso { minHeight = 25.rem }

@@ -22,7 +22,7 @@ import react.useState
 import web.cssom.*
 
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "PARAMETER_NAME_IN_OUTER_LAMBDA")
-val cosvSchemaView: FC<Props> = FC {
+val cosvSchemaView = FC {
     particles()
     useBackground(Style.VULN_DARK)
     val (textInModal, setTextInModal) = useState<Pair<String, String>>()

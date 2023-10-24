@@ -32,7 +32,7 @@ import web.html.ButtonType
 /**
  * [FC] that renders the stylish table with contests
  */
-val contestList: FC<Props> = FC {
+val contestList = FC {
     val (isContestEnrollerModalOpen, setIsContestEnrollerModalOpen) = useState(false)
     val (isConfirmationModalOpen, setIsConfirmationModalOpen) = useState(false)
     val (enrollmentResponseString, setEnrollmentResponseString) = useState("")

@@ -17,7 +17,7 @@ import react.router.dom.createBrowserRouter
 /**
  * Just put a map: View -> Route URL to this list
  */
-val mobileRoutes: FC<Props> = FC {
+val mobileRoutes = FC {
     createBrowserRouter(
         arrayOf(
             jso {

@@ -130,7 +130,7 @@ private val termsOfUsageContent = listOf(
     generalProvisions,
 )
 
-val termsOfUsageView: FC<Props> = FC {
+val termsOfUsageView = FC {
     useBackground(Style.INDEX)
 
     div {

@@ -46,7 +46,7 @@ import kotlinx.serialization.json.Json
 
 private const val DEFAULT_SIZE = 10
 
-val cosvFileManagerComponent: FC<Props> = FC { _ ->
+val cosvFileManagerComponent = FC { _ ->
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
 

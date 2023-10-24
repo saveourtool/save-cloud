@@ -56,7 +56,7 @@ const val ALL_LANGS = "all"
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
 external interface AwesomeBenchmarksProps : PropsWithChildren {
-    var location: Location
+    var location: Location<*>
 }
 
 /**
