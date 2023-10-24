@@ -277,7 +277,10 @@ val basicRouting: FC<AppProps> = FC { props ->
                     }
                 }
             )
-            .toTypedArray()
+            .toTypedArray(),
+        opts = jso {
+            basename = "/"
+        }
     )
 }
 

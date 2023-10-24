@@ -51,39 +51,29 @@ val App = FC {
         }
     }
 
-    RouterProvider {
-        router = createBrowserRouter(
-            routes = arrayOf(),
-            opts = jso {
-                basename = "/"
-            }
-        )
-        with(this@FC) {
-            requestModalHandler {
-                this.userInfo = userInfo
+    requestModalHandler {
+        this.userInfo = userInfo
+        div {
+            className = ClassName("d-flex flex-column")
+            id = "content-wrapper"
+            ErrorBoundary::class.react {
+                topBarComponent { this.userInfo = userInfo }
                 div {
-                    className = ClassName("d-flex flex-column")
-                    id = "content-wrapper"
-                    ErrorBoundary::class.react {
-                        topBarComponent { this.userInfo = userInfo }
-                        div {
-                            className = ClassName("container-fluid")
-                            id = "common-save-container"
-                            basicRouting {
-                                this.userInfo = userInfo
-                                this.userInfoSetter = setUserInfo
-                            }
-                        }
-                        if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                            cookieBanner { }
-                        }
-                        footer { }
+                    className = ClassName("container-fluid")
+                    id = "common-save-container"
+                    basicRouting {
+                        this.userInfo = userInfo
+                        this.userInfoSetter = setUserInfo
                     }
                 }
+                if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                    cookieBanner { }
+                }
+                footer { }
             }
-            scrollToTopButton()
         }
     }
+    scrollToTopButton()
 }
 
 fun main() {
