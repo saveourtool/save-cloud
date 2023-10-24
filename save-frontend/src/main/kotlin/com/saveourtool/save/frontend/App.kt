@@ -15,12 +15,9 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import js.core.jso
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.dom.RouterProvider
-import react.router.dom.createBrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
