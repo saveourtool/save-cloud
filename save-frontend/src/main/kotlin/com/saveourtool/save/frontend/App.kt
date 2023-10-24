@@ -51,40 +51,38 @@ val App = FC {
         }
     }
 
-    val index = FC {
-        requestModalHandler {
-            this.userInfo = userInfo
-            div {
-                className = ClassName("d-flex flex-column")
-                id = "content-wrapper"
-                ErrorBoundary::class.react {
-                    topBarComponent { this.userInfo = userInfo }
-                    div {
-                        className = ClassName("container-fluid")
-                        id = "common-save-container"
-                        basicRouting {
-                            this.userInfo = userInfo
-                            this.userInfoSetter = setUserInfo
-                        }
-                    }
-                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                        cookieBanner { }
-                    }
-                    footer { }
-                }
-            }
-        }
-        scrollToTopButton()
-    }
     RouterProvider {
         router = createBrowserRouter(
-            routes = arrayOf(
-                jso {
-                    path = "/"
-                    element = index.create()
-                }
-            )
+            routes = arrayOf(),
+            opts = jso {
+                basename = "/"
+            }
         )
+        with(this@FC) {
+            requestModalHandler {
+                this.userInfo = userInfo
+                div {
+                    className = ClassName("d-flex flex-column")
+                    id = "content-wrapper"
+                    ErrorBoundary::class.react {
+                        topBarComponent { this.userInfo = userInfo }
+                        div {
+                            className = ClassName("container-fluid")
+                            id = "common-save-container"
+                            basicRouting {
+                                this.userInfo = userInfo
+                                this.userInfoSetter = setUserInfo
+                            }
+                        }
+                        if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                            cookieBanner { }
+                        }
+                        footer { }
+                    }
+                }
+            }
+            scrollToTopButton()
+        }
     }
 }
 
