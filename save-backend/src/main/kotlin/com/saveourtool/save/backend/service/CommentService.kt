@@ -46,6 +46,12 @@ class CommentService(
     fun findAllBySection(section: String) = commentRepository.getAllBySection(section)
 
     /**
+     * @param section section with comments
+     * @return count messages
+     */
+    fun countBySection(section: String) = commentRepository.countAllBySection(section)
+
+    /**
      * @param comment [CommentDto] that matches the [Comment] that should be deleted
      * @return [Unit] if comment was found, `null` otherwise
      */

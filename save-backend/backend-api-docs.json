@@ -426,19 +426,19 @@
       }
     },
     "/api/v1/comments/get-all": {
-      "post": {
-        "description": "Save new comment.",
+      "get": {
+        "description": "Get all comments in section.",
         "operationId": "getAllBySection",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -451,7 +451,7 @@
                 }
               }
             },
-            "description": "Successfully saved project problem"
+            "description": "Successfully return all comments in section"
           },
           "401": {
             "content": {
@@ -472,7 +472,56 @@
             "basic": []
           }
         ],
-        "summary": "Save new comment.",
+        "summary": "Get all comments in section.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/comments/get-all-count": {
+      "get": {
+        "description": "Get count comments in section.",
+        "operationId": "getAllCountBySection",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Successfully return count comments in section"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get count comments in section.",
         "tags": [
           "comments"
         ]
@@ -7686,62 +7735,6 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/delete-processed": {
-      "delete": {
-        "operationId": "deleteProcessed",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RawCosvFileDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "raw-cosv-file-controller"
-        ]
-      }
-    },
     "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
       "delete": {
         "operationId": "delete_1",
@@ -8141,7 +8134,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UnzipRawCosvFileResponse"
+                    "$ref": "#/components/schemas/RawCosvFileStreamingResponse"
                   }
                 }
               }
@@ -10849,33 +10842,6 @@
         ]
       }
     },
-    "/api/v1/users/global-role": {
-      "get": {
-        "operationId": "getSelfGlobalRole",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ADMIN",
-                    "NONE",
-                    "OWNER",
-                    "SUPER_ADMIN",
-                    "VIEWER"
-                  ]
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "users-details-controller"
-        ]
-      }
-    },
     "/api/v1/users/new-users": {
       "get": {
         "operationId": "findNewUsers",
@@ -10978,6 +10944,26 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/users/user-info": {
+      "get": {
+        "operationId": "getSelfUserInfo",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
                 }
               }
             },
@@ -14119,6 +14105,28 @@
           }
         }
       },
+      "RawCosvFileStreamingResponse": {
+        "required": [
+          "progress",
+          "progressMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progressMessage": {
+            "type": "string"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawCosvFileDto"
+            }
+          }
+        }
+      },
       "Reference": {
         "required": [
           "type",
@@ -14688,30 +14696,6 @@
       },
       "Unit": {
         "type": "object"
-      },
-      "UnzipRawCosvFileResponse": {
-        "required": [
-          "fullSize",
-          "processedSize",
-          "updateCounters"
-        ],
-        "type": "object",
-        "properties": {
-          "fullSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "processedSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "result": {
-            "$ref": "#/components/schemas/RawCosvFileDto"
-          },
-          "updateCounters": {
-            "type": "boolean"
-          }
-        }
       },
       "User": {
         "required": [
