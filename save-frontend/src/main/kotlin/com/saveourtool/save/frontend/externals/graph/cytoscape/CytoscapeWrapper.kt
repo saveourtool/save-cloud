@@ -82,6 +82,6 @@ fun cytoscape(
         """)
     }
 
-    val cytoscapeJs = kotlinext.js.require<dynamic>("cytoscape")
+    val cytoscapeJs: dynamic = kotlinext.js.require("cytoscape")
     return cytoscapeJs(options)
 }
