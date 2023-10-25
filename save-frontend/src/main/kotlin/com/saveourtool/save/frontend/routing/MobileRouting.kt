@@ -8,6 +8,7 @@ import com.saveourtool.save.frontend.components.mobile.AboutUsMobileView
 import com.saveourtool.save.frontend.components.mobile.saveWelcomeMobileView
 import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
+import react.Props
 import react.create
 import react.react
 import react.router.PathRoute
