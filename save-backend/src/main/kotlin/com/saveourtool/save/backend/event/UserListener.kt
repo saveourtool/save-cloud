@@ -3,7 +3,6 @@ package com.saveourtool.save.backend.event
 import com.saveourtool.save.backend.service.NotificationService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.LnkUserNotification
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
@@ -25,15 +24,13 @@ class UserListener(
     fun createUser(user: User) {
         if (user.status == UserStatus.NOT_APPROVED) {
             val recipients = userDetailsService.findByRole(Role.SUPER_ADMIN.asSpringSecurityRole())
-            val newNotification = notificationService.save(Notification(message = messageNewUser(user)))
-            val lnkUserNotifications = recipients.map {
-                LnkUserNotification(
-                    notification = newNotification,
+            val notifications = recipients.map {
+                Notification(
+                    message = messageNewUser(user),
                     user = it,
-                    isShow = false,
                 )
             }
-            notificationService.saveAllLnkUserNotification(lnkUserNotifications)
+            notificationService.saveAll(notifications)
         }
     }
 
