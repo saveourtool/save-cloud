@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
@@ -58,13 +59,13 @@ val cosvFileManagerComponent: FC<Props> = FC {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
-    val (statistic, setStatistic) = useState(RawCosvFileStatisticsDto.empty)
+    val (statistics, setStatistics) = useState(RawCosvFileStatisticsDto.empty)
     val (lastPage, setLastPage) = useState(0)
     val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
-    val leftAvailableFilesCount = statistic.allAvailableFilesCount - lastPage * DEFAULT_SIZE
+    val leftAvailableFilesCount = statistics.allAvailableFilesCount - lastPage * DEFAULT_SIZE
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
@@ -91,13 +92,14 @@ val cosvFileManagerComponent: FC<Props> = FC {
 
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
-                setStatistic { it.copy(allAvailableFilesCount = statistic.allAvailableFilesCount.dec()) }
+                setStatistics { it.copy(allAvailableFilesCount = statistics.allAvailableFilesCount.dec()) }
                 when {
-                    file.isUploadedZipArchive() -> setStatistic { it.copy(uploadedArchivesCount = statistic.uploadedArchivesCount.dec()) }
-                    file.isUploadedJsonFile() -> setStatistic { it.copy(uploadedJsonFilesCount = statistic.uploadedJsonFilesCount.dec()) }
-                    file.isProcessing() -> setStatistic { it.copy(processingFilesCount = statistic.processingFilesCount.dec()) }
-                    file.isDuplicate() -> setStatistic { it.copy(duplicateFilesCount = statistic.duplicateFilesCount.dec()) }
-                    file.isHasErrors() -> setStatistic { it.copy(errorFilesCount = statistic.errorFilesCount.dec()) }
+                    file.isUploadedZipArchive() -> setStatistics { it.copy(uploadedArchivesCount = statistics.uploadedArchivesCount.dec()) }
+                    file.isUploadedJsonFile() -> setStatistics { it.copy(uploadedJsonFilesCount = statistics.uploadedJsonFilesCount.dec()) }
+                    file.isProcessing() -> setStatistics { it.copy(processingFilesCount = statistics.processingFilesCount.dec()) }
+                    file.isPendingRemoved() -> setStatistics { it.copy(pendingRemovedFilesCount = statistics.pendingRemovedFilesCount.dec()) }
+                    file.isDuplicate() -> setStatistics { it.copy(duplicateFilesCount = statistics.duplicateFilesCount.dec()) }
+                    file.isHasErrors() -> setStatistics { it.copy(errorFilesCount = statistics.errorFilesCount.dec()) }
                 }
                 setFileToDelete(null)
             } else {
@@ -153,7 +155,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
         }
     }
 
-    val getStatistic = useDeferredRequest {
+    val getStatistics = useDeferredRequest {
         selectedOrganization?.let {
             val response = get(
                 url = "$apiUrl/raw-cosv/$selectedOrganization/statistics",
@@ -162,15 +164,15 @@ val cosvFileManagerComponent: FC<Props> = FC {
                 responseHandler = ::noopResponseHandler
             )
             when {
-                response.ok -> setStatistic(response.unsafeMap { it.decodeFromJsonString<RawCosvFileStatisticsDto>() })
-                else -> window.alert("Failed to get statistic data: ${response.unpackMessageOrNull().orEmpty()}")
+                response.ok -> setStatistics(response.unsafeMap { it.decodeFromJsonString<RawCosvFileStatisticsDto>() })
+                else -> window.alert("Failed to get statistics data: ${response.unpackMessageOrNull().orEmpty()}")
             }
         }
     }
 
     val reFetchFiles = useDeferredRequest {
         selectedOrganization?.let {
-            getStatistic()
+            getStatistics()
             setAvailableFiles(emptyList())
             setSelectedFiles(emptyList())
             setLastPage(0)
@@ -339,7 +341,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         submitCosvFiles()
                     }
                 }
-                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = statistic.uploadedJsonFilesCount == 0 || isStreamingOperationActive) {
+                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = statistics.uploadedJsonFilesCount == 0 || isStreamingOperationActive) {
                     if (window.confirm("Processed files will be removed. Do you want to continue?")) {
                         submitAllUploadedCosvFiles()
                     }
@@ -350,7 +352,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
             }
 
             // ===== STATUS BAR =====
-            with(statistic) {
+            with(statistics) {
                 if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
                     li {
                         className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
@@ -363,6 +365,10 @@ val cosvFileManagerComponent: FC<Props> = FC {
 
                         if (processingFilesCount > 0) {
                             +"Still processing $processingFilesCount files. "
+                        }
+
+                        if (pendingRemovedFilesCount > 0) {
+                            +"Pending to be removed $pendingRemovedFilesCount files. "
                         }
 
                         when {

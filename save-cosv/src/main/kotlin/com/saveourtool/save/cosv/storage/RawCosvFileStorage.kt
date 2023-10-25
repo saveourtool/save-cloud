@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
@@ -81,6 +82,7 @@ class RawCosvFileStorage(
             filesList.count { it.isUploadedZipArchive() },
             filesList.count { it.isUploadedJsonFile() },
             filesList.count { it.isProcessing() },
+            filesList.count { it.isPendingRemoved() },
             filesList.count { it.isDuplicate() },
             filesList.count { it.isHasErrors() }
         )

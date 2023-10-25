@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
  * @property processingFilesCount
  * @property duplicateFilesCount
  * @property errorFilesCount
+ * @property pendingRemovedFilesCount
  */
 @Serializable
 data class RawCosvFileStatisticsDto(
@@ -18,6 +19,7 @@ data class RawCosvFileStatisticsDto(
     val uploadedArchivesCount: Int,
     val uploadedJsonFilesCount: Int,
     val processingFilesCount: Int,
+    val pendingRemovedFilesCount: Int,
     val duplicateFilesCount: Int,
     val errorFilesCount: Int,
 ) {
@@ -27,6 +29,7 @@ data class RawCosvFileStatisticsDto(
             uploadedArchivesCount = 0,
             uploadedJsonFilesCount = 0,
             processingFilesCount = 0,
+            pendingRemovedFilesCount = 0,
             duplicateFilesCount = 0,
             errorFilesCount = 0,
         )
