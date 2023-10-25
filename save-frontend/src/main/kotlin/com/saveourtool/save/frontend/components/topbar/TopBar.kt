@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.basic.languageSelector
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.UserInfoAwarePropsWithChildren
 import com.saveourtool.save.frontend.utils.notIn
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 

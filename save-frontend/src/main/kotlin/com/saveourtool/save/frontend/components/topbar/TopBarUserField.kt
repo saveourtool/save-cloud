@@ -1,4 +1,6 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+/**
+ * FC user's topbar
+ */
 
 package com.saveourtool.save.frontend.components.topbar
 
@@ -7,7 +9,6 @@ import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
