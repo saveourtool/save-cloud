@@ -102,12 +102,6 @@ private fun wrapView(view: FC<UserInfoAwareMutableProps>): FC<UserInfoAwareMutab
 
 private fun wrapView(view: FC<UserInfoAwareProps>): FC<UserInfoAwareMutableProps> = wrapView(view.asMutable())
 
-private fun FC<UserInfoAwareProps>.asMutable(): FC<UserInfoAwareMutableProps> = FC { props ->
-    this@asMutable {
-        this.userInfo = props.userInfo
-    }
-}
-
 fun main() {
     /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */
     @Suppress("UnsafeCastFromDynamic")
