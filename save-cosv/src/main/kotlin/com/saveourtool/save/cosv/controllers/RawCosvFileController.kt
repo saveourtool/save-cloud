@@ -267,7 +267,9 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
         .map { files ->
-            files.map { it.requiredId() }
+            files
+                .filter { !it.isZipArchive() && it.status == RawCosvFileStatus.UPLOADED }
+                .map { it.requiredId() }
         }
         .flatMap { ids ->
             doSubmitToProcess(organizationName, ids, authentication)

@@ -37,28 +37,30 @@ data class RawCosvFileDto(
 
     companion object {
         /**
-         * @return [Boolean]
+         * Extracted as extension to avoid Jackson issue with encoding this field
+         * 
+         * @return true if this raw cosv file is zip archive, checking by [fileName]
          */
-        fun RawCosvFileDto.isArchive() = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+        fun RawCosvFileDto.isZipArchive(): Boolean = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
 
         /**
          * @return [Boolean]
          */
-        fun RawCosvFileDto.isJsonFile() = status == RawCosvFileStatus.UPLOADED && !fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+        fun RawCosvFileDto.isJsonFile(): Boolean = status == RawCosvFileStatus.UPLOADED && !fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
 
         /**
          * @return [Boolean]
          */
-        fun RawCosvFileDto.isProcessing() = status == RawCosvFileStatus.PROCESSED || status == RawCosvFileStatus.IN_PROGRESS
+        fun RawCosvFileDto.isProcessing(): Boolean = status == RawCosvFileStatus.PROCESSED || status == RawCosvFileStatus.IN_PROGRESS
 
         /**
          * @return [Boolean]
          */
-        fun RawCosvFileDto.isDuplicate() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == true
+        fun RawCosvFileDto.isDuplicate(): Boolean = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == true
 
         /**
          * @return [Boolean]
          */
-        fun RawCosvFileDto.isErrorFile() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == false
+        fun RawCosvFileDto.isErrorFile(): Boolean = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == false
     }
 }

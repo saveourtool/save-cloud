@@ -4,7 +4,7 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isErrorFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isJsonFile
@@ -86,7 +86,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             val response = delete(
                 "$apiUrl/raw-cosv/$selectedOrganization/delete/${file.requiredId()}",
                 headers = Headers().withAcceptJson(),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
             )
 
             if (response.ok) {
@@ -130,7 +130,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                     size = DEFAULT_SIZE
                 },
                 headers = Headers().withAcceptNdjson().withContentTypeJson(),
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             )
             when {
@@ -158,7 +158,7 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             val response = get(
                 url = "$apiUrl/raw-cosv/$selectedOrganization/statistics",
                 jsonHeaders,
-                loadingHandler = ::loadingHandler,
+                loadingHandler = ::noopLoadingHandler,
                 responseHandler = ::noopResponseHandler
             )
             when {
@@ -262,13 +262,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-to-process",
             jsonHeaders,
             body = selectedFiles.map { it.requiredId() },
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("Selected files submitted to be processed")
+            reFetchFiles()
+            setCurrentProgress(100)
+            setCurrentProgressMessage("Selected files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
     }
 
     val submitAllUploadedCosvFiles = useDeferredRequest {
@@ -276,13 +277,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-all-uploaded-to-process",
             jsonHeaders,
             body = undefined,
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("All uploaded files submitted to be processed")
+            reFetchFiles()
+            setCurrentProgress(100)
+            setCurrentProgressMessage("All uploaded files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
     }
 
     div {
@@ -395,7 +397,14 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
                         type = InputType.checkbox
                         id = "checkbox"
                         checked = file in selectedFiles
-                        disabled = file.isNotSelectable()
+                        file.notSelectableReason()?.let { reason ->
+                            asDynamic()["data-toggle"] = "tooltip"
+                            asDynamic()["data-placement"] = "right"
+                            title = reason
+                            disabled = true
+                        } ?: run {
+                            disabled = false
+                        }
                         onChange = { event ->
                             if (event.target.checked) {
                                 setSelectedFiles { it.plus(file) }
@@ -471,6 +480,12 @@ val cosvFileManagerComponent: FC<Props> = FC { _ ->
     }
 }
 
-private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
+private fun RawCosvFileDto.notSelectableReason() = when {
+    status == RawCosvFileStatus.PROCESSED -> "Already processed"
+    status == RawCosvFileStatus.IN_PROGRESS -> "In progress, please wait"
+    isDuplicate() -> "Duplicate, the vulnerability with such ID already uploaded"
+    isZipArchive() -> "It's a zip archive, please unzip to get JSON files"
+    else -> null
+}
 
 private fun Collection<RawCosvFileDto>.anyWithoutStatus(status: RawCosvFileStatus) = any { it.status != status }
