@@ -24,7 +24,7 @@ import web.cssom.*
 /**
  * As a temp stub it was decided to make several views to make SAVE looking nice on mobile devices
  */
-val saveWelcomeMobileView = FC {
+val saveWelcomeMobileView: FC<Props> = FC {
     div {
         style = jso {
             background = SAVE_LIGHT_GRADIENT.unsafeCast<Background>()

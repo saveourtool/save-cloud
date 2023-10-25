@@ -33,7 +33,7 @@ import kotlinx.serialization.json.Json
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("VARIABLE_NAME_INCORRECT_FORMAT", "NULLABLE_PROPERTY_TYPE", "EMPTY_BLOCK_STRUCTURE_ERROR")
-val App = FC {
+val App: FC<Props> = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
         get(

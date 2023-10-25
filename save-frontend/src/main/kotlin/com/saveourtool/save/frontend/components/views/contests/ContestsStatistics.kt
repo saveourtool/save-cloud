@@ -17,7 +17,7 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
 
-internal val statistics = FC {
+internal val statistics: FC<Props> = FC {
     val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
     useRequest {
         val contests: List<ContestDto> = get(

@@ -16,7 +16,7 @@ import react.useState
 import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-internal val statistics = FC {
+internal val statistics: FC<Props> = FC {
     val (activeDemoAmount, setActiveDemoAmount) = useState(0)
     useRequest {
         val active: Int = get(

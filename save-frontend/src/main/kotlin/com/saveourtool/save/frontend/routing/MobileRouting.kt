@@ -16,7 +16,7 @@ import react.router.Routes
 /**
  * Just put a map: View -> Route URL to this list
  */
-val mobileRoutes = FC {
+val mobileRoutes: FC<Props> = FC {
     Routes {
         listOf(
             AboutUsMobileView::class.react.create() to FrontendRoutes.ABOUT_US,

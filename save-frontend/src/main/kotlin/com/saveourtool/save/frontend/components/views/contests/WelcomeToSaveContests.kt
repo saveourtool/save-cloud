@@ -19,7 +19,7 @@ import web.cssom.rem
 /**
  * Rendering of featured contest card
  */
-internal val welcomeToSaveContests = FC {
+internal val welcomeToSaveContests: FC<Props> = FC {
     div {
         className = ClassName("col-5")
         div {

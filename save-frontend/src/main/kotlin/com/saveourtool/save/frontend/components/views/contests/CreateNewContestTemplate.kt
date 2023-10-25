@@ -11,7 +11,7 @@ import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.*
 
-internal val createNewContestTemplate = FC {
+internal val createNewContestTemplate: FC<Props> = FC {
     div {
         className = ClassName("col-2 text-center")
         Link {

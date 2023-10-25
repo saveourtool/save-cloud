@@ -14,7 +14,7 @@ import react.FC
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 
-val cookieTermsOfUse = FC {
+val cookieTermsOfUse: FC<Props> = FC {
     useBackground(Style.INDEX)
     val (t) = useTranslation("cookies")
     div {

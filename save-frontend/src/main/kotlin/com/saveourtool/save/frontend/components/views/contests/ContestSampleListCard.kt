@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
 import react.Fragment
-import react.FC
 import react.create
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -45,7 +44,7 @@ private val contestSampleTable: FC<TableProps<ContestSampleDto>> = tableComponen
     useServerPaging = false,
 )
 
-internal val contestSampleList = FC {
+internal val contestSampleList: FC<Props> = FC {
     div {
         className = ClassName("col")
         div {
