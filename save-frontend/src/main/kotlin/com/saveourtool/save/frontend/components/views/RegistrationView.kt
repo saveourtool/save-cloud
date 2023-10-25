@@ -54,7 +54,7 @@ import kotlinx.serialization.json.Json
  */
 @JsExport
 @OptIn(ExperimentalJsExport::class)
-val registrationView: FC<RegistrationProps> = FC { props ->
+val registrationView: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     useBackground(Style.INDEX)
     particles()
     val useNavigate = useNavigate()
@@ -324,21 +324,6 @@ val registrationView: FC<RegistrationProps> = FC { props ->
             }
         }
     }
-}
-
-/**
- * `Props` retrieved from router
- */
-external interface RegistrationProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
-     * Setter of user info (it can be updated in settings on several views)
-     */
-    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**
