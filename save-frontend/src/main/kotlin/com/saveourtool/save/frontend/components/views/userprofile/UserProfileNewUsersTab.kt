@@ -18,7 +18,6 @@ import web.cssom.ClassName
 import web.cssom.rem
 
 val renderNewUsersTableForProfileView: FC<Props> = FC {
-
     @Suppress(
         "TYPE_ALIAS",
         "MAGIC_NUMBER",
