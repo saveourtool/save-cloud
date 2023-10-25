@@ -28,7 +28,6 @@ import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
 
 import org.w3c.dom.url.URLSearchParams
@@ -38,7 +37,7 @@ import react.router.*
 /**
  * Just put a map: View -> Route URL to this list
  */
-val basicRouting: FC<AppProps> = FC { props ->
+val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     useUserStatusRedirects(props.userInfo?.status)
     val userProfileView = withRouter { _, params ->
         userProfileView {
@@ -280,24 +279,9 @@ private val fallbackNode = FallbackView::class.react.create {
 }
 
 /**
- * Property to propagate user info from App
- */
-external interface AppProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
-     * Setter of user info (it can be updated in settings on several views)
-     */
-    var userInfoSetter: StateSetter<UserInfo?>
-}
-
-/**
  * @param view
  * @return a view or a fallback of user info is null
  */
-fun AppProps.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
+fun UserInfoAwareMutablePropsWithChildren.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
     view
 } ?: fallbackNode
