@@ -20,7 +20,6 @@ import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.themes.Colors
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.OauthProviderInfo
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -33,7 +32,7 @@ import web.cssom.*
 
 import kotlinx.browser.window
 
-val saveWelcomeView: FC<WelcomeProps> = FC { props ->
+val saveWelcomeView: FC<UserInfoAwarePropsWithChildren> = FC { props ->
     val (t) = useTranslation("welcome")
     useBackground(Style.SAVE_DARK)
     val (oauthProviders, setOauthProviders) = useState<List<OauthProviderInfo>>(emptyList())
@@ -128,14 +127,4 @@ val saveWelcomeView: FC<WelcomeProps> = FC { props ->
             renderReadMorePage()
         }
     }
-}
-
-/**
- * Properties used in WelcomeView (passed from App.kt)
- */
-external interface WelcomeProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }

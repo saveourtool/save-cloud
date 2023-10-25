@@ -8,6 +8,7 @@ package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.components.basic.languageSelector
 import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.utils.UserInfoAwarePropsWithChildren
 import com.saveourtool.save.frontend.utils.notIn
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
@@ -26,7 +27,7 @@ import web.html.HTMLButtonElement
 /**
  * A component for web page top bar.
  */
-val topBarComponent: FC<TopBarProps> = FC { props ->
+val topBarComponent: FC<UserInfoAwarePropsWithChildren> = FC { props ->
     val location = useLocation()
     nav {
         className =
@@ -50,16 +51,6 @@ val topBarComponent: FC<TopBarProps> = FC { props ->
             userInfo = props.userInfo
         }
     }
-}
-
-/**
- * [Props] of the top bar component
- */
-external interface TopBarProps : PropsWithChildren {
-    /**
-     * Currently logged-in user, or `null`.
-     */
-    var userInfo: UserInfo?
 }
 
 /**
