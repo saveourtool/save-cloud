@@ -4,11 +4,11 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isErrorFile
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
@@ -93,11 +93,11 @@ val cosvFileManagerComponent: FC<Props> = FC {
                 setAvailableFiles { it.minus(file) }
                 setStatistic { it?.copy(allAvailableFilesCount = statistic?.allAvailableFilesCount?.dec() ?: 0L) }
                 when {
-                    file.isArchive() -> setStatistic { it?.copy(uploadedArchivesCount = statistic?.uploadedArchivesCount?.dec() ?: 0L) }
-                    file.isJsonFile() -> setStatistic { it?.copy(uploadedJsonFilesCount = statistic?.uploadedJsonFilesCount?.dec() ?: 0L) }
+                    file.isUploadedZipArchive() -> setStatistic { it?.copy(uploadedArchivesCount = statistic?.uploadedArchivesCount?.dec() ?: 0L) }
+                    file.isUploadedJsonFile() -> setStatistic { it?.copy(uploadedJsonFilesCount = statistic?.uploadedJsonFilesCount?.dec() ?: 0L) }
                     file.isProcessing() -> setStatistic { it?.copy(processingFilesCount = statistic?.processingFilesCount?.dec() ?: 0L) }
                     file.isDuplicate() -> setStatistic { it?.copy(duplicateFilesCount = statistic?.duplicateFilesCount?.dec() ?: 0L) }
-                    file.isErrorFile() -> setStatistic { it?.copy(errorFilesCount = statistic?.errorFilesCount?.dec() ?: 0L) }
+                    file.isHasErrors() -> setStatistic { it?.copy(errorFilesCount = statistic?.errorFilesCount?.dec() ?: 0L) }
                 }
                 setFileToDelete(null)
             } else {
@@ -416,7 +416,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                     downloadFileButton(file, RawCosvFileDto::fileName) {
                         "$apiUrl/raw-cosv/$selectedOrganization/download/${file.requiredId()}"
                     }
-                    if (file.isArchive()) {
+                    if (file.isUploadedZipArchive()) {
                         button {
                             type = ButtonType.button
                             className = ClassName("btn")
@@ -484,7 +484,7 @@ private fun RawCosvFileDto.notSelectableReason() = when {
     status == RawCosvFileStatus.PROCESSED -> "Already processed"
     status == RawCosvFileStatus.IN_PROGRESS -> "In progress, please wait"
     isDuplicate() -> "Duplicate, the vulnerability with such ID already uploaded"
-    isZipArchive() -> "It's a zip archive, please unzip to get JSON files"
+    isUploadedZipArchive() -> "It's a zip archive, please unzip to get JSON files"
     else -> null
 }
 

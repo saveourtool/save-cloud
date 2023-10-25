@@ -4,10 +4,10 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isErrorFile
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.s3.S3Operations
@@ -77,12 +77,12 @@ class RawCosvFileStorage(
         val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
         RawCosvFileStatisticsDto(
             s3KeyManager.countByOrganizationAndUser(organizationName, userName),
-            filesList.count { it.isArchive() }.toLong(),
-            filesList.count { it.isJsonFile() }.toLong(),
+            filesList.count { it.isUploadedZipArchive() }.toLong(),
+            filesList.count { it.isUploadedJsonFile() }.toLong(),
             s3KeyManager.countByOrganizationAndUserAndStatus(organizationName, userName, RawCosvFileStatus.PROCESSED) +
                     s3KeyManager.countByOrganizationAndUserAndStatus(organizationName, userName, RawCosvFileStatus.IN_PROGRESS),
             filesList.count { it.isDuplicate() }.toLong(),
-            filesList.count { it.isErrorFile() }.toLong()
+            filesList.count { it.isHasErrors() }.toLong()
         )
     }
 
