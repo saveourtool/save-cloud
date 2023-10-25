@@ -6,6 +6,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.permission.Permission
@@ -269,7 +270,9 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
         .map { files ->
-            files.map { it.requiredId() }
+            files
+                .filter { !it.isZipArchive() && it.status == RawCosvFileStatus.UPLOADED }
+                .map { it.requiredId() }
         }
         .flatMap { ids ->
             doSubmitToProcess(organizationName, ids, authentication)
