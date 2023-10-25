@@ -40,14 +40,14 @@ import react.router.*
  */
 val basicRouting: FC<AppProps> = FC { props ->
     useUserStatusRedirects(props.userInfo?.status)
-    val userProfileView: VFC = withRouter { _, params ->
+    val userProfileView = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
             currentUserInfo = props.userInfo
         }
     }
 
-    val contestView: VFC = withRouter { location, params ->
+    val contestView = withRouter { location, params ->
         ContestView::class.react {
             currentUserInfo = props.userInfo
             currentContestName = params["contestName"]
@@ -55,7 +55,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val contestExecutionView: VFC = withRouter { _, params ->
+    val contestExecutionView = withRouter { _, params ->
         ContestExecutionView::class.react {
             currentUserInfo = props.userInfo
             contestName = params["contestName"]!!
@@ -64,7 +64,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val projectView: VFC = withRouter { location, params ->
+    val projectView = withRouter { location, params ->
         ProjectView::class.react {
             name = params["name"]!!
             owner = params["owner"]!!
@@ -73,14 +73,14 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val historyView: VFC = withRouter { _, params ->
+    val historyView = withRouter { _, params ->
         HistoryView::class.react {
             name = params["name"]!!
             organizationName = params["owner"]!!
         }
     }
 
-    val executionView: VFC = withRouter { location, params ->
+    val executionView = withRouter { location, params ->
         ExecutionView::class.react {
             organization = params["organization"]!!
             project = params["project"]!!
@@ -97,7 +97,7 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val organizationView: VFC = withRouter { location, params ->
+    val organizationView = withRouter { location, params ->
         OrganizationView::class.react {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
@@ -105,13 +105,13 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val awesomeBenchmarksView: VFC = withRouter { location, _ ->
+    val awesomeBenchmarksView = withRouter { location, _ ->
         AwesomeBenchmarksView::class.react {
             this.location = location
         }
     }
 
-    val contestGlobalRatingView: VFC = withRouter { location, _ ->
+    val contestGlobalRatingView = withRouter { location, _ ->
         ContestGlobalRatingView::class.react {
             organizationName = URLSearchParams(location.search).get("organizationName")
             projectName = URLSearchParams(location.search).get("projectName")
@@ -119,14 +119,14 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val contestTemplateView: VFC = withRouter { _, params ->
+    val contestTemplateView = withRouter { _, params ->
         contestTemplateView {
             id = requireNotNull(params["id"]).toLong()
             currentUserInfo = props.userInfo
         }
     }
 
-    val demoView: VFC = withRouter { _, params ->
+    val demoView = withRouter { _, params ->
         demoView {
             projectCoordinates = ProjectCoordinates(
                 requireNotNull(params["organizationName"]),
@@ -135,28 +135,28 @@ val basicRouting: FC<AppProps> = FC { props ->
         }
     }
 
-    val vulnerabilityCollectionView: VFC = withRouter { location, _ ->
+    val vulnerabilityCollectionView = withRouter { location, _ ->
         vulnerabilityCollectionView {
             currentUserInfo = props.userInfo
             filter = URLSearchParams(location.search).toVulnerabilitiesFilter()
         }
     }
 
-    val vulnerabilityView: VFC = withRouter { _, params ->
+    val vulnerabilityView = withRouter { _, params ->
         vulnerabilityView {
             identifier = requireNotNull(params["identifier"])
             currentUserInfo = props.userInfo
         }
     }
 
-    val createProjectProblemView: VFC = withRouter { _, params ->
+    val createProjectProblemView = withRouter { _, params ->
         createProjectProblem {
             organizationName = requireNotNull(params["owner"])
             projectName = requireNotNull(params["name"])
         }
     }
 
-    val projectProblemView: VFC = withRouter { _, params ->
+    val projectProblemView = withRouter { _, params ->
         projectProblem {
             organizationName = requireNotNull(params["owner"])
             projectName = requireNotNull(params["name"])

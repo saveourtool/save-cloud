@@ -11,13 +11,13 @@ import com.saveourtool.save.info.OauthProviderInfo
 
 import org.w3c.fetch.Headers
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
 
 import kotlinx.browser.window
-import react.Props
 
 val indexAuth: FC<IndexViewProps> = FC { _ ->
     val (oauthProviders, setOauthProviders) = useState(emptyList<OauthProviderInfo>())
