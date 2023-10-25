@@ -65,7 +65,7 @@ val indexView: FC<IndexViewProps> = FC { props ->
                             props.userInfo
                                 ?: run {
                                     separator { }
-                                    indexAuth { props.userInfo }
+                                    indexAuth { }
                                 }
 
                             indexViewInfo { userInfo = props.userInfo }
