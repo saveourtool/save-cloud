@@ -14,10 +14,21 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RawCosvFileStatisticsDto(
-    val allAvailableFilesCount: Long,
-    val uploadedArchivesCount: Long,
-    val uploadedJsonFilesCount: Long,
-    val processingFilesCount: Long,
-    val duplicateFilesCount: Long,
-    val errorFilesCount: Long,
-)
+    val allAvailableFilesCount: Int,
+    val uploadedArchivesCount: Int,
+    val uploadedJsonFilesCount: Int,
+    val processingFilesCount: Int,
+    val duplicateFilesCount: Int,
+    val errorFilesCount: Int,
+) {
+    companion object {
+        val empty = RawCosvFileStatisticsDto(
+            allAvailableFilesCount = 0,
+            uploadedArchivesCount = 0,
+            uploadedJsonFilesCount = 0,
+            processingFilesCount = 0,
+            duplicateFilesCount = 0,
+            errorFilesCount = 0,
+        )
+    }
+}

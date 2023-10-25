@@ -43,28 +43,6 @@ class RawCosvFileS3KeyManager(
     /**
      * @param organizationName
      * @param userName
-     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
-     */
-    fun countByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
-    ): Long = repository.countAllByOrganizationNameAndUserName(organizationName, userName)
-
-    /**
-     * @param organizationName
-     * @param userName
-     * @param status
-     * @return count of all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName] and has [RawCosvFileDto.status]
-     */
-    fun countByOrganizationAndUserAndStatus(
-        organizationName: String,
-        userName: String,
-        status: RawCosvFileStatus,
-    ): Long = repository.countAllByOrganizationNameAndUserNameAndStatus(organizationName, userName, status)
-
-    /**
-     * @param organizationName
-     * @param userName
      * @param pageRequest
      * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
