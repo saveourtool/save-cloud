@@ -7,7 +7,8 @@ package com.saveourtool.save.frontend.components.basic.demo.welcome
 import com.saveourtool.save.frontend.components.basic.markdown
 
 import js.core.jso
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.strong
@@ -33,7 +34,7 @@ private val saveDemoHowToMd = """
 """.trimMargin()
 
 @Suppress("MAGIC_NUMBER")
-internal val introductionSection = VFC {
+internal val introductionSection: FC<Props> = FC {
     div {
         className = ClassName("card flex-md-column mb-1 box-shadow")
         style = jso { minHeight = 25.rem }
