@@ -10,11 +10,12 @@ import com.saveourtool.save.frontend.components.basic.demo.welcome.introductionS
 import com.saveourtool.save.frontend.utils.*
 
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
-val demoCollectionView = FC {
+val demoCollectionView: FC<Props> = FC {
     useBackground(Style.SAVE_DARK)
 
     main {

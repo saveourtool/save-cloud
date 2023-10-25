@@ -26,7 +26,7 @@ interface NavigateFunctionContext {
  * @param handler DOM builder that can consume [NavigateFunctionContext]
  */
 fun ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionContext) -> Unit) {
-    val wrapper = FC {
+    val wrapper: FC<Props> = FC {
         val navigate = useNavigate()
         val ctx = object : NavigateFunctionContext {
             override val navigate: NavigateFunction = navigate
@@ -44,7 +44,7 @@ fun ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionConte
  * @return a function component
  */
 @Suppress("TYPE_ALIAS")
-fun withRouter(handler: ChildrenBuilder.(Location<*>, Params) -> Unit) = FC {
+fun withRouter(handler: ChildrenBuilder.(Location<*>, Params) -> Unit): FC<Props> = FC {
     val location = useLocation()
     val params = useParams()
     handler(location, params)

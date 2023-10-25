@@ -34,11 +34,12 @@ val indexViewInfo: FC<UserInfoAwareProps> = FC { props ->
             +"Non-profit Opensource Ecosystem with a focus on finding code bugs".t()
         }
     }
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     div {
         className = ClassName("row justify-content-center mt-2")
         cardUser { userInfo = props.userInfo }
-        cardServiceInfo { userInfo = props.userInfo }
-        cardAboutUs { userInfo = props.userInfo }
+        cardServiceInfo { }
+        cardAboutUs { }
     }
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")

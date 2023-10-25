@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
@@ -21,7 +22,7 @@ import react.useEffect
 import react.useState
 import web.cssom.ClassName
 
-internal val featuredDemos = FC {
+internal val featuredDemos: FC<Props> = FC {
     val (featuredDemos, setFeaturedDemos) = useState(
         listOf(
             DemoDto.emptyForProject("saveourtool", "Diktat"),

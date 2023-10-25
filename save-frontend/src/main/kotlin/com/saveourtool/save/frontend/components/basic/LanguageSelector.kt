@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.externals.i18next.language
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import js.core.jso
 import react.FC
+import react.Props
 import react.dom.aria.AriaHasPopup
 import react.dom.aria.ariaExpanded
 import react.dom.aria.ariaHasPopup
@@ -28,7 +29,7 @@ private const val LANG_DROPDOWN_ID = "lang-dropdown"
 /**
  * A [FC] that is responsible for language selection
  */
-val languageSelector = FC {
+val languageSelector: FC<Props> = FC {
     val (_, i18n) = useTranslation("topbar")
     val languageFromCookie = if (cookie.isAccepted()) {
         PlatformLanguages.getByCodeOrDefault(cookie.getLanguageCode())

@@ -9,6 +9,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
@@ -17,7 +18,7 @@ import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import web.cssom.*
 
-val logoButtons = FC {
+val logoButtons: FC<Props> = FC {
     val (t) = useTranslation("index")
     div {
         className = ClassName("row logo-parent mb-5 d-flex justify-content-center")

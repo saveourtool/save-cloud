@@ -33,7 +33,7 @@ import web.html.ButtonType
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-val createOrganizationView = FC {
+val createOrganizationView: FC<Props> = FC {
     useBackground(Style.SAVE_DARK)
     particles()
 

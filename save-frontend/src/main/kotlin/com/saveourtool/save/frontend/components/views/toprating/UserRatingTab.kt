@@ -17,7 +17,7 @@ import web.cssom.*
 
 private const val DEFAULT_PAGE_SIZE = 10_000
 
-val userRatingTable = FC {
+val userRatingTable: FC<Props> = FC {
     val (userNamePrefix, setUserNamePrefix) = useState("")
 
     val fetchUserRequest: suspend WithRequestStatusContext.(String) -> UserArray = { prefix ->

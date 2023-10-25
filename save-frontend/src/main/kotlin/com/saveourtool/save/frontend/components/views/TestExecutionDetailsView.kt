@@ -30,7 +30,7 @@ import web.cssom.ClassName
  * @return a function component
  */
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION", "TOO_LONG_FUNCTION")
-val testExecutionDetailsView = FC {
+val testExecutionDetailsView: FC<Props> = FC {
     val (status, setStatus) = useState("Loading...")
     val (testResultDebugInfo, setTestResultDebugInfo) = useState<TestResultDebugInfo?>(null)
 

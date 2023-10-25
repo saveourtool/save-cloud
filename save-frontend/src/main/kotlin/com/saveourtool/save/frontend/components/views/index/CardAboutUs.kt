@@ -7,11 +7,11 @@ package com.saveourtool.save.frontend.components.views.index
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.UserInfoAwareProps
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h5
@@ -21,7 +21,7 @@ import react.router.useNavigate
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-val cardAboutUs: FC<UserInfoAwareProps> = FC { props ->
+val cardAboutUs: FC<Props> = FC {
     val (t) = useTranslation("index")
     val navigate = useNavigate()
 

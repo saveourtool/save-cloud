@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.components.mobile.saveWelcomeMobileView
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
+import react.Props
 import react.create
 import react.react
 import react.router.dom.createBrowserRouter
@@ -16,7 +17,7 @@ import react.router.dom.createBrowserRouter
 /**
  * Just put a map: View -> Route URL to this list
  */
-val mobileRoutes = FC {
+val mobileRoutes: FC<Props> = FC {
     createBrowserRouter(
         arrayOf(
             jso {

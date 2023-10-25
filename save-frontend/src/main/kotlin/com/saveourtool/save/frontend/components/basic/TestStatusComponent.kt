@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
@@ -40,7 +41,7 @@ fun testStatusComponent(
     testResultDebugInfo: TestResultDebugInfo,
     tableInstance: Table<TestExecutionExtDto>,
     testExecutionDto: TestExecutionDto,
-) = FC {
+): FC<Props> = FC {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
@@ -120,7 +121,7 @@ fun testStatusComponent(
 fun <D : Any> executionStatusComponent(
     failReason: String,
     tableInstance: Table<D>
-) = FC {
+): FC<Props> = FC {
     tr {
         td {
             colSpan = 2

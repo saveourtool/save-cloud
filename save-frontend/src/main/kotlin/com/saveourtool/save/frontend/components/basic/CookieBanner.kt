@@ -12,13 +12,14 @@ import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.router.useNavigate
 import react.useState
 import web.cssom.ClassName
 import web.cssom.ZIndex
 
-val cookieBanner = FC {
+val cookieBanner: FC<Props> = FC {
     val (isOpen, setIsOpen) = useState(!cookie.isAccepted())
     val navigate = useNavigate()
     val (t) = useTranslation("cookies")

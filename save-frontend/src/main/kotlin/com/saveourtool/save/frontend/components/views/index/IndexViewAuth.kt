@@ -11,6 +11,7 @@ import com.saveourtool.save.info.OauthProviderInfo
 
 import org.w3c.fetch.Headers
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.useState
 import web.cssom.ClassName
@@ -18,7 +19,7 @@ import web.cssom.rem
 
 import kotlinx.browser.window
 
-val indexAuth: FC<UserInfoAwareProps> = FC { _ ->
+val indexAuth: FC<Props> = FC {
     val (oauthProviders, setOauthProviders) = useState(emptyList<OauthProviderInfo>())
     val getOauthProviders = useDeferredRequest {
         val availableProviders: List<OauthProviderInfo> = get(
@@ -68,7 +69,7 @@ val indexAuth: FC<UserInfoAwareProps> = FC { _ ->
     }
 }
 
-val separator = FC {
+val separator: FC<Props> = FC {
     val (t) = useTranslation("welcome")
     div {
         className = ClassName("row mt-2")
