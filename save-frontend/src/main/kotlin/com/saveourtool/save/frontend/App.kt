@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import js.core.jso
 
 import react.*
 import react.dom.client.createRoot
@@ -45,7 +46,10 @@ val App: FC<Props> = FC {
 
     RouterProvider {
         router = createBrowserRouter(
-            routes = createBasicRoutes(userInfo, setUserInfo)
+            routes = createBasicRoutes(userInfo, setUserInfo),
+            opts = jso {
+                basename = "/"
+            }
         )
     }
 }
