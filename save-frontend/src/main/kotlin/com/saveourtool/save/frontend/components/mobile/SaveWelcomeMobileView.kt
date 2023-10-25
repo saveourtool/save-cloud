@@ -14,7 +14,7 @@ import com.saveourtool.save.frontend.utils.particles
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h4
@@ -24,7 +24,7 @@ import web.cssom.*
 /**
  * As a temp stub it was decided to make several views to make SAVE looking nice on mobile devices
  */
-val saveWelcomeMobileView: VFC = VFC {
+val saveWelcomeMobileView = FC {
     div {
         style = jso {
             background = SAVE_LIGHT_GRADIENT.unsafeCast<Background>()

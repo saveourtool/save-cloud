@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
@@ -21,7 +21,7 @@ import react.useEffect
 import react.useState
 import web.cssom.ClassName
 
-internal val featuredDemos = VFC {
+internal val featuredDemos = FC {
     val (featuredDemos, setFeaturedDemos) = useState(
         listOf(
             DemoDto.emptyForProject("saveourtool", "Diktat"),

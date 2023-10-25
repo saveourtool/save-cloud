@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import js.core.jso
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.ul
@@ -25,7 +25,7 @@ import kotlinx.serialization.json.Json
 
 private val withBackground = cardComponent(isBordered = true, hasBg = true, isPaddingBottomNull = true)
 
-val demoList = VFC {
+val demoList = FC {
     val (filter, setFilter) = useState(DemoFilter.running)
 
     val (demoDtos, setDemoDtos) = useState<List<DemoDto>>(emptyList())

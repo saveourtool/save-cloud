@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.components.views.vuln.utils.keysOnlyFromCos
 import com.saveourtool.save.frontend.utils.*
 import js.core.jso
 
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -21,7 +21,7 @@ import react.useState
 import web.cssom.*
 
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "PARAMETER_NAME_IN_OUTER_LAMBDA")
-val cosvSchemaView = VFC {
+val cosvSchemaView = FC {
     particles()
     useBackground(Style.VULN_DARK)
     val (textInModal, setTextInModal) = useState<Pair<String, String>>()

@@ -11,11 +11,10 @@ import com.saveourtool.save.frontend.utils.Style
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.frontend.utils.useBackground
 import react.FC
-import react.VFC
 import react.dom.html.ReactHTML.div
 import web.cssom.ClassName
 
-val cookieTermsOfUse: VFC = FC {
+val cookieTermsOfUse = FC {
     useBackground(Style.INDEX)
     val (t) = useTranslation("cookies")
     div {

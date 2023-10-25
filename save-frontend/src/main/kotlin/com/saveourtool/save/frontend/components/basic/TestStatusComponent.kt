@@ -14,7 +14,7 @@ import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
 import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td
@@ -40,7 +40,7 @@ fun testStatusComponent(
     testResultDebugInfo: TestResultDebugInfo,
     tableInstance: Table<TestExecutionExtDto>,
     testExecutionDto: TestExecutionDto,
-) = VFC {
+) = FC {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }
         is Fail -> status.shortReason
@@ -120,7 +120,7 @@ fun testStatusComponent(
 fun <D : Any> executionStatusComponent(
     failReason: String,
     tableInstance: Table<D>
-) = VFC {
+) = FC {
     tr {
         td {
             colSpan = 2

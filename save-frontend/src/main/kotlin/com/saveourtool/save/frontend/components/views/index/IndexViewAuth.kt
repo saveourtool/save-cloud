@@ -11,7 +11,6 @@ import com.saveourtool.save.info.OauthProviderInfo
 
 import org.w3c.fetch.Headers
 import react.FC
-import react.VFC
 import react.dom.html.ReactHTML.div
 import react.useState
 import web.cssom.ClassName
@@ -69,7 +68,7 @@ val indexAuth: FC<IndexViewProps> = FC { _ ->
     }
 }
 
-val separator = VFC {
+val separator = FC {
     val (t) = useTranslation("welcome")
     div {
         className = ClassName("row mt-2")

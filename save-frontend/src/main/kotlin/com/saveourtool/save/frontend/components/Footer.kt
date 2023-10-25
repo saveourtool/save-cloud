@@ -16,7 +16,7 @@ import web.cssom.ClassName
 @JsExport
 @OptIn(ExperimentalJsExport::class)
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-val footer: VFC = VFC {
+val footer = FC {
     footer {
         className = ClassName("sticky-footer bg-white")
         div {

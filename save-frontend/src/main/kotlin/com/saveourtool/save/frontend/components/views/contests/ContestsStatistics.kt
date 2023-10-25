@@ -9,7 +9,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.VFC
+import react.FC
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
@@ -17,7 +17,7 @@ import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
 
-internal val statistics = VFC {
+internal val statistics = FC {
     val (activeContests, setActiveContests) = useState<Set<ContestDto>>(emptySet())
     useRequest {
         val contests: List<ContestDto> = get(
