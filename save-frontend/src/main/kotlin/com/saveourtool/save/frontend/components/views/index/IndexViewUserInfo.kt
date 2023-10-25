@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.utils.UserInfoAwareProps
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -18,7 +19,7 @@ import web.cssom.*
 const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 @Suppress("IDENTIFIER_LENGTH")
-val indexViewInfo: FC<IndexViewProps> = FC { props ->
+val indexViewInfo: FC<UserInfoAwareProps> = FC { props ->
     val (t) = useTranslation("index")
 
     div {

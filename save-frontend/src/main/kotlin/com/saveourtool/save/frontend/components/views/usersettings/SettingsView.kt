@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -93,24 +92,11 @@ typealias FieldsStateSetter = StateSetter<SettingsInputFields>
  * `Props` retrieved from router
  */
 @Suppress("MISSING_KDOC_CLASS_ELEMENTS")
-external interface SettingsProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-
+external interface SettingsProps : UserInfoAwareMutablePropsWithChildren {
     /**
      * just a flag for a factory
      */
     var type: FrontendRoutes
-
-    /**
-     * After updating user information we will update userSettings without re-rendering the page
-     * PLEASE NOTE: THIS PROPERTY AFFECTS RENDERING OF WHOLE APP.KT
-     * IF YOU HAVE SOME PROBLEMS WITH IT, CHECK THAT YOU HAVE PROPAGATED IT PROPERLY:
-     * { this.userInfoSetter = (!) PROPS (!) .userInfoSetter }
-     */
-    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**
