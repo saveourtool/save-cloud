@@ -9,12 +9,13 @@ import com.saveourtool.save.frontend.components.basic.demo.welcome.featuredDemos
 import com.saveourtool.save.frontend.components.basic.demo.welcome.introductionSection
 import com.saveourtool.save.frontend.utils.*
 
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
 import web.cssom.ClassName
 
-val demoCollectionView: VFC = VFC {
+val demoCollectionView: FC<Props> = FC {
     useBackground(Style.SAVE_DARK)
 
     main {
