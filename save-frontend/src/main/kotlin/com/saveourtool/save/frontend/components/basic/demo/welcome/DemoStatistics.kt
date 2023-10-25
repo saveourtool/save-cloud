@@ -8,7 +8,8 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.utils.noopResponseHandler
 
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.strong
@@ -16,7 +17,7 @@ import react.useState
 import web.cssom.ClassName
 
 @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-internal val statistics = VFC {
+internal val statistics: FC<Props> = FC {
     val (activeDemoAmount, setActiveDemoAmount) = useState(0)
     useRequest {
         val active: Int = get(
