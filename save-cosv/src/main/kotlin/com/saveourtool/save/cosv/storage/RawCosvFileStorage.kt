@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
@@ -76,13 +77,12 @@ class RawCosvFileStorage(
     ): Mono<RawCosvFileStatisticsDto> = blockingToMono {
         val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
         RawCosvFileStatisticsDto(
-            s3KeyManager.countByOrganizationAndUser(organizationName, userName),
-            filesList.count { it.isUploadedZipArchive() }.toLong(),
-            filesList.count { it.isUploadedJsonFile() }.toLong(),
-            s3KeyManager.countByOrganizationAndUserAndStatus(organizationName, userName, RawCosvFileStatus.PROCESSED) +
-                    s3KeyManager.countByOrganizationAndUserAndStatus(organizationName, userName, RawCosvFileStatus.IN_PROGRESS),
-            filesList.count { it.isDuplicate() }.toLong(),
-            filesList.count { it.isHasErrors() }.toLong()
+            filesList.count(),
+            filesList.count { it.isUploadedZipArchive() },
+            filesList.count { it.isUploadedJsonFile() },
+            filesList.count { it.isProcessing() },
+            filesList.count { it.isDuplicate() },
+            filesList.count { it.isHasErrors() }
         )
     }
 

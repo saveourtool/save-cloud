@@ -58,13 +58,13 @@ val cosvFileManagerComponent: FC<Props> = FC {
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
-    val (statistic, setStatistic) = useState<RawCosvFileStatisticsDto>()
+    val (statistic, setStatistic) = useState(RawCosvFileStatisticsDto.empty)
     val (lastPage, setLastPage) = useState(0)
     val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
-    val leftAvailableFilesCount = statistic?.allAvailableFilesCount?.minus(lastPage * DEFAULT_SIZE) ?: 0L
+    val leftAvailableFilesCount = statistic.allAvailableFilesCount - lastPage * DEFAULT_SIZE
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
@@ -91,13 +91,13 @@ val cosvFileManagerComponent: FC<Props> = FC {
 
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
-                setStatistic { it?.copy(allAvailableFilesCount = statistic?.allAvailableFilesCount?.dec() ?: 0L) }
+                setStatistic { it.copy(allAvailableFilesCount = statistic.allAvailableFilesCount.dec()) }
                 when {
-                    file.isUploadedZipArchive() -> setStatistic { it?.copy(uploadedArchivesCount = statistic?.uploadedArchivesCount?.dec() ?: 0L) }
-                    file.isUploadedJsonFile() -> setStatistic { it?.copy(uploadedJsonFilesCount = statistic?.uploadedJsonFilesCount?.dec() ?: 0L) }
-                    file.isProcessing() -> setStatistic { it?.copy(processingFilesCount = statistic?.processingFilesCount?.dec() ?: 0L) }
-                    file.isDuplicate() -> setStatistic { it?.copy(duplicateFilesCount = statistic?.duplicateFilesCount?.dec() ?: 0L) }
-                    file.isHasErrors() -> setStatistic { it?.copy(errorFilesCount = statistic?.errorFilesCount?.dec() ?: 0L) }
+                    file.isUploadedZipArchive() -> setStatistic { it.copy(uploadedArchivesCount = statistic.uploadedArchivesCount.dec()) }
+                    file.isUploadedJsonFile() -> setStatistic { it.copy(uploadedJsonFilesCount = statistic.uploadedJsonFilesCount.dec()) }
+                    file.isProcessing() -> setStatistic { it.copy(processingFilesCount = statistic.processingFilesCount.dec()) }
+                    file.isDuplicate() -> setStatistic { it.copy(duplicateFilesCount = statistic.duplicateFilesCount.dec()) }
+                    file.isHasErrors() -> setStatistic { it.copy(errorFilesCount = statistic.errorFilesCount.dec()) }
                 }
                 setFileToDelete(null)
             } else {
@@ -339,11 +339,9 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         submitCosvFiles()
                     }
                 }
-                statistic?.let {
-                    buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = statistic.uploadedJsonFilesCount == 0L || isStreamingOperationActive) {
-                        if (window.confirm("Processed files will be removed. Do you want to continue?")) {
-                            submitAllUploadedCosvFiles()
-                        }
+                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = statistic.uploadedJsonFilesCount == 0 || isStreamingOperationActive) {
+                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                        submitAllUploadedCosvFiles()
                     }
                 }
                 buttonBuilder(faReload, isDisabled = isStreamingOperationActive) {
@@ -352,27 +350,25 @@ val cosvFileManagerComponent: FC<Props> = FC {
             }
 
             // ===== STATUS BAR =====
-            statistic?.let { statisticData ->
-                with(statisticData) {
-                    if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
-                        li {
-                            className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
+            with(statistic) {
+                if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
+                    li {
+                        className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
 
-                            when {
-                                uploadedJsonFilesCount > 0 && uploadedArchivesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files and $uploadedArchivesCount archives. "
-                                uploadedJsonFilesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files. "
-                                uploadedArchivesCount > 0 -> +"Uploaded $uploadedArchivesCount new archives. "
-                            }
+                        when {
+                            uploadedJsonFilesCount > 0 && uploadedArchivesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files and $uploadedArchivesCount archives. "
+                            uploadedJsonFilesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files. "
+                            uploadedArchivesCount > 0 -> +"Uploaded $uploadedArchivesCount new archives. "
+                        }
 
-                            if (processingFilesCount > 0) {
-                                +"Still processing $processingFilesCount files. "
-                            }
+                        if (processingFilesCount > 0) {
+                            +"Still processing $processingFilesCount files. "
+                        }
 
-                            when {
-                                duplicateFilesCount > 0 && errorFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates, $errorFilesCount files with another errors."
-                                duplicateFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates."
-                                errorFilesCount > 0 -> +"Failed $errorFilesCount files with errors."
-                            }
+                        when {
+                            duplicateFilesCount > 0 && errorFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates, $errorFilesCount files with another errors."
+                            duplicateFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates."
+                            errorFilesCount > 0 -> +"Failed $errorFilesCount files with errors."
                         }
                     }
                 }
