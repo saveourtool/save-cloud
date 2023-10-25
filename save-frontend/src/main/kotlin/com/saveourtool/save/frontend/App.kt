@@ -53,49 +53,58 @@ val App = FC {
         }
     }
 
-    val root = FC {
-        requestModalHandler {
-            this.userInfo = userInfo
-            div {
-                className = ClassName("d-flex flex-column")
-                id = "content-wrapper"
-
-                ErrorBoundary::class.react {
-                    topBarComponent { this.userInfo = userInfo }
-                    div {
-                        className = ClassName("container-fluid")
-                        id = "common-save-container"
-                        indexView {
-                            this.userInfo = userInfo
-                        }
-                    }
-                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                        cookieBanner { }
-                    }
-                    footer { }
-                }
-            }
-        }
-        scrollToTopButton()
-    }
-
     RouterProvider {
         router = createBrowserRouter(
             routes = arrayOf(
                 jso {
                     path = "/"
-                    element = root.create()
+                    element = wrapView(indexView).create { this.userInfo = userInfo }
                 },
                 jso {
                     path = "/${FrontendRoutes.SAVE.path}"
-                    element = saveWelcomeView.create { this.userInfo = userInfo }
+                    element = wrapView(saveWelcomeView).create { this.userInfo = userInfo }
                 },
                 jso {
                     path = "/${FrontendRoutes.VULN.path}"
-                    element = vulnWelcomeView.create { this.userInfo = userInfo }
+                    element = wrapView(vulnWelcomeView).create { this.userInfo = userInfo }
                 },
             )
         )
+    }
+}
+
+private fun wrapView(view: FC<UserInfoAwareMutableProps>): FC<UserInfoAwareMutableProps> = FC { props ->
+    requestModalHandler {
+        this.userInfo = props.userInfo
+        div {
+            className = ClassName("d-flex flex-column")
+            id = "content-wrapper"
+
+            ErrorBoundary::class.react {
+                topBarComponent { this.userInfo = props.userInfo }
+                div {
+                    className = ClassName("container-fluid")
+                    id = "common-save-container"
+                    view {
+                        this.userInfo = props.userInfo
+                        this.userInfoSetter = props.userInfoSetter
+                    }
+                }
+                if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                    cookieBanner { }
+                }
+                footer { }
+            }
+        }
+    }
+    scrollToTopButton()
+}
+
+private fun wrapView(view: FC<UserInfoAwareProps>): FC<UserInfoAwareMutableProps> = wrapView(view.asMutable())
+
+private fun FC<UserInfoAwareProps>.asMutable(): FC<UserInfoAwareMutableProps> = FC { props ->
+    this@asMutable {
+        this.userInfo = props.userInfo
     }
 }
 

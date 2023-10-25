@@ -20,7 +20,7 @@ import web.cssom.*
 import kotlinx.browser.window
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-val indexView: FC<IndexViewProps> = FC { props ->
+val indexView: FC<UserInfoAwareProps> = FC { props ->
     val navigate = useNavigate()
     useEffect {
         if (window.location.run { isCosvDomain() && pathname == "/" }) {
