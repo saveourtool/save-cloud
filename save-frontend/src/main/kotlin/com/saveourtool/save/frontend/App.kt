@@ -4,11 +4,18 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.frontend.components.ErrorBoundary
+import com.saveourtool.save.frontend.components.basic.cookieBanner
+import com.saveourtool.save.frontend.components.basic.scrollToTopButton
+import com.saveourtool.save.frontend.components.footer
+import com.saveourtool.save.frontend.components.requestModalHandler
+import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 
 import react.*
@@ -21,6 +28,11 @@ import web.html.HTMLElement
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
+import react.dom.html.ReactHTML.div
+import react.router.Outlet
+import react.router.createMemoryRouter
+import remix.run.router.createRouter
+import web.cssom.ClassName
 
 /**
  * Main component for the whole App
@@ -44,13 +56,38 @@ val App: FC<Props> = FC {
         }
     }
 
+    val index: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
+
+    }
+
     RouterProvider {
-        router = createBrowserRouter(
-            routes = createBasicRoutes(userInfo, setUserInfo),
-            opts = jso {
-                basename = "/"
+        with(this@FC) {
+            requestModalHandler {
+                this.userInfo = userInfo
+                div {
+                    className = ClassName("d-flex flex-column")
+                    id = "content-wrapper"
+                    ErrorBoundary::class.react {
+                        topBarComponent { this.userInfo = userInfo }
+                        div {
+                            className = ClassName("container-fluid")
+                            id = "common-save-container"
+                            this@RouterProvider.router = createBrowserRouter(
+                                routes = createBasicRoutes(userInfo, setUserInfo),
+                                opts = jso {
+                                    basename = "/"
+                                }
+                            )
+                        }
+                        if (window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                            cookieBanner { }
+                        }
+                        footer { }
+                    }
+                }
             }
-        )
+            scrollToTopButton()
+        }
     }
 }
 

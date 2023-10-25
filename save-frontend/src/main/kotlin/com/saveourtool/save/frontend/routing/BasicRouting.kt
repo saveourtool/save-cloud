@@ -336,28 +336,29 @@ fun createBasicRoutes(
 private fun <P : UserInfoAwareProps> ElementType<P>.wrapAndCreate(
     block: (@ReactDsl P.() -> Unit)? = null,
 ): ReactElement<P> {
-    val wrapped: FC<P> = FC { props ->
-        requestModalHandler {
-            this.userInfo = props.userInfo
-            div {
-                className = ClassName("d-flex flex-column")
-                id = "content-wrapper"
-
-                ErrorBoundary::class.react {
-                    topBarComponent { this.userInfo = props.userInfo }
-                    div {
-                        className = ClassName("container-fluid")
-                        id = "common-save-container"
-                        block?.let { this@wrapAndCreate(block) } ?: run { this@wrapAndCreate() }
-                    }
-                    if (window.location.pathname != "/$COOKIE") {
-                        cookieBanner { }
-                    }
-                    footer { }
-                }
-            }
-        }
-        scrollToTopButton()
-    }
-    return block?.let { wrapped.create(block) } ?: run { wrapped.create() }
+    return block?.let { this@wrapAndCreate.create(block) } ?: run { this@wrapAndCreate.create() }
+//    val wrapped: FC<P> = FC { props ->
+//        requestModalHandler {
+//            this.userInfo = props.userInfo
+//            div {
+//                className = ClassName("d-flex flex-column")
+//                id = "content-wrapper"
+//
+//                ErrorBoundary::class.react {
+//                    topBarComponent { this.userInfo = props.userInfo }
+//                    div {
+//                        className = ClassName("container-fluid")
+//                        id = "common-save-container"
+//                        block?.let { this@wrapAndCreate(block) } ?: run { this@wrapAndCreate() }
+//                    }
+//                    if (window.location.pathname != "/$COOKIE") {
+//                        cookieBanner { }
+//                    }
+//                    footer { }
+//                }
+//            }
+//        }
+//        scrollToTopButton()
+//    }
+//    return block?.let { wrapped.create(block) } ?: run { wrapped.create() }
 }
