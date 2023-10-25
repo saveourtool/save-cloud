@@ -6,6 +6,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.*
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -268,7 +269,7 @@ class RawCosvFileController(
     ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
         .map { files ->
             files
-                .filter { !it.isZipArchive() && it.status == RawCosvFileStatus.UPLOADED }
+                .filter { it.isUploadedJsonFile() }
                 .map { it.requiredId() }
         }
         .flatMap { ids ->
