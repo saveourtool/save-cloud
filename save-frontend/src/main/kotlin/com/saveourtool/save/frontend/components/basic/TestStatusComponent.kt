@@ -15,6 +15,7 @@ import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.samp
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.td

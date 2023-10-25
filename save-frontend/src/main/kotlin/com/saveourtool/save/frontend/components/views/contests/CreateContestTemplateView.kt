@@ -28,6 +28,7 @@ import web.html.InputType
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import react.Props
 
 val createContestTemplateView: FC<Props> = FC {
     useBackground(Style.SAVE_DARK)

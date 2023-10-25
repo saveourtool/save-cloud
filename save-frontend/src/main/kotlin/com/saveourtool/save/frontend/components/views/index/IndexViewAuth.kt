@@ -17,6 +17,7 @@ import web.cssom.ClassName
 import web.cssom.rem
 
 import kotlinx.browser.window
+import react.Props
 
 val indexAuth: FC<IndexViewProps> = FC { _ ->
     val (oauthProviders, setOauthProviders) = useState(emptyList<OauthProviderInfo>())

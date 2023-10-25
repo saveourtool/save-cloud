@@ -9,6 +9,7 @@ import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
 import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
