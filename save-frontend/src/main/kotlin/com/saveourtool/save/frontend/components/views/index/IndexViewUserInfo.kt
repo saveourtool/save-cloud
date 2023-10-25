@@ -36,8 +36,8 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
     div {
         className = ClassName("row justify-content-center mt-2")
         cardUser { userInfo = props.userInfo }
-        cardServiceInfo { userInfo = props.userInfo }
-        cardAboutUs { userInfo = props.userInfo }
+        cardServiceInfo { }
+        cardAboutUs { }
     }
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")

@@ -4,6 +4,7 @@ import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.rest
 import com.saveourtool.save.frontend.externals.setupWorker
 import react.FC
+import react.Props
 import react.create
 import kotlin.js.Promise
 import kotlin.test.Test
