@@ -4,6 +4,12 @@ package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isErrorFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
+import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
@@ -26,6 +32,7 @@ import react.Props
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
@@ -34,6 +41,7 @@ import web.cssom.ClassName
 import web.cssom.Cursor
 import web.file.File
 import web.html.ButtonType
+import web.html.InputType
 import web.http.FormData
 
 import kotlinx.browser.window
@@ -43,19 +51,20 @@ import kotlinx.serialization.json.Json
 
 private const val DEFAULT_SIZE = 10
 
-val cosvFileManagerComponent: FC<Props> = FC {
+val cosvFileManagerComponent: FC<Props> = FC { _ ->
     useTooltip()
     val (t) = useTranslation("vulnerability-upload")
 
     @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
     val organizationSelectForm = selectFormRequired<String>()
 
-    val (statistics, setStatistics) = useState(RawCosvFileStatisticsDto.empty)
+    val (statistic, setStatistic) = useState<RawCosvFileStatisticsDto>()
     val (lastPage, setLastPage) = useState(0)
     val (availableFiles, setAvailableFiles) = useState<List<RawCosvFileDto>>(emptyList())
+    val (selectedFiles, setSelectedFiles) = useState<List<RawCosvFileDto>>(emptyList())
     val (filesForUploading, setFilesForUploading) = useState<List<File>>(emptyList())
 
-    val leftAvailableFilesCount = statistics.allAvailableFilesCount - lastPage * DEFAULT_SIZE
+    val leftAvailableFilesCount = statistic?.allAvailableFilesCount?.minus(lastPage * DEFAULT_SIZE) ?: 0L
 
     val (userOrganizations, setUserOrganizations) = useState(emptyList<OrganizationDto>())
     val (selectedOrganization, setSelectedOrganization) = useState<String>()
@@ -82,14 +91,13 @@ val cosvFileManagerComponent: FC<Props> = FC {
 
             if (response.ok) {
                 setAvailableFiles { it.minus(file) }
-                setStatistics { it.copy(allAvailableFilesCount = statistics.allAvailableFilesCount.dec()) }
+                setStatistic { it?.copy(allAvailableFilesCount = statistic?.allAvailableFilesCount?.dec() ?: 0L) }
                 when {
-                    file.isUploadedZipArchive() -> setStatistics { it.copy(uploadedArchivesCount = statistics.uploadedArchivesCount.dec()) }
-                    file.isUploadedJsonFile() -> setStatistics { it.copy(uploadedJsonFilesCount = statistics.uploadedJsonFilesCount.dec()) }
-                    file.isProcessing() -> setStatistics { it.copy(processingFilesCount = statistics.processingFilesCount.dec()) }
-                    file.isPendingRemoved() -> setStatistics { it.copy(pendingRemovedFilesCount = statistics.pendingRemovedFilesCount.dec()) }
-                    file.isDuplicate() -> setStatistics { it.copy(duplicateFilesCount = statistics.duplicateFilesCount.dec()) }
-                    file.isHasErrors() -> setStatistics { it.copy(errorFilesCount = statistics.errorFilesCount.dec()) }
+                    file.isArchive() -> setStatistic { it?.copy(uploadedArchivesCount = statistic?.uploadedArchivesCount?.dec() ?: 0L) }
+                    file.isJsonFile() -> setStatistic { it?.copy(uploadedJsonFilesCount = statistic?.uploadedJsonFilesCount?.dec() ?: 0L) }
+                    file.isProcessing() -> setStatistic { it?.copy(processingFilesCount = statistic?.processingFilesCount?.dec() ?: 0L) }
+                    file.isDuplicate() -> setStatistic { it?.copy(duplicateFilesCount = statistic?.duplicateFilesCount?.dec() ?: 0L) }
+                    file.isErrorFile() -> setStatistic { it?.copy(errorFilesCount = statistic?.errorFilesCount?.dec() ?: 0L) }
                 }
                 setFileToDelete(null)
             } else {
@@ -144,17 +152,27 @@ val cosvFileManagerComponent: FC<Props> = FC {
             }
         }
     }
+
+    val getStatistic = useDeferredRequest {
+        selectedOrganization?.let {
+            val response = get(
+                url = "$apiUrl/raw-cosv/$selectedOrganization/statistics",
+                jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+            when {
+                response.ok -> setStatistic(response.unsafeMap { it.decodeFromJsonString<RawCosvFileStatisticsDto>() })
+                else -> window.alert("Failed to get statistic data: ${response.unpackMessageOrNull().orEmpty()}")
+            }
+        }
+    }
+
     val reFetchFiles = useDeferredRequest {
         selectedOrganization?.let {
-            val count: Long = get(
-                url = "$apiUrl/raw-cosv/$selectedOrganization/count",
-                jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler
-            ).decodeFromJsonString()
+            getStatistic()
             setAvailableFiles(emptyList())
             setSelectedFiles(emptyList())
-            setAllAvailableFilesCount(count)
             setLastPage(0)
             fetchMoreFiles()
         }
@@ -244,13 +262,14 @@ val cosvFileManagerComponent: FC<Props> = FC {
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-to-process",
             jsonHeaders,
             body = selectedFiles.map { it.requiredId() },
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("Selected files submitted to be processed")
+            reFetchFiles()
+            setCurrentProgress(100)
+            setCurrentProgressMessage("Selected files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
     }
 
     val submitAllUploadedCosvFiles = useDeferredRequest {
@@ -258,13 +277,14 @@ val cosvFileManagerComponent: FC<Props> = FC {
             url = "$apiUrl/raw-cosv/$selectedOrganization/submit-all-uploaded-to-process",
             jsonHeaders,
             body = undefined,
-            loadingHandler = ::loadingHandler,
+            loadingHandler = ::noopLoadingHandler,
             responseHandler = ::noopResponseHandler
         )
         if (response.ok) {
-            window.alert("All uploaded files submitted to be processed")
+            reFetchFiles()
+            setCurrentProgress(100)
+            setCurrentProgressMessage("All uploaded files submitted to be processed")
         }
-        setSelectedFiles(emptyList())
     }
 
     div {
@@ -319,9 +339,11 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         submitCosvFiles()
                     }
                 }
-                buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = availableFiles.noneWithStatus(RawCosvFileStatus.UPLOADED) || isStreamingOperationActive) {
-                    if (window.confirm("Processed files will be removed. Do you want to continue?")) {
-                        submitAllUploadedCosvFiles()
+                statistic?.let {
+                    buttonBuilder("Submit all uploaded", classes = "mr-1", isDisabled = statistic.uploadedJsonFilesCount == 0L || isStreamingOperationActive) {
+                        if (window.confirm("Processed files will be removed. Do you want to continue?")) {
+                            submitAllUploadedCosvFiles()
+                        }
                     }
                 }
                 buttonBuilder(faReload, isDisabled = isStreamingOperationActive) {
@@ -330,45 +352,28 @@ val cosvFileManagerComponent: FC<Props> = FC {
             }
 
             // ===== STATUS BAR =====
-            if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
-                li {
-                    className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
-                    val uploadedFilesCount = availableFiles.count { it.status == RawCosvFileStatus.UPLOADED }
-                    val processedFilesCount = availableFiles.count { it.status == RawCosvFileStatus.PROCESSED }
-                    val progressFilesCount = availableFiles.count { it.status == RawCosvFileStatus.IN_PROGRESS }
-                    val duplicateFilesCount = availableFiles.count { it.isDuplicate() }
-                    val errorFilesCount = availableFiles.count { it.status == RawCosvFileStatus.FAILED } - duplicateFilesCount
+            statistic?.let { statisticData ->
+                with(statisticData) {
+                    if (!isStreamingOperationActive && allAvailableFilesCount > 0) {
+                        li {
+                            className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
 
-                    if (uploadedFilesCount > 0) {
-                        val uploadedArchivesCount = availableFiles.count { it.isArchive() }
-                        val uploadedJsonCount = uploadedFilesCount - availableFiles.count { it.isArchive() }
-
-                        if (uploadedJsonCount > 0) {
-                            +"Uploaded $uploadedJsonCount new json files"
-                            if (uploadedArchivesCount > 0) {
-                                +" and $uploadedArchivesCount archives."
-                            } else {
-                                +"."
+                            when {
+                                uploadedJsonFilesCount > 0 && uploadedArchivesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files and $uploadedArchivesCount archives. "
+                                uploadedJsonFilesCount > 0 -> +"Uploaded $uploadedJsonFilesCount new json files. "
+                                uploadedArchivesCount > 0 -> +"Uploaded $uploadedArchivesCount new archives. "
                             }
-                        } else if (uploadedArchivesCount > 0) {
-                            +"Uploaded $uploadedArchivesCount new archives."
-                        }
-                    }
 
-                    if (processedFilesCount > 0 || progressFilesCount > 0) {
-                        val processingFiles = processedFilesCount + progressFilesCount
-                        +" Still processing $processingFiles files."
-                    }
+                            if (processingFilesCount > 0) {
+                                +"Still processing $processingFilesCount files. "
+                            }
 
-                    if (duplicateFilesCount > 0) {
-                        +" Failed $duplicateFilesCount duplicates"
-                        if (errorFilesCount > 0) {
-                            +", $errorFilesCount with another errors."
-                        } else {
-                            +"."
+                            when {
+                                duplicateFilesCount > 0 && errorFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates, $errorFilesCount files with another errors."
+                                duplicateFilesCount > 0 -> +"Failed with $duplicateFilesCount duplicates."
+                                errorFilesCount > 0 -> +"Failed $errorFilesCount files with errors."
+                            }
                         }
-                    } else if (errorFilesCount > 0) {
-                        +" Failed $errorFilesCount with errors."
                     }
                 }
             }
@@ -392,7 +397,14 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         type = InputType.checkbox
                         id = "checkbox"
                         checked = file in selectedFiles
-                        disabled = file.isNotSelectable()
+                        file.notSelectableReason()?.let { reason ->
+                            asDynamic()["data-toggle"] = "tooltip"
+                            asDynamic()["data-placement"] = "right"
+                            title = reason
+                            disabled = true
+                        } ?: run {
+                            disabled = false
+                        }
                         onChange = { event ->
                             if (event.target.checked) {
                                 setSelectedFiles { it.plus(file) }
@@ -404,7 +416,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                     downloadFileButton(file, RawCosvFileDto::fileName) {
                         "$apiUrl/raw-cosv/$selectedOrganization/download/${file.requiredId()}"
                     }
-                    if (file.fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)) {
+                    if (file.isArchive()) {
                         button {
                             type = ButtonType.button
                             className = ClassName("btn")
@@ -458,7 +470,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
 
             if (leftAvailableFilesCount > 0) {
                 li {
-                    className = ClassName("list-group-item p-0 d-flex bg-light justify-content-center")
+                    className = ClassName("list-group-item p-1 d-flex bg-light justify-content-center")
                     buttonBuilder("Load more (left $leftAvailableFilesCount)", isDisabled = isStreamingOperationActive) {
                         fetchMoreFiles()
                     }
@@ -468,11 +480,12 @@ val cosvFileManagerComponent: FC<Props> = FC {
     }
 }
 
-private fun RawCosvFileDto.isDuplicate() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate entry") == true
+private fun RawCosvFileDto.notSelectableReason() = when {
+    status == RawCosvFileStatus.PROCESSED -> "Already processed"
+    status == RawCosvFileStatus.IN_PROGRESS -> "In progress, please wait"
+    isDuplicate() -> "Duplicate, the vulnerability with such ID already uploaded"
+    isZipArchive() -> "It's a zip archive, please unzip to get JSON files"
+    else -> null
+}
 
-private fun RawCosvFileDto.isArchive() = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
-
-private fun RawCosvFileDto.isNotSelectable() = status in setOf(RawCosvFileStatus.PROCESSED, RawCosvFileStatus.IN_PROGRESS)
-
-private fun Collection<RawCosvFileDto>.noneWithStatus(status: RawCosvFileStatus) = none { it.status == status }
 private fun Collection<RawCosvFileDto>.anyWithoutStatus(status: RawCosvFileStatus) = any { it.status != status }
