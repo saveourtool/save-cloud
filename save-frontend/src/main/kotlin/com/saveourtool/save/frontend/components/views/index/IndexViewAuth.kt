@@ -18,7 +18,7 @@ import web.cssom.rem
 
 import kotlinx.browser.window
 
-val indexAuth: FC<IndexViewProps> = FC { _ ->
+val indexAuth: FC<UserInfoAwareProps> = FC { _ ->
     val (oauthProviders, setOauthProviders) = useState(emptyList<OauthProviderInfo>())
     val getOauthProviders = useDeferredRequest {
         val availableProviders: List<OauthProviderInfo> = get(

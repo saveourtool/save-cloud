@@ -7,7 +7,7 @@ import com.saveourtool.save.frontend.components.modal.modal
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
 import com.saveourtool.save.frontend.externals.animations.ringLoader
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.frontend.utils.UserInfoAwarePropsWithChildren
 
 import js.core.jso
 import org.w3c.fetch.Response
@@ -43,7 +43,7 @@ val requestStatusContext: Context<RequestStatusContext?> = createContext()
  * Also renders its `children`.
  */
 @Suppress("TOO_MANY_LINES_IN_LAMBDA", "MAGIC_NUMBER")
-val requestModalHandler: FC<RequestModalProps> = FC { props ->
+val requestModalHandler: FC<UserInfoAwarePropsWithChildren> = FC { props ->
     val (response, setResponse) = useState<Response?>(null)
     val (loadingCounter, setLoadingCounter) = useState(0)
     val (redirectToFallbackView, setRedirectToFallbackView) = useState(false)
@@ -167,16 +167,6 @@ val requestModalHandler: FC<RequestModalProps> = FC { props ->
         value = contextPayload
         +reactNode
     }
-}
-
-/**
- * [State] of request modal component
- */
-external interface RequestModalProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }
 
 /**

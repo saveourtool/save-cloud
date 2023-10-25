@@ -7,10 +7,8 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.FC
-import react.Props
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
@@ -82,14 +80,4 @@ val indexView: FC<UserInfoAwareProps> = FC { props ->
             className = ClassName("col-3 text-center")
         }
     }
-}
-
-/**
- * properties for index view (user info )
- */
-external interface IndexViewProps : Props {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }

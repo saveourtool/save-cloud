@@ -7,13 +7,12 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.utils.Style
+import com.saveourtool.save.frontend.utils.UserInfoAwareProps
 import com.saveourtool.save.frontend.utils.useBackground
 import com.saveourtool.save.frontend.utils.useRedirectToIndexIf
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p
@@ -29,7 +28,7 @@ private const val SUPPORT = """
     You have been banned from our platform. If you believe this was a mistake, please contact our support team at
 """
 
-val banView: FC<BanProps> = FC { props ->
+val banView: FC<UserInfoAwareProps> = FC { props ->
     useBackground(Style.SAVE_LIGHT)
 
     useRedirectToIndexIf(props.userInfo?.status) {
@@ -61,14 +60,4 @@ val banView: FC<BanProps> = FC { props ->
             }
         }
     }
-}
-
-/**
- * `Props` retrieved from router
- */
-external interface BanProps : Props {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }

@@ -121,6 +121,7 @@ class WebSecurityConfig(
             "/api/$v1/vulnerabilities/by-identifier-with-description",
             "/api/$v1/vulnerabilities/download",
             "/api/$v1/comments/get-all",
+            "/api/$v1/comments/get-all-count",
             "/api/$v1/users/all",
             "/api/$v1/users/by-prefix",
             "/api/$v1/users/*",
