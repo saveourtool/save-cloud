@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.utils.UserInfoAwareProps
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.b
@@ -16,7 +17,7 @@ import react.dom.html.ReactHTML.p
 import web.cssom.ClassName
 import web.cssom.TextAlign
 
-val cardServiceInfo: FC<IndexViewProps> = FC { props ->
+val cardServiceInfo: FC<UserInfoAwareProps> = FC { props ->
     val (t) = useTranslation("index")
     div {
         className = ClassName("col-3 shadow mx-3 mt-2")
