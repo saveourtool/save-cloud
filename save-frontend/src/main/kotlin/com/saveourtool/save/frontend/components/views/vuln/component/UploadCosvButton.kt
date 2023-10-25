@@ -17,11 +17,11 @@ val uploadCosvButton: FC<UploadCosvButtonProps> = FC { props ->
 
         if (props.isImage) {
             buttonBuilder(faFile, style = "primary", title = "Add new vulnerability from json", classes = "icon-2-5rem", isOutline = true) {
-                navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
+                navigateContext.navigate("/${FrontendRoutes.VULN_UPLOAD}")
             }
         } else {
             buttonBuilder("Upload COSV files".t(), style = "primary", isOutline = true) {
-                navigateContext.navigate("/${FrontendRoutes.UPLOAD_VULNERABILITY}")
+                navigateContext.navigate("/${FrontendRoutes.VULN_UPLOAD}")
             }
         }
     }

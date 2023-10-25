@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="test-suite-creation" author="saveourtool-dev">
+        <createTable tableName="test_suite">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_added" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="language" type="varchar(255)" defaultValue="NULL"/>
+            <column name="tags" type="varchar(255)" defaultValue="NULL"/>
+            <column name="plugins" type="varchar(200)" defaultValue=""/>
+            <column name="is_public" type="boolean" defaultValue="true"/>
+            <column name="source_snapshot_id" type="bigint">
+                <constraints foreignKeyName="fk_test_suite_source_snapshot" references="tests_source_snapshot(id)"
+                             nullable="false" deleteCascade="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

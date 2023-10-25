@@ -44,4 +44,19 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="fix-link-to-users" author="nulls">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="old_user" schemaName="save_cloud"/>
+        </preConditions>
+        <delete tableName="execution"/>
+        <dropForeignKeyConstraint baseTableName="execution" constraintName="fk_lnk_user_organization_user"/>
+        <dropColumn tableName="execution" columnName="user_id"/>
+        <addColumn tableName="execution">
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_execution_user" references="save_cloud.user(id)" nullable="false"/>
+            </column>
+        </addColumn>
+        <dropTable tableName="old_user" schemaName="save_cloud"/>
+    </changeSet>
+
 </databaseChangeLog>

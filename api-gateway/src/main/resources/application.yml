@@ -117,7 +117,7 @@ spring:
           huawei:
             provider: huawei
             # hardcoded as for gitee
-            redirect-uri: 'https://saveourtool.com/login/oauth2/code/huawei'
+            redirect-uri: '{baseUrl}/login/oauth2/code/huawei'
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             # can be
@@ -130,7 +130,7 @@ spring:
             provider: gitee
             # it can be '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}',
             # but for security reasons I would like to hardcode a domain name
-            redirect-uri: 'https://saveourtool.com/login/oauth2/code/gitee'
+            redirect-uri: '{baseUrl}/login/oauth2/code/gitee'
             authorization-grant-type: authorization_code
             scope:
               - user_info

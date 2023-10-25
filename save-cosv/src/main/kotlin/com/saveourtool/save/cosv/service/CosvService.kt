@@ -2,34 +2,34 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
+import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.CosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
+import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
+import javax.annotation.PostConstruct
 
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.serializer
-
-private typealias ManualCosvSchema = CosvSchema<Unit, Unit, Unit, Unit>
 
 /**
  * Service for vulnerabilities
@@ -44,7 +44,63 @@ class CosvService(
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
+    private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    /**
+     * Init method to restore all raw cosv files with `in progress` state to process
+     */
+    @PostConstruct
+    fun restoreProcessing() {
+        waitReactivelyUntil(
+            interval = initCheckingInterval,
+            numberOfChecks = (initMaxTime / initCheckingInterval).toLong(),
+        ) {
+            rawCosvFileStorage.isInitDone() && cosvRepository.isReady()
+        }
+            .filter { it }
+            .flatMap {
+                doRestoreProcessing()
+                    .map {
+                        log.info {
+                            "Processed all ${RawCosvFileStatus.IN_PROGRESS} files from storage ${RawCosvFileStorage::class.simpleName} after restart"
+                        }
+                    }
+            }
+            .lazyDefaultIfEmpty {
+                log.warn {
+                    "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
+                }
+            }
+            .subscribeOn(Schedulers.boundedElastic())
+            .subscribe()
+    }
+
+    private fun doRestoreProcessing(): Mono<Unit> = rawCosvFileStorage.list()
+        .filter { it.status == RawCosvFileStatus.IN_PROGRESS }
+        .groupBy { rawCosvFile ->
+            rawCosvFile.userName to rawCosvFile.organizationName
+        }
+        .flatMap { groupedFlux ->
+            val (userName, organizationName) = groupedFlux.key()
+            blockingToMono {
+                backendService.getUserByName(userName) to backendService.getOrganizationByName(organizationName)
+            }
+                .flatMap { (user, organization) ->
+                    groupedFlux
+                        .flatMap {
+                            doProcess(it.requiredId(), user, organization)
+                        }
+                        .updateRating(user, organization)
+                }
+        }
+        .thenJust(Unit)
+
+    /**
+     * @return generated identifier for COSV
+     */
+    @Transactional
+    fun generateIdentifier(): String = cosvGeneratedIdRepository.saveAndFlush(CosvGeneratedId()).getIdentifier()
+
     /**
      * @param rawCosvFileIds
      * @param user
@@ -57,28 +113,31 @@ class CosvService(
         organization: Organization,
     ): Mono<Unit> = rawCosvFileIds.toFlux()
         .flatMap { rawCosvFileId ->
-            rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
-                .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
-                    organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
-                }
-                .switchIfEmpty {
-                    log.error {
-                        "Submitter ${user.name} is not the owner of the raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
-                    }
-                    Mono.empty()
-                }
+            validateUserAndOrganization(rawCosvFileId, user, organization)
                 .flatMap {
                     doProcess(rawCosvFileId, user, organization)
                 }
         }
-        .sumAll()
-        .blockingMap {
-            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
-        }
+        .updateRating(user, organization)
         .map {
             log.debug {
                 "Finished processing raw COSV files $rawCosvFileIds"
             }
+        }
+
+    private fun validateUserAndOrganization(
+        rawCosvFileId: Long,
+        user: User,
+        organization: Organization,
+    ): Mono<*> = rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
+        .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
+            organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
+        }
+        .switchIfEmpty {
+            log.error {
+                "Submitter ${user.name} is not the owner of the raw cosv file id=$rawCosvFileId or submitted to another organization ${organization.name}"
+            }
+            Mono.empty()
         }
 
     private fun doProcess(
@@ -119,48 +178,13 @@ class CosvService(
                 }
         }
 
-    /**
-     * Generates COSV from [VulnerabilityDto] and saves it
-     *
-     * @param vulnerabilityDto as a source for COSV
-     * @return [VulnerabilityMetadataDto] saved metadata
-     */
-    fun generateAndSave(
-        vulnerabilityDto: VulnerabilityDto,
-    ): Mono<VulnerabilityMetadataDto> = blockingToMono {
-        val user = backendService.getUserByName(vulnerabilityDto.userInfo.name)
-        val organization = vulnerabilityDto.organization?.let { backendService.getOrganizationByName(it.name) }
-        user to organization
-    }.flatMap { (user, organization) ->
-        val generatedCosv = ManualCosvSchema(
-            id = vulnerabilityDto.identifier,
-            published = (vulnerabilityDto.creationDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
-            modified = (vulnerabilityDto.lastUpdatedDateTime ?: getCurrentLocalDateTime()).truncatedToMills(),
-            severity = listOf(
-                Severity(
-                    type = SeverityType.CVSS_V3,
-                    score = vulnerabilityDto.severity,
-                    scoreNum = vulnerabilityDto.progress.toString(),
-                )
-            ),
-            summary = vulnerabilityDto.shortDescription,
-            details = vulnerabilityDto.description,
-            references = vulnerabilityDto.relatedLink?.let { relatedLink ->
-                listOf(
-                    Reference(
-                        type = ReferenceType.WEB,
-                        url = relatedLink,
-                    )
-                )
-            },
-            credits = vulnerabilityDto.getAllParticipants().asCredits().takeUnless { it.isEmpty() },
-        )
-        save(
-            cosv = generatedCosv,
-            user = user,
-            organization = organization,
-        )
-    }
+    private fun Flux<Int>.updateRating(
+        user: User,
+        organization: Organization,
+    ): Mono<Unit> = sumAll()
+        .blockingMap {
+            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
+        }
 
     /**
      * @param cosvId
@@ -190,6 +214,18 @@ class CosvService(
                     )
                 }
         }
+
+    /**
+     * @param cosv
+     * @param user
+     * @param organization
+     * @return metadata for saved COSV
+     */
+    fun saveManual(
+        cosv: ManualCosvSchema,
+        user: User,
+        organization: Organization?,
+    ): Mono<VulnerabilityMetadataDto> = save(cosv, user, organization)
 
     private inline fun <reified D, reified A_E, reified A_D, reified A_R_D> save(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
@@ -253,6 +289,9 @@ class CosvService(
 
     companion object {
         private val log: Logger = getLogger<CosvService>()
+        private val initCheckingInterval = 1.seconds
+        private val initMaxTime = 5.minutes
+
         private fun Throwable.firstCauseOrThis(): Throwable = generateSequence(this, Throwable::cause).last()
     }
 }

@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -16,7 +15,6 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
-import org.w3c.fetch.Response
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
@@ -38,33 +36,17 @@ import kotlinx.serialization.json.Json
 val App: VFC = FC {
     val (userInfo, setUserInfo) = useState<UserInfo?>(null)
     useRequest {
-        val userName: String? = get(
-            "${window.location.origin}/sec/user",
+        get(
+            "$apiUrl/users/user-info",
             jsonHeaders,
             loadingHandler = ::loadingHandler,
-            responseHandler = ::noopResponseHandler
-        ).validTextOrNull()
-
-        val globalRole: Role? = userName?.let {
-            get(
-                "$apiUrl/users/global-role",
-                jsonHeaders,
-                loadingHandler = ::loadingHandler,
-                responseHandler = ::noopResponseHandler
-            )
-                .validTextOrNull()
-                ?.let { Json.decodeFromString(it) }
+        ).run {
+            val responseText = text().await()
+            if (ok && responseText.isNotEmpty() && responseText != "null") {
+                val userInfoNew: UserInfo = Json.decodeFromString(responseText)
+                setUserInfo(userInfoNew)
+            }
         }
-
-        val user: UserInfo? = userName?.let {
-            get("$apiUrl/users/$userName", jsonHeaders, loadingHandler = ::loadingHandler)
-                .decodeFromJsonString<UserInfo>()
-        }
-
-        val userInfoNew: UserInfo? = user?.copy(globalRole = globalRole)
-            ?: userName?.let { UserInfo(name = userName, globalRole = globalRole) }
-
-        userInfoNew?.let { setUserInfo(userInfoNew) }
     }
     BrowserRouter {
         basename = "/"
@@ -93,12 +75,6 @@ val App: VFC = FC {
         scrollToTopButton()
     }
 }
-
-private suspend fun Response.validTextOrNull(): String? = text()
-    .await()
-    .takeIf {
-        ok && it.isNotEmpty() && it != "null"
-    }
 
 fun main() {
     /* Workaround for issue: https://youtrack.jetbrains.com/issue/KT-31888 */

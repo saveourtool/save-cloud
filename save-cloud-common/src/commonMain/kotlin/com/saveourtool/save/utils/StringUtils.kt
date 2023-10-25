@@ -7,13 +7,14 @@ import kotlin.jvm.JvmName
 
 const val LOGIN_MAX_LENGTH = 14
 const val REAL_NAME_PART_MAX_LENGTH = 20
+const val URL_MAX_LENGTH = 28
 
 /**
  * @return short [String] for list values
  */
 fun List<String>?.listToShortString(): String = this?.run {
     if (size <= 2) {
-        this.joinToString(" ,")
+        this.joinToString(PRETTY_DELIMITER)
     } else {
         "${first()} ... ${last()}"
     }
@@ -52,3 +53,8 @@ fun String.shortenLogin(): String = shorten(LOGIN_MAX_LENGTH)
  * @return short [String] for real name
  */
 fun String.shortenRealName(): String = shorten(REAL_NAME_PART_MAX_LENGTH)
+
+/**
+ * @return short [String] for urls
+ */
+fun String.shortenUrl(): String = shorten(URL_MAX_LENGTH)

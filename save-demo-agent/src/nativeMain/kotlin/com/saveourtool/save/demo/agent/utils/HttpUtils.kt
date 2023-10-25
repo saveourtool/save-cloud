@@ -26,7 +26,7 @@ import io.ktor.utils.io.core.*
 import okio.Path
 import okio.buffer
 import okio.use
-import kotlin.native.concurrent.AtomicLong
+import kotlin.concurrent.AtomicLong
 
 private const val DOWNLOAD_REQUEST_TIMEOUT_MILLIS = 5 * 60 * 1000L
 

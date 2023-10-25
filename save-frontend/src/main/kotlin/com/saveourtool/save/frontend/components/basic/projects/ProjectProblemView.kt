@@ -55,10 +55,12 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
 
         setProjectProblem(projectProblemNew)
 
-        val newComments = post(
+        val newComments = get(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.pathname,
+            params = jso<dynamic> {
+                section = window.location.pathname
+            },
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()
@@ -68,10 +70,12 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
     }
 
     val enrollCommentsRequest = useDeferredRequest {
-        val newComments = post(
+        val newComments = get(
             url = "$apiUrl/comments/get-all",
             headers = jsonHeaders,
-            body = window.location.pathname,
+            params = jso<dynamic> {
+                section = window.location.pathname
+            },
             loadingHandler = ::loadingHandler,
         ).unsafeMap {
             it.decodeFromJsonString<List<CommentDto>>()

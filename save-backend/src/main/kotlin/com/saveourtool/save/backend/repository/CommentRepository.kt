@@ -17,6 +17,12 @@ interface CommentRepository : BaseEntityRepository<Comment> {
     fun getAllBySection(section: String): List<Comment>
 
     /**
+     * @param section section of Save
+     * @return count comments
+     */
+    fun countAllBySection(section: String): Int
+
+    /**
      * @param userName comment author username
      * @param section [Comment.section]
      * @param creationDate [Comment.createDate]

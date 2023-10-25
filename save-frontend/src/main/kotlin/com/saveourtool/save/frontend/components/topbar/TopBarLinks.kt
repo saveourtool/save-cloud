@@ -41,24 +41,16 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
 
     @Suppress("MAGIC_NUMBER")
     val vulnTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.CREATE_VULNERABILITY.path, text = "Propose vulnerability".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
+        TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
-    )
-
-    @Suppress("MAGIC_NUMBER", "UnusedPrivateProperty")
-    val generalTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, text = "Awesome Benchmarks".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, text = "SAVE Projects list".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
     )
 
     ul {
         className = ClassName("navbar-nav mx-auto")
         when {
-            props.location.isVuln() -> vulnTopbarLinks
-            props.location.isSettings() -> generalTopbarLinks
+            props.location.isVuln() || props.location.isSettings() -> vulnTopbarLinks
             else -> saveTopbarLinks
         }
             .forEach { elem ->

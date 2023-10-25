@@ -6,8 +6,9 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.UnzipRawCosvFileResponse
+import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -26,13 +27,16 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.toFlux
 import java.nio.ByteBuffer
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.io.path.*
 
-typealias RawCosvFileDtoList = List<RawCosvFileDto>
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
-typealias UnzipRawCosvFileResponseFlux = Flux<UnzipRawCosvFileResponse>
+typealias RawCosvFileStreamingResponseFlux = Flux<RawCosvFileStreamingResponse>
+typealias PathAndSize = Pair<Path, Long>
+typealias PathAndSizeAndAccumitiveSize = Triple<Path, Long, Long>
 
 /**
  * Rest controller for raw COSV files
@@ -137,12 +141,12 @@ class RawCosvFileController(
         @PathVariable organizationName: String,
         @PathVariable id: Long,
         authentication: Authentication,
-    ): ResponseEntity<UnzipRawCosvFileResponseFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
+    ): ResponseEntity<RawCosvFileStreamingResponseFlux> = hasPermission(authentication, organizationName, Permission.WRITE, "upload")
         .flatMap { rawCosvFileStorage.findById(id) }
         .flatMapMany { rawCosvFile ->
             Flux.concat(
-                Mono.just(firstFakeResponse),
-                doUploadArchiveEntries(
+                Mono.just(RawCosvFileStreamingResponse(PROGRESS_FOR_ARCHIVE, "Unzipping")),
+                doUnzip(
                     rawCosvFile,
                     organizationName,
                     authentication.name
@@ -155,11 +159,11 @@ class RawCosvFileController(
                 .body(it)
         }
 
-    private fun doUploadArchiveEntries(
+    private fun doUnzip(
         archiveFile: RawCosvFileDto,
         organizationName: String,
         userName: String,
-    ): UnzipRawCosvFileResponseFlux = blockingToMono {
+    ): RawCosvFileStreamingResponseFlux = blockingToMono {
         val tmpDir = createTempDirectoryForArchive()
         val tmpArchiveFile = tmpDir / archiveFile.fileName
         val contentDir = Files.createTempDirectory(tmpDir, "content-")
@@ -174,34 +178,23 @@ class RawCosvFileController(
                 .blockingMap {
                     tmpArchiveFile.extractZipTo(contentDir)
                     val entries = contentDir.listDirectoryEntries()
-                    entries.map { it to it.fileSize() } to tmpArchiveFile.fileSize()
+                    entries.map { it to it.fileSize() }
                 }
-                .flatMapMany { (entryWithSizeList, archiveSize) ->
-                    val fullSize = archiveSize * 2 + entryWithSizeList.sumOf { it.second }
+                .flatMapMany { entryWithSizeList ->
                     Flux.concat(
-                        Mono.just(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = true)),
-                        Flux.fromIterable(entryWithSizeList.map { it.first })
-                            .flatMap { file ->
-                                log.debug {
-                                    "Processing ${file.absolutePathString()}"
-                                }
-                                val contentLength = file.fileSize()
-                                rawCosvFileStorage.uploadAndWrapDuplicateKeyException(
-                                    key = RawCosvFileDto(
-                                        concatS3Key(archiveFile.fileName, file.relativeTo(contentDir).toString()),
-                                        organizationName = organizationName,
-                                        userName = userName,
-                                        contentLength = contentLength,
-                                    ),
-                                    content = file.toByteBufferFlux(),
-                                )
-                                    .map { UnzipRawCosvFileResponse(contentLength, fullSize, result = it) }
-                            },
+                        doUploadArchiveEntries(
+                            contentDir,
+                            entryWithSizeList,
+                            archiveFile.fileName,
+                            organizationName,
+                            userName
+                        ),
                         blockingToMono {
                             tmpDir.deleteRecursivelySafely(log)
                         }
                             .then(rawCosvFileStorage.delete(archiveFile))
-                            .thenReturn(UnzipRawCosvFileResponse(archiveSize, fullSize, updateCounters = false)),
+                            .thenReturn(RawCosvFileStreamingResponse(RawCosvFileStreamingResponse.FINAL_PROGRESS,
+                                "Unzipped ${entryWithSizeList.sumOf { it.second }.toKilobytes()} Kb")),
                     )
                 }
                 .onErrorResume { error ->
@@ -211,6 +204,45 @@ class RawCosvFileController(
                     blockingToMono { tmpDir.deleteRecursivelySafely(log) }.then(Mono.error(error))
                 }
         }
+
+    private fun doUploadArchiveEntries(
+        contentDir: Path,
+        entriesWithSize: List<PathAndSize>,
+        entriesPrefix: String,
+        organizationName: String,
+        userName: String,
+    ): RawCosvFileStreamingResponseFlux {
+        val fullSize = entriesWithSize.sumOf { it.second }
+        return entriesWithSize.runningFold(null as Pair<PathAndSize, Long>?) { current, next ->
+            current?.let {
+                next to next.second + it.second
+            } ?: (next to next.second)
+        }
+            .filterNotNull()
+            .toFlux()
+            .flatMap { (fileAndSize, sizeSumOfPrevious) ->
+                val (file, size) = fileAndSize
+                log.debug {
+                    "Processing ${file.absolutePathString()}"
+                }
+                rawCosvFileStorage.uploadAndWrapDuplicateKeyException(
+                    key = RawCosvFileDto(
+                        concatS3Key(entriesPrefix, file.relativeTo(contentDir).toString()),
+                        organizationName = organizationName,
+                        userName = userName,
+                        contentLength = size,
+                    ),
+                    content = file.toByteBufferFlux(),
+                )
+                    .map {
+                        RawCosvFileStreamingResponse(
+                            progress = ((sizeSumOfPrevious.toDouble() / fullSize) * (100 - PROGRESS_FOR_ARCHIVE)).toInt() + PROGRESS_FOR_ARCHIVE,
+                            progressMessage = "${sizeSumOfPrevious.toKilobytes()} / ${fullSize.toKilobytes()} KB",
+                            result = listOf(it),
+                        )
+                    }
+            }
+    }
 
     /**
      * @param organizationName
@@ -237,11 +269,11 @@ class RawCosvFileController(
         @PathVariable organizationName: String,
         authentication: Authentication,
     ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
-        .filter {
-            it.userName == authentication.name
+        .map { files ->
+            files
+                .filter { !it.isZipArchive() && it.status == RawCosvFileStatus.UPLOADED }
+                .map { it.requiredId() }
         }
-        .map { it.requiredId() }
-        .collectList()
         .flatMap { ids ->
             doSubmitToProcess(organizationName, ids, authentication)
         }
@@ -300,9 +332,10 @@ class RawCosvFileController(
         @RequestParam size: Int,
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.READ, "read")
-        .flatMapMany {
+        .flatMap {
             rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name, PageRequest.of(page, size))
         }
+        .flatMapIterable { it }
         .let {
             ResponseEntity.ok()
                 .cacheControlForNdjson()
@@ -356,31 +389,6 @@ class RawCosvFileController(
                 }
         }
 
-    /**
-     * @param organizationName
-     * @param authentication
-     * @return list of deleted keys
-     */
-    @RequiresAuthorizationSourceHeader
-    @DeleteMapping("/delete-processed", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun deleteProcessed(
-        @PathVariable organizationName: String,
-        authentication: Authentication,
-    ): Mono<RawCosvFileDtoList> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
-        .flatMap {
-            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
-                .filter { it.status == RawCosvFileStatus.PROCESSED }
-                .collectList()
-                .flatMap { keys ->
-                    rawCosvFileStorage.deleteAll(keys)
-                        .filter { it }
-                        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
-                            "Failed to delete process raw cosv files: $keys"
-                        }
-                        .map { keys }
-                }
-        }
-
     private fun hasPermission(
         authentication: Authentication,
         organizationName: String,
@@ -416,7 +424,7 @@ class RawCosvFileController(
         private val log = getLogger<CosvController>()
 
         // to show progress bar
-        private val firstFakeResponse = UnzipRawCosvFileResponse(5, 100, updateCounters = true)
+        private const val PROGRESS_FOR_ARCHIVE = 5
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,

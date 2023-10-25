@@ -426,19 +426,19 @@
       }
     },
     "/api/v1/comments/get-all": {
-      "post": {
-        "description": "Save new comment.",
+      "get": {
+        "description": "Get all comments in section.",
         "operationId": "getAllBySection",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
-          },
-          "required": true
-        },
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -451,7 +451,7 @@
                 }
               }
             },
-            "description": "Successfully saved project problem"
+            "description": "Successfully return all comments in section"
           },
           "401": {
             "content": {
@@ -472,7 +472,56 @@
             "basic": []
           }
         ],
-        "summary": "Save new comment.",
+        "summary": "Get all comments in section.",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/comments/get-all-count": {
+      "get": {
+        "description": "Get count comments in section.",
+        "operationId": "getAllCountBySection",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "section",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Successfully return count comments in section"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get count comments in section.",
         "tags": [
           "comments"
         ]
@@ -2237,6 +2286,78 @@
                   "items": {
                     "$ref": "#/components/schemas/CosvFileDto"
                   }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "cosv-controller"
+        ]
+      }
+    },
+    "/api/v1/cosv/save": {
+      "post": {
+        "operationId": "save_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "isGenerateIdentifier",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "organizationName",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OsvSchemaUnitUnitUnitUnit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                 }
               }
             },
@@ -6588,7 +6709,7 @@
     "/api/v1/projects/problem/save": {
       "post": {
         "description": "Save project problem.",
-        "operationId": "save_1",
+        "operationId": "save",
         "requestBody": {
           "content": {
             "application/json": {
@@ -7614,62 +7735,6 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/delete-processed": {
-      "delete": {
-        "operationId": "deleteProcessed",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/RawCosvFileDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "raw-cosv-file-controller"
-        ]
-      }
-    },
     "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
       "delete": {
         "operationId": "delete_1",
@@ -8069,7 +8134,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UnzipRawCosvFileResponse"
+                    "$ref": "#/components/schemas/RawCosvFileStreamingResponse"
                   }
                 }
               }
@@ -10700,7 +10765,7 @@
           },
           {
             "in": "query",
-            "name": "ids",
+            "name": "namesToSkip",
             "required": false,
             "schema": {
               "type": "string",
@@ -10766,33 +10831,6 @@
               "*/*": {
                 "schema": {
                   "type": "string"
-                }
-              }
-            },
-            "description": "OK"
-          }
-        },
-        "tags": [
-          "users-details-controller"
-        ]
-      }
-    },
-    "/api/v1/users/global-role": {
-      "get": {
-        "operationId": "getSelfGlobalRole",
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string",
-                  "enum": [
-                    "ADMIN",
-                    "NONE",
-                    "OWNER",
-                    "SUPER_ADMIN",
-                    "VIEWER"
-                  ]
                 }
               }
             },
@@ -10906,6 +10944,26 @@
               "*/*": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/users/user-info": {
+      "get": {
+        "operationId": "getSelfUserInfo",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
                 }
               }
             },
@@ -11214,126 +11272,6 @@
           }
         ],
         "summary": "Get vulnerability by identifier with description.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/by-organization-and-status": {
-      "get": {
-        "description": "Get list of vulnerabilities by organization name.",
-        "operationId": "getVulnerabilityByOrganization",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "APPROVED",
-                "AUTO_APPROVED",
-                "PENDING_REVIEW",
-                "REJECTED"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of vulnerabilities by organization name"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get list of vulnerabilities by organization name.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
-    "/api/v1/vulnerabilities/by-user": {
-      "get": {
-        "description": "Get list of vulnerabilities by user id.",
-        "operationId": "getVulnerabilityByUser",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "userName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Successfully fetched list of vulnerabilities by user id"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/VulnerabilityDto"
-                  }
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Get list of vulnerabilities by user id.",
         "tags": [
           "vulnerabilities"
         ]
@@ -11802,64 +11740,6 @@
         ]
       }
     },
-    "/api/v1/vulnerabilities/save": {
-      "post": {
-        "description": "Save vulnerability.",
-        "operationId": "save",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "isGenerateIdentifier",
-            "required": false,
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/VulnerabilityDto"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Successfully saved vulnerability"
-          },
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "summary": "Save vulnerability.",
-        "tags": [
-          "vulnerabilities"
-        ]
-      }
-    },
     "/api/v1/vulnerabilities/save-date": {
       "post": {
         "description": "Save new date.",
@@ -12316,6 +12196,44 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/RangeJsonObject"
+            }
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AffectedUnitUnitUnit": {
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "ecosystem_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "package": {
+            "$ref": "#/components/schemas/Package"
+          },
+          "patches_detail": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatchDetail"
+            }
+          },
+          "ranges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RangeUnit"
             }
           },
           "severity": {
@@ -13645,6 +13563,108 @@
           }
         }
       },
+      "OsvSchemaUnitUnitUnitUnit": {
+        "required": [
+          "id",
+          "modified",
+          "schema_version"
+        ],
+        "type": "object",
+        "properties": {
+          "affected": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AffectedUnitUnitUnit"
+            }
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirm_type": {
+            "type": "string",
+            "enum": [
+              "manual_confirmed",
+              "algorithm_confirmed",
+              "double_confirmed"
+            ]
+          },
+          "contributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contributor"
+            }
+          },
+          "credits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Credit"
+            }
+          },
+          "cwe_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwe_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "details": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "modified": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "published": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reference"
+            }
+          },
+          "related": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schema_version": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          },
+          "summary": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimelineEntry"
+            }
+          },
+          "withdrawn": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          }
+        }
+      },
       "Package": {
         "required": [
           "ecosystem",
@@ -14013,6 +14033,35 @@
           }
         }
       },
+      "RangeUnit": {
+        "required": [
+          "events",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "database_specific": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "repo": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ECOSYSTEM",
+              "GIT",
+              "SEMVER"
+            ]
+          }
+        }
+      },
       "RawCosvFileDto": {
         "required": [
           "fileName",
@@ -14053,6 +14102,28 @@
           },
           "userName": {
             "type": "string"
+          }
+        }
+      },
+      "RawCosvFileStreamingResponse": {
+        "required": [
+          "progress",
+          "progressMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progressMessage": {
+            "type": "string"
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawCosvFileDto"
+            }
           }
         }
       },
@@ -14625,30 +14696,6 @@
       },
       "Unit": {
         "type": "object"
-      },
-      "UnzipRawCosvFileResponse": {
-        "required": [
-          "fullSize",
-          "processedSize",
-          "updateCounters"
-        ],
-        "type": "object",
-        "properties": {
-          "fullSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "processedSize": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "result": {
-            "$ref": "#/components/schemas/RawCosvFileDto"
-          },
-          "updateCounters": {
-            "type": "boolean"
-          }
-        }
       },
       "User": {
         "required": [

@@ -70,6 +70,19 @@ val largeTransparentModalStyle = Styles(
     overlay = defaultOverlayProperties,
 )
 
+val calculatorModalStyle = Styles(
+    content = json(
+        "top" to "5%",
+        "left" to "5%",
+        "right" to "16%",
+        "bottom" to "2%",
+        "overflow" to "hide",
+        "backgroundColor" to "transparent",
+        "border" to "1px solid rgba(255, 255, 255, 0.01)"
+    ).unsafeCast<CSSProperties>(),
+    overlay = defaultOverlayProperties,
+)
+
 val loaderModalStyle = Styles(
     content = json(
         "top" to "25%",
