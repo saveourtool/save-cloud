@@ -83,7 +83,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         div {
             className = ClassName("col-6 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
-                val tabList = if (role.isSuperAdmin()) {
+                val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
                     UserProfileTab.values().map { it.name }
                 } else {
                     UserProfileTab.values().filter { it != UserProfileTab.USERS }
@@ -292,7 +292,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
             }
         }
 
-        if (currentUser?.isSuperAdmin() == true) {
+        if (currentUser?.isSuperAdmin() == true && currentUser.name != user?.name) {
             div {
                 className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
 
