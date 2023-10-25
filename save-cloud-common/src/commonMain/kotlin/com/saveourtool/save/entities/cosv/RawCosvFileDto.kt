@@ -1,6 +1,7 @@
 package com.saveourtool.save.entities.cosv
 
 import com.saveourtool.save.entities.DtoWithId
+import com.saveourtool.save.utils.ARCHIVE_EXTENSION
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
@@ -32,5 +33,32 @@ data class RawCosvFileDto(
      */
     fun requiredContentLength(): Long = requireNotNull(contentLength) {
         "contentLength is not provided: $this"
+    }
+
+    companion object {
+        /**
+         * @return [Boolean]
+         */
+        fun RawCosvFileDto.isArchive() = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+
+        /**
+         * @return [Boolean]
+         */
+        fun RawCosvFileDto.isJsonFile() = status == RawCosvFileStatus.UPLOADED && !fileName.endsWith(ARCHIVE_EXTENSION, ignoreCase = true)
+
+        /**
+         * @return [Boolean]
+         */
+        fun RawCosvFileDto.isProcessing() = status == RawCosvFileStatus.PROCESSED || status == RawCosvFileStatus.IN_PROGRESS
+
+        /**
+         * @return [Boolean]
+         */
+        fun RawCosvFileDto.isDuplicate() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == true
+
+        /**
+         * @return [Boolean]
+         */
+        fun RawCosvFileDto.isErrorFile() = status == RawCosvFileStatus.FAILED && statusMessage?.contains("Duplicate") == false
     }
 }
