@@ -63,7 +63,7 @@ val indexView: FC<UserInfoAwareProps> = FC { props ->
                             props.userInfo
                                 ?: run {
                                     separator { }
-                                    indexAuth { props.userInfo }
+                                    indexAuth { }
                                 }
 
                             indexViewInfo { userInfo = props.userInfo }
