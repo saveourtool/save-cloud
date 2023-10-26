@@ -35,7 +35,6 @@ import js.core.jso
 import org.w3c.dom.url.URLSearchParams
 import react.*
 import react.router.*
-import react.router.dom.createBrowserRouter
 
 private val fallbackElementWithoutRouterLink = FallbackView::class.react.create {
     bigText = "404"
@@ -56,6 +55,7 @@ private val fallbackElementWithRouterLink = FallbackView::class.react.create {
  * @param userInfoSetter setter of user info (it can be updated in settings on several views)
  * @return array of [RouteObject]
  */
+@Suppress("TOO_LONG_FUNCTION")
 fun createBasicRoutes(
     userInfo: UserInfo?,
     userInfoSetter: StateSetter<UserInfo?>,
@@ -209,7 +209,6 @@ fun createBasicRoutes(
         path = "*"
         element = fallbackElementWithRouterLink
     }
-
 
     return listOf(
         saveWelcomeView.create { this.userInfo = userInfo } to SAVE,

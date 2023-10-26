@@ -1,6 +1,7 @@
 /**
  * A page for errors
  */
+
 package com.saveourtool.save.frontend.components
 
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
@@ -13,13 +14,13 @@ import react.router.useRouteError
 import web.cssom.ClassName
 
 val errorView = FC {
-    val error = useRouteError().unsafeCast<JsError>()
+    val errorMessage = useRouteError().unsafeCast<JsError>().message
     div {
         className = ClassName("container-fluid")
         topBarComponent()
         FallbackView::class.react {
             bigText = "Error"
-            smallText = "Something went wrong"
+            smallText = "Something went wrong: $errorMessage"
         }
         @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
         footer { }

@@ -4,7 +4,6 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.frontend.components.ErrorBoundary
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.errorView
@@ -18,21 +17,21 @@ import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import js.core.jso
 
+import js.core.jso
 import react.*
 import react.dom.client.createRoot
+import react.dom.html.ReactHTML.div
+import react.router.Outlet
 import react.router.dom.RouterProvider
 import react.router.dom.createBrowserRouter
+import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.json.Json
-import react.dom.html.ReactHTML.div
-import react.router.Outlet
-import web.cssom.ClassName
 
 /**
  * Main component for the whole App
@@ -56,28 +55,27 @@ val App: FC<Props> = FC {
         }
     }
 
-    val root = FC<UserInfoAwarePropsWithChildren> { props ->
+    val root = FC {
         requestModalHandler {
-            this.userInfo = props.userInfo
+            this.userInfo = userInfo
             div {
                 className = ClassName("d-flex flex-column")
                 id = "content-wrapper"
-//                ErrorBoundary::class.react {
-                    topBarComponent { this.userInfo = props.userInfo }
-                    div {
-                        className = ClassName("container-fluid")
-                        id = "common-save-container"
-                        Outlet()
-                    }
-                    if (window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                        cookieBanner { }
-                    }
-                    footer { }
-//                }
+                topBarComponent { this.userInfo = userInfo }
+                div {
+                    className = ClassName("container-fluid")
+                    id = "common-save-container"
+                    Outlet()
+                }
+                if (window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                    cookieBanner { }
+                }
+                footer { }
             }
         }
         scrollToTopButton()
     }
+
     RouterProvider {
         router = createBrowserRouter(
             routes = arrayOf(
@@ -86,12 +84,6 @@ val App: FC<Props> = FC {
                     element = root.create()
                     errorElement = errorView.create()
                     children = arrayOf(
-                        jso {
-                            index = true
-                            element = indexView.create {
-                                this.userInfo = userInfo
-                            }
-                        },
                         *createBasicRoutes(userInfo, setUserInfo)
                     )
                 }
