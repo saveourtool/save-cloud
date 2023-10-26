@@ -5,9 +5,9 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
-import com.saveourtool.save.entities.cosv.RawCosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileStatus
-import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
+import com.saveourtool.save.entities.cosv.*
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
@@ -255,7 +255,9 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
         .map { files ->
-            files.map { it.requiredId() }
+            files
+                .filter { it.isUploadedJsonFile() }
+                .map { it.requiredId() }
         }
         .flatMap { ids ->
             doSubmitToProcess(organizationName, ids, authentication)
@@ -284,16 +286,16 @@ class RawCosvFileController(
     /**
      * @param organizationName
      * @param authentication
-     * @return count of uploaded raw cosv files in [organizationName]
+     * @return statistics [RawCosvFileStatisticDto] with counts of all, uploaded, processing, failed raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
-    @GetMapping("/count")
-    fun count(
+    @GetMapping("/statistics")
+    fun statistics(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<Long> = hasPermission(authentication, organizationName, Permission.READ, "read")
+    ): Mono<RawCosvFileStatisticsDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMap {
-            rawCosvFileStorage.countByOrganizationAndUser(organizationName, authentication.name)
+            rawCosvFileStorage.statisticsByOrganizationAndUser(organizationName, authentication.name)
         }
 
     /**
@@ -382,13 +384,13 @@ class RawCosvFileController(
     fun deleteAllDuplicatedFiles(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
-        .map { files ->
-            files.filter { it.status == RawCosvFileStatus.FAILED && it.statusMessage?.contains("Duplicate entry") == true }.map { it.requiredId() }
-        }
-        .flatMap { ids ->
-            hasPermission(authentication, organizationName, Permission.DELETE, "delete")
-                .flatMap {
+    ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
+        .flatMap {
+            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
+                .map { files ->
+                    files.filter { it.isDuplicate() }.map { it.requiredId() }
+                }
+                .flatMap { ids ->
                     rawCosvFileStorage.deleteAllByIds(ids)
                         .filter { it }
                         .switchIfEmptyToNotFound {

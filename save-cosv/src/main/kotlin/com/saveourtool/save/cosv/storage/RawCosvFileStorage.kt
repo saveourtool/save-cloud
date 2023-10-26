@@ -4,6 +4,13 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
@@ -63,13 +70,22 @@ class RawCosvFileStorage(
     /**
      * @param organizationName
      * @param userName
-     * @return count of all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     * @return statistics [RawCosvFileStatisticDto] for all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
      */
-    fun countByOrganizationAndUser(
+    fun statisticsByOrganizationAndUser(
         organizationName: String,
         userName: String,
-    ): Mono<Long> = blockingToMono {
-        s3KeyManager.countByOrganizationAndUser(organizationName, userName)
+    ): Mono<RawCosvFileStatisticsDto> = blockingToMono {
+        val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
+        RawCosvFileStatisticsDto(
+            filesList.count(),
+            filesList.count { it.isUploadedZipArchive() },
+            filesList.count { it.isUploadedJsonFile() },
+            filesList.count { it.isProcessing() },
+            filesList.count { it.isPendingRemoved() },
+            filesList.count { it.isDuplicate() },
+            filesList.count { it.isHasErrors() }
+        )
     }
 
     /**
@@ -131,7 +147,7 @@ class RawCosvFileStorage(
      */
     fun findByIds(
         ids: Collection<Long>,
-    ): Mono<RawCosvFileDtoCollection> = blockingToMono { ids.mapNotNull { s3KeyManager.findKeyByEntityId(it) } }
+    ): Mono<RawCosvFileDtoCollection> = blockingToMono { ids.map { id -> s3KeyManager.findKeyByEntityId(id).orNotFound { "Not found raw COSV file id=$id" } } }
 
     /**
      * @param id
