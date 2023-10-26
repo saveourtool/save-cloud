@@ -11,7 +11,6 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
-import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.components.inputform.InputTypes
@@ -390,7 +389,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
             availableFiles.map { file ->
                 li {
                     val highlightZipArchive = when {
-                        file.isUploadedZipArchive() -> "font-weight-bold text-uppercase"
+                        file.isUploadedZipArchive() -> "font-weight-bold"
                         else -> ""
                     }
                     val fileColor = when {
@@ -403,6 +402,17 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         else -> "primary"
                     }
                     className = ClassName("list-group-item $highlightZipArchive text-left list-group-item-$fileColor")
+                    asDynamic()["data-toggle"] = "tooltip"
+                    asDynamic()["data-placement"] = "left"
+                    title = when {
+                        file.isUploadedZipArchive() -> "It's a ZIP archive, please unzip to get JSON files"
+                        file.isUploadedJsonFile() -> "It's a JSON file, you can submit it"
+                        file.isProcessing() -> "In progress, please wait"
+                        file.isPendingRemoved() -> "Already processed, will be deleted shortly"
+                        file.isDuplicate() -> "Duplicate, the vulnerability with such ID already uploaded: ${file.statusMessage.orEmpty()}"
+                        file.isHasErrors() -> "This JSON file has error: ${file.statusMessage.orEmpty()}"
+                        else -> ""
+                    }
                     if (file.isUploadedZipArchive()) {
                         button {
                             type = ButtonType.button
@@ -429,19 +439,12 @@ val cosvFileManagerComponent: FC<Props> = FC {
                     }
                     +"${file.fileName} "
                     span {
-                        style = jso {
-                            cursor = "pointer".unsafeCast<Cursor>()
-                        }
                         className = ClassName("font-weight-bold text-justify")
-                        file.statusMessage?.let { statusMessage ->
-                            onClick = {
-                                window.alert(statusMessage)
-                            }
-                        }
-                        +when (file.status) {
-                            RawCosvFileStatus.IN_PROGRESS -> " (in progress)"
-                            RawCosvFileStatus.PROCESSED -> " (processed, will be deleted shortly)"
-                            RawCosvFileStatus.FAILED -> if (file.isDuplicate()) " (duplicate)" else " (error)"
+                        +when {
+                            file.isProcessing() -> " (in progress)"
+                            file.isPendingRemoved() -> " (processed, will be deleted shortly)"
+                            file.isDuplicate() -> " (duplicate)"
+                            file.isHasErrors() -> " (error)"
                             else -> " "
                         }
                     }

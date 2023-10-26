@@ -394,7 +394,7 @@ class RawCosvFileController(
                     rawCosvFileStorage.deleteAll(duplicateFiles)
                         .filter { it }
                         .switchIfEmptyToNotFound {
-                            "Some duplicated COSV files was not found by ids"
+                            "Duplicated COSV files can not be deleted because some of them were not found"
                         }
                         .map {
                             ResponseEntity.ok("Duplicated COSV files deleted successfully")
