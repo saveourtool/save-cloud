@@ -1,10 +1,13 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.authservice.utils.userId
+import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.UserSaveStatus
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
@@ -15,6 +18,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 
@@ -24,6 +28,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -36,7 +41,14 @@ import reactor.kotlin.core.publisher.toMono
 class UsersDetailsController(
     private val userRepository: UserRepository,
     private val userDetailsService: UserDetailsService,
+    configProperties: ConfigProperties,
+    jackson2WebClientCustomizer: WebClientCustomizer,
 ) {
+    private val gatewayWebClient = WebClient.builder()
+        .apply(jackson2WebClientCustomizer::customize)
+        .baseUrl(configProperties.gatewayUrl)
+        .build()
+
     /**
      * @param userName username
      * @return [UserInfo] info about user's
@@ -113,40 +125,41 @@ class UsersDetailsController(
         .switchIfEmptyToNotFound {
             "User with id ${authentication.userId()} not found in database"
         }
+        .filter { user ->
+            user.status in (userStatusWorkflow.keys)
+        }
+        .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
+            UserSaveStatus.FORBIDDEN.message
+        }
         .blockingMap { user ->
             val oldName = user.name.takeUnless { it == newUserInfo.name }
             val oldStatus = user.status
-            val newStatus = when (oldStatus) {
-                UserStatus.CREATED -> UserStatus.NOT_APPROVED
-                UserStatus.ACTIVE -> UserStatus.ACTIVE
-                else -> null
+            val newUser = user.apply {
+                name = newUserInfo.name
+                email = newUserInfo.email
+                company = newUserInfo.company
+                location = newUserInfo.location
+                gitHub = newUserInfo.gitHub
+                linkedin = newUserInfo.linkedin
+                twitter = newUserInfo.twitter
+                status = userStatusWorkflow.getValue(oldStatus)
+                website = newUserInfo.website
+                realName = newUserInfo.realName
+                freeText = newUserInfo.freeText
             }
-            newStatus?.let {
-                userDetailsService.saveUser(
-                    user.apply {
-                        name = newUserInfo.name
-                        email = newUserInfo.email
-                        company = newUserInfo.company
-                        location = newUserInfo.location
-                        gitHub = newUserInfo.gitHub
-                        linkedin = newUserInfo.linkedin
-                        twitter = newUserInfo.twitter
-                        status = newStatus
-                        website = newUserInfo.website
-                        realName = newUserInfo.realName
-                        freeText = newUserInfo.freeText
-                    },
-                    oldName,
-                    oldStatus,
-                )
-            } ?: UserSaveStatus.FORBIDDEN
+            userDetailsService.saveUser(
+                newUser,
+                oldName,
+                oldStatus,
+            ) to newUser
         }
-        .filter { status -> status == UserSaveStatus.UPDATE }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
+        .flatMap { (status, newUser) ->
+            when (status) {
+                UserSaveStatus.UPDATE -> notifyGateway(newUser).map {
+                    ResponseEntity.ok(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message).toMono()
+            }
         }
 
     /**
@@ -193,12 +206,13 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.deleteUser(userName, authentication)
     }
-        .map { status ->
+        .flatMap { status ->
             when (status) {
-                UserSaveStatus.DELETED ->
+                UserSaveStatus.DELETED -> notifyGateway(authentication.userId()).map {
                     ResponseEntity.ok(status.message)
-                else ->
-                    ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
             }
         }
 
@@ -212,14 +226,14 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.banUser(userName)
     }
-        .filter { status ->
-            status == UserSaveStatus.BANNED
-        }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
+        .flatMap { status ->
+            when (status) {
+                UserSaveStatus.BANNED -> notifyGateway(userName).map {
+                    ResponseEntity.ok(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
+            }
         }
 
     /**
@@ -246,13 +260,39 @@ class UsersDetailsController(
     ): Mono<StringResponse> = blockingToMono {
         userDetailsService.approveUser(userName)
     }
-        .filter { status ->
-            status == UserSaveStatus.APPROVED
+        .flatMap { status ->
+            when (status) {
+                UserSaveStatus.APPROVED -> notifyGateway(userName).map {
+                    ResponseEntity.ok(status.message)
+                }
+                else -> ResponseEntity.status(HttpStatus.CONFLICT).body(status.message)
+                    .toMono()
+            }
         }
-        .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
-            UserSaveStatus.CONFLICT.message
-        }
-        .map { status ->
-            ResponseEntity.ok(status.message)
-        }
+
+    private fun notifyGateway(userId: Long): Mono<Unit> = blockingToMono {
+        userRepository.findByIdOrNull(userId)
+    }
+        .switchIfEmptyToNotFound { "Not found user by id=$userId" }
+        .flatMap { user -> notifyGateway(user) }
+
+    private fun notifyGateway(userName: String): Mono<Unit> = blockingToMono {
+        userRepository.findByName(userName)
+    }
+        .switchIfEmptyToNotFound { "Not found user by name=$userName" }
+        .flatMap { user -> notifyGateway(user) }
+
+    private fun notifyGateway(user: User): Mono<Unit> = gatewayWebClient.patch()
+        .uri("/internal/sec/update")
+        .bodyValue(SaveUserDetails(user))
+        .retrieve()
+        .toBodilessEntity()
+        .thenReturn(Unit)
+
+    companion object {
+        private val userStatusWorkflow = mapOf(
+            UserStatus.CREATED to UserStatus.NOT_APPROVED,
+            UserStatus.ACTIVE to UserStatus.ACTIVE,
+        )
+    }
 }
