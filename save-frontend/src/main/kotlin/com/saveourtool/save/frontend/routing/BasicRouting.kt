@@ -55,7 +55,10 @@ private val fallbackElementWithRouterLink = FallbackView::class.react.create {
  * @param userInfoSetter setter of user info (it can be updated in settings on several views)
  * @return array of [RouteObject]
  */
-@Suppress("TOO_LONG_FUNCTION")
+@Suppress(
+    "TOO_LONG_FUNCTION",
+    "LongMethod",
+)
 fun createBasicRoutes(
     userInfo: UserInfo?,
     userInfoSetter: StateSetter<UserInfo?>,
