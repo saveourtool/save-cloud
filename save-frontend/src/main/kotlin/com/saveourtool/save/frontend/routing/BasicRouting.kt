@@ -9,14 +9,8 @@ package com.saveourtool.save.frontend.routing
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
-import com.saveourtool.save.frontend.components.ErrorBoundary
-import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
-import com.saveourtool.save.frontend.components.basic.scrollToTopButton
-import com.saveourtool.save.frontend.components.footer
-import com.saveourtool.save.frontend.components.requestModalHandler
-import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.*
 import com.saveourtool.save.frontend.components.views.agreements.cookieTermsOfUse
 import com.saveourtool.save.frontend.components.views.agreements.termsOfUsageView
@@ -37,57 +31,39 @@ import com.saveourtool.save.frontend.utils.isSuperAdmin
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes.*
 import js.core.jso
-import kotlinx.browser.window
 
 import org.w3c.dom.url.URLSearchParams
 import react.*
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.div
 import react.router.*
 import react.router.dom.createBrowserRouter
-import web.cssom.ClassName
 
-/**
- * Just put a map: View -> Route URL to this list
- */
-val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
-    useUserStatusRedirects(props.userInfo?.status)
-    createBasicRoutes(props.userInfo, props.userInfoSetter)
-        .let {
-            RouterProvider {
-                router = createBrowserRouter(
-                    routes = it,
-                    opts = jso {
-                        basename = "/"
-                    }
-                )
-            }
-        }
-}
-
-private val fallbackNode = FallbackView::class.react.wrapAndCreate {
+private val fallbackElementWithoutRouterLink = FallbackView::class.react.create {
     bigText = "404"
     smallText = "Page not found"
     withRouterLink = false
 }
 
-/**
- * @param view
- * @return a view or a fallback of user info is null
- */
-fun UserInfoAwareMutablePropsWithChildren.viewWithFallBack(view: ReactElement<*>) = this.userInfo?.name?.let {
-    view
-} ?: fallbackNode
+private val fallbackElementWithRouterLink = FallbackView::class.react.create {
+    bigText = "404"
+    smallText = "Page not found"
+    withRouterLink = true
+}
 
 /**
+ * Just put a map: View -> Route URL to this list
+ *
  * @param userInfo currently logged-in user or null
  * @param userInfoSetter setter of user info (it can be updated in settings on several views)
- * @return
+ * @return array of [RouteObject]
  */
 fun createBasicRoutes(
     userInfo: UserInfo?,
     userInfoSetter: StateSetter<UserInfo?>,
 ): Array<RouteObject> {
+    val indexRoute: RouteObject = jso {
+        index = true
+        element = indexView.create { this.userInfo = userInfo }
+    }
     val userProfileView = withRouter { _, params ->
         userProfileView {
             userName = params["name"]!!
@@ -224,91 +200,82 @@ fun createBasicRoutes(
     val routeToManageOrganizationView: RouteObject = jso {
         path = "/$MANAGE_ORGANIZATIONS"
         element = when (userInfo.isSuperAdmin()) {
-            true -> OrganizationAdminView::class.react.wrapAndCreate()
-            else -> fallbackNode
+            true -> OrganizationAdminView::class.react.create()
+            else -> fallbackElementWithoutRouterLink
         }
     }
 
     val routeToFallbackView: RouteObject = jso {
         path = "*"
-        element = FallbackView::class.react.wrapAndCreate {
-            bigText = "404"
-            smallText = "Page not found"
-            withRouterLink = true
-        }
+        element = fallbackElementWithRouterLink
     }
 
+
     return listOf(
-        indexView.wrapAndCreate { this.userInfo = userInfo } to "/",
-        saveWelcomeView.wrapAndCreate { this.userInfo = userInfo } to SAVE,
-        vulnWelcomeView.wrapAndCreate { this.userInfo = userInfo } to VULN,
-        sandboxView.wrapAndCreate() to SANDBOX,
-        AboutUsView::class.react.wrapAndCreate() to ABOUT_US,
-        createOrganizationView.wrapAndCreate() to CREATE_ORGANIZATION,
-        registrationView.wrapAndCreate {
+        saveWelcomeView.create { this.userInfo = userInfo } to SAVE,
+        vulnWelcomeView.create { this.userInfo = userInfo } to VULN,
+        sandboxView.create() to SANDBOX,
+        AboutUsView::class.react.create() to ABOUT_US,
+        createOrganizationView.create() to CREATE_ORGANIZATION,
+        registrationView.create {
             this.userInfo = userInfo
             this.userInfoSetter = userInfoSetter
         } to REGISTRATION,
-        CollectionView::class.react.wrapAndCreate { currentUserInfo = userInfo } to PROJECTS,
-        contestListView.wrapAndCreate { currentUserInfo = userInfo } to CONTESTS,
+        CollectionView::class.react.create { currentUserInfo = userInfo } to PROJECTS,
+        contestListView.create { currentUserInfo = userInfo } to CONTESTS,
+        fallbackElementWithRouterLink to ERROR_404,
+        banView.create { this.userInfo = userInfo } to BAN,
+        contestGlobalRatingView.create() to CONTESTS_GLOBAL_RATING,
+        contestView.create() to "$CONTESTS/:contestName",
+        createContestTemplateView.create() to CREATE_CONTESTS_TEMPLATE,
+        contestTemplateView.create() to "$CONTESTS_TEMPLATE/:id",
+        contestExecutionView.create() to "$CONTESTS/:contestName/:organizationName/:projectName",
+        awesomeBenchmarksView.create() to AWESOME_BENCHMARKS,
+        createProjectView.create() to "$CREATE_PROJECT/:organization?",
+        organizationView.create() to ":owner",
+        historyView.create() to ":owner/:name/history",
+        projectView.create() to ":owner/:name",
+        createProjectProblemView.create() to "project/:owner/:name/security/problems/new",
+        projectProblemView.create() to "project/:owner/:name/security/problems/:id",
+        executionView.create() to ":organization/:project/history/execution/:executionId",
+        demoView.create() to "$DEMO/:organizationName/:projectName",
+        cpgView.create() to "$DEMO/cpg",
+        testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
+        vulnerabilityCollectionView.create() to "$VULN/list/:params?",
+        createVulnerabilityView.create() to VULN_CREATE,
+        uploadVulnerabilityView.create() to VULN_UPLOAD,
+        vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
+        demoCollectionView.create() to DEMO,
+        userProfileView.create() to "$VULN_PROFILE/:name",
+        topRatingView.create() to VULN_TOP_RATING,
+        termsOfUsageView.create() to TERMS_OF_USE,
+        cookieTermsOfUse.create() to COOKIE,
+        thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
+        cosvSchemaView.create() to VULN_COSV_SCHEMA,
 
-        FallbackView::class.react.wrapAndCreate {
-            bigText = "404"
-            smallText = "Page not found"
-            withRouterLink = true
-        } to ERROR_404,
-        banView.wrapAndCreate { this.userInfo = userInfo } to BAN,
-        contestGlobalRatingView.wrapAndCreate() to CONTESTS_GLOBAL_RATING,
-        contestView.wrapAndCreate() to "$CONTESTS/:contestName",
-        createContestTemplateView.wrapAndCreate() to CREATE_CONTESTS_TEMPLATE,
-        contestTemplateView.wrapAndCreate() to "$CONTESTS_TEMPLATE/:id",
-        contestExecutionView.wrapAndCreate() to "$CONTESTS/:contestName/:organizationName/:projectName",
-        awesomeBenchmarksView.wrapAndCreate() to AWESOME_BENCHMARKS,
-        createProjectView.wrapAndCreate() to "$CREATE_PROJECT/:organization?",
-        organizationView.wrapAndCreate() to ":owner",
-        historyView.wrapAndCreate() to ":owner/:name/history",
-        projectView.wrapAndCreate() to ":owner/:name",
-        createProjectProblemView.wrapAndCreate() to "project/:owner/:name/security/problems/new",
-        projectProblemView.wrapAndCreate() to "project/:owner/:name/security/problems/:id",
-        executionView.wrapAndCreate() to ":organization/:project/history/execution/:executionId",
-        demoView.wrapAndCreate() to "$DEMO/:organizationName/:projectName",
-        cpgView.wrapAndCreate() to "$DEMO/cpg",
-        testExecutionDetailsView.wrapAndCreate() to "/:organization/:project/history/execution/:executionId/test/:testId",
-        vulnerabilityCollectionView.wrapAndCreate() to "$VULN/list/:params?",
-        createVulnerabilityView.wrapAndCreate() to VULN_CREATE,
-        uploadVulnerabilityView.wrapAndCreate() to VULN_UPLOAD,
-        vulnerabilityView.wrapAndCreate() to "$VULNERABILITY_SINGLE/:identifier",
-        demoCollectionView.wrapAndCreate() to DEMO,
-        userProfileView.wrapAndCreate() to "$VULN_PROFILE/:name",
-        topRatingView.wrapAndCreate() to VULN_TOP_RATING,
-        termsOfUsageView.wrapAndCreate() to TERMS_OF_USE,
-        cookieTermsOfUse.wrapAndCreate() to COOKIE,
-        thanksForRegistrationView.wrapAndCreate() to THANKS_FOR_REGISTRATION,
-        cosvSchemaView.wrapAndCreate() to VULN_COSV_SCHEMA,
-
-        userSettingsView.wrapAndCreate {
+        userSettingsView.create {
             this.userInfo = userInfo
             this.userInfoSetter = userInfoSetter
             type = SETTINGS_PROFILE
         } to SETTINGS_PROFILE,
 
-        userSettingsView.wrapAndCreate {
+        userSettingsView.create {
             this.userInfo = userInfo
             this.userInfoSetter = userInfoSetter
             type = SETTINGS_EMAIL
         } to SETTINGS_EMAIL,
 
-        userSettingsView.wrapAndCreate {
+        userSettingsView.create {
             this.userInfo = userInfo
             type = SETTINGS_TOKEN
         } to SETTINGS_TOKEN,
 
-        userSettingsView.wrapAndCreate {
+        userSettingsView.create {
             this.userInfo = userInfo
             type = SETTINGS_ORGANIZATIONS
         } to SETTINGS_ORGANIZATIONS,
 
-        userSettingsView.wrapAndCreate {
+        userSettingsView.create {
             this.userInfo = userInfo
             type = SETTINGS_DELETE
         } to SETTINGS_DELETE,
@@ -320,45 +287,11 @@ fun createBasicRoutes(
                 element = view
             }
         }
-        .toTypedArray()
         .let { routes ->
             routeToUserProfileView?.let { routes + it } ?: routes
         }
         .plus(routeToManageOrganizationView)
         .plus(routeToFallbackView)
-}
-
-/**
- * @param view
- * @param block
- * @return [ReactElement] created from [view] with wrapping for common parts of all pages
- */
-private fun <P : UserInfoAwareProps> ElementType<P>.wrapAndCreate(
-    block: (@ReactDsl P.() -> Unit)? = null,
-): ReactElement<P> {
-    return block?.let { this@wrapAndCreate.create(block) } ?: run { this@wrapAndCreate.create() }
-//    val wrapped: FC<P> = FC { props ->
-//        requestModalHandler {
-//            this.userInfo = props.userInfo
-//            div {
-//                className = ClassName("d-flex flex-column")
-//                id = "content-wrapper"
-//
-//                ErrorBoundary::class.react {
-//                    topBarComponent { this.userInfo = props.userInfo }
-//                    div {
-//                        className = ClassName("container-fluid")
-//                        id = "common-save-container"
-//                        block?.let { this@wrapAndCreate(block) } ?: run { this@wrapAndCreate() }
-//                    }
-//                    if (window.location.pathname != "/$COOKIE") {
-//                        cookieBanner { }
-//                    }
-//                    footer { }
-//                }
-//            }
-//        }
-//        scrollToTopButton()
-//    }
-//    return block?.let { wrapped.create(block) } ?: run { wrapped.create() }
+        .plus(indexRoute)
+        .toTypedArray()
 }
