@@ -162,7 +162,7 @@ enum class InputTypes(
         tooltip = SEVERITY_VECTOR_TOOLTIP,
     ),
     VULN_CREDIT_NAME("user name", placeholder = "User name"),
-    VULN_CREDIT_CONTACTS("contacts", placeholder = "Contacts"),
+    VULN_CREDIT_CONTACTS("contacts", placeholder = "Contacts: url, mail, social networks, etc."),
     ;
 }
 

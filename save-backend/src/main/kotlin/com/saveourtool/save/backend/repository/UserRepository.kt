@@ -31,6 +31,12 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
     fun findByStatus(status: UserStatus): List<User>
 
     /**
+     * @param status
+     * @return count users
+     */
+    fun countByStatus(status: UserStatus): Int
+
+    /**
      * @param username
      * @param ids set of id of people that should not be found
      * @return list of users with [username] except those whose ids are in [ids]
