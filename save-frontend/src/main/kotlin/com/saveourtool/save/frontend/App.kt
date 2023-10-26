@@ -10,7 +10,6 @@ import com.saveourtool.save.frontend.components.errorView
 import com.saveourtool.save.frontend.components.footer
 import com.saveourtool.save.frontend.components.requestModalHandler
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
-import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.createBasicRoutes
