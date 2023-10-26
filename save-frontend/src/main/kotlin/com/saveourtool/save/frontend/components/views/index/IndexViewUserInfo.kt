@@ -5,6 +5,7 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
+import com.saveourtool.save.frontend.utils.UserInfoAwareProps
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -18,7 +19,7 @@ import web.cssom.*
 const val INDEX_VIEW_CUSTOM_BG = "rgb(247, 250, 253)"
 
 @Suppress("IDENTIFIER_LENGTH")
-val indexViewInfo: FC<IndexViewProps> = FC { props ->
+val indexViewInfo: FC<UserInfoAwareProps> = FC { props ->
     val (t) = useTranslation("index")
 
     div {
@@ -33,11 +34,12 @@ val indexViewInfo: FC<IndexViewProps> = FC { props ->
             +"Non-profit Opensource Ecosystem with a focus on finding code bugs".t()
         }
     }
+    @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
     div {
         className = ClassName("row justify-content-center mt-2")
         cardUser { userInfo = props.userInfo }
-        cardServiceInfo { userInfo = props.userInfo }
-        cardAboutUs { userInfo = props.userInfo }
+        cardServiceInfo { }
+        cardAboutUs { }
     }
     div {
         className = ClassName("row justify-content-center mt-5 text-gray-900")

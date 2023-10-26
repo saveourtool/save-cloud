@@ -38,7 +38,7 @@ import kotlinx.datetime.toLocalDateTime
     "PARAMETER_NAME_IN_OUTER_LAMBDA",
     "LONG_LINE",
 )
-val cardUser: FC<IndexViewProps> = FC { props ->
+val cardUser: FC<UserInfoAwareProps> = FC { props ->
     val (t) = useTranslation("index")
     val (organizations, setOrganizations) = useState(emptyList<OrganizationDto>())
     val (countVulnerability, setCountVulnerability) = useState(0)

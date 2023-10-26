@@ -7,10 +7,8 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.FC
-import react.Props
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
@@ -20,7 +18,7 @@ import web.cssom.*
 import kotlinx.browser.window
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-val indexView: FC<IndexViewProps> = FC { props ->
+val indexView: FC<UserInfoAwareProps> = FC { props ->
     val navigate = useNavigate()
     useEffect {
         if (window.location.run { isCosvDomain() && pathname == "/" }) {
@@ -65,7 +63,7 @@ val indexView: FC<IndexViewProps> = FC { props ->
                             props.userInfo
                                 ?: run {
                                     separator { }
-                                    indexAuth { props.userInfo }
+                                    indexAuth { }
                                 }
 
                             indexViewInfo { userInfo = props.userInfo }
@@ -82,14 +80,4 @@ val indexView: FC<IndexViewProps> = FC { props ->
             className = ClassName("col-3 text-center")
         }
     }
-}
-
-/**
- * properties for index view (user info )
- */
-external interface IndexViewProps : Props {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }

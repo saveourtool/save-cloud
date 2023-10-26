@@ -3,7 +3,8 @@ package com.saveourtool.save.frontend.utils
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.rest
 import com.saveourtool.save.frontend.externals.setupWorker
-import react.VFC
+import react.FC
+import react.Props
 import react.create
 import kotlin.js.Promise
 import kotlin.test.Test
@@ -60,7 +61,7 @@ class ServerSentEventTest {
         val messages = mutableListOf<TestMessage>()
         var responseStatus: Short = 0
 
-        val testComponent: VFC = VFC {
+        val testComponent: FC<Props> = FC {
             useNdjson(
                 url = "${window.location.origin}/test",
                 onCompletion = { responseStatus = OK },

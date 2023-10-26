@@ -6,7 +6,8 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import js.core.jso
 import react.ChildrenBuilder
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
@@ -19,7 +20,7 @@ import web.cssom.rem
 /**
  * Rendering of featured contest card
  */
-internal val welcomeToSaveContests = VFC {
+internal val welcomeToSaveContests: FC<Props> = FC {
     div {
         className = ClassName("col-5")
         div {
