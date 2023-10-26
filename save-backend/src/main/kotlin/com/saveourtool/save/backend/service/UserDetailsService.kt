@@ -14,6 +14,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 
 import org.springframework.security.core.Authentication
@@ -34,6 +35,7 @@ class UserDetailsService(
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val avatarStorage: AvatarStorage,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     /**
      * @param user user for update
@@ -46,6 +48,12 @@ class UserDetailsService(
      * @return spring's UserDetails retrieved from save's user found by provided values
      */
     fun findByName(username: String) = userRepository.findByName(username)
+
+    /**
+     * @param role
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByRole(role: String) = userRepository.findByRole(role)
 
     /**
      * @param name
@@ -121,6 +129,7 @@ class UserDetailsService(
      */
     @Transactional
     fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
+        applicationEventPublisher.publishEvent(newUser)
         val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
         // if we are registering new user (updating just name and status to NOT_APPROVED):
         return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.NOT_APPROVED) {

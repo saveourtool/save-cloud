@@ -19,10 +19,22 @@ interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
     fun findByName(username: String): User?
 
     /**
+     * @param role
+     * @return users with status
+     */
+    fun findByRole(role: String): List<User>
+
+    /**
      * @param status
      * @return users with status
      */
     fun findByStatus(status: UserStatus): List<User>
+
+    /**
+     * @param status
+     * @return count users
+     */
+    fun countByStatus(status: UserStatus): Int
 
     /**
      * @param username

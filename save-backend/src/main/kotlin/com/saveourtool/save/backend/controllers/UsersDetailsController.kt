@@ -244,6 +244,13 @@ class UsersDetailsController(
     fun findNewUsers(): Flux<UserInfo> = blockingToFlux { userRepository.findByStatus(UserStatus.NOT_APPROVED).map { it.toUserInfo() } }
 
     /**
+     * @return count new users
+     */
+    @GetMapping("/new-users-count")
+    @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
+    fun findCountNewUsers(): Mono<Int> = blockingToMono { userRepository.countByStatus(UserStatus.NOT_APPROVED) }
+
+    /**
      * @param userName
      */
     @GetMapping("/approve")
