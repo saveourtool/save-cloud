@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import js.core.jso
 
 import org.w3c.fetch.Response
 import react.FC
@@ -16,17 +17,28 @@ import web.timers.setTimeout
 import kotlin.js.Promise
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.router.MemoryRouter
+import react.create
+import react.router.createMemoryRouter
+import react.router.dom.RouterProvider
 
 val wrapper: FC<PropsWithChildren> = FC {
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
-    MemoryRouter {
-        requestStatusContext.Provider {
-            value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
-            +it.children
-        }
+    RouterProvider {
+        createMemoryRouter(
+            arrayOf(
+                jso {
+                    index = true
+                    element = FC {
+                        requestStatusContext.Provider {
+                            value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
+                            +children
+                        }
+                    }.create()
+                }
+            )
+        )
     }
 }
 

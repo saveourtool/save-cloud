@@ -6,10 +6,11 @@ import com.saveourtool.save.info.UserInfo
 import web.html.HTMLDivElement
 import web.html.HTMLSpanElement
 import react.*
-import react.router.MemoryRouter
 
 import kotlin.test.*
 import js.core.jso
+import react.router.createMemoryRouter
+import react.router.dom.RouterProvider
 
 /**
  * [MemoryRouter] is used to enable usage of `useLocation` hook inside the component
@@ -21,16 +22,22 @@ import js.core.jso
 class TopBarTest {
     @Test
     fun topBarShouldRenderWithUserInfo() {
-        val rr = render(
-            MemoryRouter.create {
-                initialEntries = arrayOf(
-                    "/"
-                )
-                topBarComponent {
-                    userInfo = UserInfo(name = "Test User")
+        val router = createMemoryRouter(
+            routes = arrayOf(
+                jso {
+                    path = "/"
+                    element = FC {
+                        topBarComponent {
+                            userInfo = UserInfo(name = "Test User")
+                        }
+                    }.create()
                 }
-            }
+            )
         )
+        val routerProvider = FC {
+            RouterProvider { router }
+        }
+        val rr = render(routerProvider.create())
 
         val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNotNull(userInfoSpan)
@@ -45,16 +52,22 @@ class TopBarTest {
 
     @Test
     fun topBarShouldRenderWithoutUserInfo() {
-        val rr = render(
-            MemoryRouter.create {
-                initialEntries = arrayOf(
-                    "/"
-                )
-                topBarComponent {
-                    userInfo = null
+        val router = createMemoryRouter(
+            routes = arrayOf(
+                jso {
+                    path = "/"
+                    element = FC {
+                        topBarComponent {
+                            userInfo = null
+                        }
+                    }.create()
                 }
-            }
+            )
         )
+        val routerProvider = FC {
+            RouterProvider { router }
+        }
+        val rr = render(routerProvider.create())
 
         val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNull(userInfoSpan)
