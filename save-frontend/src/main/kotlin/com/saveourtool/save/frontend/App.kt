@@ -82,9 +82,7 @@ val App: FC<Props> = FC {
                     path = "/"
                     element = root.create()
                     errorElement = errorView.create()
-                    children = arrayOf(
-                        *createBasicRoutes(userInfo, setUserInfo)
-                    )
+                    children = createBasicRoutes(userInfo, setUserInfo)
                 }
             ),
             opts = jso {

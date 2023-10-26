@@ -5,10 +5,12 @@ import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 import com.saveourtool.save.frontend.routing.createBasicRoutes
+import com.saveourtool.save.frontend.utils.UserInfoAwareMutableProps
 import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.FC
 import react.create
+import react.router.Outlet
 import web.html.HTMLHeadingElement
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
@@ -20,17 +22,24 @@ import kotlin.test.Test
 class BasicRoutingTest {
     @Test
     fun basicRoutingShouldRenderIndexViewTest(): Promise<Unit> {
-        val (userInfo, setUserInfo) = useState<UserInfo>()
         // App uses `BrowserRouter`, while `MemoryRouter` should be used for tests. Thus, app cannot be rendered
-        val routerProvider = FC {
+        val routerProvider = FC { props: UserInfoAwareMutableProps ->
             RouterProvider {
                 router = createMemoryRouter(
-                    arrayOf(jso {
-                        path = "/"
-                        children = createBasicRoutes(userInfo, setUserInfo)
-                    })
+                    routes = arrayOf(
+                        jso {
+                            path = "/"
+                            element = FC {
+                                initI18n()
+                                Outlet()
+                            }.create()
+                            children = createBasicRoutes(props.userInfo, props.userInfoSetter)
+                        }
+                    ),
+                    opts = jso {
+                        basename = "/"
+                    }
                 )
-                initI18n()
             }
         }
         render(routerProvider.create())
