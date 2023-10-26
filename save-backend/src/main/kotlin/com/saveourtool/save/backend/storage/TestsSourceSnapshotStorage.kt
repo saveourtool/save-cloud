@@ -43,7 +43,7 @@ class TestsSourceSnapshotStorage(
     }
         .flatMap { tmpSourceDir ->
             blockingToMono {
-                createTempFile(tmpSourceDir, "archive-", ARCHIVE_EXTENSION)
+                createTempFile(tmpSourceDir, "archive-", ZIP_ARCHIVE_EXTENSION)
             }
                 .flatMap { tmpArchive ->
                     download(request.testsSourceSnapshot)
