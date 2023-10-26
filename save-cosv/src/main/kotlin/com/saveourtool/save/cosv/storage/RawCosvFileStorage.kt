@@ -142,14 +142,6 @@ class RawCosvFileStorage(
         .switchIfEmptyToNotFound { "Not found raw COSV file id=$id" }
 
     /**
-     * @param ids
-     * @return [RawCosvFileDtoCollection]
-     */
-    fun findByIds(
-        ids: Collection<Long>,
-    ): Mono<RawCosvFileDtoCollection> = blockingToMono { ids.map { id -> s3KeyManager.findKeyByEntityId(id).orNotFound { "Not found raw COSV file id=$id" } } }
-
-    /**
      * @param id
      * @return content of raw COSV file
      */
@@ -166,13 +158,4 @@ class RawCosvFileStorage(
         id: Long,
     ): Mono<Boolean> = findById(id)
         .flatMap { delete(it) }
-
-    /**
-     * @param ids
-     * @return result of deletion
-     */
-    fun deleteAllByIds(
-        ids: Collection<Long>,
-    ): Mono<Boolean> = findByIds(ids)
-        .flatMap { deleteAll(it) }
 }

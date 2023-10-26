@@ -119,8 +119,24 @@ val cosvFileManagerComponent: FC<Props> = FC {
         setUserOrganizations(organizations)
     }
 
+    val getStatistics = useDeferredRequest {
+        selectedOrganization?.let {
+            val response = get(
+                url = "$apiUrl/raw-cosv/$selectedOrganization/statistics",
+                jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+                responseHandler = ::noopResponseHandler
+            )
+            when {
+                response.ok -> setStatistics(response.unsafeMap { it.decodeFromJsonString<RawCosvFileStatisticsDto>() })
+                else -> window.alert("Failed to get statistics data: ${response.unpackMessageOrNull().orEmpty()}")
+            }
+        }
+    }
+
     val fetchMoreFiles = useDeferredRequest {
         selectedOrganization?.let {
+            getStatistics()
             val newPage = lastPage.inc()
             val response = get(
                 url = "$apiUrl/raw-cosv/$selectedOrganization/list",
@@ -152,24 +168,8 @@ val cosvFileManagerComponent: FC<Props> = FC {
         }
     }
 
-    val getStatistics = useDeferredRequest {
-        selectedOrganization?.let {
-            val response = get(
-                url = "$apiUrl/raw-cosv/$selectedOrganization/statistics",
-                jsonHeaders,
-                loadingHandler = ::noopLoadingHandler,
-                responseHandler = ::noopResponseHandler
-            )
-            when {
-                response.ok -> setStatistics(response.unsafeMap { it.decodeFromJsonString<RawCosvFileStatisticsDto>() })
-                else -> window.alert("Failed to get statistics data: ${response.unpackMessageOrNull().orEmpty()}")
-            }
-        }
-    }
-
     val reFetchFiles = useDeferredRequest {
         selectedOrganization?.let {
-            getStatistics()
             setAvailableFiles(emptyList())
             setLastPage(0)
             fetchMoreFiles()
@@ -389,7 +389,20 @@ val cosvFileManagerComponent: FC<Props> = FC {
             // ===== AVAILABLE FILES =====
             availableFiles.map { file ->
                 li {
-                    className = ClassName("list-group-item text-left")
+                    val highlightZipArchive = when {
+                        file.isUploadedZipArchive() -> "font-weight-bold text-uppercase"
+                        else -> ""
+                    }
+                    val fileColor = when {
+                        file.isUploadedZipArchive() -> "primary"
+                        file.isUploadedJsonFile() -> "success"
+                        file.isProcessing() -> "secondary"
+                        file.isPendingRemoved() -> "light"
+                        file.isDuplicate() -> "warning"
+                        file.isHasErrors() -> "danger"
+                        else -> "primary"
+                    }
+                    className = ClassName("list-group-item $highlightZipArchive text-left list-group-item-$fileColor")
                     if (file.isUploadedZipArchive()) {
                         button {
                             type = ButtonType.button
@@ -419,16 +432,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         style = jso {
                             cursor = "pointer".unsafeCast<Cursor>()
                         }
-                        val textColor = if (file.status == RawCosvFileStatus.FAILED) {
-                            if (file.isDuplicate()) {
-                                "text-warning"
-                            } else {
-                                "text-danger"
-                            }
-                        } else {
-                            "text-gray-400"
-                        }
-                        className = ClassName("$textColor text-justify")
+                        className = ClassName("font-weight-bold text-justify")
                         file.statusMessage?.let { statusMessage ->
                             onClick = {
                                 window.alert(statusMessage)

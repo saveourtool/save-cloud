@@ -388,13 +388,13 @@ class RawCosvFileController(
         .flatMap {
             rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
                 .map { files ->
-                    files.filter { it.isDuplicate() }.map { it.requiredId() }
+                    files.filter { it.isDuplicate() }
                 }
-                .flatMap { ids ->
-                    rawCosvFileStorage.deleteAllByIds(ids)
+                .flatMap { duplicateFiles ->
+                    rawCosvFileStorage.deleteAll(duplicateFiles)
                         .filter { it }
                         .switchIfEmptyToNotFound {
-                            "Some duplicated COSV files was not found by $ids"
+                            "Some duplicated COSV files was not found by ids"
                         }
                         .map {
                             ResponseEntity.ok("Duplicated COSV files deleted successfully")
