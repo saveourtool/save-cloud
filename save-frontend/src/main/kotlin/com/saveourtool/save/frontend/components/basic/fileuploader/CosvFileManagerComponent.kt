@@ -37,7 +37,6 @@ import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.useState
 import web.cssom.ClassName
-import web.cssom.Cursor
 import web.file.File
 import web.html.ButtonType
 import web.http.FormData
@@ -183,10 +182,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
             responseHandler = ::noopResponseHandler
         )
         when {
-            response.ok -> {
-                reFetchFiles()
-                window.alert("All duplicated files deleted")
-            }
+            response.ok -> reFetchFiles()
             else -> window.alert("Failed to delete duplicated files")
         }
     }
