@@ -15,6 +15,7 @@ import com.saveourtool.save.v1
 import org.reactivestreams.Publisher
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -318,7 +319,7 @@ class RawCosvFileController(
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMap {
-            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name, PageRequest.of(page, size))
+            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name, PageRequest.of(page, size, Sort.by("isZip").descending().and(Sort.by("id"))))
         }
         .flatMapIterable { it }
         .let {
