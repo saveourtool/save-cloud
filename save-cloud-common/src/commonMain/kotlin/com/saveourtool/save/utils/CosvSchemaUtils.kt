@@ -5,7 +5,6 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto.Companion.vulnerabilityPrefixes
 import com.saveourtool.save.info.UserInfo
 
 import com.saveourtool.osv4k.*
