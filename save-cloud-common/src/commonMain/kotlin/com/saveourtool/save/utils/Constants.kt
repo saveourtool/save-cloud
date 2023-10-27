@@ -74,9 +74,9 @@ const val AUTHORIZATION_NAME = "X-Authorization-Name"
 const val AUTHORIZATION_ROLES = "X-Authorization-Roles"
 
 /**
- * An attribute to store info about save user
+ * An attribute to store save's user id
  */
-const val SAVE_USER_DETAILS_ATTRIBUTE = "save-user-details"
+const val SAVE_USER_ID_ATTRIBUTE = "save-user-id"
 
 /**
  * Default time to execute setup.sh
