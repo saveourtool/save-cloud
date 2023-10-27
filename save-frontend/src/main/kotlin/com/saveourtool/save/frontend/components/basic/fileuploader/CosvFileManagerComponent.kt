@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.frontend.components.basic.selectFormRequired
@@ -89,7 +89,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                 setAvailableFiles { it.minus(file) }
                 setStatistics { it.copy(allAvailableFilesCount = statistics.allAvailableFilesCount.dec()) }
                 when {
-                    file.isUploadedZipArchive() -> setStatistics { it.copy(uploadedArchivesCount = statistics.uploadedArchivesCount.dec()) }
+                    file.isZipArchive() -> setStatistics { it.copy(uploadedArchivesCount = statistics.uploadedArchivesCount.dec()) }
                     file.isUploadedJsonFile() -> setStatistics { it.copy(uploadedJsonFilesCount = statistics.uploadedJsonFilesCount.dec()) }
                     file.isProcessing() -> setStatistics { it.copy(processingFilesCount = statistics.processingFilesCount.dec()) }
                     file.isPendingRemoved() -> setStatistics { it.copy(pendingRemovedFilesCount = statistics.pendingRemovedFilesCount.dec()) }
@@ -385,11 +385,11 @@ val cosvFileManagerComponent: FC<Props> = FC {
             availableFiles.map { file ->
                 li {
                     val highlightZipArchive = when {
-                        file.isUploadedZipArchive() -> "font-weight-bold"
+                        file.isZipArchive() -> "font-weight-bold"
                         else -> ""
                     }
                     val fileColor = when {
-                        file.isUploadedZipArchive() -> "primary"
+                        file.isZipArchive() -> "primary"
                         file.isUploadedJsonFile() -> "success"
                         file.isProcessing() -> "secondary"
                         file.isPendingRemoved() -> "light"
@@ -401,7 +401,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                     asDynamic()["data-toggle"] = "tooltip"
                     asDynamic()["data-placement"] = "left"
                     title = when {
-                        file.isUploadedZipArchive() -> "It's a ZIP archive, please unzip to get JSON files"
+                        file.isZipArchive() -> "It's a ZIP archive, please unzip to get JSON files"
                         file.isUploadedJsonFile() -> "It's a JSON file, you can submit it"
                         file.isProcessing() -> "In progress, please wait"
                         file.isPendingRemoved() -> "Already processed, will be deleted shortly"
@@ -409,7 +409,7 @@ val cosvFileManagerComponent: FC<Props> = FC {
                         file.isHasErrors() -> "This JSON file has error: ${file.statusMessage.orEmpty()}"
                         else -> ""
                     }
-                    if (file.isUploadedZipArchive()) {
+                    if (file.isZipArchive()) {
                         button {
                             type = ButtonType.button
                             className = ClassName("btn")
