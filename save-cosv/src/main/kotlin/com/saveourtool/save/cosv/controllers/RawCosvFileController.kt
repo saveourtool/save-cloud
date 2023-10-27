@@ -6,6 +6,7 @@ import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.*
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.storage.concatS3Key
@@ -244,20 +245,6 @@ class RawCosvFileController(
 
     /**
      * @param organizationName
-     * @param ids
-     * @param authentication
-     * @return [StringResponse]
-     */
-    @RequiresAuthorizationSourceHeader
-    @PostMapping("/submit-to-process")
-    fun submitToProcess(
-        @PathVariable organizationName: String,
-        @RequestBody ids: List<Long>,
-        authentication: Authentication,
-    ): Mono<StringResponse> = doSubmitToProcess(organizationName, ids, authentication)
-
-    /**
-     * @param organizationName
      * @param authentication
      * @return [StringResponse]
      */
@@ -384,6 +371,34 @@ class RawCosvFileController(
                 }
                 .map {
                     ResponseEntity.ok("Raw COSV file deleted successfully")
+                }
+        }
+
+    /**
+     * @param organizationName
+     * @param authentication
+     * @return [StringResponse]
+     */
+    @RequiresAuthorizationSourceHeader
+    @DeleteMapping("/delete-all-duplicated-files")
+    fun deleteAllDuplicatedFiles(
+        @PathVariable organizationName: String,
+        authentication: Authentication,
+    ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
+        .flatMap {
+            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
+                .map { files ->
+                    files.filter { it.isDuplicate() }
+                }
+                .flatMap { duplicateFiles ->
+                    rawCosvFileStorage.deleteAll(duplicateFiles)
+                        .filter { it }
+                        .switchIfEmptyToNotFound {
+                            "Duplicated COSV files can not be deleted because some of them were not found"
+                        }
+                        .map {
+                            ResponseEntity.ok("Duplicated COSV files deleted successfully")
+                        }
                 }
         }
 
