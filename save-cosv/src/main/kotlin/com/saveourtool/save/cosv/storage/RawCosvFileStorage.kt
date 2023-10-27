@@ -9,7 +9,7 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedZipArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.s3.S3Operations
@@ -79,7 +79,7 @@ class RawCosvFileStorage(
         val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
         RawCosvFileStatisticsDto(
             filesList.count(),
-            filesList.count { it.isUploadedZipArchive() },
+            filesList.count { it.isZipArchive() },
             filesList.count { it.isUploadedJsonFile() },
             filesList.count { it.isProcessing() },
             filesList.count { it.isPendingRemoved() },

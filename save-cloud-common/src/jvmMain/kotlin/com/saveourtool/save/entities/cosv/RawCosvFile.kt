@@ -4,6 +4,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.entity.IBaseEntityWithDate
+import com.saveourtool.save.utils.ZIP_ARCHIVE_EXTENSION
 
 import org.hibernate.annotations.Formula
 
@@ -37,7 +38,7 @@ class RawCosvFile(
     var organization: Organization,
     @Enumerated(EnumType.STRING)
     var status: RawCosvFileStatus,
-    @Formula("status = 'UPLOADED' AND LOWER(file_name) LIKE '%_.zip'")
+    @Formula("LOWER(file_name) LIKE '%_$ZIP_ARCHIVE_EXTENSION'")
     var isZip: Boolean? = null,
     var statusMessage: String? = null,
     var contentLength: Long? = null,

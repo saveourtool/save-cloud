@@ -41,14 +41,14 @@ data class RawCosvFileDto(
          *
          * @return true if this raw cosv file is uploaded zip archive, checking by [fileName]
          */
-        fun RawCosvFileDto.isUploadedZipArchive(): Boolean = status == RawCosvFileStatus.UPLOADED && fileName.endsWith(ZIP_ARCHIVE_EXTENSION, ignoreCase = true)
+        fun RawCosvFileDto.isZipArchive(): Boolean = fileName.endsWith(ZIP_ARCHIVE_EXTENSION, ignoreCase = true)
 
         /**
          * Extracted as extension to avoid Jackson issue with encoding this field
          *
          * @return true if this raw cosv file is uploaded json file, checking by [fileName]
          */
-        fun RawCosvFileDto.isUploadedJsonFile(): Boolean = status == RawCosvFileStatus.UPLOADED && !fileName.endsWith(ZIP_ARCHIVE_EXTENSION, ignoreCase = true)
+        fun RawCosvFileDto.isUploadedJsonFile(): Boolean = !isZipArchive() && status == RawCosvFileStatus.UPLOADED
 
         /**
          * Extracted as extension to avoid Jackson issue with encoding this field
