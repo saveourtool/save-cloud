@@ -11,7 +11,6 @@ import com.saveourtool.save.frontend.components.views.usersettings.AVATAR_TITLE
 import com.saveourtool.save.frontend.externals.fontawesome.faCamera
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AVATARS_PACKS_DIR
 import com.saveourtool.save.utils.AvatarType.USER
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
@@ -29,7 +28,7 @@ import web.http.FormData
 
 import kotlinx.coroutines.await
 
-val avatarSelector: FC<AvatarSelectorProps> = FC { props ->
+val avatarSelector: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     val (avatar, setAvatar) = useState<File?>(null)
     val (selectedAvatar, setSelectedAvatar) = useState("")
     val avatarWindowOpen = useWindowOpenness()
@@ -126,24 +125,6 @@ val avatarSelector: FC<AvatarSelectorProps> = FC { props ->
             }
         }
     }
-}
-
-/**
- * Properties for Avatars
- */
-external interface AvatarSelectorProps : PropsWithChildren {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
-
-    /**
-     * After updating user information we will update userSettings without re-rendering the page
-     * PLEASE NOTE: THIS PROPERTY AFFECTS RENDERING OF WHOLE APP.KT
-     * IF YOU HAVE SOME PROBLEMS WITH IT, CHECK THAT YOU HAVE PROPAGATED IT PROPERLY:
-     * { this.userInfoSetter = (!) PROPS (!) .userInfoSetter }
-     */
-    var userInfoSetter: StateSetter<UserInfo?>
 }
 
 /**

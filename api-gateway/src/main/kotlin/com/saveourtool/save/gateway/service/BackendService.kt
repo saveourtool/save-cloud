@@ -3,6 +3,7 @@ package com.saveourtool.save.gateway.service
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.gateway.config.ConfigurationProperties
+import com.saveourtool.save.utils.SAVE_USER_ID_ATTRIBUTE
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
 import org.springframework.http.HttpStatus
@@ -18,6 +19,7 @@ import org.springframework.web.reactive.function.client.toEntity
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.server.WebSession
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import java.security.Principal
 
@@ -27,6 +29,7 @@ import java.security.Principal
 @Service
 class BackendService(
     configurationProperties: ConfigurationProperties,
+    private val saveUserDetailsCache: SaveUserDetailsCache,
 ) {
     private val webClient = WebClient.create(configurationProperties.backend.url)
 
@@ -60,9 +63,10 @@ class BackendService(
      * @param session current [WebSession]
      * @return current user [SaveUserDetails]
      */
-    @Suppress("UnusedParameter")
     fun findByPrincipal(principal: Principal, session: WebSession): Mono<SaveUserDetails> = when (principal) {
-        is OAuth2AuthenticationToken -> findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
+        is OAuth2AuthenticationToken -> session.getSaveUserDetails().switchIfEmpty {
+            findByOriginalLogin(principal.authorizedClientRegistrationId, principal.name)
+        }
         is UsernamePasswordAuthenticationToken -> (principal.principal as? SaveUserDetails)
             .toMono()
             .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
@@ -83,6 +87,9 @@ class BackendService(
         .contentType(MediaType.APPLICATION_JSON)
         .retrieve()
         .getSaveUserDetails()
+        .doOnNext {
+            saveUserDetailsCache.save(it)
+        }
 
     private fun WebClient.ResponseSpec.getSaveUserDetails(): Mono<SaveUserDetails> = this
         .onStatus({ it.is4xxClientError }) {
@@ -91,5 +98,15 @@ class BackendService(
         .toEntity<SaveUserDetails>()
         .flatMap { responseEntity ->
             responseEntity.body.toMono().orNotFound { "Authentication body is empty" }
+        }
+
+    private fun WebSession.getSaveUserDetails(): Mono<SaveUserDetails> = this
+        .getAttribute<Long>(SAVE_USER_ID_ATTRIBUTE)
+        .toMono()
+        .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
+            "Not found attribute $SAVE_USER_ID_ATTRIBUTE for ${OAuth2AuthenticationToken::class}"
+        }
+        .mapNotNull { id ->
+            saveUserDetailsCache.get(id)
         }
 }

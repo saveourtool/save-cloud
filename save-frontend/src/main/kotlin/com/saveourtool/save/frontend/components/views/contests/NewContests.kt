@@ -8,7 +8,8 @@ import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
@@ -22,7 +23,7 @@ import web.cssom.rem
 /**
  * rendering of newly added contests
  */
-internal val newContests = VFC {
+internal val newContests: FC<Props> = FC {
     val (newContests, setNewContests) = useState<List<ContestDto>>(emptyList())
     useRequest {
         val contests: List<ContestDto> = get(

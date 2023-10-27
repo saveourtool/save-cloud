@@ -7,15 +7,10 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.Style
-import com.saveourtool.save.frontend.utils.particles
-import com.saveourtool.save.frontend.utils.useBackground
-import com.saveourtool.save.frontend.utils.useRedirectToIndexIf
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
 import react.FC
-import react.Props
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.b
 import react.dom.html.ReactHTML.div
@@ -27,7 +22,7 @@ import react.dom.html.ReactHTML.strong
 import web.cssom.ClassName
 import web.cssom.rem
 
-val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props ->
+val thanksForRegistrationView: FC<UserInfoAwareProps> = FC { props ->
     useBackground(Style.INDEX)
     particles()
     val (t) = useTranslation("thanks-for-registration")
@@ -82,14 +77,4 @@ val thanksForRegistrationView: FC<ThanksForRegistrationViewProps> = FC { props -
             }
         }
     }
-}
-
-/**
- * `Props` retrieved from router
- */
-external interface ThanksForRegistrationViewProps : Props {
-    /**
-     * Currently logged-in user or null
-     */
-    var userInfo: UserInfo?
 }

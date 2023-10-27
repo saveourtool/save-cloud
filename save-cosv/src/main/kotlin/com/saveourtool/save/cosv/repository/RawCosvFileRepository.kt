@@ -21,13 +21,6 @@ interface RawCosvFileRepository : BaseEntityRepository<RawCosvFile> {
     /**
      * @param organizationName name from [RawCosvFile.organization]
      * @param userName name from [RawCosvFile.user]
-     * @return count of all [RawCosvFile]s which has provided [RawCosvFile.organization]
-     */
-    fun countAllByOrganizationNameAndUserName(organizationName: String, userName: String): Long
-
-    /**
-     * @param organizationName name from [RawCosvFile.organization]
-     * @param userName name from [RawCosvFile.user]
      * @return all [RawCosvFile]s which has provided [RawCosvFile.organization]
      */
     fun findAllByOrganizationNameAndUserName(organizationName: String, userName: String): Collection<RawCosvFile>

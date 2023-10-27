@@ -6,7 +6,7 @@ package com.saveourtool.save.utils
 
 import okio.Path
 
-const val ARCHIVE_EXTENSION = ".zip"
+const val ZIP_ARCHIVE_EXTENSION = ".zip"
 
 /**
  * Extract zip to dir with [targetPath]

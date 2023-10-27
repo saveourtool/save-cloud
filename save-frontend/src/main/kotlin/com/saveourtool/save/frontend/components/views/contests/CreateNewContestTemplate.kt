@@ -4,14 +4,15 @@ package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
-import react.VFC
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
 import web.cssom.*
 
-internal val createNewContestTemplate = VFC {
+internal val createNewContestTemplate: FC<Props> = FC {
     div {
         className = ClassName("col-2 text-center")
         Link {

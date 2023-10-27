@@ -1,4 +1,6 @@
-@file:Suppress("FILE_NAME_MATCH_CLASS")
+/**
+ * FC user's topbar
+ */
 
 package com.saveourtool.save.frontend.components.topbar
 
@@ -7,7 +9,6 @@ import com.saveourtool.save.frontend.components.modal.logoutModal
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -39,7 +40,7 @@ val logoSize: CSSProperties = jso {
     "TOO_LONG_FUNCTION",
     "LOCAL_VARIABLE_EARLY_DECLARATION"
 )
-val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
+val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
     val (t) = useTranslation("topbar")
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
@@ -138,14 +139,4 @@ val topBarUserField: FC<TopBarUserFieldProps> = FC { props ->
     }() {
         isOpen = isLogoutModalOpen
     }
-}
-
-/**
- * [Props] of the top bar user field component
- */
-external interface TopBarUserFieldProps : Props {
-    /**
-     * Currently logged-in user or `null`.
-     */
-    var userInfo: UserInfo?
 }

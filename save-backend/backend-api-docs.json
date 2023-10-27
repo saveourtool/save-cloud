@@ -7681,60 +7681,6 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/count": {
-      "get": {
-        "operationId": "count",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "organizationName",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "example": 123,
-            "in": "header",
-            "name": "X-Authorization-Id",
-            "required": true
-          },
-          {
-            "example": "user",
-            "in": "header",
-            "name": "X-Authorization-Name",
-            "required": true
-          },
-          {
-            "example": "VIEWER",
-            "in": "header",
-            "name": "X-Authorization-Roles",
-            "required": true
-          }
-        ],
-        "responses": {
-          "401": {
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "basic": []
-          }
-        ],
-        "tags": [
-          "raw-cosv-file-controller"
-        ]
-      }
-    },
     "/api/v1/raw-cosv/{organizationName}/delete/{id}": {
       "delete": {
         "operationId": "delete_1",
@@ -7951,6 +7897,59 @@
                   "items": {
                     "$ref": "#/components/schemas/RawCosvFileDto"
                   }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": [
+          "raw-cosv-file-controller"
+        ]
+      }
+    },
+    "/api/v1/raw-cosv/{organizationName}/statistics": {
+      "get": {
+        "operationId": "statistics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organizationName",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "example": 123,
+            "in": "header",
+            "name": "X-Authorization-Id",
+            "required": true
+          },
+          {
+            "example": "user",
+            "in": "header",
+            "name": "X-Authorization-Name",
+            "required": true
+          },
+          {
+            "example": "VIEWER",
+            "in": "header",
+            "name": "X-Authorization-Roles",
+            "required": true
+          }
+        ],
+        "responses": {
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawCosvFileStatisticsDto"
                 }
               }
             },
@@ -10854,6 +10853,27 @@
                   "items": {
                     "$ref": "#/components/schemas/UserInfo"
                   }
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
+    "/api/v1/users/new-users-count": {
+      "get": {
+        "operationId": "findCountNewUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
                 }
               }
             },
@@ -14102,6 +14122,48 @@
           },
           "userName": {
             "type": "string"
+          }
+        }
+      },
+      "RawCosvFileStatisticsDto": {
+        "required": [
+          "allAvailableFilesCount",
+          "duplicateFilesCount",
+          "errorFilesCount",
+          "pendingRemovedFilesCount",
+          "processingFilesCount",
+          "uploadedArchivesCount",
+          "uploadedJsonFilesCount"
+        ],
+        "type": "object",
+        "properties": {
+          "allAvailableFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicateFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errorFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingRemovedFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processingFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploadedArchivesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploadedJsonFilesCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
