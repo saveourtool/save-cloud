@@ -21,6 +21,7 @@ class Notification(
     var user: User,
 ) : BaseEntityWithDateAndDto<NotificationDto>() {
     override fun toDto() = NotificationDto(
+        id = requiredId(),
         message = message,
         createDate = createDate?.toKotlinLocalDateTime(),
     )
