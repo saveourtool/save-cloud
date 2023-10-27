@@ -5,7 +5,6 @@
 package com.saveourtool.save.frontend.components.basic.organizations
 
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDto
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
@@ -31,7 +30,7 @@ private val vulnerabilitiesUrl = "$apiUrl/vulnerabilities"
 private val vulnerabilityTable: FC<VulnerabilityTableProps> = tableComponent(
     columns = {
         columns {
-            column(id = "name", header = "Name", VulnerabilityDto::identifier) { cellContext ->
+            column(id = "name", header = "Name", VulnerabilityMetadataDto::identifier) { cellContext ->
                 Fragment.create {
                     td {
                         Link {
@@ -42,21 +41,21 @@ private val vulnerabilityTable: FC<VulnerabilityTableProps> = tableComponent(
                     }
                 }
             }
-            column(id = "short_description", header = "Description", VulnerabilityDto::shortDescription) { cellContext ->
+            column(id = "short_description", header = "Description", VulnerabilityMetadataDto::summary) { cellContext ->
                 Fragment.create {
                     td {
                         +cellContext.value
                     }
                 }
             }
-            column(id = "progress", header = "Criticality", VulnerabilityDto::progress) { cellContext ->
+            column(id = "progress", header = "Criticality", VulnerabilityMetadataDto::severityNum) { cellContext ->
                 Fragment.create {
                     td {
                         +cellContext.value.toString()
                     }
                 }
             }
-            column(id = "language", header = "Language", VulnerabilityDto::language) { cellContext ->
+            column(id = "language", header = "Language", VulnerabilityMetadataDto::language) { cellContext ->
                 Fragment.create {
                     td {
                         +cellContext.value.toString()
@@ -115,12 +114,9 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
                         body = filterJson,
                         loadingHandler = ::loadingHandler,
                         responseHandler = ::noopResponseHandler,
-                    )
-                        .unsafeMap<Array<out VulnerabilityMetadataDto>> { response ->
-                            response.decodeFromJsonString()
-                        }
-                        .map(VulnerabilityMetadataDto::toVulnerabilityDto)
-                        .toTypedArray()
+                    ).unsafeMap { response ->
+                        response.decodeFromJsonString()
+                    }
                 }
                 getPageCount = { pageSize ->
                     pageCount(count, pageSize)
@@ -147,7 +143,7 @@ val organizationVulnerabilitiesTab: FC<OrganizationVulnerabilitiesMenuProps> = F
  *
  * @see vulnerabilityTable
  */
-external interface VulnerabilityTableProps : TableProps<VulnerabilityDto> {
+external interface VulnerabilityTableProps : TableProps<VulnerabilityMetadataDto> {
     /**
      * The total count of approved vulnerabilities for this organization.
      */
