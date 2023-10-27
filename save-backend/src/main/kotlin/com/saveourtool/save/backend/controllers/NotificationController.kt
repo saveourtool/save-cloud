@@ -45,7 +45,7 @@ class NotificationController(
     ): Flux<NotificationDto> = blockingToFlux {
         authentication?.let {
             notificationService.getAllByUserName(authentication.username()).map { it.toDto() }
-        } ?: emptyList()
+        }.orEmpty()
     }
 
     @DeleteMapping("/delete-by-id")
