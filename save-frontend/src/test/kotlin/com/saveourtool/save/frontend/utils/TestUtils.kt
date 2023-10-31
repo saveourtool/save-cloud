@@ -21,7 +21,7 @@ import react.create
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
 
-val wrapper: FC<PropsWithChildren> = FC {
+val wrapper: FC<PropsWithChildren> = FC { props ->
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
@@ -33,7 +33,7 @@ val wrapper: FC<PropsWithChildren> = FC {
                     element = FC {
                         requestStatusContext.Provider {
                             value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
-                            +children
+                            +props.children
                         }
                     }.create()
                 }

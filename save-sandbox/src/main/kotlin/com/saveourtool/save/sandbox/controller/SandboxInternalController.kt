@@ -48,7 +48,7 @@ class SandboxInternalController(
     ): Mono<ByteBufferFluxResponse> {
         val archiveFile = createTempFile(
             prefix = "tests-",
-            suffix = ARCHIVE_EXTENSION
+            suffix = ZIP_ARCHIVE_EXTENSION
         )
         return { createTempDirectory(prefix = "tests-directory-") }
             .toMono()

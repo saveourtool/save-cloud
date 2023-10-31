@@ -36,10 +36,18 @@ dependencies {
     implementation(libs.ktor.http)
 }
 
+val distributionsDirName = "distributions"
+
 kotlin {
     js(IR) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
+            distribution(
+                Action {
+                    // TODO: need to remove this overriding
+                    outputDirectory = layout.buildDirectory.dir(distributionsDirName)
+                }
+            )
             testTask {
                 useKarma {
                     when (properties["save.profile"]) {
@@ -243,7 +251,7 @@ val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
     dependsOn(":save-frontend:browserDistribution")
     archiveClassifier.set("distribution")
-    from("$buildDir/distributions") {
+    from("$buildDir/$distributionsDirName") {
         into("static")
         exclude("scss")
     }

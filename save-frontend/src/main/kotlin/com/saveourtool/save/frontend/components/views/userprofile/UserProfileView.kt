@@ -48,6 +48,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val (user, setUser) = useState<UserInfo?>(null)
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
+    val (countUsers, setCountUsers) = useState(0)
 
     useRequest {
         val userNew: UserInfo = get(
@@ -67,6 +68,17 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             .decodeFromJsonString()
 
         setOrganizations(organizationsNew)
+
+        val count: Int = get(
+            url = "$apiUrl/users/new-users-count",
+            headers = jsonHeaders,
+            loadingHandler = ::noopLoadingHandler,
+            responseHandler = ::noopResponseHandler,
+        ).unsafeMap {
+            it.decodeFromJsonString()
+        }
+
+        setCountUsers(count)
     }
 
     div {
@@ -84,13 +96,14 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             className = ClassName("col-6 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
                 val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
-                    UserProfileTab.values().map { it.name }
+                    UserProfileTab.values().map { if (it == UserProfileTab.USERS) "${it.name} ($countUsers)" else it.name }
                 } else {
                     UserProfileTab.values().filter { it != UserProfileTab.USERS }
                         .map { it.name }
                 }
                 tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
-                    setSelectedMenu { UserProfileTab.valueOf(value) }
+                    val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
+                    setSelectedMenu { UserProfileTab.valueOf(newValue) }
                 }
             }
 

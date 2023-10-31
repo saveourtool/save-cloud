@@ -4276,6 +4276,97 @@
         ]
       }
     },
+    "/api/v1/notifications/delete-by-id": {
+      "delete": {
+        "description": "Delete notification by id.",
+        "operationId": "deleteById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successfully deleted notification by id"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Delete notification by id.",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/get-all-by-user": {
+      "get": {
+        "description": "Get user notifications.",
+        "operationId": "getAllNotifications",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            },
+            "description": "Successfully fetched all notifications by user name"
+          },
+          "401": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "summary": "Get all notifications by user name.",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/api/v1/organizations/all-by-filters": {
       "post": {
         "description": "Get organizations",
@@ -7681,9 +7772,9 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/count": {
-      "get": {
-        "operationId": "count",
+    "/api/v1/raw-cosv/{organizationName}/delete-all-duplicated-files": {
+      "delete": {
+        "operationId": "deleteAllDuplicatedFiles",
         "parameters": [
           {
             "in": "path",
@@ -7717,8 +7808,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int64"
+                  "type": "string"
                 }
               }
             },
@@ -7967,9 +8057,9 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/submit-all-uploaded-to-process": {
-      "post": {
-        "operationId": "submitAllUploadedToProcess",
+    "/api/v1/raw-cosv/{organizationName}/statistics": {
+      "get": {
+        "operationId": "statistics",
         "parameters": [
           {
             "in": "path",
@@ -8003,7 +8093,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/RawCosvFileStatisticsDto"
                 }
               }
             },
@@ -8020,9 +8110,9 @@
         ]
       }
     },
-    "/api/v1/raw-cosv/{organizationName}/submit-to-process": {
+    "/api/v1/raw-cosv/{organizationName}/submit-all-uploaded-to-process": {
       "post": {
-        "operationId": "submitToProcess",
+        "operationId": "submitAllUploadedToProcess",
         "parameters": [
           {
             "in": "path",
@@ -8051,20 +8141,6 @@
             "required": true
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "401": {
             "content": {
@@ -10865,6 +10941,27 @@
         ]
       }
     },
+    "/api/v1/users/new-users-count": {
+      "get": {
+        "operationId": "findCountNewUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "users-details-controller"
+        ]
+      }
+    },
     "/api/v1/users/permissions": {
       "get": {
         "operationId": "getUserPermissions",
@@ -11202,7 +11299,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
+                  "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                 }
               }
             },
@@ -11212,7 +11309,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/VulnerabilityDto"
+                  "$ref": "#/components/schemas/VulnerabilityMetadataDto"
                 }
               }
             },
@@ -13249,6 +13346,25 @@
           }
         }
       },
+      "NotificationDto": {
+        "required": [
+          "id",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "createDate": {
+            "$ref": "#/components/schemas/LocalDateTime"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "Organization": {
         "required": [
           "canBulkUpload",
@@ -14105,6 +14221,48 @@
           }
         }
       },
+      "RawCosvFileStatisticsDto": {
+        "required": [
+          "allAvailableFilesCount",
+          "duplicateFilesCount",
+          "errorFilesCount",
+          "pendingRemovedFilesCount",
+          "processingFilesCount",
+          "uploadedArchivesCount",
+          "uploadedJsonFilesCount"
+        ],
+        "type": "object",
+        "properties": {
+          "allAvailableFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duplicateFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errorFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingRemovedFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processingFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploadedArchivesCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "uploadedJsonFilesCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "RawCosvFileStreamingResponse": {
         "required": [
           "progress",
@@ -14936,114 +15094,6 @@
           },
           "vulnerabilityIdentifier": {
             "type": "string"
-          }
-        }
-      },
-      "VulnerabilityDto": {
-        "required": [
-          "allParticipants",
-          "dates",
-          "identifier",
-          "language",
-          "participants",
-          "progress",
-          "projects",
-          "severity",
-          "shortDescription",
-          "status",
-          "tags",
-          "userInfo"
-        ],
-        "type": "object",
-        "properties": {
-          "allParticipants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserInfo"
-            }
-          },
-          "creationDateTime": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "dates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VulnerabilityDateDto"
-            }
-          },
-          "description": {
-            "type": "string"
-          },
-          "identifier": {
-            "type": "string"
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "C",
-              "C++",
-              "C#",
-              "Go",
-              "Java",
-              "JavaScript",
-              "Kotlin",
-              "Other",
-              "PHP",
-              "Python",
-              "Rust",
-              "Sql",
-              "TypeScript"
-            ]
-          },
-          "lastUpdatedDateTime": {
-            "$ref": "#/components/schemas/LocalDateTime"
-          },
-          "organization": {
-            "$ref": "#/components/schemas/OrganizationDto"
-          },
-          "participants": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserInfo"
-            }
-          },
-          "progress": {
-            "type": "number",
-            "format": "float"
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VulnerabilityProjectDto"
-            }
-          },
-          "relatedLink": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "string"
-          },
-          "shortDescription": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "APPROVED",
-              "AUTO_APPROVED",
-              "PENDING_REVIEW",
-              "REJECTED"
-            ]
-          },
-          "tags": {
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "userInfo": {
-            "$ref": "#/components/schemas/UserInfo"
           }
         }
       },
