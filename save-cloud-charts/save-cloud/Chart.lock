@@ -10,9 +10,9 @@ dependencies:
   version: 6.8.2
 - name: loki
   repository: https://grafana.github.io/helm-charts
-  version: 4.4.2
+  version: 4.10.0
 - name: neo4j
   repository: https://helm.neo4j.com/neo4j
-  version: 5.9.0
-digest: sha256:cfe3ef06211737ecb20d03412f134bf9843921ed3f2b2b65e7b5a1cbee576c8a
-generated: "2023-07-03T16:07:04.7945415+03:00"
+  version: 5.13.0
+digest: sha256:ab5798ee2683d4f72b02f5b1549d69302d6485593ec9b792a8a17bcfe3206e90
+generated: "2023-10-31T12:52:33.12969756Z"

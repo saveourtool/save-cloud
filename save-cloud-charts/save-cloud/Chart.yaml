@@ -21,7 +21,7 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
   - name: loki
-    version: ^4.0.0 <=4.4.2
+    version: <=4.10.0
     repository: https://grafana.github.io/helm-charts
     condition: loki.enabled
   - name: neo4j
