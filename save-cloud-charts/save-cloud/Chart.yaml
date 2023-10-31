@@ -13,7 +13,7 @@ dependencies:
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: prometheus
-    version: ^19.0.0 <=19.3.3
+    version: <=19.7.2
     repository: https://prometheus-community.github.io/helm-charts
     condition: prometheus.enabled
   - name: promtail
