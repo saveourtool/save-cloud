@@ -74,24 +74,6 @@
     {
       "managers": ["docker-compose"],
       "matchPackagePatterns": [
-        "^grafana\\/grafana"
-      ],
-      "allowedVersions": "<=9.4.3",
-      "groupName": "all docker images",
-      "groupSlug": "all-docker-images"
-    },
-    {
-      "managers": ["docker-compose"],
-      "matchPackagePatterns": [
-        "^grafana\\/loki"
-      ],
-      "allowedVersions": "<=2.7.4",
-      "groupName": "all docker images",
-      "groupSlug": "all-docker-images"
-    },
-    {
-      "managers": ["docker-compose"],
-      "matchPackagePatterns": [
         "^prom\\/prometheus"
       ],
       "allowedVersions": "<=v2.42.0",
@@ -99,49 +81,99 @@
       "groupSlug": "all-docker-images"
     },
     {
-      "managers": ["helmv3", "helm-values"],
+      "managers": ["docker-compose"],
       "matchPackagePatterns": [
         "^grafana\\/grafana"
       ],
       "allowedVersions": "<=9.4.3",
-      "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies",
+      "groupName": "all docker images",
+      "groupSlug": "all-docker-images"
+    },
+    {
+      "managers": ["docker-compose"],
+      "matchPackagePatterns": [
+        "^grafana\\/loki"
+      ],
+      "allowedVersions": "<=2.7.4",
+      "groupName": "all docker images",
+      "groupSlug": "all-docker-images"
+    },
+    {
+      "managers": ["helm-values"],
+      "matchPackagePatterns": [
+        "^grafana\\/grafana"
+      ],
+      "allowedVersions": "<=9.4.3",
       "lockFileMaintenance": {
           "enabled": true
       }
     },
     {
-      "managers": ["helmv3", "helm-values"],
-      "matchPackagePatterns": [
-        "^grafana\\/loki"
-      ],
-      "allowedVersions": "<=2.7.4",
-      "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies",
-      "lockFileMaintenance": {
-        "enabled": true
-      }
-    },
-    {
-      "managers": ["helmv3", "helm-values"],
-      "matchPackagePatterns": [
-        "^grafana\\/promtail"
-      ],
-      "allowedVersions": "<=2.7.4",
-      "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies",
-      "lockFileMaintenance": {
-        "enabled": true
-      }
-    },
-    {
-      "managers": ["helmv3", "helm-values"],
+      "managers": ["helm-values"],
       "matchPackagePatterns": [
         "^quay.io\\/prometheus\\/prometheus"
       ],
       "allowedVersions": "<=v2.42.0",
-      "groupName": "Helm dependencies",
-      "groupSlug": "helm-dependencies",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helm-values"],
+      "matchPackagePatterns": [
+        "^grafana\\/promtail"
+      ],
+      "allowedVersions": "<=2.7.4",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helm-values"],
+      "matchPackagePatterns": [
+        "^grafana\\/loki"
+      ],
+      "allowedVersions": "<=2.7.4",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helmv3"],
+      "matchPackagePatterns": [
+        "grafana"
+      ],
+      "allowedVersions": "<=6.50.7",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helmv3"],
+      "matchPackagePatterns": [
+        "prometheus"
+      ],
+      "allowedVersions": "<=19.3.3",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helmv3"],
+      "matchPackagePatterns": [
+        "promtail"
+      ],
+      "allowedVersions": "<=6.8.2",
+      "lockFileMaintenance": {
+        "enabled": true
+      }
+    },
+    {
+      "managers": ["helmv3"],
+      "matchPackagePatterns": [
+        "loki"
+      ],
+      "allowedVersions": "<=4.4.2",
       "lockFileMaintenance": {
         "enabled": true
       }
