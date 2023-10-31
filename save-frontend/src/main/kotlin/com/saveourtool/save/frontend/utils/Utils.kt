@@ -140,7 +140,7 @@ fun String.dateStringToLocalDateTime(time: LocalTime = LocalTime(0, 0, 0)) = Loc
  *
  * @return true if we are in COSV domains range
  */
-fun Location.isCosvDomain() = this.hostname in setOf("cosv.dev", "cosv.gitlink.org.cn")
+fun Location<*>.isCosvDomain() = this.hostname in setOf("cosv.dev", "cosv.gitlink.org.cn")
 
 /**
  * @return `true` if this user is a super-admin, `false` otherwise.

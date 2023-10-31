@@ -57,7 +57,7 @@ external interface ContestGlobalRatingProps : Props {
     /**
      * Location for checking change url
      */
-    var location: Location
+    var location: Location<*>
 }
 
 /**

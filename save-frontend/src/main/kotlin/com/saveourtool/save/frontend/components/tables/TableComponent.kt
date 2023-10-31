@@ -262,9 +262,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                     val column = header.column
                                     th {
                                         this.className = className
-                                        child(
-                                            renderHeader(header)
-                                        )
+                                        +renderHeader(header)
                                         if (column.getCanSort()) {
                                             style = style ?: jso()
                                             style?.cursor = "pointer".unsafeCast<Cursor>()
@@ -287,7 +285,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                             tr {
                                 spread(getRowProps(row))
                                 row.getVisibleCells().map { cell ->
-                                    child(renderCell(cell))
+                                    +renderCell(cell)
                                 }
                             }
                             if (row.isExpanded) {

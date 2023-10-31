@@ -87,5 +87,5 @@ external interface TopBarUrlSplitsProps : Props {
     /**
      * User location for url analysis.
      */
-    var location: Location
+    var location: Location<*>
 }
