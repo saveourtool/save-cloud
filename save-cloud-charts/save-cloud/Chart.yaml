@@ -9,7 +9,7 @@ sources:
   - https://github.com/saveourtool/save-cli
 dependencies:
   - name: grafana
-    version: ^6.0.0 <=6.50.7
+    version: <=7.0.2
     repository: https://grafana.github.io/helm-charts
     condition: grafana.enabled
   - name: prometheus
