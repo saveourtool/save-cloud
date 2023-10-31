@@ -48,7 +48,7 @@ enum class ContestMenuBar {
 external interface ContestViewProps : Props {
     var currentUserInfo: UserInfo?
     var currentContestName: String?
-    var location: Location
+    var location: Location<*>
 }
 
 /**

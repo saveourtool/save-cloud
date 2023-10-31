@@ -32,7 +32,7 @@ fun ChildrenBuilder.aceBuilder(
     onChangeFun: (String) -> Unit,
 ) {
     selectedTheme.require()
-    kotlinext.js.require("ace-builds/src-min-noconflict/mode-${selectedMode.modeName}")
+    kotlinext.js.require<dynamic>("ace-builds/src-min-noconflict/mode-${selectedMode.modeName}")
 
     div {
         className = ClassName("d-flex justify-content-center flex-fill")
