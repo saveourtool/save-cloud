@@ -2,7 +2,7 @@
  * Utilities for react-tables
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS", "MatchingDeclarationName")
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.tables
 
@@ -56,6 +56,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 const val TABLE_HEADERS_LOCALE_NAMESPACE = "table-headers"
+const val INITIAL_TABLE_PAGE_SIZE = 10
+const val VULNERABILITIES_COLLECTION_TABLE_PAGE_SIZE = 7
 
 private typealias TableHeaderBuilder<T> = (ChildrenBuilder, Table<T>, NavigateFunction) -> Unit
 
@@ -124,7 +126,7 @@ external interface TableProps<D : Any> : Props {
 )
 fun <D : RowData, P : TableProps<D>> tableComponent(
     columns: (P) -> Array<out ColumnDef<D, *>>,
-    initialPageSize: Int = 10,
+    initialPageSize: Int = INITIAL_TABLE_PAGE_SIZE,
     useServerPaging: Boolean = false,
     isTransparentGrid: Boolean = false,
     @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR") tableOptionsCustomizer: ChildrenBuilder.(TableOptions<D>) -> Unit = {},
@@ -261,7 +263,7 @@ fun <D : RowData, P : TableProps<D>> tableComponent(
                                 headerGroup.headers.map { header: Header<D, out Any?> ->
                                     val column = header.column
                                     th {
-                                        this.className = className
+                                        className = ClassName("m-0 font-weight-bold text-center text-nowrap")
                                         child(
                                             renderHeader(header)
                                         )

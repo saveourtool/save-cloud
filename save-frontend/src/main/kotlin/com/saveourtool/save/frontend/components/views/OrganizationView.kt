@@ -13,6 +13,7 @@ import com.saveourtool.save.frontend.components.basic.organizations.*
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
 import com.saveourtool.save.frontend.components.requestStatusContext
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableView
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.http.getOrganization
 import com.saveourtool.save.frontend.http.postImageUpload
@@ -398,11 +399,12 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     }
 
     private fun ChildrenBuilder.renderVulnerabilities() {
-        organizationVulnerabilitiesTab {
-            organizationName = props.organizationName
-            isMember = state.usersInOrganization?.let { usersInOrg ->
-                props.currentUserInfo in usersInOrg || props.currentUserInfo.isSuperAdmin()
-            } ?: false
+        div {
+            className = ClassName("col-7 mx-auto mb-4")
+
+            vulnerabilityTableView {
+                organizationName = props.organizationName
+            }
         }
     }
 
@@ -571,7 +573,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                 nav {
                     className = ClassName("nav nav-tabs")
-                    OrganizationMenuBar.values()
+                    OrganizationMenuBar.entries
                         .filter {
                             it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                         }
