@@ -36,7 +36,8 @@ fun initI18n(isDebug: Boolean = false, interpolationEscapeValue: Boolean = false
                     'welcome',
                     'vulnerability',
                     'comments',
-                    'dates'
+                    'dates',
+                    'index'
                 ],
                 backend: {
                     loadPath: '/locales/{{lng}}/{{ns}}.json'

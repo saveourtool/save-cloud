@@ -36,19 +36,6 @@ fun ChildrenBuilder.withNavigate(handler: ChildrenBuilder.(NavigateFunctionConte
     wrapper()
 }
 
-
-/**
- * Wrapper function component that provides [NavigateFunction] to use [navigation support](https://reactrouter.com/en/v6.3.0/api#navigation)
- * from react-router v6
- *
- * @param handler navigate aware builder
- * @return a function component
- */
-fun withNavigate(handler: ChildrenBuilder.(NavigateFunction) -> Unit): FC<Props> = FC {
-    val navigate = useNavigate()
-    handler(navigate)
-}
-
 /**
  * Wrapper function component to allow using router props in class components
  * as suggested in https://reactrouter.com/docs/en/v6/faq#what-happened-to-withrouter-i-need-it
