@@ -22,6 +22,7 @@ class BasicRoutingTest {
     fun basicRoutingShouldRenderIndexViewTest(): Promise<Unit> {
         // App uses `BrowserRouter`, while `MemoryRouter` should be used for tests. Thus, app cannot be rendered
         val routerProvider = FC {
+            stubInitI18n()
             val (userInfo, userInfoSetter) = useState<UserInfo>()
             RouterProvider {
                 router = createMemoryRouter(
