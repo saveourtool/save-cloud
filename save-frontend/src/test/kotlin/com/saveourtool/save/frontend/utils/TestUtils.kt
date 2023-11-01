@@ -18,11 +18,11 @@ import kotlin.js.Promise
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import react.create
-import react.router.Outlet
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
 
 val wrapper: FC<PropsWithChildren> = FC { props ->
+    stubInitI18n()
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
@@ -66,4 +66,23 @@ inline fun <reified T> mockMswResponse(response: dynamic, value: T): dynamic {
  */
 fun wait(millis: Int) = Promise { resolve, _ ->
     setTimeout({ resolve(Unit) }, millis)
+}
+
+/**
+ * Stub `initI18n` for testing purposes
+ */
+internal fun stubInitI18n() {
+    val i18n: dynamic = kotlinext.js.require("i18next");
+    val reactI18n: dynamic = kotlinext.js.require("react-i18next");
+    val i18nResources: dynamic = jso {
+        en = jso {
+            translation = undefined
+        }
+    }
+
+    i18n.use(reactI18n.initReactI18next).init(jso {
+        resources = i18nResources
+        lng = "en"
+        fallbackLng = "en"
+    })
 }

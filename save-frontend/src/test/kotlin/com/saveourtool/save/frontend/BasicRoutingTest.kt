@@ -1,11 +1,9 @@
 package com.saveourtool.save.frontend
 
 import com.saveourtool.save.frontend.externals.findByTextAndCast
-import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 import com.saveourtool.save.frontend.routing.createBasicRoutes
-import com.saveourtool.save.frontend.utils.UserInfoAwareMutableProps
 import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.FC
@@ -35,11 +33,7 @@ class BasicRoutingTest {
                             }.create()
                             children = createBasicRoutes(userInfo, userInfoSetter)
                         }
-                    ),
-                    opts = jso {
-                        basename = "/"
-                        initialEntries = arrayOf("/")
-                    }
+                    )
                 )
             }
         }

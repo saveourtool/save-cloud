@@ -1,7 +1,7 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.externals.*
-import com.saveourtool.save.frontend.externals.i18next.initI18n
+import com.saveourtool.save.frontend.utils.stubInitI18n
 import com.saveourtool.save.info.UserInfo
 
 import web.html.HTMLDivElement
@@ -10,10 +10,8 @@ import react.*
 
 import kotlin.test.*
 import js.core.jso
-import react.dom.html.ReactHTML.div
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
-import web.cssom.ClassName
 
 /**
  * [createMemoryRouter] is used to enable usage of `useLocation` hook inside the component
@@ -53,25 +51,17 @@ class TopBarTest {
 
     companion object {
         private fun topBarComponentView(userInfo: UserInfo?) = FC {
-            initI18n()
+            stubInitI18n()
             RouterProvider {
                 router = createMemoryRouter(
                     routes = arrayOf(
                         jso {
-                            path = "/"
+                            index = true
                             element = FC {
-                                div {
-                                    className = ClassName("d-flex flex-column")
-                                    id = "content-wrapper"
-                                    topBarComponent { this.userInfo = userInfo }
-                                }
+                                topBarComponent { this.userInfo = userInfo }
                             }.create()
                         }
-                    ),
-                    opts = jso {
-                        basename = "/"
-                        initialEntries = arrayOf("/")
-                    }
+                    )
                 )
             }
         }
