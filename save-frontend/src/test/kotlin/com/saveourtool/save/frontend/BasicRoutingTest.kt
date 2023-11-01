@@ -4,6 +4,7 @@ import com.saveourtool.save.frontend.externals.findByTextAndCast
 import com.saveourtool.save.frontend.externals.render
 import com.saveourtool.save.frontend.externals.screen
 import com.saveourtool.save.frontend.routing.createBasicRoutes
+import com.saveourtool.save.frontend.utils.stubInitI18n
 import com.saveourtool.save.info.UserInfo
 import js.core.jso
 import react.FC
