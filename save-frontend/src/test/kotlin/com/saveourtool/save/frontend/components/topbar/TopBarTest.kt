@@ -1,11 +1,8 @@
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.components.basic.cookieBanner
-import com.saveourtool.save.frontend.components.footer
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import web.html.HTMLDivElement
 import web.html.HTMLSpanElement
@@ -13,10 +10,7 @@ import react.*
 
 import kotlin.test.*
 import js.core.jso
-import kotlinx.browser.window
-import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.div
-import react.router.Outlet
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
 import web.cssom.ClassName
