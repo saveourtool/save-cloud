@@ -44,7 +44,7 @@ external interface ProjectViewProps : PropsWithChildren {
     var owner: String
     var name: String
     var currentUserInfo: UserInfo?
-    var location: Location
+    var location: Location<*>
 }
 
 /**

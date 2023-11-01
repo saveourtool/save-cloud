@@ -15,7 +15,7 @@ fun ChildrenBuilder.calendar(
     onChange: (Date, Event) -> Unit,
     handler: ChildrenBuilder.(ReactCalendarProps) -> Unit = {},
 ) {
-    kotlinext.js.require("react-calendar/dist/Calendar.css")
+    kotlinext.js.require<dynamic>("react-calendar/dist/Calendar.css")
     ReactCalendar::class.react {
         this.onChange = onChange
         this.showNeighboringMonth = false

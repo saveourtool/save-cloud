@@ -49,7 +49,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
         this.rehypePlugins = arrayOf(::rehypeHighlightPlugin)
     }
     publicTestCard {
-        child(reactMarkdown(reactMarkdownOptions))
+        +reactMarkdown(reactMarkdownOptions)
     }
 }
 

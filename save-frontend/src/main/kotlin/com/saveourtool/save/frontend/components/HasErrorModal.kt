@@ -128,7 +128,7 @@ val requestModalHandler: FC<UserInfoAwarePropsWithChildren> = FC { props ->
         div {
             className = ClassName("d-flex justify-content-center mt-4")
             div {
-                child(ringLoader)
+                +ringLoader
                 span {
                     className = ClassName("sr-only")
                     +"Loading..."

@@ -83,8 +83,8 @@ fun main() {
         return
     }
 
-    kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
-    kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
+    kotlinext.js.require<dynamic>("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    kotlinext.js.require<dynamic>("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     initI18n()

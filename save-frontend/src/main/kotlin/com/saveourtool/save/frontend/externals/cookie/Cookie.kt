@@ -8,7 +8,7 @@ import kotlinext.js.require
 /**
  * Object that manages cookies
  */
-val cookie: Cookie = require("js-cookie").unsafeCast<Cookie>()
+val cookie: Cookie = require("js-cookie")
 
 /**
  * Interface that encapsulates all cookies interactions

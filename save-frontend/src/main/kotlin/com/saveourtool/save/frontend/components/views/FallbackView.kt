@@ -76,7 +76,7 @@ class FallbackView : AbstractView<FallbackViewProps, State>(Style.SAVE_LIGHT) {
             if (props.withRouterLink == true) {
                 Navigate {
                     to = "/"
-                    buttonBuilder("Back to the main page", style = "info") { }
+                    this@render.buttonBuilder("Back to the main page", style = "info") { }
                 }
             } else {
                 a {

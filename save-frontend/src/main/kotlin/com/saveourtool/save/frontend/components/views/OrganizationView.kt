@@ -73,7 +73,7 @@ val actionIconClasses: List<String> = listOf("trash-alt")
 external interface OrganizationProps : PropsWithChildren {
     var organizationName: String
     var currentUserInfo: UserInfo?
-    var location: Location
+    var location: Location<*>
 }
 
 /**
