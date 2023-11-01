@@ -1,7 +1,11 @@
 package com.saveourtool.save.frontend.components.topbar
 
+import com.saveourtool.save.frontend.components.basic.cookieBanner
+import com.saveourtool.save.frontend.components.footer
 import com.saveourtool.save.frontend.externals.*
+import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendRoutes
 
 import web.html.HTMLDivElement
 import web.html.HTMLSpanElement
@@ -9,11 +13,16 @@ import react.*
 
 import kotlin.test.*
 import js.core.jso
+import kotlinx.browser.window
+import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.div
+import react.router.Outlet
 import react.router.createMemoryRouter
 import react.router.dom.RouterProvider
+import web.cssom.ClassName
 
 /**
- * [MemoryRouter] is used to enable usage of `useLocation` hook inside the component
+ * [createMemoryRouter] is used to enable usage of `useLocation` hook inside the component
  * todo: functionality that is not covered
  * * How breadcrumbs are displayed
  * * `/execution` is trimmed from breadcrumbs
@@ -22,22 +31,7 @@ import react.router.dom.RouterProvider
 class TopBarTest {
     @Test
     fun topBarShouldRenderWithUserInfo() {
-        val router = createMemoryRouter(
-            routes = arrayOf(
-                jso {
-                    path = "/"
-                    element = FC {
-                        topBarComponent {
-                            userInfo = UserInfo(name = "Test User")
-                        }
-                    }.create()
-                }
-            )
-        )
-        val routerProvider = FC {
-            RouterProvider { router }
-        }
-        val rr = render(routerProvider.create())
+        val rr = render(topBarComponentView(UserInfo(name = "Test User")).create())
 
         val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNotNull(userInfoSpan)
@@ -52,22 +46,7 @@ class TopBarTest {
 
     @Test
     fun topBarShouldRenderWithoutUserInfo() {
-        val router = createMemoryRouter(
-            routes = arrayOf(
-                jso {
-                    path = "/"
-                    element = FC {
-                        topBarComponent {
-                            userInfo = null
-                        }
-                    }.create()
-                }
-            )
-        )
-        val routerProvider = FC {
-            RouterProvider { router }
-        }
-        val rr = render(routerProvider.create())
+        val rr = render(topBarComponentView(null).create())
 
         val userInfoSpan: HTMLSpanElement? = screen.queryByTextAndCast("Test User")
         assertNull(userInfoSpan)
@@ -76,5 +55,31 @@ class TopBarTest {
         userEvent.click(rr.container.querySelector("[id=\"userDropdown\"]"))
         val dropdown = rr.container.querySelector("[aria-labelledby=\"userDropdown\"]") as HTMLDivElement
         assertEquals(1, dropdown.children.length, "When user is not logged in, dropdown menu should contain 1 entry")
+    }
+
+    companion object {
+        private fun topBarComponentView(userInfo: UserInfo?) = FC {
+            initI18n()
+            RouterProvider {
+                router = createMemoryRouter(
+                    routes = arrayOf(
+                        jso {
+                            path = "/"
+                            element = FC {
+                                div {
+                                    className = ClassName("d-flex flex-column")
+                                    id = "content-wrapper"
+                                    topBarComponent { this.userInfo = userInfo }
+                                }
+                            }.create()
+                        }
+                    ),
+                    opts = jso {
+                        basename = "/"
+                        initialEntries = arrayOf("/")
+                    }
+                )
+            }
+        }
     }
 }
