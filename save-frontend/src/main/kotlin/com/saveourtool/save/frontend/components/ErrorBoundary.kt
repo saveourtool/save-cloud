@@ -8,20 +8,19 @@ import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
 
 import js.core.jso
-import react.Component
-import react.PropsWithChildren
-import react.RStatics
-import react.ReactNode
-import react.State
-import react.create
+import react.*
 import react.dom.html.ReactHTML.div
-import react.react
 import web.cssom.ClassName
 
 /**
  * State of error boundary component
  */
 external interface ErrorBoundaryState : State {
+    /**
+     * The error message
+     */
+    var errorMessage: String?
+
     /**
      * True is there is an error in the wrapped component tree
      */
@@ -34,21 +33,24 @@ external interface ErrorBoundaryState : State {
 class ErrorBoundary : Component<PropsWithChildren, ErrorBoundaryState>() {
     init {
         state = jso {
+            errorMessage = null
             hasError = false
         }
     }
 
     override fun render(): ReactNode? = if (state.hasError == true) {
-        div.create {
-            className = ClassName("container-fluid")
-            topBarComponent()
-            FallbackView::class.react {
-                bigText = "Error"
-                smallText = "Something went wrong"
+        FC {
+            div {
+                className = ClassName("container-fluid")
+                topBarComponent()
+                FallbackView::class.react {
+                    bigText = "Error"
+                    smallText = "Something went wrong: ${state.errorMessage ?: "Unknown error"}"
+                }
+                @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
+                footer { }
             }
-            @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
-            footer { }
-        }
+        }.create()
     } else {
         props.children
     }
@@ -59,8 +61,9 @@ class ErrorBoundary : Component<PropsWithChildren, ErrorBoundaryState>() {
              * From [React docs](https://reactjs.org/docs/error-boundaries.html):
              * 'A class component becomes an error boundary if it defines either (or both) of the lifecycle methods static getDerivedStateFromError() or componentDidCatch()'
              */
-            getDerivedStateFromError = {
+            getDerivedStateFromError = { ex ->
                 jso {
+                    errorMessage = ex.message
                     hasError = true
                 }
             }
