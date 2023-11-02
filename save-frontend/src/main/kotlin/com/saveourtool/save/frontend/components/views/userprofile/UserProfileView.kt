@@ -11,7 +11,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableView
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -110,7 +110,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
             @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
-                UserProfileTab.VULNERABILITIES -> vulnerabilityTableView {
+                UserProfileTab.VULNERABILITIES -> vulnerabilityTableComponent {
                     this.userName = userName
                 }
                 UserProfileTab.USERS -> renderNewUsersTableForProfileView {}
