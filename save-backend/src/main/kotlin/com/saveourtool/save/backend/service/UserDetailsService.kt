@@ -11,6 +11,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger
@@ -129,7 +130,7 @@ class UserDetailsService(
      */
     @Transactional
     fun saveUser(newUser: User, oldName: String?, oldUserStatus: UserStatus): UserSaveStatus {
-        applicationEventPublisher.publishEvent(newUser)
+        applicationEventPublisher.publishEvent(UserEvent(newUser))
         val isNameFreeAndNotTaken = userRepository.validateName(newUser.name) != 0L
         // if we are registering new user (updating just name and status to NOT_APPROVED):
         return if (oldUserStatus == UserStatus.CREATED && newUser.status == UserStatus.NOT_APPROVED) {
@@ -272,11 +273,12 @@ class UserDetailsService(
     fun banUser(
         name: String,
     ): UserSaveStatus {
-        val user: User = userRepository.findByName(name).orNotFound()
-
-        userRepository.save(user.apply {
+        val user: User = userRepository.findByName(name).orNotFound().apply {
             this.status = UserStatus.BANNED
-        })
+        }
+        applicationEventPublisher.publishEvent(UserEvent(user))
+
+        userRepository.save(user)
 
         return UserSaveStatus.BANNED
     }
