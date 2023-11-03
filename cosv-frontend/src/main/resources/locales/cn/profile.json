@@ -1,0 +1,20 @@
+{
+  "Add bio and info:": "添加介绍信息",
+  "Upload or select avatar:": "上传或选择头像",
+  "Save changes": "保存修改",
+  "400 characters": "限400个字符",
+  "Upload avatar": "上传头像",
+  "profile": "简介",
+  "Basic Settings": "基本设置",
+  "Profile settings": "个人设置",
+  "Your name": "名字",
+  "Login and email": "登录和邮箱",
+  "Organizations": "组织",
+  "Security Settings": "安全设置",
+  "Personal access tokens": "个人访问token",
+  "OAuth accounts": "认证账户",
+  "Personal Statistics": "个人数据统计",
+  "Delete Profile": "删除用户页",
+  "Company/Affiliation": "公司",
+  "Website": "网站"
+}
