@@ -111,6 +111,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
             @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
                 UserProfileTab.VULNERABILITIES -> vulnerabilityTableComponent {
+                    this.currentUserInfo = props.currentUserInfo
                     this.userName = userName
                 }
                 UserProfileTab.USERS -> renderNewUsersTableForProfileView {}

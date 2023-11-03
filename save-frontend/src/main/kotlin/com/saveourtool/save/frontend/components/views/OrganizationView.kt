@@ -403,7 +403,9 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             className = ClassName("col-7 mx-auto mb-4")
 
             vulnerabilityTableComponent {
-                organizationName = props.organizationName
+                this.currentUserInfo = props.currentUserInfo
+                this.organizationName = props.organizationName
+                this.isCurrentUserIsAdminInOrganization = state.selfRole.isHigherOrEqualThan(Role.ADMIN)
             }
         }
     }
