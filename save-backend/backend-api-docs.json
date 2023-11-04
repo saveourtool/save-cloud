@@ -15181,6 +15181,7 @@
               "enum": [
                 "APPROVED",
                 "AUTO_APPROVED",
+                "CREATED",
                 "PENDING_REVIEW",
                 "REJECTED"
               ]
@@ -15249,6 +15250,7 @@
             "enum": [
               "APPROVED",
               "AUTO_APPROVED",
+              "CREATED",
               "PENDING_REVIEW",
               "REJECTED"
             ]
