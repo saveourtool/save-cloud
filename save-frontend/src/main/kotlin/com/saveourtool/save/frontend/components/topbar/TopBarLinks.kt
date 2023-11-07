@@ -109,7 +109,7 @@ private fun textColor(
     console.log("location.pathname ${location.pathname} ||| hrefAnchor ${hrefAnchor} || ${hrefAnchor.isBlank()}")
     val isNeedToHighlightTopBar = (hrefAnchor.isNotBlank() && location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) ||
             ((location.pathname.count { it == '/' } == 1) && hrefAnchor.isBlank())
-    return if () {
+    return if (isNeedToHighlightTopBar) {
         "text-warning"
     } else {
         "text-light"
