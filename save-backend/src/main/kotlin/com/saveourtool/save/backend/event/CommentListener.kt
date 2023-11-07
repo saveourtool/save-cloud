@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.event
 
 import com.saveourtool.save.backend.service.NotificationService
-import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
 import com.saveourtool.save.entities.Notification
