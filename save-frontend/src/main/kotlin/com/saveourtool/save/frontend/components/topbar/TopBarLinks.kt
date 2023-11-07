@@ -105,8 +105,12 @@ data class TopBarLink(
 private fun textColor(
     hrefAnchor: String,
     location: Location<*>,
-) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
-    "text-warning"
-} else {
-    "text-light"
+): String {
+    console.log("location.pathname ${location.pathname} ||| hrefAnchor ${hrefAnchor} || ${hrefAnchor.isBlank()}")
+    val highlightTopBar = location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT
+    return if () {
+        "text-warning"
+    } else {
+        "text-light"
+    }
 }
