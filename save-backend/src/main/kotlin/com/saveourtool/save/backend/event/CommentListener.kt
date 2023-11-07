@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 class CommentListener(
-    private val userDetailsService: UserDetailsService,
     private val notificationService: NotificationService,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataUserRepository: LnkVulnerabilityMetadataUserRepository,
