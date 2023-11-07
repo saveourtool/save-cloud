@@ -98,9 +98,9 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
                 fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
 
                 val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
-                    UserProfileTab.entries.map { it.toTabName() }
+                    UserProfileTab.values().map { it.toTabName() }
                 } else {
-                    UserProfileTab.entries.filter { it != UserProfileTab.USERS }.map { it.name }
+                    UserProfileTab.values().filter { it != UserProfileTab.USERS }.map { it.name }
                 }
                 tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
                     val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value

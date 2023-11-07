@@ -575,7 +575,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
                 nav {
                     className = ClassName("nav nav-tabs")
-                    OrganizationMenuBar.entries
+                    OrganizationMenuBar.values()
                         .filter {
                             it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                         }
