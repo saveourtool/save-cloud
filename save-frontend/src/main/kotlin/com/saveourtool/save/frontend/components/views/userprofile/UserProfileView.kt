@@ -2,8 +2,6 @@
  * View for UserProfile
  */
 
-@file:Suppress("FILE_NAME_MATCH_CLASS")
-
 package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.OrganizationDto
@@ -13,6 +11,7 @@ import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
+import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
@@ -93,15 +92,17 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
         // ===================== RIGHT COLUMN =======================================================================
         div {
-            className = ClassName("col-6 mb-4 mt-2")
+            className = ClassName("col-7 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
+                @Suppress("MISSING_KDOC_ON_FUNCTION")
+                fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
+
                 val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
-                    UserProfileTab.values().map { if (it == UserProfileTab.USERS) "${it.name} ($countUsers)" else it.name }
+                    UserProfileTab.entries.map { it.toTabName() }
                 } else {
-                    UserProfileTab.values().filter { it != UserProfileTab.USERS }
-                        .map { it.name }
+                    UserProfileTab.entries.filter { it != UserProfileTab.USERS }.map { it.name }
                 }
-                tab(selectedMenu.name, tabList, "nav nav-tabs mt-3") { value ->
+                tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
                     val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
                     setSelectedMenu { UserProfileTab.valueOf(newValue) }
                 }
@@ -109,7 +110,8 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
 
             @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
             when (selectedMenu) {
-                UserProfileTab.VULNERABILITIES -> renderVulnerabilityTableForProfileView {
+                UserProfileTab.VULNERABILITIES -> vulnerabilityTableComponent {
+                    this.currentUserInfo = props.currentUserInfo
                     this.userName = userName
                 }
                 UserProfileTab.USERS -> renderNewUsersTableForProfileView {}
@@ -151,7 +153,7 @@ enum class UserProfileTab {
         override val defaultTab: UserProfileTab = VULNERABILITIES
         override val regexForUrlClassification = "/${FrontendRoutes.VULN_PROFILE}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
-        override fun values(): Array<UserProfileTab> = UserProfileTab.values()
+        override fun values(): Array<UserProfileTab> = entries.toTypedArray()
     }
 }
 

@@ -1,4 +1,4 @@
-@file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE", "FILE_NAME_MATCH_CLASS")
+@file:Suppress("FILE_NAME_MATCH_CLASS")
 
 package com.saveourtool.save.frontend.components.basic.table.filters
 
@@ -60,7 +60,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                     type = InputType.text
                                     className = ClassName("form-control")
                                     value = filter.identifierPrefix
-                                    placeholder = "${"Name".t()}..."
+                                    placeholder = "${"Identifier".t()}..."
                                     required = false
                                     onChange = { event ->
                                         setFilter { oldFilter ->
@@ -71,7 +71,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                             }
 
                             div {
-                                className = ClassName("col-4 px-1")
+                                className = ClassName("d-flex col-4 px-1 justify-content-center")
                                 multiRangeSlider {
                                     min = 0.0f
                                     max = 10.0f
@@ -83,7 +83,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                     ruler = false
                                     label = false
                                     style = jso {
-                                        width = 16.4.rem
+                                        width = 16.rem
                                         height = 0.rem
                                         border = "none".unsafeCast<Border>()
                                         boxShadow = "none".unsafeCast<BoxShadow>()
