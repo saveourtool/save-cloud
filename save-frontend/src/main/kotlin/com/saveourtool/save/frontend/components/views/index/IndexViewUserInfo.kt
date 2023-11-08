@@ -40,15 +40,17 @@ val indexViewInfo: FC<UserInfoAwareProps> = FC { props ->
     val (notificationForDeletion, setNotificationForDeletion) = useState<NotificationDto?>(null)
 
     useRequest {
-        val newNotifications = get(
-            url = "$apiUrl/notifications/get-all-by-user",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        ).unsafeMap {
-            it.decodeFromJsonString<List<NotificationDto>>()
-        }
+        props.userInfo?.let {
+            val newNotifications = get(
+                url = "$apiUrl/notifications/get-all-by-user",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+            ).unsafeMap {
+                it.decodeFromJsonString<List<NotificationDto>>()
+            }
 
-        setNotifications(newNotifications)
+            setNotifications(newNotifications)
+        }
     }
 
     useRequest(arrayOf(notificationForDeletion)) {
