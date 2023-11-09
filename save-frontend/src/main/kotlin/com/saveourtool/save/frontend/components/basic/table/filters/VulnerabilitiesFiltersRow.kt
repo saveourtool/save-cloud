@@ -61,12 +61,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                 input {
                                     type = InputType.text
                                     className = ClassName("form-control")
-                                    value = filter.identifierOrSummaryPrefix
+                                    value = filter.freeText
                                     placeholder = "${"Identifier or Summary".t()}..."
                                     required = false
                                     onChange = { event ->
                                         setFilter { oldFilter ->
-                                            oldFilter.copy(identifierOrSummaryPrefix = event.target.value)
+                                            oldFilter.copy(freeText = event.target.value)
                                         }
                                     }
                                 }
