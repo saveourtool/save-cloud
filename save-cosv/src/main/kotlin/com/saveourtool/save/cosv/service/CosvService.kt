@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
@@ -30,6 +29,8 @@ import javax.annotation.PostConstruct
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.serializer
+
+typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDto>
 
 /**
  * Service for vulnerabilities
@@ -90,7 +91,11 @@ class CosvService(
                         .flatMap {
                             doProcess(it.requiredId(), user, organization)
                         }
-                        .updateRating(user, organization)
+                        .collectList()
+                        .map { it.flatten() }
+                        .blockingMap {
+                            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it.size)
+                        }
                 }
         }
         .thenJust(Unit)
@@ -118,7 +123,32 @@ class CosvService(
                     doProcess(rawCosvFileId, user, organization)
                 }
         }
-        .updateRating(user, organization)
+        .collectList()
+        .map { it.flatten() }
+        .flatMap { metadataList ->
+            Mono.just(metadataList.size).doOnSuccess {
+                metadataList.toFlux().flatMap { vulnerabilityMetadataDto ->
+                    getVulnerabilityExt(vulnerabilityMetadataDto.identifier).mapNotNull { vulnerabilityExt ->
+                        vulnerabilityExt.cosv.affected?.mapNotNull { it.`package`?.ecosystem }?.toSet()?.let {
+                            vulnerabilityExt.metadataDto.identifier to it
+                        }
+                    }
+                }
+                    .collectList()
+                    .map { list ->
+                        list.forEach { (identifier, tags) ->
+                            tags.forEach { tag ->
+                                backendService.addVulnerabilityTag(identifier, tag)
+                            }
+                        }
+                    }
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribe()
+            }
+        }
+        .blockingMap {
+            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
+        }
         .map {
             log.debug {
                 "Finished processing raw COSV files $rawCosvFileIds"
@@ -144,7 +174,7 @@ class CosvService(
         rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Mono<Int> = rawCosvFileStorage.downloadById(rawCosvFileId)
+    ): Mono<VulnerabilityMetadataDtoList> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
             val errorMessage by lazy {
@@ -170,20 +200,12 @@ class CosvService(
                         .flatMap {
                             rawCosvFileStorage.deleteById(rawCosvFileId)
                         }
-                        .thenReturn(metadataList.size)
+                        .thenReturn(metadataList)
                 }
                 .onErrorResume { error ->
                     log.error(error) { errorMessage }
-                    Mono.just(0)
+                    Mono.just(emptyList())
                 }
-        }
-
-    private fun Flux<Int>.updateRating(
-        user: User,
-        organization: Organization,
-    ): Mono<Unit> = sumAll()
-        .blockingMap {
-            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
         }
 
     /**

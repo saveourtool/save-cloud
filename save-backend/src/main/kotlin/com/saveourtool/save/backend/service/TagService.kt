@@ -5,18 +5,15 @@ import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepositor
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
+import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
 
 import org.slf4j.Logger
 import org.springframework.data.domain.Pageable
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.server.ResponseStatusException
 
 /**
  * [Service] for [Tag] entity
@@ -33,14 +30,12 @@ class TagService(
      * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
      * @param tagName tag to add
      * @return new [LnkVulnerabilityMetadataTag]
-     * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
      */
     @Transactional
-    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag {
-        log.info { "Trying to add $tagName to $identifier vulnerability" }
-
+    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag? {
         if (!tagName.isValidTag()) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
+            log.error { "Tag $tagName length should be in [2, 15] range, no commas are allowed." }
+            return null
         }
         val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier).orNotFound {
             "Could not find metadata for vulnerability $identifier"

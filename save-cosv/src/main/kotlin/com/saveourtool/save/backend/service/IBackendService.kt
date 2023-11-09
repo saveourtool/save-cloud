@@ -4,6 +4,7 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.info.UserPermissions
 import com.saveourtool.save.permission.Permission
 import org.jetbrains.annotations.Blocking
@@ -63,4 +64,14 @@ interface IBackendService {
         organizationName: String,
         permission: Permission,
     ): Boolean
+
+    /**
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
+     * @param tagName tag to add
+     * @return new [LnkVulnerabilityMetadataTag]
+     */
+    fun addVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    ): LnkVulnerabilityMetadataTag?
 }

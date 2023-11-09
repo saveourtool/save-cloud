@@ -5,6 +5,7 @@ import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.UserPermissionEvaluator
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.permission.Permission
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ class BackendForCosvService(
     private val userDetailsService: UserDetailsService,
     private val userPermissionEvaluator: UserPermissionEvaluator,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
+    private val tagService: TagService,
     configProperties: ConfigProperties,
 ) : IBackendService {
     override val workingDir: Path = configProperties.workingDir
@@ -41,4 +43,9 @@ class BackendForCosvService(
     override fun saveUser(user: User): User = userDetailsService.saveUser(user)
 
     override fun saveOrganization(organization: Organization) = organizationService.updateOrganization(organization)
+
+    override fun addVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    ): LnkVulnerabilityMetadataTag? = tagService.addVulnerabilityTag(identifier, tagName)
 }
