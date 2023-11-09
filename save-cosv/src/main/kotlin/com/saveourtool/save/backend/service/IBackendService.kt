@@ -70,8 +70,8 @@ interface IBackendService {
      * @param tagName tag to add
      * @return new [LnkVulnerabilityMetadataTag]
      */
-    fun addVulnerabilityTag(
+    fun addVulnerabilityTags(
         identifier: String,
-        tagName: String
-    ): LnkVulnerabilityMetadataTag?
+        tagName: Set<String>
+    ): List<LnkVulnerabilityMetadataTag>?
 }

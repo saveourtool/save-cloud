@@ -47,6 +47,8 @@ class CosvService(
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    private val scheduler = Schedulers.boundedElastic()
+
     /**
      * Init method to restore all raw cosv files with `in progress` state to process
      */
@@ -72,7 +74,7 @@ class CosvService(
                     "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
                 }
             }
-            .subscribeOn(Schedulers.boundedElastic())
+            .subscribeOn(scheduler)
             .subscribe()
     }
 
@@ -107,12 +109,14 @@ class CosvService(
     fun generateIdentifier(): String = cosvGeneratedIdRepository.saveAndFlush(CosvGeneratedId()).getIdentifier()
 
     /**
+     * Method to process all raw cosv files, add ecosystem tags to new vulnerabilities, update user rating
+     *
      * @param rawCosvFileIds
      * @param user
      * @param organization
      * @return empty [Mono]
      */
-    fun process(
+    fun processAndAddTagsAndUpdateRating(
         rawCosvFileIds: Collection<Long>,
         user: User,
         organization: Organization,
@@ -135,14 +139,12 @@ class CosvService(
                     }
                 }
                     .collectList()
-                    .map { list ->
-                        list.forEach { (identifier, tags) ->
-                            tags.forEach { tag ->
-                                backendService.addVulnerabilityTag(identifier, tag)
-                            }
+                    .blockingMap { identifierToTagsList ->
+                        identifierToTagsList.forEach { (identifier, tags) ->
+                            backendService.addVulnerabilityTags(identifier, tags)
                         }
                     }
-                    .subscribeOn(Schedulers.boundedElastic())
+                    .subscribeOn(scheduler)
                     .subscribe()
             }
         }

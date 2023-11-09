@@ -8,12 +8,15 @@ import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
 
 import org.slf4j.Logger
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 
 /**
  * [Service] for [Tag] entity
@@ -30,12 +33,12 @@ class TagService(
      * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
      * @param tagName tag to add
      * @return new [LnkVulnerabilityMetadataTag]
+     * @throws ResponseStatusException on invalid [tagName] (with [HttpStatus.CONFLICT])
      */
     @Transactional
-    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag? {
+    fun addVulnerabilityTag(identifier: String, tagName: String): LnkVulnerabilityMetadataTag {
         if (!tagName.isValidTag()) {
-            log.error { "Tag $tagName length should be in [2, 15] range, no commas are allowed." }
-            return null
+            throw ResponseStatusException(HttpStatus.CONFLICT, TAG_ERROR_MESSAGE)
         }
         val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier).orNotFound {
             "Could not find metadata for vulnerability $identifier"
@@ -45,6 +48,32 @@ class TagService(
         return lnkVulnerabilityMetadataTagRepository.save(
             LnkVulnerabilityMetadataTag(metadata, tag)
         )
+    }
+
+    /**
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
+     * @param tagNames tags to add
+     * @return new [LnkVulnerabilityMetadataTag]
+     */
+    @Transactional
+    fun addVulnerabilityTags(identifier: String, tagNames: Set<String>): List<LnkVulnerabilityMetadataTag>? {
+        if (tagNames.any { !it.isValidTag() }) {
+            log.error { TAG_ERROR_MESSAGE }
+            return null
+        }
+
+        val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier) ?: run {
+            log.error { "Could not find metadata for vulnerability $identifier" }
+            return null
+        }
+
+        val links = tagNames.map {
+            tagRepository.findByName(it) ?: tagRepository.save(Tag(it))
+        }.map {
+            LnkVulnerabilityMetadataTag(metadata, it)
+        }
+
+        return lnkVulnerabilityMetadataTagRepository.saveAll(links)
     }
 
     /**

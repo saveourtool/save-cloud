@@ -44,8 +44,8 @@ class BackendForCosvService(
 
     override fun saveOrganization(organization: Organization) = organizationService.updateOrganization(organization)
 
-    override fun addVulnerabilityTag(
+    override fun addVulnerabilityTags(
         identifier: String,
-        tagName: String
-    ): LnkVulnerabilityMetadataTag? = tagService.addVulnerabilityTag(identifier, tagName)
+        tagName: Set<String>
+    ): List<LnkVulnerabilityMetadataTag>? = tagService.addVulnerabilityTags(identifier, tagName)
 }
