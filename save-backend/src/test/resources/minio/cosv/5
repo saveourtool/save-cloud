@@ -37,8 +37,8 @@
        "type": "REPORTER"
     },
     {
-       "name": "admin2",
-       "contact": [ "https://saveourtool.com/profile/admin2" ],
+       "name": "admin",
+       "contact": [ "https://saveourtool.com/profile/admin" ],
        "type": "REPORTER"
     },
     {
