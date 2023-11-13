@@ -1,5 +1,6 @@
 package com.saveourtool.save.entities
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -13,16 +14,19 @@ enum class OrganizationStatus {
     /**
      * Organization created
      */
+    @SerialName("CREATED")
     CREATED,
 
     /**
      * Organization deleted
      */
+    @SerialName("DELETED")
     DELETED,
 
     /**
      * Organization banned
      */
+    @SerialName("BANNED")
     BANNED,
     ;
 }
