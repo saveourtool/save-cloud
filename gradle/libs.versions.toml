@@ -42,7 +42,7 @@ cpg = "7.1.2"
 # should be taken from cpg
 cpg-neo4j-ogm = { strictly = "4.0.6" }
 cpg-neo4j-java-driver = { strictly = "5.7.0" }
-aws-sdk = "2.21.16"
+aws-sdk = "2.21.21"
 cosv4k = "0.0.14"
 
 [plugins]
@@ -121,7 +121,7 @@ springdoc-openapi-ui = { module = "org.springdoc:springdoc-openapi-ui", version.
 springdoc-openapi-webflux-ui = { module = "org.springdoc:springdoc-openapi-webflux-ui", version.ref = "springdoc" }
 springdoc-openapi-security = { module = "org.springdoc:springdoc-openapi-security", version.ref = "springdoc" }
 springdoc-openapi-kotlin = { module = "org.springdoc:springdoc-openapi-kotlin", version.ref = "springdoc" }
-swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.18" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version = "2.2.19" }
 
 ktor-client-apache = { module = "io.ktor:ktor-client-apache", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
