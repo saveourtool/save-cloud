@@ -93,14 +93,6 @@ class ServerSentEventTest {
             }
     }
 
-    @Test
-    fun dummyTest() {
-        assertEquals(
-            TestMessage("test"),
-            Json.decodeFromString("""{ "value": "test" }""")
-        )
-    }
-
     private companion object {
         private const val OK: Short = 200
         private const val BAD_REQUEST: Short = 400
