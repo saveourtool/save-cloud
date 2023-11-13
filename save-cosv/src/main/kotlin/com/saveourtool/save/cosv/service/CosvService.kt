@@ -22,7 +22,6 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
-import reactor.kotlin.extra.math.sumAll
 
 import java.nio.ByteBuffer
 import javax.annotation.PostConstruct
@@ -30,6 +29,8 @@ import javax.annotation.PostConstruct
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.serializer
+
+typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDto>
 
 /**
  * Service for vulnerabilities
@@ -46,6 +47,8 @@ class CosvService(
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
 ) {
+    private val scheduler = Schedulers.boundedElastic()
+
     /**
      * Init method to restore all raw cosv files with `in progress` state to process
      */
@@ -71,7 +74,7 @@ class CosvService(
                     "Storage ${RawCosvFileStorage::class.simpleName} and repository ${CosvRepository::class.simpleName} are not initialized in $initMaxTime"
                 }
             }
-            .subscribeOn(Schedulers.boundedElastic())
+            .subscribeOn(scheduler)
             .subscribe()
     }
 
@@ -90,7 +93,11 @@ class CosvService(
                         .flatMap {
                             doProcess(it.requiredId(), user, organization)
                         }
-                        .updateRating(user, organization)
+                        .collectList()
+                        .map { it.flatten() }
+                        .blockingMap {
+                            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it.size)
+                        }
                 }
         }
         .thenJust(Unit)
@@ -102,12 +109,14 @@ class CosvService(
     fun generateIdentifier(): String = cosvGeneratedIdRepository.saveAndFlush(CosvGeneratedId()).getIdentifier()
 
     /**
+     * Method to process all raw cosv files, add ecosystem tags to new vulnerabilities, update user rating
+     *
      * @param rawCosvFileIds
      * @param user
      * @param organization
      * @return empty [Mono]
      */
-    fun process(
+    fun processAndAddTagsAndUpdateRating(
         rawCosvFileIds: Collection<Long>,
         user: User,
         organization: Organization,
@@ -118,7 +127,30 @@ class CosvService(
                     doProcess(rawCosvFileId, user, organization)
                 }
         }
-        .updateRating(user, organization)
+        .collectList()
+        .map { it.flatten() }
+        .flatMap { metadataList ->
+            Mono.just(metadataList.size).doOnSuccess {
+                metadataList.toFlux().flatMap { vulnerabilityMetadataDto ->
+                    getVulnerabilityExt(vulnerabilityMetadataDto.identifier).mapNotNull { vulnerabilityExt ->
+                        vulnerabilityExt.cosv.affected?.mapNotNull { it.`package`?.ecosystem }?.toSet()?.let {
+                            vulnerabilityExt.metadataDto.identifier to it
+                        }
+                    }
+                }
+                    .collectList()
+                    .blockingMap { identifierToTagsList ->
+                        identifierToTagsList.forEach { (identifier, tags) ->
+                            backendService.addVulnerabilityTags(identifier, tags)
+                        }
+                    }
+                    .subscribeOn(scheduler)
+                    .subscribe()
+            }
+        }
+        .blockingMap {
+            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
+        }
         .map {
             log.debug {
                 "Finished processing raw COSV files $rawCosvFileIds"
@@ -144,7 +176,7 @@ class CosvService(
         rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Mono<Int> = rawCosvFileStorage.downloadById(rawCosvFileId)
+    ): Mono<VulnerabilityMetadataDtoList> = rawCosvFileStorage.downloadById(rawCosvFileId)
         .collectToInputStream()
         .flatMap { inputStream ->
             val errorMessage by lazy {
@@ -170,20 +202,12 @@ class CosvService(
                         .flatMap {
                             rawCosvFileStorage.deleteById(rawCosvFileId)
                         }
-                        .thenReturn(metadataList.size)
+                        .thenReturn(metadataList)
                 }
                 .onErrorResume { error ->
                     log.error(error) { errorMessage }
-                    Mono.just(0)
+                    Mono.just(emptyList())
                 }
-        }
-
-    private fun Flux<Int>.updateRating(
-        user: User,
-        organization: Organization,
-    ): Mono<Unit> = sumAll()
-        .blockingMap {
-            vulnerabilityRatingService.addRatingForBulkUpload(user, organization, it)
         }
 
     /**
