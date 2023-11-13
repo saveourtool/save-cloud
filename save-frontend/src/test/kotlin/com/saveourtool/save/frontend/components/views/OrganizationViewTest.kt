@@ -11,7 +11,6 @@ import kotlinx.datetime.LocalDateTime
 
 import react.create
 import react.react
-import react.router.MemoryRouter
 
 import kotlin.js.Promise
 import kotlin.test.*

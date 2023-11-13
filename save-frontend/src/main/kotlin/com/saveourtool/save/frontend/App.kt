@@ -4,21 +4,26 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
+import com.saveourtool.save.frontend.components.errorView
+import com.saveourtool.save.frontend.components.footer
+import com.saveourtool.save.frontend.components.requestModalHandler
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.externals.modal.ReactModal
-import com.saveourtool.save.frontend.routing.basicRouting
+import com.saveourtool.save.frontend.routing.createBasicRoutes
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 
+import js.core.jso
 import react.*
 import react.dom.client.createRoot
 import react.dom.html.ReactHTML.div
-import react.router.dom.BrowserRouter
+import react.router.Outlet
+import react.router.dom.RouterProvider
+import react.router.dom.createBrowserRouter
 import web.cssom.ClassName
 import web.dom.document
 import web.html.HTMLElement
@@ -48,31 +53,42 @@ val App: FC<Props> = FC {
             }
         }
     }
-    BrowserRouter {
-        basename = "/"
+
+    val root = FC {
         requestModalHandler {
             this.userInfo = userInfo
             div {
                 className = ClassName("d-flex flex-column")
                 id = "content-wrapper"
-                ErrorBoundary::class.react {
-                    topBarComponent { this.userInfo = userInfo }
-                    div {
-                        className = ClassName("container-fluid")
-                        id = "common-save-container"
-                        basicRouting {
-                            this.userInfo = userInfo
-                            this.userInfoSetter = setUserInfo
-                        }
-                    }
-                    if (kotlinx.browser.window.location.pathname != "/${FrontendRoutes.COOKIE}") {
-                        cookieBanner { }
-                    }
-                    footer { }
+                topBarComponent { this.userInfo = userInfo }
+                div {
+                    className = ClassName("container-fluid")
+                    id = "common-save-container"
+                    Outlet()
                 }
+                if (window.location.pathname != "/${FrontendRoutes.COOKIE}") {
+                    cookieBanner { }
+                }
+                footer { }
             }
         }
         scrollToTopButton()
+    }
+
+    RouterProvider {
+        router = createBrowserRouter(
+            routes = arrayOf(
+                jso {
+                    path = "/"
+                    element = root.create()
+                    errorElement = errorView.create()
+                    children = createBasicRoutes(userInfo, setUserInfo)
+                }
+            ),
+            opts = jso {
+                basename = "/"
+            }
+        )
     }
 }
 

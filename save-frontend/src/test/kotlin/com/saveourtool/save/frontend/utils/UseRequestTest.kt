@@ -6,7 +6,6 @@ import com.saveourtool.save.frontend.externals.setupWorker
 
 import org.w3c.fetch.Headers
 import react.FC
-import react.Props
 import react.create
 import react.useEffect
 import react.useState
@@ -31,7 +30,7 @@ class UseRequestTest {
     @Test
     fun test(): Promise<Unit> {
         val worker = createWorker()
-        val testComponent: FC<Props> = FC {
+        val testComponent = FC {
             val (sendSecond, setSendSecond) = useState(false)
             val (sendThird, setSendThird) = useState(false)
             useRequest(dependencies = arrayOf(sendSecond)) {

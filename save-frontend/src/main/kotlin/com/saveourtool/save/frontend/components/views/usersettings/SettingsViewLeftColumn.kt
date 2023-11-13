@@ -28,7 +28,6 @@ import web.cssom.rem
 internal const val AVATAR_TITLE = "Upload avatar"
 
 val leftSettingsColumn: FC<SettingsProps> = FC { props ->
-    val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
     val (t) = useTranslation("profile")
 
     div {
@@ -50,8 +49,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                 className = ClassName("row justify-content-center")
                                 img {
                                     className = ClassName("avatar avatar-user width-full border color-bg-default rounded-circle")
-                                    src = avatarImgLink
-                                        ?: props.userInfo?.avatar?.avatarRenderer()
+                                    src = props.userInfo?.avatar?.avatarRenderer()
                                         ?: AVATAR_PROFILE_PLACEHOLDER
                                     style = jso {
                                         height = 12.rem

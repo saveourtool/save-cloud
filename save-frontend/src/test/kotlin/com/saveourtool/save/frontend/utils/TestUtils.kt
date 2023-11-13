@@ -6,6 +6,7 @@ package com.saveourtool.save.frontend.utils
 
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.requestStatusContext
+import js.core.jso
 
 import org.w3c.fetch.Response
 import react.FC
@@ -16,17 +17,32 @@ import web.timers.setTimeout
 import kotlin.js.Promise
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import react.router.MemoryRouter
+import react.create
+import react.router.createMemoryRouter
+import react.router.dom.RouterProvider
 
 val wrapper: FC<PropsWithChildren> = FC { props ->
+    stubInitI18n()
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
-    MemoryRouter {
-        requestStatusContext.Provider {
-            value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
-            +props.children
-        }
+    RouterProvider {
+        router = createMemoryRouter(
+            routes = arrayOf(
+                jso {
+                    index = true
+                    element = FC {
+                        requestStatusContext.Provider {
+                            value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
+                            +props.children
+                        }
+                    }.create()
+                }
+            ),
+            opts = jso {
+                initialEntries = arrayOf("/")
+            }
+        )
     }
 }
 
@@ -50,4 +66,23 @@ inline fun <reified T> mockMswResponse(response: dynamic, value: T): dynamic {
  */
 fun wait(millis: Int) = Promise { resolve, _ ->
     setTimeout({ resolve(Unit) }, millis)
+}
+
+/**
+ * Stub `initI18n` for testing purposes
+ */
+internal fun stubInitI18n() {
+    val i18n: dynamic = kotlinext.js.require("i18next");
+    val reactI18n: dynamic = kotlinext.js.require("react-i18next");
+    val i18nResources: dynamic = jso {
+        en = jso {
+            translation = undefined
+        }
+    }
+
+    i18n.use(reactI18n.initReactI18next).init(jso {
+        resources = i18nResources
+        lng = "en"
+        fallbackLng = "en"
+    })
 }

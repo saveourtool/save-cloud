@@ -87,7 +87,7 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = userInfo.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
                             style = logoSize
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
