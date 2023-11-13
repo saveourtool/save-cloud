@@ -178,12 +178,16 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                 div {
                                     className = ClassName("col-2 px-1")
                                     selectorBuilder(
-                                        filter.chosenStatus?.value ?: statusPlaceholder,
-                                        listOf(statusPlaceholder).plus((filter.statuses ?: VulnerabilityStatus.values().toList()).map { it.value }),
+                                        filter.chosenStatuses?.firstOrNull()?.value ?: statusPlaceholder,
+                                        listOf(statusPlaceholder).plus(
+                                            (filter.statuses ?: VulnerabilityStatus.values().toList())
+                                                .map { it.value }
+                                                .distinct()
+                                        ),
                                         "form-control custom-select",
                                     ) { event ->
-                                        val newStatus = VulnerabilityStatus.values().find { it.value == event.target.value }
-                                        setFilter { oldFilter -> oldFilter.copy(chosenStatus = newStatus) }
+                                        val newStatuses = VulnerabilityStatus.values().filter { it.value == event.target.value }.takeIf { it.isNotEmpty() }
+                                        setFilter { oldFilter -> oldFilter.copy(chosenStatuses = newStatuses) }
                                     }
                                 }
                             }
