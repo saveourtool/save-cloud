@@ -6,7 +6,6 @@ import com.saveourtool.save.frontend.externals.setupWorker
 
 import org.w3c.fetch.Headers
 import react.FC
-import react.Props
 import react.create
 import react.useEffect
 import react.useState

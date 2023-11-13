@@ -2,6 +2,7 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.frontend.externals.*
 import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
@@ -17,6 +18,7 @@ import kotlin.test.*
 import js.core.jso
 
 class ProjectViewTest {
+
     private val testOrganization = OrganizationDto.empty
         .copy(
             name = "TestOrg",
@@ -47,6 +49,14 @@ class ProjectViewTest {
                 )
             }
         },
+        rest.get("$apiUrl/projects/${testOrganization.name}/${testProject.name}/users") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    listOf(testUserInfo)
+                )
+            }
+        },
         rest.get("$apiUrl/projects/${testOrganization.name}/${testProject.name}/users/roles") { _, res, _ ->
             res { response ->
                 mockMswResponse(
@@ -68,6 +78,14 @@ class ProjectViewTest {
                 mockMswResponse(
                     response,
                     0.toLong()
+                )
+            }
+        },
+        rest.get("$apiUrl/contests/${testOrganization.name}/${testProject.name}/best") { _, res, _ ->
+            res { response ->
+                mockMswResponse(
+                    response,
+                    emptyList<ContestResult>(),
                 )
             }
         },

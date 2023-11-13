@@ -11,7 +11,6 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlinx.browser.window
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
