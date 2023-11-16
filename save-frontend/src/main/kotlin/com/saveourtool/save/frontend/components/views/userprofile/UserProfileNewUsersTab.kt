@@ -29,7 +29,7 @@ val renderNewUsersTableForProfileView: FC<Props> = FC {
                     Fragment.create {
                         td {
                             className = ClassName("align-middle")
-                            renderUserAvatarWithName(cellContext.row.original, isHorizontal = true, classes = "mr-2") {
+                            renderUserAvatarWithName(cellContext.row.original) {
                                 height = 3.rem
                                 width = 3.rem
                             }
@@ -39,7 +39,7 @@ val renderNewUsersTableForProfileView: FC<Props> = FC {
                 column(id = "originalName", header = "Original login") { cellContext ->
                     Fragment.create {
                         td {
-                            className = ClassName("align-middle")
+                            className = ClassName("align-middle text-center")
                             +cellContext.value.originalLogins.firstNotNullOfOrNull { it.value }
                         }
                     }
@@ -47,15 +47,13 @@ val renderNewUsersTableForProfileView: FC<Props> = FC {
                 column(id = "source", header = "Source") { cellContext ->
                     Fragment.create {
                         td {
-                            className = ClassName("align-middle")
+                            className = ClassName("align-middle text-center")
                             +cellContext.value.originalLogins.firstNotNullOfOrNull { it.key }
                         }
                     }
                 }
             }
         },
-        initialPageSize = 10,
-        useServerPaging = false,
         isTransparentGrid = true,
     )
 

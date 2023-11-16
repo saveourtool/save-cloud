@@ -99,6 +99,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                     Fragment.create {
                         val projectDto = cellContext.row.original
                         td {
+                            className = ClassName("align-middle text-center")
                             when (projectDto.status) {
                                 ProjectStatus.CREATED -> div {
                                     Link {
@@ -124,6 +125,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 column(id = "description", header = "Description") {
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle text-center")
                             +it.value.description
                         }
                     }
@@ -131,6 +133,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 column(id = "rating", header = "Contest Rating") {
                     Fragment.create {
                         td {
+                            className = ClassName("align-middle text-center")
                             +"0"
                         }
                     }
@@ -143,6 +146,7 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                     column(id = DELETE_BUTTON_COLUMN_ID, header = EMPTY_COLUMN_HEADER) { cellProps ->
                         Fragment.create {
                             td {
+                                className = ClassName("align-middle text-center")
                                 val project = cellProps.row.original
                                 val projectName = project.name
 
@@ -260,7 +264,6 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                 }
             }
         },
-        useServerPaging = false
     ) { tableProps ->
         /*-
          * Necessary for the table to get re-rendered once a project gets
