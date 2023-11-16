@@ -40,6 +40,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "name", header = "Contest Name", { name }) { cellContext ->
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         Link {
                             to = "/contests/${cellContext.row.original.name}"
                             +cellContext.value
@@ -50,6 +51,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "description", header = "Description", { description }) { cellContext ->
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +(cellContext.value ?: "Description is not provided")
                     }
                 }
@@ -57,6 +59,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "start_time", header = "Start Time", { startTime.toString() }) { cellContext ->
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +cellContext.value.replace("T", " ")
                     }
                 }
@@ -64,6 +67,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column(id = "end_time", header = "End Time", { endTime.toString() }) { cellContext ->
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +cellContext.value.replace("T", " ")
                     }
                 }
@@ -71,6 +75,7 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             column("checkBox", "") { cellContext ->
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         input {
                             className = ClassName("mx-auto")
                             type = InputType.checkbox
@@ -89,8 +94,6 @@ private val contestsTable: FC<OrganizationContestsTableProps<ContestDto>> = tabl
             }
         }
     },
-    initialPageSize = 10,
-    useServerPaging = false
 ) {
     arrayOf(it.isContestCreated)
 }

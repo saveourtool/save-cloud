@@ -90,8 +90,8 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                         border = "none".unsafeCast<Border>()
                                         boxShadow = "none".unsafeCast<BoxShadow>()
                                     }
-                                    barLeftColor = "red"
-                                    barRightColor = "green"
+                                    barLeftColor = "green"
+                                    barRightColor = "red"
                                     barInnerColor = Colors.WHITE.value
                                     thumbLeftColor = Colors.VULN_PRIMARY.value
                                     thumbRightColor = Colors.VULN_PRIMARY.value
