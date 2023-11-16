@@ -24,7 +24,7 @@ val footer: FC<Props> = FC {
             div {
                 className = ClassName("copyright text-center my-auto")
                 span {
-                    +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2022"
+                    +"Copyright ${js("String.fromCharCode(169)")} SAVE 2021-2023"
                     br {}
                     +"Version $SAVE_CLOUD_VERSION"
                 }
