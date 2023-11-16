@@ -94,17 +94,16 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         div {
             className = ClassName("col-7 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
-                @Suppress("MISSING_KDOC_ON_FUNCTION")
-                fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
+                if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name && countUsers > 0) {
+                    @Suppress("MISSING_KDOC_ON_FUNCTION")
+                    fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
 
-                val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
-                    UserProfileTab.entries.map { it.toTabName() }
-                } else {
-                    UserProfileTab.entries.filter { it != UserProfileTab.USERS }.map { it.name }
-                }
-                tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
-                    val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
-                    setSelectedMenu { UserProfileTab.valueOf(newValue) }
+                    val tabList = UserProfileTab.entries.map { it.toTabName() }
+
+                    tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
+                        val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
+                        setSelectedMenu { UserProfileTab.valueOf(newValue) }
+                    }
                 }
             }
 
