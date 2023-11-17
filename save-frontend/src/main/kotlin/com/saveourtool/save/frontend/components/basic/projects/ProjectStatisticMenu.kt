@@ -30,6 +30,7 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "name", header = "Test suite", { testSuiteName }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +it.value
                     }
                 }
@@ -37,6 +38,7 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "tests", header = "Number of tests", { countTest }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +"${it.value}"
                     }
                 }
@@ -44,14 +46,13 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +"${it.value}"
                     }
                 }
             }
         }
     },
-    initialPageSize = 10,
-    useServerPaging = false,
 )
 
 /**
