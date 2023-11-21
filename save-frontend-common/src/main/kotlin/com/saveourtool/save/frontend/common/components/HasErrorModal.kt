@@ -25,7 +25,7 @@ import kotlinx.browser.window
 /**
  * Loader animation
  */
-@Suppress("MAGIC_NUMBER")
+@Suppress("MAGIC_NUMBER", "MagicNumber")
 val ringLoader = ringLoader(jso {
     this.size = 80
     this.loading = true

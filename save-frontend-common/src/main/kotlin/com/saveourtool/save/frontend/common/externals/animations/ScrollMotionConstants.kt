@@ -6,8 +6,6 @@
 
 package com.saveourtool.save.frontend.common.externals.animations
 
-import com.saveourtool.save.frontend.common.externals.animations.*
-
 val zoomInScrollOut = batch(fade(), zoomIn(), sticky())
 
 val fadeUpTopLeft = batch(fade(), move(-300, 0, -300, 0), sticky(40, 25))
