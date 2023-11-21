@@ -263,3 +263,7 @@ val distributionJarTask by tasks.registering(Jar::class) {
 artifacts.add(distribution.name, distributionJarTask.get().archiveFile) {
     builtBy(distributionJarTask)
 }
+
+detekt {
+    config.setFrom(config.plus(file("detekt.yml")))
+}
