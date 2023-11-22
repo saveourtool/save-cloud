@@ -225,14 +225,6 @@ tasks.named<KotlinJsTest>("browserTest").configure {
     inputs.file(mswScriptTargetFile)
 }
 
-kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir(
-        tasks.named("generateSaveCloudVersionFile").map {
-            it.outputs.files.singleFile
-        }
-    )
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
     // Since we inject timestamp into HTML file, we would like this task to always be re-run.
     inputs.property("Build timestamp", System.currentTimeMillis())

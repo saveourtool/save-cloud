@@ -1,6 +1,6 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.cosv.frontend.components.views.vuln.component
+package com.saveourtool.save.frontend.common.components.views.vuln
 
 import com.saveourtool.save.frontend.common.externals.fontawesome.faFile
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation

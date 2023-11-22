@@ -1,14 +1,15 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.cosv.frontend.components.basic.table.filters
+package com.saveourtool.save.frontend.common.components.basic.table.filters
 
-import com.saveourtool.save.cosv.frontend.components.views.vuln.component.uploadCosvButton
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
 import com.saveourtool.save.filters.VulnerabilityFilter
 import com.saveourtool.save.frontend.common.components.inputform.*
 import com.saveourtool.save.frontend.common.components.inputform.renderUserWithAvatar
 import com.saveourtool.save.frontend.common.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
+import com.saveourtool.save.frontend.common.components.views.vuln.uploadCosvButton
 import com.saveourtool.save.frontend.common.externals.fontawesome.*
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.common.externals.slider.multiRangeSlider
@@ -16,7 +17,6 @@ import com.saveourtool.save.frontend.common.themes.Colors
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -26,10 +26,7 @@ import web.html.InputType
 
 private const val DROPDOWN_OPTIONS_AMOUNT = 3
 
-@Suppress(
-    "IDENTIFIER_LENGTH",
-    "MagicNumber",
-)
+@Suppress("IDENTIFIER_LENGTH")
 val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
     useTooltip()
     val (t) = useTranslation(TABLE_HEADERS_LOCALE_NAMESPACE)
@@ -40,6 +37,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
     val (filter, setFilter) = useStateFromProps(props.filter)
 
     val languagePlaceholder = "Language".t()
+    val statusPlaceholder = "Status".t()
     div {
         className = ClassName("px-0 container-fluid")
         div {
@@ -63,12 +61,12 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                 input {
                                     type = InputType.text
                                     className = ClassName("form-control")
-                                    value = filter.identifierPrefix
-                                    placeholder = "${"Identifier".t()}..."
+                                    value = filter.freeText
+                                    placeholder = "${"Identifier or Summary".t()}..."
                                     required = false
                                     onChange = { event ->
                                         setFilter { oldFilter ->
-                                            oldFilter.copy(identifierPrefix = event.target.value)
+                                            oldFilter.copy(freeText = event.target.value)
                                         }
                                     }
                                 }
@@ -92,8 +90,8 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                                         border = "none".unsafeCast<Border>()
                                         boxShadow = "none".unsafeCast<BoxShadow>()
                                     }
-                                    barLeftColor = "red"
-                                    barRightColor = "green"
+                                    barLeftColor = "green"
+                                    barRightColor = "red"
                                     barInnerColor = Colors.WHITE.value
                                     thumbLeftColor = Colors.VULN_PRIMARY.value
                                     thumbRightColor = Colors.VULN_PRIMARY.value
@@ -165,14 +163,32 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                             }
 
                             div {
-                                className = ClassName("col-4 px-1")
+                                className = ClassName("col-${if (props.isNeedToFilterStatus) "2" else "4"} px-1")
                                 selectorBuilder(
                                     filter.language?.value ?: languagePlaceholder,
-                                    VulnerabilityLanguage.values().map { it.value }.plus(languagePlaceholder),
+                                    listOf(languagePlaceholder).plus(VulnerabilityLanguage.values().map { it.value }),
                                     "form-control custom-select",
                                 ) { event ->
                                     val newLanguage = VulnerabilityLanguage.values().find { it.value == event.target.value }
                                     setFilter { oldFilter -> oldFilter.copy(language = newLanguage) }
+                                }
+                            }
+
+                            if (props.isNeedToFilterStatus) {
+                                div {
+                                    className = ClassName("col-2 px-1")
+                                    selectorBuilder(
+                                        filter.chosenStatuses?.firstOrNull()?.value ?: statusPlaceholder,
+                                        listOf(statusPlaceholder).plus(
+                                            (filter.statuses ?: VulnerabilityStatus.values().toList())
+                                                .map { it.value }
+                                                .distinct()
+                                        ),
+                                        "form-control custom-select",
+                                    ) { event ->
+                                        val newStatuses = VulnerabilityStatus.values().filter { it.value == event.target.value }.takeIf { it.isNotEmpty() }
+                                        setFilter { oldFilter -> oldFilter.copy(chosenStatuses = newStatuses) }
+                                    }
                                 }
                             }
 
@@ -239,6 +255,11 @@ external interface VulnerabilitiesFiltersProps : Props {
      * All [VulnerabilityFilter]
      */
     var filter: VulnerabilityFilter
+
+    /**
+     * Flag that defines is it needed to add status filtering
+     */
+    var isNeedToFilterStatus: Boolean
 
     /**
      * [StateSetter] for [VulnerabilityFilter]

@@ -7,9 +7,13 @@
 package com.saveourtool.save.cosv.frontend.routing
 
 import com.saveourtool.save.cosv.frontend.components.views.vuln.*
+import com.saveourtool.save.cosv.frontend.components.views.vuln.toprating.topRatingView
 import com.saveourtool.save.cosv.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.cosv.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.common.components.views.FallbackView
+import com.saveourtool.save.frontend.common.components.views.registrationView
+import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
+import com.saveourtool.save.frontend.common.components.views.usersettings.userSettingsView
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.withRouter
 import com.saveourtool.save.validation.FrontendRoutes.*
@@ -23,6 +27,13 @@ import react.router.*
  */
 val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     useUserStatusRedirects(props.userInfo?.status)
+
+    val userProfileView = withRouter { _, params ->
+        userProfileView {
+            userName = params["name"]!!
+            currentUserInfo = props.userInfo
+        }
+    }
 
     val vulnerabilityCollectionView = withRouter { location, _ ->
         vulnerabilityCollectionView {
@@ -40,7 +51,11 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
 
     Routes {
         listOf(
-            vulnWelcomeView.create { userInfo = props.userInfo } to VULN,
+            registrationView.create {
+                userInfo = props.userInfo
+                userInfoSetter = props.userInfoSetter
+            } to REGISTRATION,
+            vulnWelcomeView.create { userInfo = props.userInfo } to "/",
             FallbackView::class.react.create {
                 bigText = "404"
                 smallText = "Page not found"
@@ -51,6 +66,35 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
             uploadVulnerabilityView.create() to VULN_UPLOAD,
             vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             cosvSchemaView.create() to VULN_COSV_SCHEMA,
+            topRatingView.create() to VULN_TOP_RATING,
+            userProfileView.create() to "$VULN_PROFILE/:name",
+
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_PROFILE
+            } to SETTINGS_PROFILE,
+
+            userSettingsView.create {
+                this.userInfoSetter = props.userInfoSetter
+                userInfo = props.userInfo
+                type = SETTINGS_EMAIL
+            } to SETTINGS_EMAIL,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_TOKEN
+            } to SETTINGS_TOKEN,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_ORGANIZATIONS
+            } to SETTINGS_ORGANIZATIONS,
+
+            userSettingsView.create {
+                userInfo = props.userInfo
+                type = SETTINGS_DELETE
+            } to SETTINGS_DELETE,
 
         ).forEach { (view, route) ->
             PathRoute {

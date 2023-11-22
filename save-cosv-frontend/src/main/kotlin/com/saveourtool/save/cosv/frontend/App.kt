@@ -83,7 +83,7 @@ fun main() {
         return
     }
 
-    kotlinext.js.require<dynamic>("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    kotlinext.js.require<dynamic>("../scss/save-cosv-frontend.scss")  // this is needed for webpack to include resource
     kotlinext.js.require<dynamic>("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 

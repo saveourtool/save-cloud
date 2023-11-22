@@ -1,0 +1,124 @@
+// solution from https://stackoverflow.com/questions/2812770/add-centered-text-to-the-middle-of-a-horizontal-rule
+// ======= separator ========
+.separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 0.07rem solid #000000;
+}
+
+.separator:not(:empty)::before {
+  margin-right: .4em;
+}
+
+.separator:not(:empty)::after {
+  margin-left: .4em;
+}
+
+// ======= buttons ========
+
+.input-group {
+     z-index: 0
+}
+
+.btn-circle {
+  border-radius: 100%;
+  height: 2.5rem;
+  width: 2.5rem;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  &.btn-sm {
+    height: 1.8rem;
+    width: 1.8rem;
+    font-size: 0.75rem;
+  }
+  &.btn-lg {
+    height: 3.5rem;
+    width: 3.5rem;
+    font-size: 1.35rem;
+  }
+}
+
+.btn-icon-split {
+  padding: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: stretch;
+  justify-content: center;
+  .icon {
+    background: fade-out($black, .85);
+    display: inline-block;
+    padding: $btn-padding-y $btn-padding-x;
+  }
+  .text {
+    display: inline-block;
+    padding: $btn-padding-y $btn-padding-x;
+  }
+  &.btn-sm {
+    .icon {
+      padding: $btn-padding-y-sm $btn-padding-x-sm;
+    }
+    .text {
+      padding: $btn-padding-y-sm $btn-padding-x-sm;
+    }
+  }
+  &.btn-lg {
+    .icon {
+      padding: $btn-padding-y-lg $btn-padding-x-lg;
+    }
+    .text {
+      padding: $btn-padding-y-lg $btn-padding-x-lg;
+    }
+  }
+}
+
+.btn.btn-no-outline {
+  :focus,:active {
+    outline: none !important;
+    box-shadow: none;
+  }
+}
+
+#main-body.vuln {
+  .btn-primary,
+  .btn-outline-primary {
+    color: #fff;
+    background-color: $vuln-primary;
+    border-color: $vuln-primary;
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: darken($vuln-primary, 10%);
+      border-color: darken($vuln-primary, 15%);
+    }
+  }
+
+  .btn-outline-primary {
+    background-color: transparent;
+    color: $vuln-primary;
+    border-color: $vuln-primary;
+    &:hover,
+    &:focus,
+    &:active {
+      color: #fff;
+    }
+    &.disabled, &:disabled {
+      color: $vuln-primary;
+      background-color: transparent;
+      &:hover,
+      &:focus,
+      &:active {
+        color: $vuln-primary;
+        background-color: transparent;
+      }
+    }
+  }
+}

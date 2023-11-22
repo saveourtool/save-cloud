@@ -1,0 +1,13 @@
+{
+  "Name": "Имя",
+  "Identifier": "Идентификатор",
+  "Organization": "Организация",
+  "Description": "Описание",
+  "COSV Submitter": "Автор отчёта в COSV",
+  "Criticality": "Критичность",
+  "Language": "Язык",
+  "Status": "Статус",
+  "Tag": "Тег",
+  "Version": "Версия",
+  "Updated date": "Дата обновления"
+}
