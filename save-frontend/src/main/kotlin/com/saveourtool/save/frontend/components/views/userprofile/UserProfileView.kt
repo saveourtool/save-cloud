@@ -6,12 +6,12 @@ package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.TabMenuBar
+import com.saveourtool.save.frontend.common.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
