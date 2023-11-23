@@ -2,7 +2,7 @@
  * FC user's topbar
  */
 
-package com.saveourtool.save.frontend.common.components.topbar
+package com.saveourtool.save.cosv.frontend.components.topbar
 
 import com.saveourtool.save.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.save.frontend.common.components.modal.logoutModal

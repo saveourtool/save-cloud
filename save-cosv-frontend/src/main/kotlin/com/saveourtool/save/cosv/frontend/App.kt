@@ -4,11 +4,13 @@
 
 package com.saveourtool.save.cosv.frontend
 
+import com.saveourtool.save.cosv.frontend.components.ErrorBoundary
+import com.saveourtool.save.cosv.frontend.components.requestModalHandler
+import com.saveourtool.save.cosv.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.cosv.frontend.routing.basicRouting
 import com.saveourtool.save.frontend.common.components.*
 import com.saveourtool.save.frontend.common.components.basic.cookieBanner
 import com.saveourtool.save.frontend.common.components.basic.scrollToTopButton
-import com.saveourtool.save.frontend.common.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.common.externals.i18next.initI18n
 import com.saveourtool.save.frontend.common.externals.modal.ReactModal
 import com.saveourtool.save.frontend.common.utils.*

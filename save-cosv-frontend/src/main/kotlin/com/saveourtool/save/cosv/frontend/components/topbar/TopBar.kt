@@ -4,7 +4,7 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "WildcardImport")
 
-package com.saveourtool.save.frontend.common.components.topbar
+package com.saveourtool.save.cosv.frontend.components.topbar
 
 import com.saveourtool.save.frontend.common.components.basic.languageSelector
 import com.saveourtool.save.frontend.common.externals.fontawesome.*

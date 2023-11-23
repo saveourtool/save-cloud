@@ -1,10 +1,8 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.frontend.common.components.topbar
+package com.saveourtool.save.cosv.frontend.components.topbar
 
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.common.utils.isSettings
-import com.saveourtool.save.frontend.common.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
@@ -29,17 +27,6 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
     val (t) = useTranslation("topbar")
 
     @Suppress("MAGIC_NUMBER")
-    val saveTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, text = "Demo".t()),
-        TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", text = "CPG".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, text = "Awesome Benchmarks".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, text = "Try SAVE format".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, text = "Projects board".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, text = "Contests".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
-    )
-
-    @Suppress("MAGIC_NUMBER")
     val vulnTopbarLinks = sequenceOf(
         TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
@@ -49,10 +36,7 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
 
     ul {
         className = ClassName("navbar-nav mx-auto")
-        when {
-            props.location.isVuln() || props.location.isSettings() -> vulnTopbarLinks
-            else -> saveTopbarLinks
-        }
+        vulnTopbarLinks
             .forEach { elem ->
                 li {
                     className = ClassName("nav-item")

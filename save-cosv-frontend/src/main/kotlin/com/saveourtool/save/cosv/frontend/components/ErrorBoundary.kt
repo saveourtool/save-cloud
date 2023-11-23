@@ -2,9 +2,10 @@
  * Support for [error boundaries](https://reactjs.org/docs/error-boundaries.html)
  */
 
-package com.saveourtool.save.frontend.common.components
+package com.saveourtool.save.cosv.frontend.components
 
-import com.saveourtool.save.frontend.common.components.topbar.topBarComponent
+import com.saveourtool.save.cosv.frontend.components.topbar.topBarComponent
+import com.saveourtool.save.frontend.common.components.footer
 import com.saveourtool.save.frontend.common.components.views.FallbackView
 
 import js.core.jso
