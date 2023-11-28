@@ -1,0 +1,105 @@
+$color-step: #4b1bc4;
+$color-line: #563d7c;
+$color-label-default: #0275d8;
+
+.text-primary-blue {
+  color: $color-label-default;
+}
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 200ms ease;
+  box-shadow: none;
+  flex-grow: 1;
+  border-radius: 1rem;
+
+  .steps-container {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+
+    .step-non-editable {
+      transition: 0.4s;
+      z-index: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 0;
+      height: 1.5rem;
+      width: 1.5rem;
+      border: 0.2rem solid $color-line;
+      border-radius: 50%;
+      background: $color-line;
+    }
+
+    .step {
+      transition: 0.4s;
+      z-index: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 0;
+      height: 1.5rem;
+      width: 1.5rem;
+      border: 0.2rem solid $color-step;
+      border-radius: 50%;
+      background: white;
+    }
+
+    .date-label {
+      transition: 0.4s;
+      position: absolute;
+      top: 1.75rem;
+      filter: none;
+      z-index: 3;
+      width: 6.5rem;
+      text-align: center;
+      color: black;
+      font-weight: 5;
+      pointer-events: none;
+    }
+
+    .text-label {
+      transition: 0.4s;
+      position: absolute;
+      filter: none;
+      bottom: 1.75rem;
+      z-index: 3;
+      color: $color-label-default;
+      font-weight: 700;
+      width: 6.5rem;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .step.hoverable:hover {
+      transform: scale(1.1);
+      transition: 0.4s;
+      background: red;
+      cursor: pointer;
+    }
+
+    .line {
+      transition: all 200ms ease;
+      height: 0.2rem;
+      flex-grow: 1;
+      max-width: 100%;
+      background: $color-line;
+    }
+
+    .line-end {
+      color: $color-line;
+      border-top: 0.5rem solid transparent;
+      border-bottom: 0.5rem solid transparent;
+      border-left: 1.2rem solid;
+    }
+  }
+}
