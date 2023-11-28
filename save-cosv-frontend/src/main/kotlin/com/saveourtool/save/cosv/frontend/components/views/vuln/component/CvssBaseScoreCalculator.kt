@@ -332,7 +332,6 @@ private fun ChildrenBuilder.header(
     }
 }
 
-@Suppress("MagicNumber")
 private fun getCriticality(value: Float): String = when (value) {
     0f -> "None"
     in 0.1f..3.9f -> "Low"

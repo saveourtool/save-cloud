@@ -1,6 +1,6 @@
 @file:Suppress("HEADER_MISSING_IN_NON_SINGLE_CLASS_FILE")
 
-package com.saveourtool.save.frontend.common.components.basic.fileuploader
+package com.saveourtool.save.cosv.frontend.components.views.vuln.component
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
@@ -12,6 +12,9 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJso
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
+import com.saveourtool.save.frontend.common.components.basic.fileuploader.defaultProgressBarComponent
+import com.saveourtool.save.frontend.common.components.basic.fileuploader.deleteFileButton
+import com.saveourtool.save.frontend.common.components.basic.fileuploader.downloadFileButton
 import com.saveourtool.save.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.save.frontend.common.components.inputform.InputTypes
 import com.saveourtool.save.frontend.common.components.inputform.dragAndDropForm

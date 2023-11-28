@@ -1,6 +1,6 @@
 @file:Suppress("FILE_NAME_INCORRECT", "FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.common.components.basic
+package com.saveourtool.save.cosv.frontend.components.views.vuln.component
 
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto

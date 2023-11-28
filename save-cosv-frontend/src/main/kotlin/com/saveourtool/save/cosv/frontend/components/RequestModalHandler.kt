@@ -11,7 +11,10 @@ import com.saveourtool.save.frontend.common.utils.UserInfoAwarePropsWithChildren
 
 import org.w3c.fetch.Response
 import react.*
-import react.dom.html.ReactHTML
+import react.dom.html.ReactHTML.button
+import react.dom.html.ReactHTML.div
+import react.dom.html.ReactHTML.h2
+import react.dom.html.ReactHTML.span
 import react.router.useNavigate
 import web.cssom.ClassName
 import web.html.ButtonType
@@ -73,16 +76,16 @@ val requestModalHandler: FC<UserInfoAwarePropsWithChildren> = FC { props ->
     modal { modalProps ->
         modalProps.isOpen = modalState.isErrorModalOpen
         modalProps.contentLabel = modalState.errorLabel
-        ReactHTML.div {
+        div {
             className = ClassName("row align-items-center justify-content-center")
-            ReactHTML.h2 {
+            h2 {
                 className = ClassName("h6 text-gray-800")
                 +modalState.errorMessage
             }
         }
-        ReactHTML.div {
+        div {
             className = ClassName("d-sm-flex align-items-center justify-content-center mt-4")
-            ReactHTML.button {
+            button {
                 className = ClassName("btn btn-outline-primary")
                 type = ButtonType.button
                 onClick = {
@@ -109,11 +112,11 @@ val requestModalHandler: FC<UserInfoAwarePropsWithChildren> = FC { props ->
 
     modal(loaderModalStyle) { modalProps ->
         modalProps.isOpen = loadingState.isLoadingModalOpen
-        ReactHTML.div {
+        div {
             className = ClassName("d-flex justify-content-center mt-4")
-            ReactHTML.div {
+            div {
                 +ringLoader
-                ReactHTML.span {
+                span {
                     className = ClassName("sr-only")
                     +"Loading..."
                 }
@@ -126,13 +129,13 @@ val requestModalHandler: FC<UserInfoAwarePropsWithChildren> = FC { props ->
     ) { statusContext }
 
     val reactNode = if (modalState.redirectToFallbackView) {
-        ReactHTML.div.create {
+        div.create {
             className = ClassName("d-flex flex-column")
             id = "content-wrapper"
             topBarComponent {
                 userInfo = props.userInfo
             }
-            ReactHTML.div {
+            div {
                 className = ClassName("container-fluid")
                 FallbackView::class.react {
                     bigText = "${response?.status}"

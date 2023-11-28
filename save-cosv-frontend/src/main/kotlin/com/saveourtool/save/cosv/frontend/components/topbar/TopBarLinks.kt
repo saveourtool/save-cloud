@@ -26,7 +26,6 @@ private const val TOP_BAR_PATH_SEGMENTS_HIGHLIGHT = 4
 val topBarLinks: FC<TopBarLinksProps> = FC { props ->
     val (t) = useTranslation("topbar")
 
-    @Suppress("MAGIC_NUMBER")
     val vulnTopbarLinks = sequenceOf(
         TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
