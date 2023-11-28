@@ -21,7 +21,7 @@ dependencyResolutionManagement {
             }
         }
 
-        file("D:\\projects\\diktat\\build\\diktat-snapshot")
+        file("D:\\maven\\repository")
             .takeIf { it.exists() }
             ?.run {
                 maven {
@@ -35,7 +35,7 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        file("D:\\projects\\diktat\\build\\diktat-snapshot")
+        file("D:\\maven\\repository")
             .takeIf { it.exists() }
             ?.run {
                 maven {

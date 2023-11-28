@@ -7,7 +7,7 @@ plugins {
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    file("D:\\projects\\diktat\\build\\diktat-snapshot")
+    file("D:\\maven\\repository")
         .takeIf { it.exists() }
         ?.run {
             maven {

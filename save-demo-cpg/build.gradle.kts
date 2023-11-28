@@ -36,7 +36,7 @@ repositories {
                 ?: System.getenv("GITHUB_TOKEN")
         }
     }
-    file("D:\\projects\\diktat\\build\\diktat-snapshot")
+    file("D:\\maven\\repository")
         .takeIf { it.exists() }
         ?.run {
             maven {
