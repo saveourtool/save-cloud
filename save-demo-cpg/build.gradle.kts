@@ -36,6 +36,13 @@ repositories {
                 ?: System.getenv("GITHUB_TOKEN")
         }
     }
+    file("D:\\projects\\diktat\\build\\diktat-snapshot")
+        .takeIf { it.exists() }
+        ?.run {
+            maven {
+                url = this@run.toURI()
+            }
+        }
 }
 val jepArchive by configurations.creating
 

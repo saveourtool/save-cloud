@@ -107,8 +107,6 @@
   configuration:
     valueArgument: true
     valueParameter: true
-- name: MAGIC_NUMBER
-  enabled: true
 - name: COMPLEX_EXPRESSION
   enabled: true
 - name: USE_DATA_CLASS

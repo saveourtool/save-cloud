@@ -20,6 +20,14 @@ dependencyResolutionManagement {
                     ?: System.getenv("GITHUB_TOKEN")
             }
         }
+
+        file("D:\\projects\\diktat\\build\\diktat-snapshot")
+            .takeIf { it.exists() }
+            ?.run {
+                maven {
+                    url = this@run.toURI()
+                }
+            }
     }
 }
 
@@ -27,6 +35,13 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        file("D:\\projects\\diktat\\build\\diktat-snapshot")
+            .takeIf { it.exists() }
+            ?.run {
+                maven {
+                    url = this@run.toURI()
+                }
+            }
     }
 }
 

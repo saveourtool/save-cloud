@@ -7,6 +7,13 @@ plugins {
 repositories {
     mavenCentral()
     gradlePluginPortal()
+    file("D:\\projects\\diktat\\build\\diktat-snapshot")
+        .takeIf { it.exists() }
+        ?.run {
+            maven {
+                url = this@run.toURI()
+            }
+        }
 }
 
 dependencies {
@@ -19,7 +26,7 @@ dependencies {
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.diktat.gradle.plugin)
-    implementation(libs.gradle.plugin.spotless)
+    // implementation(libs.gradle.plugin.spotless)
     implementation(libs.publish.gradle.plugin)
 }
 

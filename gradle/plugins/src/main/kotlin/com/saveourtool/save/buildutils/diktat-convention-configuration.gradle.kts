@@ -1,10 +1,10 @@
 package com.saveourtool.save.buildutils
 
-import Versions
-import com.saveourtool.diktat.plugin.gradle.DiktatJavaExecTaskBase
+// import com.saveourtool.diktat.plugin.gradle.DiktatJavaExecTaskBase
 
 plugins {
     id("com.saveourtool.diktat")
+    // id("org.cqfn.diktat.diktat-gradle-plugin")
 }
 
 diktat {
@@ -22,8 +22,8 @@ diktat {
     }
 }
 
-tasks.withType<DiktatJavaExecTaskBase>().configureEach {
-//    javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
-//        languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
-//    })
-}
+// tasks.withType<DiktatJavaExecTaskBase>().configureEach {
+// javaLauncher.set(project.extensions.getByType<JavaToolchainService>().launcherFor {
+// languageVersion.set(JavaLanguageVersion.of(Versions.jdk))
+// })
+// }

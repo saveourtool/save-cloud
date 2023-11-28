@@ -58,6 +58,8 @@ kotlin {
             }
         }
         commonTest {
+            // @Suppress("UNUSED_VARIABLE")
+            // val commonTest by getting {
             dependencies {
                 dependencies {
                     api(libs.kotlin.test)
