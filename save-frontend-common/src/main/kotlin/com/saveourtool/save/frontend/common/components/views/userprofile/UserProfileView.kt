@@ -16,7 +16,7 @@ import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.*
@@ -149,7 +149,7 @@ enum class UserProfileTab {
     companion object : TabMenuBar<UserProfileTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserProfileTab = VULNERABILITIES
-        override val regexForUrlClassification = "/${FrontendRoutes.VULN_PROFILE}"
+        override val regexForUrlClassification = "/${FrontendCosvRoutes.PROFILE}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
         override fun values(): Array<UserProfileTab> = entries.toTypedArray()
     }
@@ -286,7 +286,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
     div {
         className = ClassName("col text-center mt-2")
         Link {
-            to = "/${FrontendRoutes.VULN_TOP_RATING}"
+            to = "/${FrontendCosvRoutes.VULN_TOP_RATING}"
             className = ClassName("row text-xs font-weight-bold text-info justify-content-center text-uppercase mb-1")
             +"Rating"
         }
@@ -300,7 +300,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
                 className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
 
                 buttonBuilder(label = "Customize profile", isOutline = true, style = "primary btn-sm") {
-                    navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
+                    navigate(to = "/${FrontendCosvRoutes.SETTINGS_PROFILE}")
                 }
             }
         }

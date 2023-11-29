@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.common.utils.Style
 import com.saveourtool.save.frontend.common.utils.tab
 import com.saveourtool.save.frontend.common.utils.title
 import com.saveourtool.save.frontend.common.utils.useBackground
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div
@@ -55,7 +55,7 @@ enum class TopRatingTab {
     companion object : TabMenuBar<TopRatingTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: TopRatingTab = USERS
-        override val regexForUrlClassification = "/${FrontendRoutes.VULN_TOP_RATING}"
+        override val regexForUrlClassification = "/${FrontendCosvRoutes.VULN_TOP_RATING}"
         override fun valueOf(elem: String): TopRatingTab = TopRatingTab.valueOf(elem)
         override fun values(): Array<TopRatingTab> = TopRatingTab.values()
     }

@@ -3,8 +3,6 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.isSettings
-import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
@@ -39,20 +37,9 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
     )
 
-    @Suppress("MAGIC_NUMBER")
-    val vulnTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
-    )
-
     ul {
         className = ClassName("navbar-nav mx-auto")
-        when {
-            props.location.isVuln() || props.location.isSettings() -> vulnTopbarLinks
-            else -> saveTopbarLinks
-        }
+        saveTopbarLinks
             .forEach { elem ->
                 li {
                     className = ClassName("nav-item")

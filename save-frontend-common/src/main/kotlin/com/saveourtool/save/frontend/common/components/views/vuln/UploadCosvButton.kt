@@ -5,7 +5,7 @@ package com.saveourtool.save.frontend.common.components.views.vuln
 import com.saveourtool.save.frontend.common.externals.fontawesome.faFile
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import react.FC
 import react.Props
 import react.router.useNavigate
@@ -16,11 +16,11 @@ val uploadCosvButton: FC<UploadCosvButtonProps> = FC { props ->
 
     if (props.isImage) {
         buttonBuilder(faFile, style = "primary", title = "Add new vulnerability from json", classes = "icon-2-5rem", isOutline = true) {
-            navigate("/${FrontendRoutes.VULN_UPLOAD}")
+            navigate("/${FrontendCosvRoutes.VULN_UPLOAD}")
         }
     } else {
         buttonBuilder("Upload COSV files".t(), style = "primary", isOutline = true) {
-            navigate("/${FrontendRoutes.VULN_UPLOAD}")
+            navigate("/${FrontendCosvRoutes.VULN_UPLOAD}")
         }
     }
 }

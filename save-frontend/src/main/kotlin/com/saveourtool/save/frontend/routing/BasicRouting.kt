@@ -183,7 +183,7 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
             cpgView.create() to "$DEMO/cpg",
             testExecutionDetailsView.create() to "/:organization/:project/history/execution/:executionId/test/:testId",
             demoCollectionView.create() to DEMO,
-            userProfileView.create() to "$VULN_PROFILE/:name",
+            userProfileView.create() to "$PROFILE/:name",
             termsOfUsageView.create() to TERMS_OF_USE,
             cookieTermsOfUse.create() to COOKIE,
             thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,

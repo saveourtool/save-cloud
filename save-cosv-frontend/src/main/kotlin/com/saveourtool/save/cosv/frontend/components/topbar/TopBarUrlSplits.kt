@@ -4,7 +4,7 @@ package com.saveourtool.save.cosv.frontend.components.topbar
 
 import com.saveourtool.save.frontend.common.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import react.FC
 import react.Props
@@ -41,7 +41,7 @@ val topBarUrlSplits: FC<TopBarUrlSplitsProps> = FC { props ->
             }
             props.location.pathname
                 // workaround for avoiding invalid routing to /vuln/list/:param from /vuln/collection/vulnName
-                .replace("${FrontendRoutes.VULNERABILITY_SINGLE}", "${FrontendRoutes.VULNERABILITIES}")
+                .replace("${FrontendCosvRoutes.VULNERABILITY_SINGLE}", "${FrontendCosvRoutes.VULNERABILITIES}")
                 .substringBeforeLast("?")
                 .split(URL_PATH_DELIMITER)
                 .filterNot { it.isBlank() }
