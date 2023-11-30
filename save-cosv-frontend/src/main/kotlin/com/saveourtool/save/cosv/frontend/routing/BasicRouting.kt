@@ -16,7 +16,8 @@ import com.saveourtool.save.frontend.common.components.views.userprofile.userPro
 import com.saveourtool.save.frontend.common.components.views.usersettings.userSettingsView
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.withRouter
-import com.saveourtool.save.validation.FrontendRoutes.*
+import com.saveourtool.save.validation.FrontendCosvRoutes.*
+import com.saveourtool.save.validation.FrontendRoutes
 
 import org.w3c.dom.url.URLSearchParams
 import react.*
@@ -67,33 +68,33 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
             vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             cosvSchemaView.create() to VULN_COSV_SCHEMA,
             topRatingView.create() to VULN_TOP_RATING,
-            userProfileView.create() to "$VULN_PROFILE/:name",
+            userProfileView.create() to "$PROFILE/:name",
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
-                type = SETTINGS_PROFILE
+                type = FrontendRoutes.SETTINGS_PROFILE
             } to SETTINGS_PROFILE,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter
                 userInfo = props.userInfo
-                type = SETTINGS_EMAIL
+                type = FrontendRoutes.SETTINGS_EMAIL
             } to SETTINGS_EMAIL,
 
             userSettingsView.create {
                 userInfo = props.userInfo
-                type = SETTINGS_TOKEN
+                type = FrontendRoutes.SETTINGS_TOKEN
             } to SETTINGS_TOKEN,
 
             userSettingsView.create {
                 userInfo = props.userInfo
-                type = SETTINGS_ORGANIZATIONS
+                type = FrontendRoutes.SETTINGS_ORGANIZATIONS
             } to SETTINGS_ORGANIZATIONS,
 
             userSettingsView.create {
                 userInfo = props.userInfo
-                type = SETTINGS_DELETE
+                type = FrontendRoutes.SETTINGS_DELETE
             } to SETTINGS_DELETE,
 
         ).forEach { (view, route) ->

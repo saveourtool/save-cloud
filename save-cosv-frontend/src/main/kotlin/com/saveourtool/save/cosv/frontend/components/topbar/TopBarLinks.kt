@@ -3,7 +3,7 @@
 package com.saveourtool.save.cosv.frontend.components.topbar
 
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import react.*
 import react.dom.html.ReactHTML.a
@@ -27,10 +27,9 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
     val (t) = useTranslation("topbar")
 
     val vulnTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
+        TopBarLink(hrefAnchor = FrontendCosvRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
+        TopBarLink(hrefAnchor = FrontendCosvRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
+        TopBarLink(hrefAnchor = FrontendCosvRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
     )
 
     ul {

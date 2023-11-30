@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.FC
@@ -206,7 +206,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                                             className = ClassName("mt-2 pl-2")
                                             projectProblem.identifier?.let {
                                                 Link {
-                                                    to = "/${FrontendRoutes.VULN}/${projectProblem.identifier}"
+                                                    to = "/${FrontendCosvRoutes.VULN}/${projectProblem.identifier}"
                                                     +it
                                                 }
                                             } ?: +"No known CVE"

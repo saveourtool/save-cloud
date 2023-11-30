@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.common.components.views.userprofile.shorten
 import com.saveourtool.save.frontend.common.externals.fontawesome.*
 import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -79,7 +79,7 @@ val leftSettingsColumn: FC<SettingsProps> = FC { props ->
                                     className = ClassName("row justify-content-center")
                                     h6 {
                                         Link {
-                                            to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
+                                            to = "/${FrontendCosvRoutes.PROFILE}/${props.userInfo?.name}"
                                             style = jso {
                                                 textDecoration = TextDecoration.underline
                                             }
@@ -110,9 +110,9 @@ val settingsTabs: FC<Props> = FC {
                     settingMenuHeader("Basic Settings".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_PROFILE, "Profile settings".t(), faUser)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_EMAIL, "Login and email".t(), faEnvelope)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_ORGANIZATIONS, "Organizations".t(), faCity)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_PROFILE, "Profile settings".t(), faUser)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_EMAIL, "Login and email".t(), faEnvelope)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_ORGANIZATIONS, "Organizations".t(), faCity)
                     }
                 }
                 form {
@@ -122,8 +122,8 @@ val settingsTabs: FC<Props> = FC {
                     settingMenuHeader("Security Settings".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal access tokens".t(), faKey)
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "OAuth accounts".t(), faGithub)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_TOKEN, "Personal access tokens".t(), faKey)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_TOKEN, "OAuth accounts".t(), faGithub)
                     }
                 }
                 form {
@@ -133,9 +133,9 @@ val settingsTabs: FC<Props> = FC {
                     settingMenuHeader("Other".t())
                     div {
                         className = ClassName("menu")
-                        settingsMenuTab(FrontendRoutes.SETTINGS_TOKEN, "Personal Statistics".t(), faPlus)
+                        settingsMenuTab(FrontendCosvRoutes.SETTINGS_TOKEN, "Personal Statistics".t(), faPlus)
                         settingsMenuTab(
-                            FrontendRoutes.SETTINGS_DELETE,
+                            FrontendCosvRoutes.SETTINGS_DELETE,
                             "Delete Profile".t(),
                             faWindowClose,
                             "btn-outline-danger"
@@ -155,7 +155,7 @@ private fun ChildrenBuilder.settingMenuHeader(header: String) {
 }
 
 private fun ChildrenBuilder.settingsMenuTab(
-    link: FrontendRoutes,
+    link: FrontendCosvRoutes,
     text: String,
     icon: FontAwesomeIconModule,
     style: String = "btn-outline-dark"

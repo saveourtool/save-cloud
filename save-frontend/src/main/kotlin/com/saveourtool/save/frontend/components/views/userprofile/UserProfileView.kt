@@ -17,6 +17,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -150,7 +151,7 @@ enum class UserProfileTab {
     companion object : TabMenuBar<UserProfileTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserProfileTab = VULNERABILITIES
-        override val regexForUrlClassification = "/${FrontendRoutes.VULN_PROFILE}"
+        override val regexForUrlClassification = "/${FrontendRoutes.PROFILE}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
         override fun values(): Array<UserProfileTab> = entries.toTypedArray()
     }
@@ -287,7 +288,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
     div {
         className = ClassName("col text-center mt-2")
         Link {
-            to = "/${FrontendRoutes.VULN_TOP_RATING}"
+            to = "/${FrontendCosvRoutes.VULN_TOP_RATING}"
             className = ClassName("row text-xs font-weight-bold text-info justify-content-center text-uppercase mb-1")
             +"Rating"
         }

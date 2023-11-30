@@ -8,7 +8,7 @@ import com.saveourtool.save.cosv.frontend.components.views.welcome.BIG_FONT_SIZE
 import com.saveourtool.save.cosv.frontend.components.views.welcome.FIRST_RAW_HEIGHT
 import com.saveourtool.save.cosv.frontend.components.views.welcome.SECOND_RAW_HEIGHT
 import com.saveourtool.save.frontend.common.externals.i18next.TranslationFunction
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
@@ -138,7 +138,7 @@ private fun ChildrenBuilder.cosvSchemaCard(
     t: TranslationFunction,
 ) {
     Link {
-        to = "/${FrontendRoutes.VULN_COSV_SCHEMA}"
+        to = "/${FrontendCosvRoutes.VULN_COSV_SCHEMA}"
         div {
             className =
                     ClassName("card button_animated_card rounded rounded-pill col justify-content-center")

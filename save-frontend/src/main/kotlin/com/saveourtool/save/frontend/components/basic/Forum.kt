@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.AVATAR_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.toUnixCalendarFormat
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.ChildrenBuilder
@@ -210,7 +210,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                                 width = 80.0
                                 onError = { setAvatar(AVATAR_PLACEHOLDER) }
                             }
-                            to = "/${FrontendRoutes.VULN_PROFILE}/$name"
+                            to = "/${FrontendCosvRoutes.PROFILE}/$name"
                         }
                     }
                     div {
@@ -230,7 +230,7 @@ private fun ChildrenBuilder.renderLeftColumn(
                         h1 {
                             className = ClassName("col-12 text-center font-weight-bold h5")
                             Link {
-                                to = "/${FrontendRoutes.VULN_PROFILE}/$name"
+                                to = "/${FrontendCosvRoutes.PROFILE}/$name"
                                 +name
                             }
                         }

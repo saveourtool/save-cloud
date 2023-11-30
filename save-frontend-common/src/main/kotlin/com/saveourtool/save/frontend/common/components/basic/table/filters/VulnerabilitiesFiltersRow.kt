@@ -16,7 +16,7 @@ import com.saveourtool.save.frontend.common.externals.slider.multiRangeSlider
 import com.saveourtool.save.frontend.common.themes.Colors
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div
@@ -216,7 +216,7 @@ val vulnerabilitiesFiltersRow: FC<VulnerabilitiesFiltersProps> = FC { props ->
                         className = ClassName("col-2")
                         withNavigate { navigateContext ->
                             buttonBuilder(faPlus, style = "primary mr-1", title = "Add new vulnerability", classes = "icon-2-5rem", isOutline = true) {
-                                navigateContext.navigate("/${FrontendRoutes.VULN_CREATE}")
+                                navigateContext.navigate("/${FrontendCosvRoutes.VULN_CREATE}")
                             }
                         }
                         uploadCosvButton {

@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.frontend.common.utils.UserInfoAwareProps
 import com.saveourtool.save.frontend.common.utils.isSuperAdmin
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.*
@@ -105,12 +105,12 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faUser, "Profile".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.VULN_PROFILE}/$name")
+                            navigate(to = "/${FrontendCosvRoutes.PROFILE}/$name")
                         }
                     }
                     dropdownEntry(faCog, "Settings".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.SETTINGS_PROFILE}")
+                            navigate(to = "/${FrontendCosvRoutes.SETTINGS_PROFILE}")
                         }
                     }
                     dropdownEntry(
@@ -118,7 +118,7 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                         "Manage organizations".t()
                     ) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.SETTINGS_ORGANIZATIONS}")
+                            navigate(to = "/${FrontendCosvRoutes.SETTINGS_ORGANIZATIONS}")
                         }
                     }
                     dropdownEntry(faSignOutAlt, "Log out".t()) { attrs ->

@@ -11,6 +11,7 @@ import com.saveourtool.save.frontend.common.utils.OauthProvidersFeConfig
 import com.saveourtool.save.frontend.common.utils.processRegistrationId
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
@@ -159,23 +160,22 @@ fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendRoutes, icon: F
     Link {
         className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
         to = "/$route"
-        h4 {
-            div {
-                className = ClassName("row ml-2 align-items-center")
-                style = jso {
-                    color = "#3075c0".unsafeCast<Color>()
-                    marginBottom = "0.0em".unsafeCast<Margin>()
-                }
-                div {
-                    className = ClassName("col-1 d-flex justify-content-center")
-                    fontAwesomeIcon(icon = icon)
-                }
-                div {
-                    className = ClassName("col-11 d-flex justify-content-start")
-                    +text
-                }
-            }
-        }
+        menuText(text, icon)
+    }
+}
+
+/**
+ * Render styled [text] with link by [route]'s [FrontendCosvRoutes.path] and leading [icon]
+ *
+ * @param text [String] to display
+ * @param route that menu options points to
+ * @param icon [FontAwesomeIcon] to display
+ */
+fun ChildrenBuilder.menuTextAndLink(text: String, route: FrontendCosvRoutes, icon: FontAwesomeIconModule) {
+    Link {
+        className = ClassName("text-gradient font-weight-bold ml-2 mr-2")
+        to = "/$route"
+        menuText(text, icon)
     }
 }
 
@@ -187,6 +187,26 @@ fun ChildrenBuilder.hrNoMargin() {
         style = jso {
             marginTop = "0.0em".unsafeCast<Margin>()
             marginBottom = "0.0em".unsafeCast<Margin>()
+        }
+    }
+}
+
+private fun ChildrenBuilder.menuText(text: String, icon: FontAwesomeIconModule) {
+    h4 {
+        div {
+            className = ClassName("row ml-2 align-items-center")
+            style = jso {
+                color = "#3075c0".unsafeCast<Color>()
+                marginBottom = "0.0em".unsafeCast<Margin>()
+            }
+            div {
+                className = ClassName("col-1 d-flex justify-content-center")
+                fontAwesomeIcon(icon = icon)
+            }
+            div {
+                className = ClassName("col-11 d-flex justify-content-start")
+                +text
+            }
         }
     }
 }
