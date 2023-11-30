@@ -18,6 +18,7 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.saveFrontendCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
@@ -222,14 +223,6 @@ val installMwsScriptTaskProvider = tasks.register<Exec>("installMswScript") {
 tasks.named<KotlinJsTest>("browserTest").configure {
     dependsOn(installMwsScriptTaskProvider)
     inputs.file(mswScriptTargetFile)
-}
-
-kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir(
-        tasks.named("generateSaveCloudVersionFile").map {
-            it.outputs.files.singleFile
-        }
-    )
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {

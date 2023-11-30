@@ -99,7 +99,7 @@ private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols(
     allowedSpecialSymbols: Set<Char> = namingAllowedSpecialSymbols
 ) = all { it.isLetterOrDigit() || allowedSpecialSymbols.contains(it) }
 
-private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
+private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + FrontendCosvRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
     .any { this == it }
 
 private fun String.isLengthOk(allowedLength: Int) = length <= allowedLength

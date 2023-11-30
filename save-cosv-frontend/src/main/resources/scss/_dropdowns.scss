@@ -1,0 +1,53 @@
+// Custom Dropdown Styling
+
+.dropdown {
+  .dropdown-menu {
+    font-size: $dropdown-font-size;
+    .dropdown-header {
+      @extend .text-uppercase;
+      font-weight: 800;
+      font-size: 0.65rem;
+      color: $gray-500;
+    }
+  }
+}
+
+// Utility class to hide arrow from dropdown
+
+.dropdown.no-arrow {
+  .dropdown-toggle::after {
+    display: none;
+  }
+}
+
+/**
+ * Someone might need it. Usage:
+ *   div {
+ *     className = ClassName("expandable")
+ *     +"Text"
+ *     div {
+ *       className = ClassName("expand")
+ *       +"CONTENT"
+ *     }
+ */
+.expandable {
+  align-self: center;
+  .expand {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  &:hover {
+    .expand {
+      display: block;
+      position: absolute;
+      z-index: 50;
+      height: auto;
+      width: auto;
+      animation: growOut 300ms ease-in-out forwards;
+      transform-origin: top center;
+    }
+  }
+}
+

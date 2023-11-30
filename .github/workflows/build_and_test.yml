@@ -52,6 +52,7 @@ jobs:
           'save-backend',
           'save-orchestrator',
           'save-frontend',
+          'save-cosv-frontend',
           'save-preprocessor',
           'test-utils',
           'save-api',

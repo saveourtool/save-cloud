@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.frontend.common.components.footer
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
