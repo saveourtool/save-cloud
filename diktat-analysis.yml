@@ -107,8 +107,10 @@
   configuration:
     valueArgument: true
     valueParameter: true
+# reduces speed of development on the FE
+# will remove it by for now
 - name: MAGIC_NUMBER
-  enabled: true
+  enabled: false
 - name: COMPLEX_EXPRESSION
   enabled: true
 - name: USE_DATA_CLASS
@@ -133,7 +135,3 @@
     - GetMapping
     - PostMapping
     - Repository
-  # reduces speed of development on the FE
-  # will remove it by for now
-- name: MAGIC_NUMBER
-  enabled: false
