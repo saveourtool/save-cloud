@@ -12,19 +12,10 @@ import react.FC
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
-import react.router.useNavigate
-import react.useEffect
 import web.cssom.*
-import kotlinx.browser.window
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<UserInfoAwareProps> = FC { props ->
-    val navigate = useNavigate()
-    useEffect {
-        if (window.location.run { isCosvDomain() && pathname == "/" }) {
-            navigate("/vuln")
-        }
-    }
     useBackground(Style.INDEX)
     particles()
     main {

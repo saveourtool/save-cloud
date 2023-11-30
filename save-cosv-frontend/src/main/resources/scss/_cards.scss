@@ -1,0 +1,72 @@
+.card {
+  .card-header {
+    // Format Dropdowns in Card Headings
+    .dropdown {
+      line-height: 1;
+      .dropdown-menu {
+        line-height: 1.5;
+      }
+    }
+  }
+  // Collapsable Card Styling
+  .card-header[data-toggle="collapse"] {
+    text-decoration: none;
+    position: relative;
+    padding: 0.75rem 3.25rem 0.75rem 1.25rem;
+    &::after {
+      position: absolute;
+      right: 0;
+      top: 0;
+      padding-right: 1.725rem;
+      line-height: 51px;
+      font-weight: 900;
+      content: '\f107';
+      font-family: 'Font Awesome 5 Free';
+      color: $gray-400;
+    }
+    &.collapsed {
+      border-radius: $card-border-radius;
+      &::after {
+        content: '\f105';
+      }
+    }
+  }
+}
+
+.vulnerability-placeholder svg {
+    transition: 0.4s;
+}
+
+.vulnerability-placeholder:hover {
+    border: #5711d9;
+    border-style: solid;
+}
+
+.vulnerability-placeholder:hover svg {
+    transition: 0.4s;
+    transform: scale(1.4);
+    color: #5711d9;
+}
+
+
+// ============ sticky (fixed to scroll) cards ========
+.sidebar-item {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.make-me-sticky {
+  position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+
+  padding: 0 15px;
+}
+
+// ============= card ======================
+.icon-2-5rem {
+    width: 2.5rem;
+}

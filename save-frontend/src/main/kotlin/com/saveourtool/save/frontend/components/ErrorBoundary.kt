@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components
 
+import com.saveourtool.save.frontend.common.components.footer
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.components.views.FallbackView
 

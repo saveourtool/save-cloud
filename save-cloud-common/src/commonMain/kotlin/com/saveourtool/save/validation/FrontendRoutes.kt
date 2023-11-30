@@ -30,6 +30,7 @@ enum class FrontendRoutes(val path: String) {
     INDEX(""),
     MANAGE_ORGANIZATIONS("organizations"),
     NOT_FOUND("not-found"),
+    PROFILE("profile"),
     PROJECTS("projects"),
     REGISTRATION("registration"),
     SANDBOX("sandbox"),
@@ -41,14 +42,6 @@ enum class FrontendRoutes(val path: String) {
     SETTINGS_TOKEN("$SETTINGS/token"),
     TERMS_OF_USE("terms-of-use"),
     THANKS_FOR_REGISTRATION("thanks-for-registration"),
-    VULN("vuln"),
-    VULNERABILITIES("$VULN/list"),
-    VULNERABILITY_SINGLE("$VULN/collection"),
-    VULN_COSV_SCHEMA("$VULN/schema"),
-    VULN_CREATE("$VULN/create-vulnerability"),
-    VULN_PROFILE("$VULN/profile"),
-    VULN_TOP_RATING("$VULN/top-rating"),
-    VULN_UPLOAD("$VULN/upload-vulnerability"),
     ;
 
     override fun toString(): String = path

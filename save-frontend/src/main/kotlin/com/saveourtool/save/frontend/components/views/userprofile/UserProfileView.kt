@@ -6,17 +6,18 @@ package com.saveourtool.save.frontend.components.views.userprofile
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.frontend.TabMenuBar
+import com.saveourtool.save.frontend.common.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.components.inputform.InputTypes
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.components.views.contests.tab
-import com.saveourtool.save.frontend.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.*
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -94,17 +95,16 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
         div {
             className = ClassName("col-7 mb-4 mt-2")
             props.currentUserInfo?.globalRole?.let { role ->
-                @Suppress("MISSING_KDOC_ON_FUNCTION")
-                fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
+                if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name && countUsers > 0) {
+                    @Suppress("MISSING_KDOC_ON_FUNCTION")
+                    fun UserProfileTab.toTabName() = if (this == UserProfileTab.USERS) "${this.name} ($countUsers)" else this.name
 
-                val tabList = if (role.isSuperAdmin() && props.currentUserInfo?.name == user?.name) {
-                    UserProfileTab.entries.map { it.toTabName() }
-                } else {
-                    UserProfileTab.entries.filter { it != UserProfileTab.USERS }.map { it.name }
-                }
-                tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
-                    val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
-                    setSelectedMenu { UserProfileTab.valueOf(newValue) }
+                    val tabList = UserProfileTab.entries.map { it.toTabName() }
+
+                    tab(selectedMenu.toTabName(), tabList, "nav nav-tabs mt-3") { value ->
+                        val newValue = if (value.contains(UserProfileTab.USERS.name)) UserProfileTab.USERS.name else value
+                        setSelectedMenu { UserProfileTab.valueOf(newValue) }
+                    }
                 }
             }
 
@@ -151,7 +151,7 @@ enum class UserProfileTab {
     companion object : TabMenuBar<UserProfileTab> {
         override val nameOfTheHeadUrlSection = ""
         override val defaultTab: UserProfileTab = VULNERABILITIES
-        override val regexForUrlClassification = "/${FrontendRoutes.VULN_PROFILE}"
+        override val regexForUrlClassification = "/${FrontendRoutes.PROFILE}"
         override fun valueOf(elem: String): UserProfileTab = UserProfileTab.valueOf(elem)
         override fun values(): Array<UserProfileTab> = entries.toTypedArray()
     }
@@ -288,7 +288,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
     div {
         className = ClassName("col text-center mt-2")
         Link {
-            to = "/${FrontendRoutes.VULN_TOP_RATING}"
+            to = "/${FrontendCosvRoutes.VULN_TOP_RATING}"
             className = ClassName("row text-xs font-weight-bold text-info justify-content-center text-uppercase mb-1")
             +"Rating"
         }
