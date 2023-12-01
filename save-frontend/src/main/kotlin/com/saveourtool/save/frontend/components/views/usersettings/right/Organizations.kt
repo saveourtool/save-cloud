@@ -10,13 +10,13 @@ import com.saveourtool.save.entities.OrganizationWithUsers
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.save.frontend.components.basic.avatarRenderer
-import com.saveourtool.save.frontend.components.basic.organizations.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.components.views.actionButtonClasses
 import com.saveourtool.save.frontend.components.views.actionIconClasses
 import com.saveourtool.save.frontend.components.views.usersettings.SettingsProps
 import com.saveourtool.save.frontend.externals.fontawesome.faRedo
 import com.saveourtool.save.frontend.externals.fontawesome.faTrashAlt
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.http.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 

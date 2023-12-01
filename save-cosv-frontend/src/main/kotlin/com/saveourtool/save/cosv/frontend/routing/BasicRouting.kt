@@ -6,11 +6,13 @@
 
 package com.saveourtool.save.cosv.frontend.routing
 
+import com.saveourtool.save.cosv.frontend.components.views.organization.OrganizationView
 import com.saveourtool.save.cosv.frontend.components.views.vuln.*
 import com.saveourtool.save.cosv.frontend.components.views.vuln.toprating.topRatingView
 import com.saveourtool.save.cosv.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.cosv.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.common.components.views.FallbackView
+import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
 import com.saveourtool.save.frontend.common.components.views.registrationView
 import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.common.components.views.usersettings.userSettingsView
@@ -28,6 +30,14 @@ import react.router.*
  */
 val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     useUserStatusRedirects(props.userInfo?.status)
+
+    val organizationView = withRouter { location, params ->
+        OrganizationView::class.react {
+            organizationName = params["owner"]!!
+            currentUserInfo = props.userInfo
+            this.location = location
+        }
+    }
 
     val userProfileView = withRouter { _, params ->
         userProfileView {
@@ -68,6 +78,9 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
             vulnerabilityView.create() to "$VULNERABILITY_SINGLE/:identifier",
             cosvSchemaView.create() to VULN_COSV_SCHEMA,
             topRatingView.create() to VULN_TOP_RATING,
+
+            createOrganizationView.create() to CREATE_ORGANIZATION,
+            organizationView.create() to ":owner",
             userProfileView.create() to "$PROFILE/:name",
 
             userSettingsView.create {

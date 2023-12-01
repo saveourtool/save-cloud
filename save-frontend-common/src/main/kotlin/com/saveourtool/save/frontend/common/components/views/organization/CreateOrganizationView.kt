@@ -4,15 +4,15 @@
 
 @file:Suppress("WildcardImport", "FILE_WILDCARD_IMPORTS")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.frontend.common.components.views.organization
 
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.save.frontend.common.components.inputform.InputTypes
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.common.components.modal.displayModal
+import com.saveourtool.save.frontend.common.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 

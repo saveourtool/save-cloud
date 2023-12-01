@@ -2,22 +2,23 @@
  * A view with organization details
  */
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.save.cosv.frontend.components.views.organization
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilter
+import com.saveourtool.save.frontend.common.components.RequestStatusContext
+import com.saveourtool.save.frontend.common.components.basic.*
+import com.saveourtool.save.frontend.common.components.modal.displayModal
+import com.saveourtool.save.frontend.common.components.modal.smallTransparentModalStyle
+import com.saveourtool.save.frontend.common.components.requestStatusContext
+import com.saveourtool.save.frontend.common.components.views.AbstractView
 import com.saveourtool.save.frontend.common.components.views.organization.organizationSettingsMenu
-import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.components.basic.organizations.*
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.smallTransparentModalStyle
-import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.http.getOrganization
-import com.saveourtool.save.frontend.http.postImageUpload
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.views.vuln.vulnerabilityTableComponent
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.http.getOrganization
+import com.saveourtool.save.frontend.common.http.postImageUpload
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.StateWithRole
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
@@ -28,7 +29,6 @@ import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.label
@@ -43,28 +43,6 @@ import web.html.ButtonType
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-/**
- * The mandatory column id.
- * For each cell, this will be transformed into "cell_%d_delete_button" and
- * visible as the key in the "Components" tab of the developer tools.
- */
-const val DELETE_BUTTON_COLUMN_ID = "delete_button"
-
-/**
- * Empty table header.
- */
-const val EMPTY_COLUMN_HEADER = ""
-
-/**
- * CSS classes of the "delete project" button.
- */
-val actionButtonClasses: List<String> = listOf("btn", "btn-small")
-
-/**
- * CSS classes of the "delete project" icon.
- */
-val actionIconClasses: List<String> = listOf("trash-alt")
 
 /**
  * `Props` retrieved from router
@@ -84,11 +62,6 @@ external interface OrganizationViewState : StateWithRole, State {
      * Organization
      */
     var organization: OrganizationDto?
-
-    /**
-     * List of projects for `this` organization
-     */
-    var projects: List<ProjectDto>
 
     /**
      * Message of error
@@ -148,7 +121,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
     init {
         state.organization = OrganizationDto.empty
         state.selectedMenu = OrganizationMenuBar.defaultTab
-        state.projects = mutableListOf()
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
@@ -167,20 +139,15 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
     override fun componentDidMount() {
         super.componentDidMount()
-        val comparator: Comparator<ProjectDto> =
-                compareBy<ProjectDto> { it.status.ordinal }
-                    .thenBy { it.name }
 
         scope.launch {
             val organizationLoaded = getOrganization(props.organizationName)
-            val projectsLoaded = getProjectsForOrganizationAndStatus(enumValues<ProjectStatus>().toSet()).sortedWith(comparator)
             val role = getRoleInOrganization()
             val users = getUsers()
             val highestRole = getHighestRole(role, props.currentUserInfo?.globalRole)
             setState {
                 organization = organizationLoaded
                 draftOrganizationDescription = organizationLoaded.description
-                projects = projectsLoaded
                 isEditDisabled = true
                 selfRole = highestRole
                 usersInOrganization = users
@@ -204,10 +171,20 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
 
         when (state.selectedMenu) {
             OrganizationMenuBar.INFO -> renderInfo()
-            OrganizationMenuBar.TOOLS -> renderTools()
-            OrganizationMenuBar.BENCHMARKS -> renderBenchmarks()
             OrganizationMenuBar.SETTINGS -> renderSettings()
-            OrganizationMenuBar.CONTESTS -> renderContests()
+            OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
+        }
+    }
+
+    private fun ChildrenBuilder.renderVulnerabilities() {
+        div {
+            className = ClassName("col-7 mx-auto mb-4")
+
+            vulnerabilityTableComponent {
+                this.currentUserInfo = props.currentUserInfo
+                this.organizationName = props.organizationName
+                this.isCurrentUserIsAdminInOrganization = state.selfRole.isHigherOrEqualThan(Role.ADMIN)
+            }
         }
     }
 
@@ -218,32 +195,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     private fun ChildrenBuilder.renderInfo() {
-        // ================= Rows for TOP projects ================
-        val topProjects = state.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
-
-        if (topProjects.isNotEmpty()) {
-            // ================= Title for TOP projects ===============
-            div {
-                className = ClassName("row justify-content-center mb-2")
-                h4 {
-                    +"Top Tools"
-                }
-            }
-            div {
-                className = ClassName("row justify-content-center")
-
-                renderTopProject(topProjects.getOrNull(0))
-                renderTopProject(topProjects.getOrNull(1))
-            }
-
-            @Suppress("MAGIC_NUMBER")
-            div {
-                className = ClassName("row justify-content-center")
-
-                renderTopProject(topProjects.getOrNull(2))
-                renderTopProject(topProjects.getOrNull(3))
-            }
-        }
         div {
             className = ClassName("row justify-content-center")
 
@@ -325,19 +276,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    @Suppress("TOO_LONG_FUNCTION", "LongMethod")
-    private fun ChildrenBuilder.renderTools() {
-        organizationToolsMenu {
-            currentUserInfo = props.currentUserInfo
-            selfRole = state.selfRole
-            organization = state.organization
-            projects = state.projects
-            updateProjects = { projectsList ->
-                setState { projects = projectsList }
-            }
-        }
-    }
-
     private fun setNewDescription(value: String) {
         setState {
             draftOrganizationDescription = value
@@ -364,27 +302,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun ChildrenBuilder.renderBenchmarks() {
-        organizationTestsMenu {
-            organizationName = props.organizationName
-            selfRole = state.selfRole
-        }
-    }
-
-    private fun ChildrenBuilder.renderContests() {
-        organizationContestsMenu {
-            organizationName = props.organizationName
-            selfRole = state.selfRole
-            updateErrorMessage = {
-                setState {
-                    isErrorOpen = true
-                    errorLabel = ""
-                    errorMessage = "Failed to create contest: ${it.status} ${it.statusText}"
-                }
-            }
-        }
-    }
-
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
@@ -399,8 +316,8 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             }
             updateNotificationMessage = ::showNotification
             organization = state.organization ?: OrganizationDto.empty
-            onCanCreateContestsChange = ::onCanCreateContestsChange
-            onCanBulkUploadCosvFilesChange = null
+            onCanCreateContestsChange = null
+            onCanBulkUploadCosvFilesChange = ::onCanBulkUploadCosvFilesChange
         }
     }
 
@@ -410,27 +327,20 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private suspend fun getProjectsForOrganizationAndStatus(statuses: Set<ProjectStatus>): List<ProjectDto> = post(
-        url = "$apiUrl/projects/by-filters",
-        headers = jsonHeaders,
-        body = Json.encodeToString(ProjectFilter("", props.organizationName, statuses)),
-        loadingHandler = ::classLoadingHandler,
-    )
-        .unsafeMap {
-            it.decodeFromJsonString()
-        }
-
-    private fun onCanCreateContestsChange(canCreateContests: Boolean) {
+    private fun onCanBulkUploadCosvFilesChange(canBulkUpload: Boolean) {
         scope.launch {
             val response = post(
-                "$apiUrl/organizations/${props.organizationName}/manage-contest-permission?isAbleToCreateContests=${!state.organization!!.canCreateContests}",
+                "$apiUrl/organizations/${props.organizationName}/manage-bulk-upload-permission",
+                params = jso<dynamic> {
+                    isAbleToToBulkUpload = !state.organization!!.canBulkUpload
+                },
                 headers = jsonHeaders,
                 undefined,
                 loadingHandler = ::classLoadingHandler,
             )
             if (response.ok) {
                 setState {
-                    organization = organization?.copy(canCreateContests = canCreateContests)
+                    organization = organization?.copy(canBulkUpload = canBulkUpload)
                 }
             }
         }
@@ -454,19 +364,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         loadingHandler = ::classLoadingHandler,
     )
         .unsafeMap { it.decodeFromJsonString() }
-
-    private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?) {
-        div {
-            className = ClassName("col-3 mb-4")
-            topProject?.let {
-                scoreCard {
-                    name = it.name
-                    contestScore = it.contestRating
-                    url = "/${props.organizationName}/${it.name}"
-                }
-            }
-        }
-    }
 
     @Suppress("LongMethod", "TOO_LONG_FUNCTION", "MAGIC_NUMBER")
     private fun ChildrenBuilder.renderOrganizationMenuBar() {
@@ -535,9 +432,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
                         .filter {
                             it != OrganizationMenuBar.SETTINGS || state.selfRole.isHigherOrEqualThan(Role.ADMIN)
                         }
-                        .filter {
-                            it != OrganizationMenuBar.CONTESTS || state.selfRole.isHigherOrEqualThan(Role.OWNER) && state.organization?.canCreateContests == true
-                        }
                         .forEach { organizationMenu ->
                             li {
                                 className = ClassName("nav-item")
@@ -570,7 +464,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         OrganizationView::class
     ) {
         private const val AVATAR_TITLE = "Change organization's avatar"
-        const val TOP_PROJECTS_NUMBER = 4
         init {
             contextType = requestStatusContext
         }

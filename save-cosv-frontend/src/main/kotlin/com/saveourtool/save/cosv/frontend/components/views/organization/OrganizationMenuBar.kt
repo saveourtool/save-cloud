@@ -1,4 +1,4 @@
-package com.saveourtool.save.frontend.common.utils
+package com.saveourtool.save.cosv.frontend.components.views.organization
 
 /**
  * A value for project menu.
@@ -6,9 +6,6 @@ package com.saveourtool.save.frontend.common.utils
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class OrganizationMenuBar(private val title: String? = null) {
     INFO,
-    TOOLS,
-    BENCHMARKS,
-    CONTESTS,
     VULNERABILITIES,
     SETTINGS,
     ;
