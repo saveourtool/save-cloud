@@ -6,8 +6,6 @@ package com.saveourtool.save.frontend.common.components.views.organization
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.frontend.common.components.basic.scoreCard
 import com.saveourtool.save.frontend.common.components.basic.userBoard
 import com.saveourtool.save.frontend.common.externals.fontawesome.faCheck
 import com.saveourtool.save.frontend.common.externals.fontawesome.faEdit
@@ -20,7 +18,6 @@ import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.h4
 import react.dom.html.ReactHTML.h6
 import react.dom.html.ReactHTML.textarea
 import web.cssom.AlignItems
@@ -53,33 +50,6 @@ internal val renderInfoTab: FC<RenderInfoTabProps> = FC { props ->
                 props.setOrganization(organizationWithNewDescription)
             }
         }
-    }
-
-    // ================= Rows for TOP projects ================
-    val topProjects = props.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
-
-    if (topProjects.isNotEmpty()) {
-        // ================= Title for TOP projects ===============
-        div {
-            className = ClassName("row justify-content-center mb-2")
-            h4 {
-                +"Top Tools"
-            }
-        }
-        div {
-            className = ClassName("row justify-content-center")
-
-            renderTopProject(topProjects.getOrNull(0), props.organization.name)
-            renderTopProject(topProjects.getOrNull(1), props.organization.name)
-        }
-
-        @Suppress("MAGIC_NUMBER")
-        (div {
-            className = ClassName("row justify-content-center")
-
-            renderTopProject(topProjects.getOrNull(2), props.organization.name)
-            renderTopProject(topProjects.getOrNull(3), props.organization.name)
-        })
     }
 
     div {
@@ -173,18 +143,4 @@ external interface RenderInfoTabProps : Props {
     var setOrganization: StateSetter<OrganizationDto>
     var selfRole: Role
     var organizationName: String
-    var projects: List<ProjectDto>
-}
-
-private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?, organizationName: String) {
-    div {
-        className = ClassName("col-3 mb-4")
-        topProject?.let {
-            scoreCard {
-                name = it.name
-                contestScore = it.contestRating
-                url = "/$organizationName/${it.name}"
-            }
-        }
-    }
 }

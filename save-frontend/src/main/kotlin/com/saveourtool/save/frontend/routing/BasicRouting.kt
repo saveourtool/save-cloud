@@ -9,7 +9,6 @@ package com.saveourtool.save.frontend.routing
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
-import com.saveourtool.save.frontend.common.components.views.organization.OrganizationType
 import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
 import com.saveourtool.save.frontend.common.components.views.organization.organizationView
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
@@ -100,7 +99,7 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
         organizationView {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
-            organizationType = OrganizationType.SAVE
+            organizationType = SaveOrganizationType
         }
     }
 

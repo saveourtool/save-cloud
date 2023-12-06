@@ -6,6 +6,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.frontend.common.components.basic.scoreCard
 import com.saveourtool.save.frontend.common.components.tables.TableProps
 import com.saveourtool.save.frontend.common.components.tables.columns
 import com.saveourtool.save.frontend.common.components.tables.tableComponent
@@ -23,6 +24,7 @@ import com.saveourtool.save.validation.FrontendRoutes
 import org.w3c.fetch.Response
 
 import react.*
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.td
@@ -61,7 +63,7 @@ external interface OrganizationToolsMenuProps : Props {
     /**
      * Current organization
      */
-    var organization: OrganizationDto?
+    var organization: OrganizationDto
 
     /**
      * Organization projects
@@ -72,6 +74,19 @@ external interface OrganizationToolsMenuProps : Props {
      * lambda for update projects
      */
     var updateProjects: (List<ProjectDto>) -> Unit
+}
+
+private fun ChildrenBuilder.renderTopProject(topProject: ProjectDto?, organizationName: String) {
+    div {
+        className = ClassName("col-6 mb-4")
+        topProject?.let {
+            scoreCard {
+                name = it.name
+                contestScore = it.contestRating
+                url = "/$organizationName/${it.name}"
+            }
+        }
+    }
 }
 
 /**
@@ -321,6 +336,33 @@ private fun organizationToolsMenu() = FC<OrganizationToolsMenuProps> { props ->
                         }
                     }
                 }
+            }
+
+            // ================= Rows for TOP projects ================
+            val topProjects = props.projects.sortedByDescending { it.contestRating }.take(TOP_PROJECTS_NUMBER)
+
+            if (topProjects.isNotEmpty()) {
+                // ================= Title for TOP projects ===============
+                div {
+                    className = ClassName("row justify-content-center mb-2")
+                    ReactHTML.h4 {
+                        +"Top Tools"
+                    }
+                }
+                div {
+                    className = ClassName("row justify-content-center")
+
+                    renderTopProject(topProjects.getOrNull(0), props.organization.name)
+                    renderTopProject(topProjects.getOrNull(1), props.organization.name)
+                }
+
+                @Suppress("MAGIC_NUMBER")
+                (div {
+                    className = ClassName("row justify-content-center")
+
+                    renderTopProject(topProjects.getOrNull(2), props.organization.name)
+                    renderTopProject(topProjects.getOrNull(3), props.organization.name)
+                })
             }
 
             tableWithProjects {

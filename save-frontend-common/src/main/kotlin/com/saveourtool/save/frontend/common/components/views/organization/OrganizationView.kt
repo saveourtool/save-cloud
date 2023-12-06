@@ -42,10 +42,7 @@ val organizationView: FC<OrganizationProps> = FC { props ->
     val (canCreateContests, setCanCreateContests) = useState(false)
     val (canBulkUpload, setCanBulkUpload) = useState(false)
 
-    val valuesOrganizationMenuBar: Array<OrganizationMenuBar> = when (props.organizationType) {
-        OrganizationType.SAVE -> OrganizationMenuBar.saveTabs
-        OrganizationType.COSV -> OrganizationMenuBar.cosvTabs
-    }
+    val valuesOrganizationMenuBar: Array<OrganizationMenuBar> = props.organizationType.listTab
 
     useRequest {
         val organizationLoaded: OrganizationDto = get(
@@ -150,7 +147,6 @@ val organizationView: FC<OrganizationProps> = FC { props ->
             this.setOrganization = setOrganization
             this.selfRole = selfRole
             this.organizationName = props.organizationName
-            this.projects = projects
         }
         OrganizationMenuBar.SETTINGS -> organizationSettingsMenu {
             this.organizationName = props.organizationName
@@ -168,21 +164,13 @@ val organizationView: FC<OrganizationProps> = FC { props ->
                 setCloseButtonLabel("Confirm")
             }
             this.organization = organization
-            this.onCanCreateContestsChange = if (props.organizationType == OrganizationType.SAVE) {
-                { isCreateContests ->
-                    setCanCreateContests(isCreateContests)
-                    onCanCreateContestsChange()
-                }
-            } else {
-                null
+            this.onCanCreateContestsChange = { isCreateContests ->
+                setCanCreateContests(isCreateContests)
+                onCanCreateContestsChange()
             }
-            this.onCanBulkUploadCosvFilesChange = if (props.organizationType == OrganizationType.COSV) {
-                { isCanBulkUpload ->
-                    setCanBulkUpload(isCanBulkUpload)
-                    onCanBulkUploadCosvFilesChange()
-                }
-            } else {
-                null
+            this.onCanBulkUploadCosvFilesChange = { isCanBulkUpload ->
+                setCanBulkUpload(isCanBulkUpload)
+                onCanBulkUploadCosvFilesChange()
             }
         }
         OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilitiesTab {

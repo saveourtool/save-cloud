@@ -20,7 +20,5 @@ enum class OrganizationMenuBar(private val title: String? = null) {
 
     companion object {
         val defaultTab: OrganizationMenuBar = INFO
-        val cosvTabs: Array<OrganizationMenuBar> = arrayOf(INFO, VULNERABILITIES, SETTINGS)
-        val saveTabs: Array<OrganizationMenuBar> = arrayOf(INFO, TOOLS, BENCHMARKS, CONTESTS, SETTINGS)
     }
 }

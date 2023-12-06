@@ -67,12 +67,12 @@ external interface OrganizationSettingsMenuProps : Props {
     /**
      * Callback invoked in order to change canCreateContests flag
      */
-    var onCanCreateContestsChange: ((Boolean) -> Unit)?
+    var onCanCreateContestsChange: (Boolean) -> Unit
 
     /**
      * Callback invoked in order to change canBulkUpload flag
      */
-    var onCanBulkUploadCosvFilesChange: ((Boolean) -> Unit)?
+    var onCanBulkUploadCosvFilesChange: (Boolean) -> Unit
 }
 
 /**
@@ -141,52 +141,48 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             div {
                 className = ClassName("card card-body mt-0 p-0")
                 if (props.selfRole.isSuperAdmin()) {
-                    props.onCanCreateContestsChange?.let { canCreateContestsChange ->
+                    div {
+                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
                         div {
-                            className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
-                            div {
-                                input {
-                                    className = ClassName("form-check-input")
-                                    type = InputType.checkbox
-                                    value = props.organization.canCreateContests.toString()
-                                    id = "canCreateContestsCheckbox"
-                                    checked = props.organization.canCreateContests
-                                    onChange = {
-                                        canCreateContestsChange(!props.organization.canCreateContests)
-                                    }
+                            input {
+                                className = ClassName("form-check-input")
+                                type = InputType.checkbox
+                                value = props.organization.canCreateContests.toString()
+                                id = "canCreateContestsCheckbox"
+                                checked = props.organization.canCreateContests
+                                onChange = {
+                                    props.onCanCreateContestsChange(!props.organization.canCreateContests)
                                 }
                             }
-                            div {
-                                label {
-                                    className = ClassName("form-check-label")
-                                    htmlFor = "canCreateContestsCheckbox"
-                                    +"Can create contests"
-                                }
+                        }
+                        div {
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "canCreateContestsCheckbox"
+                                +"Can create contests"
                             }
                         }
                     }
 
-                    props.onCanBulkUploadCosvFilesChange?.let { canBulkUploadCosvFilesChange ->
+                    div {
+                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
                         div {
-                            className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
-                            div {
-                                input {
-                                    className = ClassName("form-check-input")
-                                    type = InputType.checkbox
-                                    value = props.organization.canBulkUpload.toString()
-                                    id = "canBulkUploadCosvFilesCheckbox"
-                                    checked = props.organization.canBulkUpload
-                                    onChange = {
-                                        canBulkUploadCosvFilesChange(!props.organization.canBulkUpload)
-                                    }
+                            input {
+                                className = ClassName("form-check-input")
+                                type = InputType.checkbox
+                                value = props.organization.canBulkUpload.toString()
+                                id = "canBulkUploadCosvFilesCheckbox"
+                                checked = props.organization.canBulkUpload
+                                onChange = {
+                                    props.onCanBulkUploadCosvFilesChange(!props.organization.canBulkUpload)
                                 }
                             }
-                            div {
-                                label {
-                                    className = ClassName("form-check-label")
-                                    htmlFor = "canBulkUploadCosvFilesCheckbox"
-                                    +"Can bulk upload COSV files"
-                                }
+                        }
+                        div {
+                            label {
+                                className = ClassName("form-check-label")
+                                htmlFor = "canBulkUploadCosvFilesCheckbox"
+                                +"Can bulk upload COSV files"
                             }
                         }
                     }

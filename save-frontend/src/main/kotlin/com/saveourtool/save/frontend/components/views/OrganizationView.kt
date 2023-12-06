@@ -400,7 +400,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             updateNotificationMessage = ::showNotification
             organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
-            onCanBulkUploadCosvFilesChange = null
+            onCanBulkUploadCosvFilesChange = ::onCanCreateContestsChange
         }
     }
 
