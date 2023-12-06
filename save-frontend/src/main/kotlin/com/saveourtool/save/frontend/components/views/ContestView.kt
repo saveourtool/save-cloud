@@ -3,10 +3,10 @@
 package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.frontend.common.components.basic.contests.contestInfoMenu
+import com.saveourtool.save.frontend.common.components.basic.contests.contestSubmissionsMenu
+import com.saveourtool.save.frontend.common.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.RequestStatusContext
-import com.saveourtool.save.frontend.components.basic.contests.contestInfoMenu
-import com.saveourtool.save.frontend.components.basic.contests.contestSubmissionsMenu
-import com.saveourtool.save.frontend.components.basic.contests.contestSummaryMenu
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.http.getContest
 import com.saveourtool.save.frontend.utils.*

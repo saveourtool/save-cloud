@@ -1,15 +1,15 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package com.saveourtool.save.frontend.components.basic.organizations
+package com.saveourtool.save.frontend.common.components.views.organization
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.frontend.components.basic.manageUserRoleCardComponent
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.isSuperAdmin
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.common.components.basic.manageUserRoleCardComponent
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.isSuperAdmin
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 

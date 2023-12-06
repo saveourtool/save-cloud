@@ -1,10 +1,9 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package com.saveourtool.save.frontend.components.basic.contests
+package com.saveourtool.save.frontend.common.components.basic.contests
 
 import com.saveourtool.save.entities.contest.ContestResult
-import com.saveourtool.save.frontend.common.components.basic.contests.ContestSummaryMenuProps
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.utils.*
 
 import react.*
 import react.dom.html.ReactHTML.div

@@ -180,6 +180,23 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     ::noopResponseHandler
 )
 
+/**
+ * Makes a call to change project status
+ *
+ * @param organizationName name of the organization whose status will be changed
+ * @param status is new status
+ * @return lazy response
+ */
+fun responseChangeOrganizationStatus(organizationName: String, status: OrganizationStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
+}
+
 @Suppress("TYPE_ALIAS")
 private suspend fun getDebugInfoFor(
     testExecutionId: Long,

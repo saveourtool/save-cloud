@@ -9,6 +9,8 @@ package com.saveourtool.save.frontend.routing
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
+import com.saveourtool.save.frontend.common.components.views.organization.organizationView
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
@@ -93,11 +95,11 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
         }
     }
 
-    val organizationView = withRouter { location, params ->
-        OrganizationView::class.react {
+    val organizationView = com.saveourtool.save.frontend.common.utils.withRouter { location, params ->
+        organizationView {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
-            this.location = location
+            organizationType = SaveOrganizationType
         }
     }
 

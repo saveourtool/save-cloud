@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.frontend.common.components.views.vuln.vulnerabilityTableComponent
+import com.saveourtool.save.frontend.common.components.views.organization.organizationSettingsMenu
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.organizations.*
@@ -106,16 +106,6 @@ external interface OrganizationViewState : StateWithRole, State {
     var errorLabel: String
 
     /**
-     * State for the creation of unified confirmation logic
-     */
-    var confirmationType: ConfirmationType
-
-    /**
-     * Flag to handle confirm Window
-     */
-    var isConfirmWindowOpen: Boolean
-
-    /**
      * Whether editing of organization info is disabled
      */
     var isEditDisabled: Boolean
@@ -162,9 +152,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         state.closeButtonLabel = null
         state.selfRole = Role.NONE
         state.draftOrganizationDescription = ""
-        state.isConfirmWindowOpen = false
         state.isErrorOpen = false
-        state.confirmationType = ConfirmationType.DELETE_CONFIRM
         state.isAvatarWindowOpen = false
     }
 
@@ -220,7 +208,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             OrganizationMenuBar.BENCHMARKS -> renderBenchmarks()
             OrganizationMenuBar.SETTINGS -> renderSettings()
             OrganizationMenuBar.CONTESTS -> renderContests()
-            OrganizationMenuBar.VULNERABILITIES -> renderVulnerabilities()
         }
     }
 
@@ -398,18 +385,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
         }
     }
 
-    private fun ChildrenBuilder.renderVulnerabilities() {
-        div {
-            className = ClassName("col-7 mx-auto mb-4")
-
-            vulnerabilityTableComponent {
-                this.currentUserInfo = props.currentUserInfo
-                this.organizationName = props.organizationName
-                this.isCurrentUserIsAdminInOrganization = state.selfRole.isHigherOrEqualThan(Role.ADMIN)
-            }
-        }
-    }
-
     private fun ChildrenBuilder.renderSettings() {
         organizationSettingsMenu {
             organizationName = props.organizationName
@@ -425,7 +400,7 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             updateNotificationMessage = ::showNotification
             organization = state.organization ?: OrganizationDto.empty
             onCanCreateContestsChange = ::onCanCreateContestsChange
-            onCanBulkUploadCosvFilesChange = ::onCanBulkUploadCosvFilesChange
+            onCanBulkUploadCosvFilesChange = ::onCanCreateContestsChange
         }
     }
 
@@ -456,25 +431,6 @@ class OrganizationView : AbstractView<OrganizationProps, OrganizationViewState>(
             if (response.ok) {
                 setState {
                     organization = organization?.copy(canCreateContests = canCreateContests)
-                }
-            }
-        }
-    }
-
-    private fun onCanBulkUploadCosvFilesChange(canBulkUpload: Boolean) {
-        scope.launch {
-            val response = post(
-                "$apiUrl/organizations/${props.organizationName}/manage-bulk-upload-permission",
-                params = jso<dynamic> {
-                    isAbleToToBulkUpload = !state.organization!!.canBulkUpload
-                },
-                headers = jsonHeaders,
-                undefined,
-                loadingHandler = ::classLoadingHandler,
-            )
-            if (response.ok) {
-                setState {
-                    organization = organization?.copy(canBulkUpload = canBulkUpload)
                 }
             }
         }

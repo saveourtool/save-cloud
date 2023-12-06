@@ -16,6 +16,7 @@ enum class FrontendCosvRoutes(val path: String) {
     ABOUT_US("about"),
     BAN("ban"),
     COOKIE("cookie"),
+    CREATE_ORGANIZATION("create-organization"),
     ERROR_404("404"),
     MANAGE_ORGANIZATIONS("organizations"),
     NOT_FOUND("not-found"),
