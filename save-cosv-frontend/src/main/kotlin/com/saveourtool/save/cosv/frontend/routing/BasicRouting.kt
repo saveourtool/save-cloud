@@ -6,13 +6,14 @@
 
 package com.saveourtool.save.cosv.frontend.routing
 
-import com.saveourtool.save.cosv.frontend.components.views.organization.OrganizationView
 import com.saveourtool.save.cosv.frontend.components.views.vuln.*
 import com.saveourtool.save.cosv.frontend.components.views.vuln.toprating.topRatingView
 import com.saveourtool.save.cosv.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.save.cosv.frontend.components.views.welcome.vulnWelcomeView
 import com.saveourtool.save.frontend.common.components.views.FallbackView
+import com.saveourtool.save.frontend.common.components.views.organization.OrganizationType
 import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
+import com.saveourtool.save.frontend.common.components.views.organization.organizationView
 import com.saveourtool.save.frontend.common.components.views.registrationView
 import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.common.components.views.usersettings.userSettingsView
@@ -32,10 +33,10 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
     useUserStatusRedirects(props.userInfo?.status)
 
     val organizationView = withRouter { location, params ->
-        OrganizationView::class.react {
+        organizationView {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
-            this.location = location
+            organizationType = OrganizationType.COSV
         }
     }
 

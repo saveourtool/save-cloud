@@ -1,12 +1,15 @@
-package com.saveourtool.save.cosv.frontend.components.views.organization
+package com.saveourtool.save.frontend.common.components.views.organization
 
 /**
- * A value for project menu.
+ * A value for organization menu.
  */
 @Suppress("WRONG_DECLARATIONS_ORDER")
 enum class OrganizationMenuBar(private val title: String? = null) {
     INFO,
     VULNERABILITIES,
+    TOOLS,
+    BENCHMARKS,
+    CONTESTS,
     SETTINGS,
     ;
 
@@ -17,5 +20,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
 
     companion object {
         val defaultTab: OrganizationMenuBar = INFO
+        val cosvTabs: Array<OrganizationMenuBar> = arrayOf(INFO, VULNERABILITIES, SETTINGS)
+        val saveTabs: Array<OrganizationMenuBar> = arrayOf(INFO, TOOLS, BENCHMARKS, CONTESTS, SETTINGS)
     }
 }

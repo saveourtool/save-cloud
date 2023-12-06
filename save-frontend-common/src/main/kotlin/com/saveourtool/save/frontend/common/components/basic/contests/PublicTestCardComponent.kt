@@ -1,12 +1,10 @@
 @file:Suppress("FILE_NAME_MATCH_CLASS", "FILE_WILDCARD_IMPORTS", "LargeClass")
 
-package com.saveourtool.save.frontend.components.basic.contests
+package com.saveourtool.save.frontend.common.components.basic.contests
 
-import com.saveourtool.save.frontend.common.components.basic.contests.PublicTestComponentProps
-import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
-import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.*
+import com.saveourtool.save.frontend.common.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
