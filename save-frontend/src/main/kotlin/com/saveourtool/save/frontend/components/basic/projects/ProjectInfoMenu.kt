@@ -23,6 +23,7 @@ import web.cssom.rem
 import web.html.ButtonType
 
 import kotlinx.browser.window
+import react.router.useNavigate
 
 private val infoCard = cardComponent(isBordered = true, hasBg = true)
 
@@ -97,6 +98,8 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
         setProject(projectFromBackend)
     }
 
+    val navigate = useNavigate()
+
     div {
         className = ClassName("d-flex justify-content-center")
         div {
@@ -159,7 +162,7 @@ private fun projectInfoMenu() = FC<ProjectInfoMenuProps> { props ->
                         disabled = props.latestExecutionId == null
 
                         onClick = {
-                            window.location.href = "${window.location}/history/execution/${props.latestExecutionId}"
+                            navigate(to = "/${window.location}/history/execution/${props.latestExecutionId}")
                         }
                     }
                 }
