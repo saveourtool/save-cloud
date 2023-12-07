@@ -16,11 +16,9 @@ import com.saveourtool.save.validation.FrontendRoutes
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.input
 import react.dom.html.ReactHTML.label
 import react.router.useNavigate
 import web.cssom.ClassName
-import web.html.InputType
 
 private val organizationGitCredentialsManageCard = manageGitCredentialsCardComponent()
 
@@ -140,53 +138,6 @@ private fun organizationSettingsMenu() = FC<OrganizationSettingsMenuProps> { pro
             }
             div {
                 className = ClassName("card card-body mt-0 p-0")
-                if (props.selfRole.isSuperAdmin()) {
-                    div {
-                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
-                        div {
-                            input {
-                                className = ClassName("form-check-input")
-                                type = InputType.checkbox
-                                value = props.organization.canCreateContests.toString()
-                                id = "canCreateContestsCheckbox"
-                                checked = props.organization.canCreateContests
-                                onChange = {
-                                    props.onCanCreateContestsChange(!props.organization.canCreateContests)
-                                }
-                            }
-                        }
-                        div {
-                            label {
-                                className = ClassName("form-check-label")
-                                htmlFor = "canCreateContestsCheckbox"
-                                +"Can create contests"
-                            }
-                        }
-                    }
-
-                    div {
-                        className = ClassName("d-sm-flex justify-content-center form-check pl-3 pr-3 pt-3")
-                        div {
-                            input {
-                                className = ClassName("form-check-input")
-                                type = InputType.checkbox
-                                value = props.organization.canBulkUpload.toString()
-                                id = "canBulkUploadCosvFilesCheckbox"
-                                checked = props.organization.canBulkUpload
-                                onChange = {
-                                    props.onCanBulkUploadCosvFilesChange(!props.organization.canBulkUpload)
-                                }
-                            }
-                        }
-                        div {
-                            label {
-                                className = ClassName("form-check-label")
-                                htmlFor = "canBulkUploadCosvFilesCheckbox"
-                                +"Can bulk upload COSV files"
-                            }
-                        }
-                    }
-                }
                 div {
                     className = ClassName("d-sm-flex align-items-center justify-content-center p-3")
                     actionButton {

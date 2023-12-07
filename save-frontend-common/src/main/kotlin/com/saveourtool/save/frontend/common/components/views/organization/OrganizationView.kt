@@ -200,6 +200,17 @@ val organizationView: FC<OrganizationProps> = FC { props ->
                 setProjects(projectsList)
             }
         }
+        OrganizationMenuBar.ADMIN -> renderAdminTab {
+            this.organization = organization
+            this.onCanCreateContestsChange = { isCreateContests ->
+                setCanCreateContests(isCreateContests)
+                onCanCreateContestsChange()
+            }
+            this.onCanBulkUploadCosvFilesChange = { isCanBulkUpload ->
+                setCanBulkUpload(isCanBulkUpload)
+                onCanBulkUploadCosvFilesChange()
+            }
+        }
     }
 }
 

@@ -7,6 +7,7 @@ object CosvOrganizationType : OrganizationType {
     override val listTab: Array<OrganizationMenuBar> = arrayOf(
         OrganizationMenuBar.INFO,
         OrganizationMenuBar.VULNERABILITIES,
-        OrganizationMenuBar.SETTINGS
+        OrganizationMenuBar.SETTINGS,
+        OrganizationMenuBar.ADMIN,
     )
 }
