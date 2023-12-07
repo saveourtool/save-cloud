@@ -9,6 +9,7 @@ object SaveOrganizationType : OrganizationType {
         OrganizationMenuBar.TOOLS,
         OrganizationMenuBar.BENCHMARKS,
         OrganizationMenuBar.CONTESTS,
-        OrganizationMenuBar.SETTINGS
+        OrganizationMenuBar.SETTINGS,
+        OrganizationMenuBar.ADMIN,
     )
 }

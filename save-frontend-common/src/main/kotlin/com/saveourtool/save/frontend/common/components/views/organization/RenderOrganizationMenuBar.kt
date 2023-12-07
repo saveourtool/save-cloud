@@ -98,7 +98,8 @@ internal val renderOrganizationMenuBar: FC<RenderOrganizationMenuBarProps> = FC 
         }
 
         val listTabs = props.valuesOrganizationMenuBar.filter {
-            it != OrganizationMenuBar.SETTINGS || props.selfRole.isHigherOrEqualThan(Role.ADMIN)
+            (it != OrganizationMenuBar.SETTINGS || props.selfRole.isHigherOrEqualThan(Role.ADMIN)) &&
+                    (it != OrganizationMenuBar.ADMIN || props.selfRole.isSuperAdmin())
         }
 
         div {

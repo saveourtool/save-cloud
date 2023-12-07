@@ -11,6 +11,7 @@ enum class OrganizationMenuBar(private val title: String? = null) {
     BENCHMARKS,
     CONTESTS,
     SETTINGS,
+    ADMIN,
     ;
 
     /**
