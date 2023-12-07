@@ -5,6 +5,8 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionButtonClasses
+import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionIconClasses
 import com.saveourtool.save.frontend.components.tables.TableProps
 import com.saveourtool.save.frontend.components.tables.columns
 import com.saveourtool.save.frontend.components.tables.tableComponent
