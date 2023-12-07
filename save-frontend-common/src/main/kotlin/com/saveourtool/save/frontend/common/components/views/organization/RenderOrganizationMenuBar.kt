@@ -98,6 +98,8 @@ internal val renderOrganizationMenuBar: FC<RenderOrganizationMenuBarProps> = FC 
         }
 
         val listTabs = props.valuesOrganizationMenuBar.filter {
+            // The Settings tab should only be seen by a person with the admin role or higher in this organization.
+            // The Admin tab is seen only by super-admin
             (it != OrganizationMenuBar.SETTINGS || props.selfRole.isHigherOrEqualThan(Role.ADMIN)) &&
                     (it != OrganizationMenuBar.ADMIN || props.selfRole.isSuperAdmin())
         }
