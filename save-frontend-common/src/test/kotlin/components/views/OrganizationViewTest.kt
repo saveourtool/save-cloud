@@ -1,21 +1,23 @@
-package com.saveourtool.save.frontend.components.views
+package components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.externals.*
-import com.saveourtool.save.frontend.utils.apiUrl
-import com.saveourtool.save.frontend.utils.mockMswResponse
-import com.saveourtool.save.frontend.utils.wrapper
+import com.saveourtool.save.frontend.common.components.views.organization.OrganizationMenuBar
+import com.saveourtool.save.frontend.common.components.views.organization.OrganizationType
+import com.saveourtool.save.frontend.common.components.views.organization.organizationView
+import com.saveourtool.save.frontend.common.externals.*
+import com.saveourtool.save.frontend.common.utils.apiUrl
 import com.saveourtool.save.info.UserInfo
+import externals.*
+import utils.mockMswResponse
 import kotlinx.datetime.LocalDateTime
 
 import react.create
-import react.react
-import react.router.MemoryRouter
 
 import kotlin.js.Promise
 import kotlin.test.*
 import js.core.jso
+import utils.wrapper
 
 class OrganizationViewTest {
     private val testOrganization = OrganizationDto.empty
@@ -101,12 +103,24 @@ class OrganizationViewTest {
     }
 
     private fun renderOrganizationView(userInfo: UserInfo = testUserInfo) = wrapper.create {
-        OrganizationView::class.react {
+        organizationView {
             organizationName = testOrganization.name
             currentUserInfo = userInfo
+            organizationType = TestOrganizationType
         }
     }
         .let {
             render(it)
         }
+}
+
+object TestOrganizationType : OrganizationType {
+    override val listTab: Array<OrganizationMenuBar> = arrayOf(
+        OrganizationMenuBar.INFO,
+        OrganizationMenuBar.TOOLS,
+        OrganizationMenuBar.BENCHMARKS,
+        OrganizationMenuBar.CONTESTS,
+        OrganizationMenuBar.SETTINGS,
+        OrganizationMenuBar.ADMIN,
+    )
 }
