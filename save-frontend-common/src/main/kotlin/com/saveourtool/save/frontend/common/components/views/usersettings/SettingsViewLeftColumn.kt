@@ -25,7 +25,7 @@ import web.cssom.ClassName
 import web.cssom.TextDecoration
 import web.cssom.rem
 
-internal const val AVATAR_TITLE = "Upload avatar"
+const val AVATAR_TITLE = "Upload avatar"
 
 val leftSettingsColumn: FC<SettingsProps> = FC { props ->
     val (avatarImgLink, setAvatarImgLink) = useState<String?>(null)
