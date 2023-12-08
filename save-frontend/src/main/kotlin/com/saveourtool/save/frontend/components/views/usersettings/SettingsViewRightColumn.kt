@@ -4,6 +4,7 @@
 
 package com.saveourtool.save.frontend.components.views.usersettings
 
+import com.saveourtool.save.frontend.common.components.views.usersettings.right.organizationsSettingsCard
 import com.saveourtool.save.frontend.components.views.usersettings.right.*
 import com.saveourtool.save.frontend.components.views.usersettings.right.profile.profileSettingsCard
 import com.saveourtool.save.validation.FrontendRoutes.*
