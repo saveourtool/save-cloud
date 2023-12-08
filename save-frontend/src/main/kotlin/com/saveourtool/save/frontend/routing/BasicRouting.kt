@@ -14,6 +14,8 @@ import com.saveourtool.save.frontend.common.components.views.FallbackView
 import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
 import com.saveourtool.save.frontend.common.components.views.organization.organizationView
 import com.saveourtool.save.frontend.common.components.views.registrationView
+import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
+import com.saveourtool.save.frontend.common.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
@@ -25,8 +27,6 @@ import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
-import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.common.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.frontend.utils.isSuperAdmin
