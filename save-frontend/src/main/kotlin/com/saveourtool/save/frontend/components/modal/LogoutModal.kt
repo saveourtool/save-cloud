@@ -4,8 +4,9 @@
 
 package com.saveourtool.save.frontend.components.modal
 
-import com.saveourtool.save.frontend.externals.modal.ModalProps
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.externals.modal.ModalProps
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.post
 
 import org.w3c.fetch.Headers
 import react.FC

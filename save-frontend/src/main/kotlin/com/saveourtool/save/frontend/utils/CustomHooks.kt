@@ -6,8 +6,9 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.externals.lodash.debounce
+import com.saveourtool.save.frontend.common.components.requestStatusContext
+import com.saveourtool.save.frontend.common.externals.lodash.debounce
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.save.validation.FrontendRoutes

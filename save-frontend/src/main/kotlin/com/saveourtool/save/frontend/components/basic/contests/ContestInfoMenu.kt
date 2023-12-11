@@ -3,9 +3,14 @@
 package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.frontend.components.basic.cardComponent
-import com.saveourtool.save.frontend.components.basic.markdown
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.cardComponent
+import com.saveourtool.save.frontend.common.components.basic.contests.ContestInfoMenuProps
+import com.saveourtool.save.frontend.common.components.basic.contests.publicTestComponent
+import com.saveourtool.save.frontend.common.components.basic.markdown
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.get
+import com.saveourtool.save.frontend.common.utils.loadingHandler
+import com.saveourtool.save.frontend.common.utils.useRequest
 
 import react.*
 import react.dom.html.ReactHTML.div

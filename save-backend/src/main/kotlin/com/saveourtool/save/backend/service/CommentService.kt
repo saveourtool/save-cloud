@@ -5,8 +5,10 @@ import com.saveourtool.save.backend.repository.CommentRepository
 import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
+import com.saveourtool.save.evententities.CommentEvent
 import com.saveourtool.save.utils.getByIdOrNotFound
 
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +23,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 class CommentService(
     private val commentRepository: CommentRepository,
     private val userRepository: UserRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     /**
      * @param comment comment of user
@@ -36,6 +39,9 @@ class CommentService(
             comment.section,
             user,
         )
+
+        applicationEventPublisher.publishEvent(CommentEvent(newComment))
+
         commentRepository.save(newComment)
     }
 

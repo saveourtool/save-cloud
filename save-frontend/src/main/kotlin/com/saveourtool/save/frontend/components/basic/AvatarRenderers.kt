@@ -10,7 +10,7 @@ import com.saveourtool.save.frontend.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder
@@ -95,7 +95,7 @@ fun ChildrenBuilder.renderAvatar(
     isLinkActive: Boolean = true,
     styleBuilder: CSSProperties.() -> Unit,
 ) {
-    val newLink = (link ?: "/${FrontendRoutes.VULN_PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
+    val newLink = (link ?: "/${FrontendCosvRoutes.PROFILE}/${userInfo?.name}").takeIf { userInfo?.status != UserStatus.DELETED && isLinkActive }
     return renderAvatar(
         userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
         classes,
@@ -151,7 +151,7 @@ fun ChildrenBuilder.renderUserAvatarWithName(
     }
     return if (userInfo.status != UserStatus.DELETED) {
         Link {
-            to = "/${FrontendRoutes.VULN_PROFILE}/${userInfo.name}"
+            to = "/${FrontendCosvRoutes.PROFILE}/${userInfo.name}"
             renderImg()
         }
     } else {

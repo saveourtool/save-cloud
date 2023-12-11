@@ -11,8 +11,8 @@ import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTrophy
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso

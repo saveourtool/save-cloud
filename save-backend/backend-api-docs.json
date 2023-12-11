@@ -15128,8 +15128,7 @@
       },
       "VulnerabilityFilter": {
         "required": [
-          "identifierPrefix",
-          "isOwner",
+          "freeText",
           "maxCriticality",
           "minCriticality",
           "tags"
@@ -15139,11 +15138,21 @@
           "authorName": {
             "type": "string"
           },
-          "identifierPrefix": {
-            "type": "string"
+          "chosenStatuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "APPROVED",
+                "AUTO_APPROVED",
+                "CREATED",
+                "PENDING_REVIEW",
+                "REJECTED"
+              ]
+            }
           },
-          "isOwner": {
-            "type": "boolean"
+          "freeText": {
+            "type": "string"
           },
           "language": {
             "type": "string",
@@ -15181,6 +15190,7 @@
               "enum": [
                 "APPROVED",
                 "AUTO_APPROVED",
+                "CREATED",
                 "PENDING_REVIEW",
                 "REJECTED"
               ]
@@ -15249,6 +15259,7 @@
             "enum": [
               "APPROVED",
               "AUTO_APPROVED",
+              "CREATED",
               "PENDING_REVIEW",
               "REJECTED"
             ]

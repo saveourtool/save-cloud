@@ -2,7 +2,8 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.components.modal.displayModalWithCheckBox
+import com.saveourtool.save.frontend.common.components.modal.displayModalWithCheckBox
+import com.saveourtool.save.frontend.common.utils.unpackMessage
 
 import org.w3c.fetch.Response
 import react.*

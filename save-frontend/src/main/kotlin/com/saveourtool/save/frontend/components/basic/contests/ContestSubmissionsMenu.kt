@@ -4,11 +4,12 @@ package com.saveourtool.save.frontend.components.basic.contests
 
 import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.contests.ContestSubmissionsMenuProps
+import com.saveourtool.save.frontend.common.components.tables.TableProps
+import com.saveourtool.save.frontend.common.components.tables.columns
+import com.saveourtool.save.frontend.common.components.tables.tableComponent
+import com.saveourtool.save.frontend.common.components.tables.value
+import com.saveourtool.save.frontend.common.utils.*
 
 import react.*
 import react.dom.html.ReactHTML.div

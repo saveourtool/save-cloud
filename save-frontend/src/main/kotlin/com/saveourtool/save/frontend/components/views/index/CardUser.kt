@@ -6,9 +6,10 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 
 import io.ktor.util.*
@@ -82,7 +83,7 @@ val cardUser: FC<UserInfoAwareProps> = FC { props ->
                 }
                 +"${"Welcome".t()}${props.userInfo?.name?.let { ", " } ?: ""}"
                 Link {
-                    to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
+                    to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
                     b {
                         +(props.userInfo?.name?.let { " @$it " } ?: "")
                     }
@@ -142,7 +143,7 @@ val cardUser: FC<UserInfoAwareProps> = FC { props ->
                                 style = "primary rounded-pill",
                                 isOutline = false
                             ) {
-                                navigate(to = "/${FrontendRoutes.VULNERABILITIES}")
+                                navigate(to = "/${FrontendCosvRoutes.VULNERABILITIES}")
                             }
                         }
 
@@ -242,7 +243,7 @@ val cardUser: FC<UserInfoAwareProps> = FC { props ->
                         className = ClassName("col-3")
                         p {
                             Link {
-                                to = "/${FrontendRoutes.VULN_PROFILE}/${props.userInfo?.name}"
+                                to = "/${FrontendRoutes.PROFILE}/${props.userInfo?.name}"
                                 +countVulnerability.toString()
                             }
                         }
@@ -262,7 +263,7 @@ val cardUser: FC<UserInfoAwareProps> = FC { props ->
                         className = ClassName("col-3")
                         p {
                             Link {
-                                to = "/${FrontendRoutes.VULN_TOP_RATING}"
+                                to = "/${FrontendCosvRoutes.VULN_TOP_RATING}"
                                 +"${props.userInfo?.rating ?: 0}"
                             }
                         }

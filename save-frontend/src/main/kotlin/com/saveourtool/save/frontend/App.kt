@@ -4,6 +4,11 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.frontend.common.components.footer
+import com.saveourtool.save.frontend.common.utils.apiUrl
+import com.saveourtool.save.frontend.common.utils.get
+import com.saveourtool.save.frontend.common.utils.jsonHeaders
+import com.saveourtool.save.frontend.common.utils.loadingHandler
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.basic.cookieBanner
 import com.saveourtool.save.frontend.components.basic.scrollToTopButton
@@ -83,8 +88,8 @@ fun main() {
         return
     }
 
-    kotlinext.js.require("../scss/save-frontend.scss")  // this is needed for webpack to include resource
-    kotlinext.js.require("bootstrap")  // this is needed for webpack to include bootstrap
+    kotlinext.js.require<dynamic>("../scss/save-frontend.scss")  // this is needed for webpack to include resource
+    kotlinext.js.require<dynamic>("bootstrap")  // this is needed for webpack to include bootstrap
     ReactModal.setAppElement(document.getElementById("wrapper") as HTMLElement)  // required for accessibility in react-modal
 
     initI18n()

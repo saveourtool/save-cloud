@@ -41,7 +41,7 @@ class LnkExecutionTestSuiteService(
     }
 
     /**
-     * @param [lnkExecutionTestSuites] link execution to testSuites
+     * @param lnkExecutionTestSuites link execution to testSuites
      */
     fun saveAll(lnkExecutionTestSuites: List<LnkExecutionTestSuite>): List<LnkExecutionTestSuite> = lnkExecutionTestSuiteRepository.saveAll(lnkExecutionTestSuites)
 }

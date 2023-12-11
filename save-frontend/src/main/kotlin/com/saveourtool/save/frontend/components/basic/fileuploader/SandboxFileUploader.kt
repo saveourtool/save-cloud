@@ -7,11 +7,11 @@
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.domain.*
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
 import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.http.postUploadFile
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 
 import js.core.asList
 import react.*

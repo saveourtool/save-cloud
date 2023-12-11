@@ -8,10 +8,10 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Role.OWNER
-import com.saveourtool.save.frontend.components.inputform.inputWithDebounceForUserInfo
-import com.saveourtool.save.frontend.components.inputform.renderUserWithAvatar
-import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.inputform.inputWithDebounceForUserInfo
+import com.saveourtool.save.frontend.common.components.inputform.renderUserWithAvatar
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole

@@ -61,7 +61,7 @@ class DockerContainerRunner(
             throw ContainerRunnerException("Failed to fetch image ${configuration.imageTag}", dex)
         }
 
-        (1..replicas).forEach { number ->
+        for (number in 1..replicas) {
             log.info("Creating a container #$number for execution.id=$executionId")
             val containerId = try {
                 createContainerFromImage(configuration, containerName(executionId, number))

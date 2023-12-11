@@ -2,8 +2,8 @@
 
 package com.saveourtool.save.frontend.components.basic.table.filters
 
-import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.utils.buttonBuilder
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

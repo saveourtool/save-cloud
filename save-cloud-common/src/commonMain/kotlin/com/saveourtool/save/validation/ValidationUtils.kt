@@ -13,7 +13,7 @@ const val NAMING_MAX_LENGTH = 22
 private val namingAllowedSpecialSymbols = setOf('-', '_', '.')
 
 @Suppress("MagicNumber")
-private val tagLengthRange = 3..15
+private val tagLengthRange = 2..15
 
 /**
  * Check if name is valid.
@@ -99,7 +99,7 @@ private fun String.hasOnlyAlphaNumOrAllowedSpecialSymbols(
     allowedSpecialSymbols: Set<Char> = namingAllowedSpecialSymbols
 ) = all { it.isLetterOrDigit() || allowedSpecialSymbols.contains(it) }
 
-private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
+private fun String.containsForbiddenWords() = (FrontendRoutes.getForbiddenWords() + FrontendCosvRoutes.getForbiddenWords() + BackendRoutes.getForbiddenWords())
     .any { this == it }
 
 private fun String.isLengthOk(allowedLength: Int) = length <= allowedLength

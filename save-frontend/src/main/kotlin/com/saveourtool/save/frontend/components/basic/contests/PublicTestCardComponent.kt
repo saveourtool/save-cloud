@@ -2,10 +2,14 @@
 
 package com.saveourtool.save.frontend.components.basic.contests
 
-import com.saveourtool.save.frontend.components.basic.*
-import com.saveourtool.save.frontend.externals.markdown.reactMarkdown
-import com.saveourtool.save.frontend.externals.markdown.rehype.rehypeHighlightPlugin
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.*
+import com.saveourtool.save.frontend.common.components.basic.contests.PublicTestComponentProps
+import com.saveourtool.save.frontend.common.externals.markdown.reactMarkdown
+import com.saveourtool.save.frontend.common.externals.markdown.rehype.rehypeHighlightPlugin
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.get
+import com.saveourtool.save.frontend.common.utils.loadingHandler
+import com.saveourtool.save.frontend.common.utils.useRequest
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
@@ -49,7 +53,7 @@ private fun ChildrenBuilder.displayTestLines(header: String, lines: List<String>
         this.rehypePlugins = arrayOf(::rehypeHighlightPlugin)
     }
     publicTestCard {
-        child(reactMarkdown(reactMarkdownOptions))
+        +reactMarkdown(reactMarkdownOptions)
     }
 }
 

@@ -10,10 +10,16 @@ import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
 import com.saveourtool.save.domain.ProjectCoordinates
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.post
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.utils.selectorBuilder
+import com.saveourtool.save.frontend.utils.useDeferredRequest
+import com.saveourtool.save.frontend.utils.useRequest
 import com.saveourtool.save.utils.Languages
 
 import js.core.asList

@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.http
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
@@ -179,6 +179,23 @@ suspend fun ComponentWithScope<*, *>.getExecutionInfoFor(
     ::noopLoadingHandler,
     ::noopResponseHandler
 )
+
+/**
+ * Makes a call to change project status
+ *
+ * @param organizationName name of the organization whose status will be changed
+ * @param status is new status
+ * @return lazy response
+ */
+fun responseChangeOrganizationStatus(organizationName: String, status: OrganizationStatus): suspend WithRequestStatusContext.() -> Response = {
+    post(
+        url = "$apiUrl/organizations/$organizationName/change-status?status=$status",
+        headers = jsonHeaders,
+        body = undefined,
+        loadingHandler = ::noopLoadingHandler,
+        responseHandler = ::noopResponseHandler,
+    )
+}
 
 @Suppress("TYPE_ALIAS")
 private suspend fun getDebugInfoFor(

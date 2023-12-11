@@ -1,0 +1,42 @@
+// Import Custom Variables (Overrides Default Bootstrap Variables)
+@import "variables.scss";
+
+@import "root.scss";
+
+// Import npm dependencies; path will be resolved relative to node_modules in rootProject.buildDir (kotlin js plugin adds `resolve` directive to webpack config)
+@import "bootstrap/scss/bootstrap.scss";
+
+// Import Custom SB Admin 2 Mixins and Components
+@import "mixins.scss";
+@import "global.scss";
+@import "utilities.scss";
+@import "animate.css";
+
+// Custom Components
+@import "dropdowns.scss";
+@import "navs.scss";
+@import "buttons.scss";
+@import "cards.scss";
+@import "charts.scss";
+@import "login.scss";
+@import "error.scss";
+@import "footer.scss";
+@import "team.scss";
+@import "glow.scss";
+
+
+// do not use name `.popover`, because it's used in popover library and it breaks position
+.form-popover {
+  cursor: pointer;
+}
+
+// Override bootstrap's attribute, that makes buttons in modal-dialog disabled
+.modal-dialog {
+  pointer-events: all;
+}
+
+.unsaved-marker {
+  position: absolute;
+  background: lightgoldenrodyellow;
+  z-index: 0;
+}

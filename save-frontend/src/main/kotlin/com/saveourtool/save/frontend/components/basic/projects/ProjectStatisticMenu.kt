@@ -4,14 +4,14 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.common.components.tables.TableProps
+import com.saveourtool.save.frontend.common.components.tables.columns
+import com.saveourtool.save.frontend.common.components.tables.tableComponent
+import com.saveourtool.save.frontend.common.components.tables.value
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
-import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Headers
 import react.*
@@ -30,6 +30,7 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "name", header = "Test suite", { testSuiteName }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +it.value
                     }
                 }
@@ -37,6 +38,7 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "tests", header = "Number of tests", { countTest }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +"${it.value}"
                     }
                 }
@@ -44,14 +46,13 @@ private val executionDetailsTable: FC<TableProps<TestSuiteExecutionStatisticDto>
             column(id = "rate", header = "Passed tests", { countWithStatusTest }) {
                 Fragment.create {
                     td {
+                        className = ClassName("align-middle text-center")
                         +"${it.value}"
                     }
                 }
             }
         }
     },
-    initialPageSize = 10,
-    useServerPaging = false,
 )
 
 /**

@@ -5,10 +5,10 @@ package com.saveourtool.save.frontend.components.basic.projects
 import com.saveourtool.save.entities.ProjectProblemCritical
 import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.inputform.InputTypes
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormOptional
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.utils.isNotNull
 
 import js.core.jso

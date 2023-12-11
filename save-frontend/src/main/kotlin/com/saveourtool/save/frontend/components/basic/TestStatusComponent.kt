@@ -10,8 +10,8 @@ import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.core.result.TestStatus
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
-import com.saveourtool.save.frontend.externals.fontawesome.faExternalLinkAlt
+import com.saveourtool.save.frontend.common.components.tables.visibleColumnsCount
+import com.saveourtool.save.frontend.common.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.save.frontend.utils.buttonBuilder
 
 import react.FC
