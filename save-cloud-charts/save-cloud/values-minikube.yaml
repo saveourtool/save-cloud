@@ -48,3 +48,50 @@ s3:
   endpoint: http://s3
 
 # dependencies
+
+storage:
+  storageClassName: csi-hostpath-sc
+  size: 24Gi
+  annotations:
+    everest.io/disk-volume-type: SAS
+    volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
+
+reposStorage:
+  storageClassName: csi-hostpath-sc
+  annotations:
+    everest.io/disk-volume-type: SAS
+    volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
+
+neo4j:
+  enabled: true
+  neo4j:
+    password: DiktatTestNeo4j@123
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: cce
+      kubernetes.io/elb.class: union
+      kubernetes.io/elb.id: '2a4f9875-39dd-4140-abf0-4b9bf710880a'
+      kubernetes.io/elb.ip: '119.8.236.175'
+      kubernetes.io/elb.port: '7687'
+  svc:
+    spec:
+      type: NodePort
+  volumes:
+    data:
+      # REQUIRED: specify a volume mode to use for data
+      # Valid values are share|selector|defaultStorageClass|volume|volumeClaimTemplate|dynamic
+      # To get up-and-running quickly, for development or testing, use "defaultStorageClass" for a dynamically provisioned volume of the default storage class.
+      mode: "volume"
+
+      # Only used if mode is set to "volume"
+      # Provide an explicit volume to use
+      volume:
+        # If set an init container (running as root) will be added that runs:
+        #   `chown -R <securityContext.fsUser>:<securityContext.fsGroup>` AND `chmod -R g+rwx`
+        # on the volume. This is useful for some filesystems (e.g. NFS) where Kubernetes fsUser or fsGroup settings are not respected
+        setOwnerAndGroupWritableFilePermissions: false
+
+        # Example (using a specific Persistent Volume Claim)
+        persistentVolumeClaim:
+          claimName: data-neo4j-0
