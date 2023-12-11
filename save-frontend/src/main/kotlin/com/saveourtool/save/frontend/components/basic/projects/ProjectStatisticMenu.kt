@@ -4,14 +4,14 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
+import com.saveourtool.save.frontend.common.components.tables.TableProps
+import com.saveourtool.save.frontend.common.components.tables.columns
+import com.saveourtool.save.frontend.common.components.tables.tableComponent
+import com.saveourtool.save.frontend.common.components.tables.value
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.pieChart
 import com.saveourtool.save.frontend.externals.chart.randomColor
-import com.saveourtool.save.frontend.utils.*
 
 import org.w3c.fetch.Headers
 import react.*

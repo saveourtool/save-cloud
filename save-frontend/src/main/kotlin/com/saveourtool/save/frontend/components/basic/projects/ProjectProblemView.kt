@@ -4,14 +4,14 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.entities.ProjectProblemDto
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.commentWindow
 import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.components.basic.newCommentWindow
 import com.saveourtool.save.frontend.components.modal.displayModal
 import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso

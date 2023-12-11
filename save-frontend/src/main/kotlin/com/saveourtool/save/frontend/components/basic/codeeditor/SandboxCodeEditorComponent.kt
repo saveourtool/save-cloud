@@ -2,13 +2,14 @@
 
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.WithRequestStatusContext
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.Companion.getTypedOption
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SAVE_TOML
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.SETUP_SH
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType.TEST
 import com.saveourtool.save.frontend.components.views.sandboxApiUrl
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
 import react.FC
