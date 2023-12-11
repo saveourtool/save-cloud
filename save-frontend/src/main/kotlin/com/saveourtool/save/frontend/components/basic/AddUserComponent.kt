@@ -2,10 +2,11 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.save.frontend.common.utils.apiUrl
 import com.saveourtool.save.frontend.components.inputform.*
-import com.saveourtool.save.frontend.utils.apiUrl
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DATABASE_DELIMITER
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

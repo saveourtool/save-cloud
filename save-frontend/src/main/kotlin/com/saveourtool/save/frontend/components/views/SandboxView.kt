@@ -8,16 +8,17 @@ import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.frontend.common.components.modal.displayModal
+import com.saveourtool.save.frontend.common.components.modal.largeTransparentModalStyle
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.get
 import com.saveourtool.save.frontend.components.basic.codeeditor.sandboxCodeEditorComponent
 import com.saveourtool.save.frontend.components.basic.fileuploader.sandboxFileUploader
 import com.saveourtool.save.frontend.components.basic.sdkSelection
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.largeTransparentModalStyle
-import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.*
-import io.ktor.http.*
 
+import io.ktor.http.*
 import js.core.jso
 import org.w3c.fetch.Headers
 import react.*

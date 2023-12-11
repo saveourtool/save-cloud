@@ -3,10 +3,10 @@
 package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.frontend.components.basic.renderAvatar
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
@@ -21,6 +21,7 @@ import react.dom.html.ReactHTML.option
 import web.cssom.*
 import web.html.InputType
 import web.timers.setTimeout
+
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val DROPDOWN_ID = "option-dropdown"

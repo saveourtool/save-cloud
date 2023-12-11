@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.http
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM

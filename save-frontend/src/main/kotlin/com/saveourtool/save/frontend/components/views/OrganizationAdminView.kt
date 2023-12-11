@@ -5,16 +5,17 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.frontend.common.components.tables.TableProps
+import com.saveourtool.save.frontend.common.components.tables.columns
+import com.saveourtool.save.frontend.common.components.tables.tableComponent
+import com.saveourtool.save.frontend.common.components.tables.value
+import com.saveourtool.save.frontend.common.components.views.AbstractView
 import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionButtonClasses
 import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionIconClasses
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.classLoadingHandler
 import com.saveourtool.save.frontend.http.responseChangeOrganizationStatus
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.classLoadingHandler
 
 import react.ChildrenBuilder
 import react.FC

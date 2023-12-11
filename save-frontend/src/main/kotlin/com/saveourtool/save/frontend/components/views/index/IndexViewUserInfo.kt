@@ -5,11 +5,11 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.entities.NotificationDto
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTimes
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.components.basic.markdown
-import com.saveourtool.save.frontend.externals.fontawesome.faTimes
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.toUnixCalendarFormat
 
 import js.core.jso

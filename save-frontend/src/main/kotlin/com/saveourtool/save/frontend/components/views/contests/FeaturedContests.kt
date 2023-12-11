@@ -5,14 +5,14 @@
 package com.saveourtool.save.frontend.components.views.contests
 
 import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.frontend.common.components.modal.displayModal
+import com.saveourtool.save.frontend.common.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.common.externals.fontawesome.faArrowRight
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.carousel
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.externals.fontawesome.faArrowRight
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.*
 
 import js.core.jso
 import react.*

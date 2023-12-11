@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 
 import react.FC
 import react.Props
