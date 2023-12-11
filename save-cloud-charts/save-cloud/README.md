@@ -47,6 +47,16 @@ command line using `--set` flag.
 
 ## Local deployment
 * Install minikube: https://minikube.sigs.k8s.io/docs/start/
+* install csi addon in minikube to provide this StorageClass type in your minikube cluster
+  ```bash
+  minikube addons enable csi-hostpath-driver
+  ```
+* [optional] modify kube config file to use base64 encripted info about certs and keys instead of using path to cert file
+  ```yaml
+  certificate-authority-data: <base64 encoded cert>
+  client-certificate-data: <base64 encoded cert>
+  client-key-data: <base64 encoded cert>
+  ```
 * Environment should be prepared:
   ```bash
   minikube ssh
@@ -60,13 +70,9 @@ command line using `--set` flag.
   build.docker.tls-verify=true
   build.docker.cert-path=<path-to-user-home>/.minikube/certs
   ```
-* (Required only once) Install Helm chart using `values-minikube.yaml`: 
-  ```bash
-  $ helm install save-cloud save-cloud-0.1.0.tgz --namespace save-cloud --values values-minikube.yaml <any other value files and/or --set flags>
-  ```
 * (On consecutive deployments) Upgrade an existing Helm release:
   ```bash
-  $ helm upgrade save-cloud save-cloud-0.1.0.tgz --namespace save-cloud --values values-minikube.yaml <any other value files and/or --set flags>
+  $ helm --kube-context=minikube --namespace=save-cloud upgrade -i save-cloud save-cloud-0.1.0.tgz/<or use ulr oci://ghcr.io/saveourtool/save-cloud> --values values-minikube.yaml --values=values-images.yaml <any other value files and/or --set flags>
   ```
 * Database migrations can be run by setting value `mysql.migrations.enabled` to `true` (no additional setup, migrations
   are executed by init container, but may be too slow with constant recreations of backend/sandbox pods)
