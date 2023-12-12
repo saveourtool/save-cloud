@@ -17,10 +17,17 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
 * **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
-  * `s3-storage.endpoint`
-  * `s3-storage.bucketName`
-  * `s3-storage.credentials.accessKeyId`
-  * `s3-storage.credentials.secretAccessKey`
+  * For **backend** service
+    * `backend.s3-storage.bucketName`
+    * `backend.s3-storage.credentials.accessKeyId`
+    * `backend.s3-storage.credentials.secretAccessKey`
+    * `backend.s3-storage.endpoint`
+    * `backend.s3-storage.prefix`
+  * For **demo** and **sandbox** services
+    * `s3-storage.bucketName`
+    * `s3-storage.credentials.accessKeyId`
+    * `s3-storage.credentials.secretAccessKey`
+    * `s3-storage.endpoint`
 
   These secrets are then mounted under the path specified as `S3_SECRETS_PATH` environment variable.
   
@@ -51,11 +58,36 @@ command line using `--set` flag.
   ```bash
   minikube addons enable csi-hostpath-driver
   ```
+  This StorageClass must be provided in values e.g:
+  ```yaml
+  storage:
+    storageClassName: csi-hostpath-driver
+    size: 24Gi
+    annotations:
+      everest.io/disk-volume-type: SAS
+      volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
+  reposStorage:
+    storageClassName: csi-hostpath-driver
+    annotations:
+      everest.io/disk-volume-type: SAS
+      volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
+  ```
 * [optional] modify kube config file to use base64 encripted info about certs and keys instead of using path to cert file
+  Change this:
+  ```yaml
+  certificate-authority: </path/to/file>
+  client-certificate: </path/to/file>
+  client-key: </path/to/file>
+  ```
+  to this:
   ```yaml
   certificate-authority-data: <base64 encoded cert>
   client-certificate-data: <base64 encoded cert>
   client-key-data: <base64 encoded cert>
+  ```
+  you can convert it via base64 util
+  ```bash
+  cat </path/to/cert> | base64 
   ```
 * Environment should be prepared:
   ```bash
