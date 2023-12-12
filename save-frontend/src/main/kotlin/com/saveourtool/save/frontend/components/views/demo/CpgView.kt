@@ -8,10 +8,10 @@ package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.demo.cpg.CpgResult
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
+import com.saveourtool.save.frontend.common.components.basic.cardComponent
 import com.saveourtool.save.frontend.common.components.modal.displaySimpleModal
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.loadingHandler
-import com.saveourtool.save.frontend.components.basic.cardComponent
 import com.saveourtool.save.frontend.components.basic.demo.graphDemoComponent
 import com.saveourtool.save.frontend.components.basic.graph.cytoscapeVisualizer
 import com.saveourtool.save.frontend.externals.reactace.AceMarkers

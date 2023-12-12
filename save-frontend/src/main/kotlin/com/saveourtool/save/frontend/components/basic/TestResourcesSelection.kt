@@ -8,11 +8,11 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
-import com.saveourtool.save.frontend.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
+import com.saveourtool.save.frontend.common.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
+import com.saveourtool.save.frontend.common.components.inputform.InputTypes
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*
