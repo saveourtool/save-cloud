@@ -20,7 +20,9 @@ dependencies {
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
-    implementation(libs.fabric8.kubernetes.client)
+    implementation(libs.fabric8.kubernetes.client) {
+        exclude("org.slf4j", "slf4j-api")
+    }
     implementation(libs.spring.kafka)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)

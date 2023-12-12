@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-
-    implementation(libs.fabric8.kubernetes.client)
+    implementation(libs.fabric8.kubernetes.client) {
+        exclude("org.slf4j", "slf4j-api")
+    }
 }
