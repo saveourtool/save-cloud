@@ -1,15 +1,23 @@
-package com.saveourtool.save.frontend.components.basic
+package components.basic
 
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.frontend.components.inputform.InputTypes
+import com.saveourtool.save.frontend.common.components.basic.SelectFormRequiredProps
+import com.saveourtool.save.frontend.common.components.inputform.InputTypes
 import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.externals.*
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.externals.*
+import com.saveourtool.save.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.save.v1
+import externals.render
+import externals.rest
+import externals.screen
+import externals.setupWorker
 import web.html.HTMLDivElement
 import web.html.HTMLOptionElement
 import web.html.HTMLSelectElement
 import react.*
+import utils.findByTextAndCast
+import utils.mockMswResponse
+import utils.wrapper
 import kotlin.js.Promise
 import kotlin.test.*
 

@@ -6,8 +6,8 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.components.basic.languageSelector
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.components.basic.languageSelector
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
 import com.saveourtool.save.frontend.utils.UserInfoAwarePropsWithChildren
 import com.saveourtool.save.frontend.utils.notIn
 import com.saveourtool.save.validation.FrontendRoutes

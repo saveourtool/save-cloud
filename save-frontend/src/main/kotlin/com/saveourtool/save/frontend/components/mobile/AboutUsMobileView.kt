@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.components.mobile
 
+import com.saveourtool.save.frontend.common.components.basic.markdown
 import com.saveourtool.save.frontend.common.components.views.AboutUsView
 import com.saveourtool.save.frontend.common.components.views.Developer
-import com.saveourtool.save.frontend.components.basic.markdown
 import com.saveourtool.save.frontend.externals.fontawesome.faGithub
 import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.frontend.utils.particles

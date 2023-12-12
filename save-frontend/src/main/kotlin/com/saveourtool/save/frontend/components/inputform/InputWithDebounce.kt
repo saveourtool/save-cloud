@@ -3,10 +3,10 @@
 package com.saveourtool.save.frontend.components.inputform
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.frontend.common.components.basic.renderAvatar
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.common.utils.noopResponseHandler
-import com.saveourtool.save.frontend.components.basic.renderAvatar
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
