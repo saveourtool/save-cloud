@@ -6,9 +6,9 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.RunCommandPair
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.modal.modal
-import com.saveourtool.save.frontend.components.modal.modalBuilder
+import com.saveourtool.save.frontend.common.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.common.components.modal.modal
+import com.saveourtool.save.frontend.common.components.modal.modalBuilder
 import com.saveourtool.save.frontend.utils.buttonBuilder
 import com.saveourtool.save.utils.isNotNull
 

@@ -10,9 +10,9 @@ import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.frontend.common.components.basic.fileuploader.deleteFileButton
 import com.saveourtool.save.frontend.common.components.basic.fileuploader.downloadFileButton
+import com.saveourtool.save.frontend.common.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.http.postUploadFile
 import com.saveourtool.save.utils.toMegabytes
 
