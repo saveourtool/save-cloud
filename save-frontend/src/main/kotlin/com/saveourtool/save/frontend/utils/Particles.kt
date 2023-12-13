@@ -4,7 +4,7 @@
 
 package com.saveourtool.save.frontend.utils
 
-import com.saveourtool.save.frontend.externals.animations.Particles
+import com.saveourtool.save.frontend.common.externals.animations.Particles
 import react.ChildrenBuilder
 import react.react
 

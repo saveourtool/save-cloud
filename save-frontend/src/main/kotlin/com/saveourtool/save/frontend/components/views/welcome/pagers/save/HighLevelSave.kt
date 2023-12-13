@@ -1,7 +1,7 @@
 package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
 import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
-import com.saveourtool.save.frontend.externals.animations.*
+import com.saveourtool.save.frontend.common.externals.animations.*
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.img
 

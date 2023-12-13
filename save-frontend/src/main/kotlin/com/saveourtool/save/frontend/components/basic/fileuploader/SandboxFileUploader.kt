@@ -12,7 +12,7 @@ import com.saveourtool.save.frontend.common.components.basic.fileuploader.downlo
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.components.basic.codeeditor.FileType
-import com.saveourtool.save.frontend.components.inputform.dragAndDropForm
+import com.saveourtool.save.frontend.common.components.inputform.dragAndDropForm
 import com.saveourtool.save.frontend.http.postUploadFile
 
 import js.core.asList
