@@ -4,8 +4,9 @@ package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.cosv.VulnerabilityExt
 import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
+import com.saveourtool.save.frontend.common.utils.buttonBuilder
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.buttonBuilder
+
 import react.*
 import react.dom.html.ReactHTML.div
 import web.cssom.*

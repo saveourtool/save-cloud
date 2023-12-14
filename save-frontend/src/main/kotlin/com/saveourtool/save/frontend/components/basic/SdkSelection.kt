@@ -7,8 +7,8 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.domain.*
-import com.saveourtool.save.frontend.utils.selectorBuilder
-import com.saveourtool.save.frontend.utils.useStateFromProps
+import com.saveourtool.save.frontend.common.utils.selectorBuilder
+import com.saveourtool.save.frontend.common.utils.useStateFromProps
 
 import react.*
 import react.dom.html.ReactHTML.div

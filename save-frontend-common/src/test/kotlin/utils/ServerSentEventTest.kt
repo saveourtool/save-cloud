@@ -1,8 +1,9 @@
-package com.saveourtool.save.frontend.utils
+package utils
 
-import com.saveourtool.save.frontend.externals.render
-import com.saveourtool.save.frontend.externals.rest
-import com.saveourtool.save.frontend.externals.setupWorker
+import com.saveourtool.save.frontend.common.utils.useNdjson
+import externals.render
+import externals.rest
+import externals.setupWorker
 import react.FC
 import react.Props
 import react.create
@@ -11,13 +12,11 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlinx.browser.window
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
  * Tests the way _Server-Sent Events_ (SSE) are parsed.
  *
- * @see useEventStream
  * @see useNdjson
  */
 class ServerSentEventTest {

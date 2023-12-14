@@ -13,9 +13,9 @@ import com.saveourtool.save.frontend.common.components.views.AbstractView
 import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionButtonClasses
 import com.saveourtool.save.frontend.common.components.views.usersettings.right.actionIconClasses
 import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.http.responseChangeOrganizationStatus
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.classLoadingHandler
-import com.saveourtool.save.frontend.http.responseChangeOrganizationStatus
 
 import react.ChildrenBuilder
 import react.FC
