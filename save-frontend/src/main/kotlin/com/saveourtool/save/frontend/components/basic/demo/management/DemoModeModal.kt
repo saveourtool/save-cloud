@@ -9,7 +9,7 @@ import com.saveourtool.save.demo.RunCommandPair
 import com.saveourtool.save.frontend.common.components.modal.mediumTransparentModalStyle
 import com.saveourtool.save.frontend.common.components.modal.modal
 import com.saveourtool.save.frontend.common.components.modal.modalBuilder
-import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.common.utils.buttonBuilder
 import com.saveourtool.save.utils.isNotNull
 
 import react.*

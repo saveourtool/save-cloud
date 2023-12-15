@@ -4,10 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views.demo
 
+import com.saveourtool.save.frontend.common.utils.Style
+import com.saveourtool.save.frontend.common.utils.useBackground
 import com.saveourtool.save.frontend.components.basic.demo.welcome.demoList
 import com.saveourtool.save.frontend.components.basic.demo.welcome.featuredDemos
 import com.saveourtool.save.frontend.components.basic.demo.welcome.introductionSection
-import com.saveourtool.save.frontend.utils.*
 
 import react.FC
 import react.Props

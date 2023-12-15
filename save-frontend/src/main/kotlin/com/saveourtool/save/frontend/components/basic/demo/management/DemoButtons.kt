@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 import com.saveourtool.save.demo.DemoStatus
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.frontend.utils.buttonBuilder
+import com.saveourtool.save.frontend.common.utils.buttonBuilder
 
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div

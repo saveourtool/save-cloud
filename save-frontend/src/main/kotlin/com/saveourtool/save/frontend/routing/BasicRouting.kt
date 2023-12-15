@@ -16,6 +16,8 @@ import com.saveourtool.save.frontend.common.components.views.organization.organi
 import com.saveourtool.save.frontend.common.components.views.registrationView
 import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
 import com.saveourtool.save.frontend.common.components.views.usersettings.*
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.isSuperAdmin
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
@@ -28,8 +30,7 @@ import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.isSuperAdmin
+import com.saveourtool.save.frontend.utils.SaveOrganizationType
 import com.saveourtool.save.validation.FrontendRoutes.*
 
 import org.w3c.dom.url.URLSearchParams
