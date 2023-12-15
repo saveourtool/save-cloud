@@ -4,11 +4,11 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.components.basic.avatarRenderer
-import com.saveourtool.save.frontend.components.modal.logoutModal
-import com.saveourtool.save.frontend.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.components.basic.avatarRenderer
+import com.saveourtool.save.frontend.common.components.modal.logoutModal
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
@@ -102,7 +102,7 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                 props.userInfo?.name?.let { name ->
                     dropdownEntry(faUser, "Profile".t()) { attrs ->
                         attrs.onClick = {
-                            navigate(to = "/${FrontendRoutes.VULN_PROFILE}/$name")
+                            navigate(to = "/${FrontendRoutes.PROFILE}/$name")
                         }
                     }
                     dropdownEntry(faCog, "Settings".t()) { attrs ->

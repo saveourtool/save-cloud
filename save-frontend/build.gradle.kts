@@ -18,6 +18,7 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 
 dependencies {
     implementation(projects.saveCloudCommon)
+    implementation(projects.saveFrontendCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
@@ -36,10 +37,18 @@ dependencies {
     implementation(libs.ktor.http)
 }
 
+val distributionsDirName = "distributions"
+
 kotlin {
     js(IR) {
         // as for `-pre.148-kotlin-1.4.21`, react-table gives errors with IR
         browser {
+            distribution(
+                Action {
+                    // TODO: need to remove this overriding
+                    outputDirectory = layout.buildDirectory.dir(distributionsDirName)
+                }
+            )
             testTask {
                 useKarma {
                     when (properties["save.profile"]) {
@@ -216,14 +225,6 @@ tasks.named<KotlinJsTest>("browserTest").configure {
     inputs.file(mswScriptTargetFile)
 }
 
-kotlin.sourceSets.getByName("main") {
-    kotlin.srcDir(
-        tasks.named("generateSaveCloudVersionFile").map {
-            it.outputs.files.singleFile
-        }
-    )
-}
-
 tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
     // Since we inject timestamp into HTML file, we would like this task to always be re-run.
     inputs.property("Build timestamp", System.currentTimeMillis())
@@ -243,7 +244,7 @@ val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
     dependsOn(":save-frontend:browserDistribution")
     archiveClassifier.set("distribution")
-    from("$buildDir/distributions") {
+    from("$buildDir/$distributionsDirName") {
         into("static")
         exclude("scss")
     }

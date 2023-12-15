@@ -4,9 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views.welcome.pagers.save
 
+import com.saveourtool.save.frontend.common.externals.animations.Animation
+import com.saveourtool.save.frontend.common.externals.animations.zoomInScrollOut
 import com.saveourtool.save.frontend.components.views.welcome.pagers.WelcomePager
-import com.saveourtool.save.frontend.externals.animations.Animation
-import com.saveourtool.save.frontend.externals.animations.zoomInScrollOut
 
 import js.core.jso
 import react.ChildrenBuilder

@@ -7,11 +7,11 @@
 package com.saveourtool.save.frontend.components.basic
 
 import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.frontend.externals.fontawesome.faCheck
-import com.saveourtool.save.frontend.externals.fontawesome.faEdit
-import com.saveourtool.save.frontend.externals.fontawesome.faTimesCircle
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.externals.fontawesome.faCheck
+import com.saveourtool.save.frontend.common.externals.fontawesome.faEdit
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTimesCircle
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.utils.*
 
 import react.FC
 import react.Props

@@ -6,25 +6,20 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
+import com.saveourtool.save.frontend.common.utils.Style
+import com.saveourtool.save.frontend.common.utils.UserInfoAwareProps
+import com.saveourtool.save.frontend.common.utils.particles
+import com.saveourtool.save.frontend.common.utils.useBackground
 import com.saveourtool.save.frontend.utils.*
 import js.core.jso
 import react.FC
 
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.main
-import react.router.useNavigate
-import react.useEffect
 import web.cssom.*
-import kotlinx.browser.window
 
 @Suppress("EMPTY_BLOCK_STRUCTURE_ERROR")
 val indexView: FC<UserInfoAwareProps> = FC { props ->
-    val navigate = useNavigate()
-    useEffect {
-        if (window.location.run { isCosvDomain() && pathname == "/" }) {
-            navigate("/vuln")
-        }
-    }
     useBackground(Style.INDEX)
     particles()
     main {

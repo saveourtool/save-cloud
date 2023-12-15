@@ -5,11 +5,11 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.entities.NotificationDto
-import com.saveourtool.save.frontend.components.basic.markdown
-import com.saveourtool.save.frontend.externals.fontawesome.faTimes
+import com.saveourtool.save.frontend.common.components.basic.markdown
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTimes
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
 import com.saveourtool.save.utils.toUnixCalendarFormat
 
 import js.core.jso
@@ -40,15 +40,17 @@ val indexViewInfo: FC<UserInfoAwareProps> = FC { props ->
     val (notificationForDeletion, setNotificationForDeletion) = useState<NotificationDto?>(null)
 
     useRequest {
-        val newNotifications = get(
-            url = "$apiUrl/notifications/get-all-by-user",
-            headers = jsonHeaders,
-            loadingHandler = ::noopLoadingHandler,
-        ).unsafeMap {
-            it.decodeFromJsonString<List<NotificationDto>>()
-        }
+        props.userInfo?.let {
+            val newNotifications = get(
+                url = "$apiUrl/notifications/get-all-by-user",
+                headers = jsonHeaders,
+                loadingHandler = ::noopLoadingHandler,
+            ).unsafeMap {
+                it.decodeFromJsonString<List<NotificationDto>>()
+            }
 
-        setNotifications(newNotifications)
+            setNotifications(newNotifications)
+        }
     }
 
     useRequest(arrayOf(notificationForDeletion)) {

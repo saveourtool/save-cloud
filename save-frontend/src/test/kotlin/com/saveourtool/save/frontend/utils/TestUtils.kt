@@ -18,14 +18,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import react.router.MemoryRouter
 
-val wrapper: FC<PropsWithChildren> = FC {
+val wrapper: FC<PropsWithChildren> = FC { props ->
     val (_, setMockState) = useState<Response?>(null)
     val (_, setRedirectToFallbackView) = useState(false)
     val (_, setLoadingCounter) = useState(0)
     MemoryRouter {
         requestStatusContext.Provider {
             value = RequestStatusContext(setMockState, setRedirectToFallbackView, setLoadingCounter)
-            +it.children
+            +props.children
         }
     }
 }

@@ -5,8 +5,8 @@
 package com.saveourtool.save.frontend.components.basic.graph
 
 import com.saveourtool.save.demo.cpg.CpgNodeAdditionalInfo
-import com.saveourtool.save.frontend.externals.fontawesome.faTimes
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTimes
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.button

@@ -2,9 +2,7 @@
 
 package com.saveourtool.save.frontend.components.basic.codeeditor
 
-import com.saveourtool.save.frontend.externals.fontawesome.*
 import com.saveourtool.save.frontend.externals.reactace.*
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.utils.Languages
 
 import react.*

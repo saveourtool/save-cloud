@@ -4,11 +4,11 @@ package com.saveourtool.save.frontend.components.basic.projects
 
 import com.saveourtool.save.entities.ProjectProblemCritical
 import com.saveourtool.save.entities.ProjectProblemDto
-import com.saveourtool.save.frontend.components.inputform.InputTypes
-import com.saveourtool.save.frontend.components.inputform.inputTextFormOptional
-import com.saveourtool.save.frontend.components.inputform.inputTextFormRequired
-import com.saveourtool.save.frontend.components.modal.modal
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.inputform.InputTypes
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormOptional
+import com.saveourtool.save.frontend.common.components.inputform.inputTextFormRequired
+import com.saveourtool.save.frontend.common.components.modal.modal
+import com.saveourtool.save.frontend.common.utils.*
 
 import js.core.jso
 import react.FC

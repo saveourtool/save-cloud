@@ -278,7 +278,7 @@ class RawCosvFileController(
                 backendService.getOrganizationByName(organizationName) to backendService.getUserByName(authentication.name)
             }
                 .flatMap { (organization, user) ->
-                    cosvService.process(ids, user, organization)
+                    cosvService.processAndAddTagsAndUpdateRating(ids, user, organization)
                 }
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe()
@@ -287,7 +287,7 @@ class RawCosvFileController(
     /**
      * @param organizationName
      * @param authentication
-     * @return statistics [RawCosvFileStatisticDto] with counts of all, uploaded, processing, failed raw cosv files in [organizationName]
+     * @return statistics [RawCosvFileStatisticsDto] with counts of all, uploaded, processing, failed raw cosv files in [organizationName]
      */
     @RequiresAuthorizationSourceHeader
     @GetMapping("/statistics")

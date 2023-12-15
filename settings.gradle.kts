@@ -31,7 +31,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version "3.13.3"
+    id("com.gradle.enterprise") version "3.15.1"
 }
 
 includeBuild("gradle/plugins")
@@ -53,6 +53,8 @@ include("save-demo-cpg")
 include("test-analysis-core")
 include("save-demo-agent")
 include("save-cosv")
+include("save-cosv-frontend")
+include("save-frontend-common")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

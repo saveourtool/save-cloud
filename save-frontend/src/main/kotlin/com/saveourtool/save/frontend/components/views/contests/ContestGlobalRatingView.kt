@@ -8,19 +8,19 @@ import com.saveourtool.save.entities.OrganizationWithRating
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.frontend.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
-import com.saveourtool.save.frontend.components.basic.avatarRenderer
-import com.saveourtool.save.frontend.components.basic.table.filters.nameFiltersRow
-import com.saveourtool.save.frontend.components.tables.TableProps
-import com.saveourtool.save.frontend.components.tables.columns
-import com.saveourtool.save.frontend.components.tables.pageIndex
-import com.saveourtool.save.frontend.components.tables.pageSize
-import com.saveourtool.save.frontend.components.tables.tableComponent
-import com.saveourtool.save.frontend.components.tables.value
-import com.saveourtool.save.frontend.components.tables.visibleColumnsCount
-import com.saveourtool.save.frontend.components.views.AbstractView
-import com.saveourtool.save.frontend.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.utils.*
+import com.saveourtool.save.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.save.frontend.common.components.basic.avatarRenderer
+import com.saveourtool.save.frontend.common.components.basic.table.filters.nameFiltersRow
+import com.saveourtool.save.frontend.common.components.tables.TableProps
+import com.saveourtool.save.frontend.common.components.tables.columns
+import com.saveourtool.save.frontend.common.components.tables.pageIndex
+import com.saveourtool.save.frontend.common.components.tables.pageSize
+import com.saveourtool.save.frontend.common.components.tables.tableComponent
+import com.saveourtool.save.frontend.common.components.tables.value
+import com.saveourtool.save.frontend.common.components.tables.visibleColumnsCount
+import com.saveourtool.save.frontend.common.components.views.AbstractView
+import com.saveourtool.save.frontend.common.externals.fontawesome.faTrophy
+import com.saveourtool.save.frontend.common.utils.*
 
 import js.core.jso
 import react.*
@@ -57,7 +57,7 @@ external interface ContestGlobalRatingProps : Props {
     /**
      * Location for checking change url
      */
-    var location: Location
+    var location: Location<*>
 }
 
 /**

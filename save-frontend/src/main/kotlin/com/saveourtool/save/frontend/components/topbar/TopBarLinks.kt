@@ -3,8 +3,6 @@
 package com.saveourtool.save.frontend.components.topbar
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.isSettings
-import com.saveourtool.save.frontend.utils.isVuln
 import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
@@ -39,20 +37,9 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),
     )
 
-    @Suppress("MAGIC_NUMBER")
-    val vulnTopbarLinks = sequenceOf(
-        TopBarLink(hrefAnchor = FrontendRoutes.INDEX.path, text = "Main page".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_CREATE.path, text = "Propose vulnerability".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULNERABILITIES.path, text = "Vulnerabilities list".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.VULN_TOP_RATING.path, text = "Top Rating".t()),
-    )
-
     ul {
         className = ClassName("navbar-nav mx-auto")
-        when {
-            props.location.isVuln() || props.location.isSettings() -> vulnTopbarLinks
-            else -> saveTopbarLinks
-        }
+        saveTopbarLinks
             .forEach { elem ->
                 li {
                     className = ClassName("nav-item")
@@ -88,7 +75,7 @@ external interface TopBarLinksProps : Props {
     /**
      * The location is needed to change the color of the text.
      */
-    var location: Location
+    var location: Location<*>
 }
 
 /**
@@ -104,9 +91,16 @@ data class TopBarLink(
 
 private fun textColor(
     hrefAnchor: String,
-    location: Location,
-) = if (location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) {
-    "text-warning"
-} else {
-    "text-light"
+    location: Location<*>,
+): String {
+    val isMainPage = (location.pathname.count { it == '/' } == 1) && hrefAnchor.isBlank()
+    val isNeedToHighlightTopBar = (hrefAnchor.isNotBlank() &&
+            location.pathname.endsWith(hrefAnchor) && location.pathname.count { it == '/' } < TOP_BAR_PATH_SEGMENTS_HIGHLIGHT) ||
+            isMainPage
+
+    return if (isNeedToHighlightTopBar) {
+        "text-warning"
+    } else {
+        "text-light"
+    }
 }
