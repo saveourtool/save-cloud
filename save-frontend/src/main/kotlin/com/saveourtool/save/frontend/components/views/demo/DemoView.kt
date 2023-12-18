@@ -7,7 +7,10 @@
 package com.saveourtool.save.frontend.components.views.demo
 
 import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.frontend.components.basic.cardComponent
+import com.saveourtool.save.frontend.common.components.basic.cardComponent
+import com.saveourtool.save.frontend.common.utils.Style
+import com.saveourtool.save.frontend.common.utils.selectorBuilder
+import com.saveourtool.save.frontend.common.utils.useBackground
 import com.saveourtool.save.frontend.components.basic.demo.run.demoRunComponent
 import com.saveourtool.save.frontend.externals.reactace.AceThemes
 import com.saveourtool.save.frontend.utils.*

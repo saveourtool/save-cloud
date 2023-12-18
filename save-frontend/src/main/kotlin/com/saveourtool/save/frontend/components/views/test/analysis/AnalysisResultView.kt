@@ -2,11 +2,11 @@
 
 package com.saveourtool.save.frontend.components.views.test.analysis
 
-import com.saveourtool.save.frontend.externals.fontawesome.faBug
-import com.saveourtool.save.frontend.externals.fontawesome.faCheckCircle
-import com.saveourtool.save.frontend.externals.fontawesome.faDice
-import com.saveourtool.save.frontend.externals.fontawesome.faPoo
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.externals.fontawesome.faBug
+import com.saveourtool.save.frontend.common.externals.fontawesome.faCheckCircle
+import com.saveourtool.save.frontend.common.externals.fontawesome.faDice
+import com.saveourtool.save.frontend.common.externals.fontawesome.faPoo
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.test.analysis.results.AnalysisResult
 import com.saveourtool.save.test.analysis.results.FlakyTest
 import com.saveourtool.save.test.analysis.results.IrregularTest

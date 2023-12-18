@@ -9,14 +9,16 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.*
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.frontend.components.RequestStatusContext
+import com.saveourtool.save.frontend.common.components.RequestStatusContext
+import com.saveourtool.save.frontend.common.components.modal.displayModal
+import com.saveourtool.save.frontend.common.components.modal.mediumTransparentModalStyle
+import com.saveourtool.save.frontend.common.components.requestStatusContext
+import com.saveourtool.save.frontend.common.components.views.AbstractView
+import com.saveourtool.save.frontend.common.http.getProject
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.frontend.components.basic.projects.*
-import com.saveourtool.save.frontend.components.modal.displayModal
-import com.saveourtool.save.frontend.components.modal.mediumTransparentModalStyle
-import com.saveourtool.save.frontend.components.requestStatusContext
-import com.saveourtool.save.frontend.http.getProject
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopResponseHandler
+import com.saveourtool.save.frontend.utils.ProjectMenuBar
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 

@@ -7,10 +7,11 @@ import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.frontend.http.getDebugInfoFor
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.multilineText
-import com.saveourtool.save.frontend.utils.multilineTextWithIndices
+import com.saveourtool.save.frontend.common.http.getDebugInfoFor
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.decodeFromJsonString
+import com.saveourtool.save.frontend.common.utils.multilineText
+import com.saveourtool.save.frontend.common.utils.multilineTextWithIndices
 
 import react.*
 import react.dom.html.ReactHTML.br

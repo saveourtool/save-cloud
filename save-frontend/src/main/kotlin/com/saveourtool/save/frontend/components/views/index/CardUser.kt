@@ -6,9 +6,9 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.frontend.components.basic.renderAvatar
+import com.saveourtool.save.frontend.common.components.basic.renderAvatar
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 

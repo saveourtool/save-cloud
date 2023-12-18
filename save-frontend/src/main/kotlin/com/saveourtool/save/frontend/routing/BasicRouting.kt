@@ -9,6 +9,15 @@ package com.saveourtool.save.frontend.routing
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.save.frontend.common.components.views.AboutUsView
+import com.saveourtool.save.frontend.common.components.views.FallbackView
+import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
+import com.saveourtool.save.frontend.common.components.views.organization.organizationView
+import com.saveourtool.save.frontend.common.components.views.registrationView
+import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
+import com.saveourtool.save.frontend.common.components.views.usersettings.*
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.isSuperAdmin
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
@@ -20,11 +29,8 @@ import com.saveourtool.save.frontend.components.views.demo.demoCollectionView
 import com.saveourtool.save.frontend.components.views.demo.demoView
 import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
-import com.saveourtool.save.frontend.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.components.views.usersettings.*
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.isSuperAdmin
+import com.saveourtool.save.frontend.utils.SaveOrganizationType
 import com.saveourtool.save.validation.FrontendRoutes.*
 
 import org.w3c.dom.url.URLSearchParams
@@ -93,11 +99,11 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
         }
     }
 
-    val organizationView = withRouter { location, params ->
-        OrganizationView::class.react {
+    val organizationView = com.saveourtool.save.frontend.common.utils.withRouter { location, params ->
+        organizationView {
             organizationName = params["owner"]!!
             currentUserInfo = props.userInfo
-            this.location = location
+            organizationType = SaveOrganizationType
         }
     }
 

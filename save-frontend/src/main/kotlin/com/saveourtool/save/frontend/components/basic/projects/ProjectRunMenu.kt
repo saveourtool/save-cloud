@@ -8,12 +8,14 @@ import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.ProjectDto
 import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.execution.TestingType
+import com.saveourtool.save.frontend.common.components.basic.cardComponent
+import com.saveourtool.save.frontend.common.externals.fontawesome.faCalendarAlt
+import com.saveourtool.save.frontend.common.externals.fontawesome.faHistory
+import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.apiUrl
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
-import com.saveourtool.save.frontend.externals.fontawesome.faCalendarAlt
-import com.saveourtool.save.frontend.externals.fontawesome.faHistory
-import com.saveourtool.save.frontend.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.request.CreateExecutionRequest
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 

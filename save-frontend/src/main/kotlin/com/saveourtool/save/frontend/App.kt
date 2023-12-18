@@ -4,15 +4,15 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.save.frontend.common.components.basic.cookieBanner
+import com.saveourtool.save.frontend.common.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.common.components.footer
+import com.saveourtool.save.frontend.common.externals.modal.ReactModal
+import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.*
-import com.saveourtool.save.frontend.components.basic.cookieBanner
-import com.saveourtool.save.frontend.components.basic.scrollToTopButton
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n
-import com.saveourtool.save.frontend.externals.modal.ReactModal
 import com.saveourtool.save.frontend.routing.basicRouting
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 

@@ -7,9 +7,9 @@
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.frontend.externals.fontawesome.*
-import com.saveourtool.save.frontend.utils.*
-import com.saveourtool.save.frontend.utils.noopLoadingHandler
+import com.saveourtool.save.frontend.common.externals.fontawesome.*
+import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 
 import react.*
 import react.dom.html.ReactHTML.div
