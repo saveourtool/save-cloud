@@ -36,13 +36,6 @@ repositories {
                 ?: System.getenv("GITHUB_TOKEN")
         }
     }
-    file("D:\\maven\\repository")
-        .takeIf { it.exists() }
-        ?.run {
-            maven {
-                url = this@run.toURI()
-            }
-        }
 }
 val jepArchive by configurations.creating
 

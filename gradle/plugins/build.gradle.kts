@@ -7,13 +7,6 @@ plugins {
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    file("D:\\maven\\repository")
-        .takeIf { it.exists() }
-        ?.run {
-            maven {
-                url = this@run.toURI()
-            }
-        }
 }
 
 dependencies {

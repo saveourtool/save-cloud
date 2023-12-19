@@ -37,8 +37,6 @@ kotlin {
             languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
         }
 
-        // @Suppress("UNUSED_VARIABLE")
-        // val commonMain by getting {
         commonMain {
             kotlin {
                 srcDir(
@@ -62,8 +60,6 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-        // @Suppress("UNUSED_VARIABLE")
-        // val commonTest by getting {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
