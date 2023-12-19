@@ -19,7 +19,7 @@ dependencies {
     implementation(libs.reckon.gradle.plugin)
     implementation(libs.detekt.gradle.plugin)
     implementation(libs.diktat.gradle.plugin)
-    // implementation(libs.gradle.plugin.spotless)
+    implementation(libs.gradle.plugin.spotless)
     implementation(libs.publish.gradle.plugin)
 }
 

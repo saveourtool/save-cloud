@@ -8,7 +8,7 @@ plugins {
 
 @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
 val libs = the<LibrariesForLibs>()
-val diktatVersion: String = libs.versions.diktat.get()
+val diktatVersion: String = "1.2.5"  // libs.versions.diktat.get()
 spotless {
     kotlin {
         diktat(diktatVersion).configFile(rootProject.file("diktat-analysis.yml"))
