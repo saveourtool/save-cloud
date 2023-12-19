@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Gateway-LocalRunOnWindows" type="JetRunConfigurationType">
+    <option name="ALTERNATIVE_JRE_PATH" value="$USER_HOME$/.jdks/temurin-17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="SPRING_PROFILES_ACTIVE" value="dev,secure,win" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.saveourtool.save.gateway.SaveGatewayKt" />
+    <module name="save-cloud.api-gateway.main" />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
