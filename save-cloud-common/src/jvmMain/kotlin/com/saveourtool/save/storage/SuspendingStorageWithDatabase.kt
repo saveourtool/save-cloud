@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 /**
  * Implementation of S3 storage which stores keys in database
  *
- * @property s3Operations interface to operate with S3 storage
+ * @param s3Operations interface to operate with S3 storage
  * @property s3KeyManager [AbstractS3KeyDatabaseManager] manager for S3 keys using database
  */
 open class SuspendingStorageWithDatabase<K : Any, E : BaseEntity, M : AbstractS3KeyDatabaseManager<K, E, *>>(

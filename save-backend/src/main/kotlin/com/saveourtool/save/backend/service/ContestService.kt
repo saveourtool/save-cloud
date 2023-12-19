@@ -16,7 +16,7 @@ import java.util.*
 /**
  * Service for contests
  *
- * @property contestRepository
+ * @param contestRepository
  */
 @OptIn(ExperimentalStdlibApi::class)
 @Service

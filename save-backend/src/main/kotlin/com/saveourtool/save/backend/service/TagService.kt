@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException
 /**
  * [Service] for [Tag] entity
  *
- * @property tagRepository
+ * @param tagRepository
  */
 @Service
 class TagService(
