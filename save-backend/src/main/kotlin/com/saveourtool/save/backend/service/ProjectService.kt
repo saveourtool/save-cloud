@@ -23,7 +23,7 @@ import java.util.*
 /**
  * Service for project
  *
- * @property projectRepository
+ * @param projectRepository
  */
 @Service
 class ProjectService(

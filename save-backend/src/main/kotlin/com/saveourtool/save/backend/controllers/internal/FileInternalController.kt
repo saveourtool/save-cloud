@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 /**
  * Internal controller for [FileStorage]
  *
- * @property fileStorage
+ * @param fileStorage
  */
 @RestController
 @RequestMapping("/internal/files")

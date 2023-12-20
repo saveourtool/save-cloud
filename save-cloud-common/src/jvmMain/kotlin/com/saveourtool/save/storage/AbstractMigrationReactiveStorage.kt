@@ -17,9 +17,9 @@ import kotlin.time.toJavaDuration
 /**
  * Abstract storage which has an init method to migrate keys from old storage to new one
  *
- * @property newStorageProjectReactor [StorageProjectReactor] for new storage
- * @property oldStorageProjectReactor [StorageProjectReactor] for old storage
- * @property newStoragePreSignedUrl [StoragePreSignedUrl] for new storage
+ * @param newStorageProjectReactor [StorageProjectReactor] for new storage
+ * @param oldStorageProjectReactor [StorageProjectReactor] for old storage
+ * @param newStoragePreSignedUrl [StoragePreSignedUrl] for new storage
  */
 abstract class AbstractMigrationReactiveStorage<O : Any, N : Any>(
     private val newStorageProjectReactor: StorageProjectReactor<N>,

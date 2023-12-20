@@ -37,8 +37,9 @@ import kotlinx.serialization.modules.subclass
 
 /**
  * A main class for SAVE Agent
- * @property config
- * @property coroutineScope a [CoroutineScope] to launch other jobs
+ *
+ * @param config
+ * @param coroutineScope a [CoroutineScope] to launch other jobs
  * @property httpClient
  */
 @Suppress("AVOID_NULL_CHECKS")

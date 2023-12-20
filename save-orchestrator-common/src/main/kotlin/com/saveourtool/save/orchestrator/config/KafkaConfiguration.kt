@@ -28,7 +28,7 @@ import java.util.*
 /**
  * Kafka producer and consumer configuration
  *
- * @property kafkaProperties
+ * @param kafkaProperties
  */
 @Configuration
 @Profile("dev & kafka")

@@ -40,11 +40,17 @@ fun Project.registerLiquibaseTask(profile: String) {
         relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
         profile = profile
     )
+    val registerLiquibaseTaskCosv = registerLiquibaseTask(
+        projectName = "save-cosv",
+        relativeChangeLogFile = "save-cosv/db/db.changelog-cosv.xml",
+        profile = profile
+    )
     tasks.register("liquibaseUpdate") {
         dependsOn(
             registerLiquibaseTaskBackend,
             registerLiquibaseTaskSandbox,
-            registerLiquibaseTaskDemo
+            registerLiquibaseTaskDemo,
+            registerLiquibaseTaskCosv,
         )
     }
 }
