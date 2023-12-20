@@ -66,7 +66,6 @@ save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", versi
 save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-cli" }
 save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-cli" }
 publish-gradle-plugin = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "publish"}
-download-plugin = { module = "de.undercouch:gradle-download-task", version.ref = "download" }
 
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
