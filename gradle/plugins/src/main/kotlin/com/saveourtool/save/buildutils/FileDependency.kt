@@ -1,11 +1,16 @@
+/**
+ * Contains util method to add a runtime dependency from a file
+ */
+
 package com.saveourtool.save.buildutils
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.register
+
+private typealias AddFunction = (String, Any) -> Dependency?
 
 /**
  * @param gradlePropertyName
@@ -19,7 +24,7 @@ fun Project.addRuntimeDependency(
     buildSubDirectory: String,
     copyTaskName: String,
     logMsgPrefix: String,
-    add: (String, Any) -> Dependency?,
+    add: AddFunction,
 ) {
     val saveAgentPath = providers.gradleProperty(gradlePropertyName)
     if (saveAgentPath.isPresent) {
@@ -29,7 +34,8 @@ fun Project.addRuntimeDependency(
             logMsgPrefix, saveAgentPath
         )
 
-        val copySaveAgent: TaskProvider<Copy> = tasks.register<Copy>(copyTaskName) {
+        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
+        val copySaveAgent = tasks.register<Copy>(copyTaskName) {
             from(saveAgentPath)
             into(target)
             eachFile {
