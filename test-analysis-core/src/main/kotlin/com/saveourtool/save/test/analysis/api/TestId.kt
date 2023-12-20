@@ -19,7 +19,7 @@ import com.saveourtool.save.entities.Test
  *
  * To create a [TestId] instance, use [TestIdGenerator.testId].
  *
- * @property hash the SHA hash that uniquely identifies this test.
+ * @param hash the SHA hash that uniquely identifies this test.
  */
 @JvmInline
 value class TestId internal constructor(@Suppress("UnusedPrivateProperty") private val hash: String)

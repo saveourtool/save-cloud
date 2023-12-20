@@ -145,7 +145,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                         td {
                             +"${
                                 cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
+                                    ?: "Running"
                             }"
                         }
                     }
@@ -155,7 +155,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                         td {
                             +"${
                                 cellContext.value?.let { Instant.fromEpochSeconds(it, 0) }
-                                ?: "Running"
+                                    ?: "Running"
                             }"
                         }
                     }
