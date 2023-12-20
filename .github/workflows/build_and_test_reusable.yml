@@ -58,14 +58,14 @@ jobs:
             --build-cache
       - name: Upload gradle reports ${{ inputs.module }}
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gradle-reports-${{ inputs.module }}
           path: '${{ inputs.module }}/build/reports/'
           retention-days: 1
       - name: Upload frontend distribution
         if: inputs.module == 'save-frontend'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'

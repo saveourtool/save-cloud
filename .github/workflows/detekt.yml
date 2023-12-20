@@ -34,7 +34,7 @@ jobs:
         with:
           sarif_file: build/detekt-sarif-reports/detekt-merged.sarif
       - name: Upload SARIF artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: sarif-reports

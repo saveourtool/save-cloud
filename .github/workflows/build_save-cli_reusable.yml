@@ -67,14 +67,14 @@ jobs:
         run: |
           find save-cli/build/bin/linuxX64/releaseExecutable -name "save-*.kexe" -exec sh -c 'printf "$1" | sed -r "s/.*save-(.*)-linuxX64.kexe/\1/" | echo "SAVE_CLI_VERSION=$(cat)" >> $GITHUB_ENV' _ {} \;
       - name: Upload save-cli
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: save-cli
           path: 'save-cli/build/bin/linuxX64/releaseExecutable/save-*.kexe'
           retention-days: 1
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gradle-reports
           path: '**/build/reports/'
