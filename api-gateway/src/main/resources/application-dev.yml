@@ -15,6 +15,12 @@ spring:
     oauth2:
       client:
         provider:
+          codehub:
+            authorization-uri: https://codehub-g.huawei.com/oauth/authorize
+            token-uri: https://codehub-g.huawei.com/oauth/token
+            user-info-uri: https://codehub-g.huawei.com/api/v4/user
+            user-name-attribute: username
+            user-info-authentication-method: post
           huawei:
             authorization-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/authorize
             token-uri: https://oauth-login.cloud.huawei.com/oauth2/v3/token
@@ -50,6 +56,18 @@ spring:
             provider: huawei
             client-id: 108713087
             client-secret: 86d1ffd3035595ca33b49eeb1cbfb0b1f467ec7ed3e1245c0fb3c885c2fabb46
+            redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            # can be
+            #  - openid (doesn't work due to invalid_nonce)
+            #  - email (works but user allowed to not select to share an email)
+            #  - profile
+            scope: profile
+          codehub:
+            provider: codehub
+            client-id: qp_f_Xrr5TFpliCyskVbG8mMN-nmAFNc2fo6bPhp1VnU3A0cZD_vNiKIfN61bKox
+            client-secret: r6h2Qoiks2MvgxKcYe3hAEAr242qgTGqZ5t2iK6QFCwxh6rGTsM4_vt_RSXijvTm
             redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
