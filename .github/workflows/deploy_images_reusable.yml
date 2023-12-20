@@ -62,10 +62,6 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-      - name: Install system packages
-        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox' || inputs.module == 'save-demo'
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Download save-cli
         if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
