@@ -110,5 +110,6 @@ fun mapKnownUploadedIcons(registrationId: String) =
             "gitee" -> "/img/gitee.svg"
             "github" -> "/img/github.svg"
             "google" -> "/img/google.svg"
+            "codehub" -> "/img/codehub.svg"
             else -> ""
         }
