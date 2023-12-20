@@ -73,20 +73,20 @@ jobs:
 
       - name: Upload save-agent
         if: inputs.build-save-agent
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: save-agent
           path: 'save-agent/build/libs/save-agent-*-distribution.jar'
       - name: Upload save-demo-agent
         if: inputs.build-save-demo-agent
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: save-demo-agent
           path: 'save-demo-agent/build/libs/save-demo-agent-*-distribution.jar'
 
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: gradle-reports
           path: '**/build/reports/'

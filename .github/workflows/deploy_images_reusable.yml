@@ -69,7 +69,7 @@ jobs:
 
       - name: Download save-cli
         if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: save-cli
           path: ${{ github.workspace }}/save-cli
@@ -80,7 +80,7 @@ jobs:
 
       - name: Download save-agent
         if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: save-agent
           path: ${{ github.workspace }}/save-agent
@@ -91,7 +91,7 @@ jobs:
 
       - name: Download save-demo-agent
         if: inputs.module == 'save-demo'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: save-demo-agent
           path: ${{ github.workspace }}/save-demo-agent
@@ -117,7 +117,7 @@ jobs:
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
       - name: Upload gradle reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: gradle-reports
           path: '**/build/reports/'

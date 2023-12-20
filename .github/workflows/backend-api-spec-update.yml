@@ -48,7 +48,7 @@ jobs:
       # we need save-cli.kexe to start backend, because InternalFileStorage requires it when save-cli has -SNAPSHOT version
       - name: Download save-cli
         if: ${{ endsWith(needs.build_cli.outputs.version, '-SNAPSHOT') }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v3
         with:
           name: save-cli
           path: ${{ github.workspace }}/save

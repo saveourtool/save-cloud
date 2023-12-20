@@ -46,7 +46,7 @@ jobs:
         run: git status
       - name: Upload artifact
         id: upload_artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: save-api-${{ runner.os }}
           path: save-api/build/*
