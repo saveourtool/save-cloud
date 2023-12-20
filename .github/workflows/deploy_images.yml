@@ -75,7 +75,7 @@ jobs:
   deploy_backend:
     name: save-backend
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: build_cli, build_agents
+    needs: [ build_cli, build_agents ]
     with:
       module: save-backend
       branch: ${{ inputs.branch }}
@@ -86,7 +86,7 @@ jobs:
   deploy_sandbox:
     name: save-sandbox
     uses: ./.github/workflows/deploy_images_reusable.yml
-    needs: build_cli, build_agents
+    needs: [ build_cli, build_agents ]
     with:
       module: save-sandbox
       branch: ${{ inputs.branch }}
