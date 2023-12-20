@@ -1,0 +1,52 @@
+gateway:
+  backend:
+    url: http://localhost:5800
+  frontend:
+    # In the "dev" environment, the front-end uses TCP port 8080 when run using `webpack-dev-server` (i.e. `browserDevelopmentRun` or `run` Gradle task).
+    url: http://localhost:8080
+  sandbox:
+    url: http://localhost:5400
+  demo:
+    url: http://localhost:5421
+  demo-cpg:
+    url: http://localhost:5500
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          codehub:
+            authorization-uri: https://codehub-g.huawei.com/oauth/authorize
+            token-uri: https://codehub-g.huawei.com/oauth/token
+            user-info-uri: https://codehub-g.huawei.com/api/v4/user
+            user-name-attribute: username
+            user-info-authentication-method: post
+        registration:
+          codehub:
+            provider: codehub
+            client-id: qp_f_Xrr5TFpliCyskVbG8mMN-nmAFNc2fo6bPhp1VnU3A0cZD_vNiKIfN61bKox
+            client-secret: r6h2Qoiks2MvgxKcYe3hAEAr242qgTGqZ5t2iK6QFCwxh6rGTsM4_vt_RSXijvTm
+            redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            # can be
+            #  - openid (doesn't work due to invalid_nonce)
+            #  - email (works but user allowed to not select to share an email)
+            #  - profile
+            scope: profile
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    com.nimbusds: TRACE
+
+---
+spring:
+  error:
+    whitelabel:
+      enabled: false
+
+server:
+  error:
+    path: /error
