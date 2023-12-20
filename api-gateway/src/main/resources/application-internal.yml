@@ -24,8 +24,6 @@ spring:
         registration:
           codehub:
             provider: codehub
-            client-id: qp_f_Xrr5TFpliCyskVbG8mMN-nmAFNc2fo6bPhp1VnU3A0cZD_vNiKIfN61bKox
-            client-secret: r6h2Qoiks2MvgxKcYe3hAEAr242qgTGqZ5t2iK6QFCwxh6rGTsM4_vt_RSXijvTm
             redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
