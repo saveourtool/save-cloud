@@ -14,57 +14,203 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  calculate_build_flags:
+    name: Detect build flags for modules
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ steps.git-changed-files.root_gradle }}
+      api-gateway: ${{ steps.git-changed-files.api-gateway }}
+      authentication-service: ${{ steps.git-changed-files.authentication-service }}
+      save-agent: ${{ steps.git-changed-files.save-agent }}
+      save-api: ${{ steps.git-changed-files.save-api }}
+      save-api-cli: ${{ steps.git-changed-files.save-api-cli }}
+      save-backend: ${{ steps.git-changed-files.save-backend }}
+      save-cloud-common: ${{ steps.git-changed-files.save-cloud-common }}
+      save-cosv: ${{ steps.git-changed-files.save-cosv }}
+      save-cosv-frontend: ${{ steps.git-changed-files.save-cosv-frontend }}
+      save-demo: ${{ steps.git-changed-files.save-demo }}
+      save-demo-agent: ${{ steps.git-changed-files.save-demo-agent }}
+      save-demo-cpg: ${{ steps.git-changed-files.save-demo-cpg }}
+      save-frontend: ${{ steps.git-changed-files.save-frontend }}
+      save-frontend-common: ${{ steps.git-changed-files.save-frontend-common }}
+      save-orchestrator: ${{ steps.git-changed-files.save-orchestrator }}
+      save-orchestrator-common: ${{ steps.git-changed-files.save-orchestrator-common }}
+      save-preprocessor: ${{ steps.git-changed-files.save-preprocessor }}
+      save-sandbox: ${{ steps.git-changed-files.save-sandbox }}
+      test-analysis-core: ${{ steps.git-changed-files.test-analysis-core }}
+      test-utils: ${{ steps.git-changed-files.test-utils }}
+    steps:
+      - id: git-changed-files
+        uses: tj-actions/changed-files@v40
+        with:
+          files_yaml: |
+            root_gradle:
+              - *.gradle.kts
+              - gradle.properties
+              - gradle/**
+              - buildSrc/**
+            api-gateway:
+              - api-gateway/**
+            authentication-service:
+              - authentication-service/**
+            save-agent:
+              - save-agent/**
+            save-api:
+              - save-api/**
+            save-api-cli:
+              - save-api-cli/**
+            save-backend:
+              - save-backend/**
+            save-cloud-common:
+              - save-cloud-common/**
+            save-cosv:
+              - save-cosv/**
+            save-cosv-frontend:
+              - save-cosv-frontend/**
+            save-demo:
+              - save-demo/**
+            save-demo-agent:
+              - save-demo-agent/**
+            save-demo-cpg:
+              - save-demo-cpg/**
+            save-frontend:
+              - save-frontend/**
+            save-frontend-common:
+              - save-frontend-common/**
+            save-orchestrator:
+              - save-orchestrator/**
+            save-orchestrator-common:
+              - save-orchestrator-common/**
+            save-preprocessor:
+              - save-preprocessor/**
+            save-sandbox:
+              - save-sandbox/**
+            test-analysis-core:
+              - test-analysis-core/**
+            test-utils:
+              - test-utils/**
+      - id: calculate-dependencies
+        run: |
+          set -x
+          all=$( ${{ steps.git-changed-files.root_gradle_any_changed }}  == 'true' )
+          save-cloud-common = $( $all || ${{ steps.git-changed-files.save-cloud-common_any_changed }} == 'true' )
+          save-frontend-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-frontend-common_any_changed }} == 'true' )
+          save-orchestrator-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-orchestrator-common_any_changed }} == 'true' )
+
+          authentication-service = $( ${save-cloud-common} || ${{ steps.git-changed-files.authentication-service_any_changed }} == 'true' )
+          save-api = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-api_any_changed }} == 'true' )
+          save-cosv = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-cosv_any_changed }} == 'true' )
+          test-analysis-core = $( ${save-cloud-common} || ${{ steps.git-changed-files.test-analysis-core_any_changed }} == 'true' )
+          test-utils = $( ${{ steps.git-changed-files.test-utils_any_changed }} == 'true' )
+
+          echo "api-gateway=$( ${save-cloud-common} || ${{ steps.git-changed-files.api-gateway_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "authentication-service=${authentication-service}" >> "$GITHUB_OUTPUT"
+          echo "save-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-api=${save-api}" >> "$GITHUB_OUTPUT"
+          echo "save-api-cli=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-api-cli_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-backend=$( ${save-cloud-common} || ${authentication-service} || ${test-analysis-core} || ${save-cosv} || ${test-utils} || ${{ steps.git-changed-files.save-backend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-cloud-common=${save-cloud-common}" >> "$GITHUB_OUTPUT"
+          echo "save-cosv=${save-cosv}" >> "$GITHUB_OUTPUT"
+          echo "save-cosv-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.save-cosv-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo-cpg=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo-cpg_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.save-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-frontend-common=${save-frontend-common}" >> "$GITHUB_OUTPUT"
+          echo "save-orchestrator=$( ${save-cloud-common} || ${save-orchestrator-common} || ${test-utils} || ${{ steps.git-changed-files.save-orchestrator_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-orchestrator-common=${save-orchestrator-common}" >> "$GITHUB_OUTPUT"
+          echo "save-preprocessor=$( ${save-cloud-common} || ${test-utils} || ${{ steps.git-changed-files.save-preprocessor_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-sandbox=$( ${save-cloud-common} || ${authentication-service} || ${test-utils} || ${{ steps.git-changed-files.save-sandbox_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "test-analysis-core=${test-analysis-core}" >> "$GITHUB_OUTPUT"
+          echo "test-utils=${test-utils}" >> "$GITHUB_OUTPUT"
   build_save-cloud-common:
     name: Build and test save-cloud-common
+    needs: [ calculate_build_flags ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
+      do_build: ${{ needs.calculate_build_flags.save-cloud-common }}
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
     name: Build and test save-orchestrator-common
-    needs: [ build_save-cloud-common ]
+    needs: [ calculate_build_flags, build_save-cloud-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
+      do_build: ${{ needs.calculate_build_flags.save-orchestrator-common }}
       module: save-orchestrator-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
-  build_save-agent:
-    name: Build and test save-agent
-    needs: [ build_save-orchestrator-common ]
+  build_save-frontend-common:
+    name: Build and test save-frontend-common
+    needs: [ calculate_build_flags, build_save-orchestrator-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      module: save-agent
-      gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
-  build_save-demo-agent:
-    name: Build and test save-demo-agent
-    needs: [ build_save-agent ]
-    uses: ./.github/workflows/build_and_test_reusable.yml
-    with:
-      module: save-demo-agent
+      do_build: ${{ needs.calculate_build_flags.save-frontend-common }}
+      module: save-frontend-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_all:
-    name: Build and test left modules
-    needs: [ build_save-demo-agent ]
+    needs: [ calculate_build_flags, build_save-frontend-common ]
     strategy:
       fail-fast: false
       matrix:
         module: [
           'api-gateway',
-          'save-backend',
-          'save-orchestrator',
-          'save-frontend',
-          'save-cosv-frontend',
-          'save-preprocessor',
-          'test-utils',
+          'authentication-service',
+          'save-agent',
           'save-api',
           'save-api-cli',
-          'save-sandbox',
-          'authentication-service',
+          'save-backend',
+          'save-cosv',
+          'save-cosv-frontend',
           'save-demo',
+          'save-demo-agent',
           'save-demo-cpg',
-          'test-analysis-core'
+          'save-frontend',
+          'save-orchestrator',
+          'save-preprocessor',
+          'save-sandbox',
+          'test-analysis-core',
+          'test-utils'
         ]
+        include:
+          - module: api-gateway
+            do-build: ${{ needs.calculate_build_flags.api-gateway }}
+          - module: authentication-service
+            do-build: ${{ needs.calculate_build_flags.api-gateway }}
+          - module: save-agent
+            do-build: ${{ needs.calculate_build_flags.save-agent }}
+          - module: save-api
+            do-build: ${{ needs.calculate_build_flags.save-api }}
+          - module: save-api-cli
+            do-build: ${{ needs.calculate_build_flags.save-api-cli }}
+          - module: save-demo-cpg
+            do-build: ${{ needs.calculate_build_flags.save-demo-cpg }}
+          - module: save-backend
+            do-build: ${{ needs.calculate_build_flags.save-backend }}
+          - module: save-cosv
+            do-build: ${{ needs.calculate_build_flags.save-cosv }}
+          - module: save-cosv-frontend
+            do-build: ${{ needs.calculate_build_flags.save-cosv-frontend }}
+          - module: save-demo
+            do-build: ${{ needs.calculate_build_flags.save-demo }}
+          - module: save-demo-agent
+            do-build: ${{ needs.calculate_build_flags.save-demo-agent }}
+          - module: save-demo-cpg
+            do-build: ${{ needs.calculate_build_flags.save-demo-cpg }}
+          - module: save-frontend
+            do-build: ${{ needs.calculate_build_flags.save-frontend }}
+          - module: save-orchestrator
+            do-build: ${{ needs.calculate_build_flags.save-orchestrator }}
+          - module: save-preprocessor
+            do-build: ${{ needs.calculate_build_flags.save-preprocessor }}
+          - module: save-sandbox
+            do-build: ${{ needs.calculate_build_flags.save-sandbox }}
+          - module: test-analysis-core
+            do-build: ${{ needs.calculate_build_flags.test-analysis-core }}
+          - module: test-utils
+            do-build: ${{ needs.calculate_build_flags.test-utils }}
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
+      do_build: ${{ matrix.do-build }}
       module: ${{ matrix.module }}
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
