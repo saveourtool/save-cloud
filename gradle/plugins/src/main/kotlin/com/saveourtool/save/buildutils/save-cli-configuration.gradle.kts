@@ -1,5 +1,5 @@
 /**
- * Configuration utilities for spring boot projects
+ * Configuration utilities for project which needs a runtime dependency to `save-cli`
  */
 
 package com.saveourtool.save.buildutils
@@ -7,7 +7,6 @@ package com.saveourtool.save.buildutils
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.*
-import java.io.File
 
 plugins {
     kotlin("jvm")
@@ -20,32 +19,20 @@ val saveCliVersion: String = the<LibrariesForLibs>()
     .get()
 
 dependencies {
-    if (saveCliVersion.isSnapshot() && System.getenv().containsKey("DOWNLOAD_SAVE_CLI_DEPENDENCY")) {
-        val target = "$buildDir/save-cli"
-        val saveCliPath = providers.gradleProperty("saveCliPath")
-        logger.info(
-            "save-cli version is SNAPSHOT ({}), add {} as a runtime dependency",
-            saveCliVersion, saveCliPath
-        )
-        @Suppress("GENERIC_VARIABLE_WRONG_DECLARATION")
-        val copySaveCliTaskProvider: TaskProvider<Copy> = tasks.register<Copy>("copySaveCli") {
-            from(saveCliPath)
-            into(target)
-            eachFile {
-                duplicatesStrategy = DuplicatesStrategy.WARN
-            }
-        }
-        add("runtimeOnly",
-            files(layout.buildDirectory.dir(target)).apply {
-                builtBy(copySaveCliTaskProvider)
-            }
+    if (saveCliVersion.isSnapshot()) {
+        addRuntimeDependency(
+            "saveCliPath",
+            "save-cli",
+            "copySaveCli",
+            "save-cli version is SNAPSHOT ($saveCliVersion)",
+            this::add
         )
     }
 }
 
 val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register("generateSaveCliVersionFile") {
-    val outputDir = File("$buildDir/generated/src")
-    val versionFile = outputDir.resolve("generated/SaveCliVersion.kt")
+    val outputDir = layout.buildDirectory.dir("generated/src")
+    val versionFile = outputDir.map { it.file("generated/SaveCliVersion.kt") }
 
     val saveCliVersion = findProperty("saveCliVersion") ?: saveCliVersion
     // description = "Reads version of save-cli, either from project property, or from Versions, or latest"
@@ -53,15 +40,18 @@ val generateSaveCliVersionFileTaskProvider: TaskProvider<Task> = tasks.register(
     outputs.dir(outputDir)
 
     doFirst {
-        versionFile.parentFile.mkdirs()
-        versionFile.writeText(
-            """
-            package generated
+        versionFile.get().asFile
+            .let { file ->
+                file.parentFile.mkdirs()
+                file.writeText(
+                    """
+                    package generated
 
-            internal const val SAVE_CLI_VERSION = "$saveCliVersion"
+                    internal const val SAVE_CLI_VERSION = "$saveCliVersion"
 
-            """.trimIndent()
-        )
+                    """.trimIndent()
+                )
+            }
     }
 }
 

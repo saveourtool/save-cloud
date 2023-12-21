@@ -32,19 +32,18 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ inputs.branch }}
       - name: Prepare to build
         run: |
           echo ADDITIONAL_GRADLE_OPTS= >> $GITHUB_ENV
           echo SAVE_CLI_GRADLE_OPTS= >> $GITHUB_ENV
+          echo SAVE_AGENT_GRADLE_OPTS = >> $GITHUB_ENV
+          echo SAVE_DEMO_AGENT_GRADLE_OPTS = >> $GITHUB_ENV
           echo GRADLE_TASKS=:${{ inputs.module}}:bootBuildImage >> $GITHUB_ENV
       - name: Override gradle command for frontend
-        if: inputs.module == 'save-frontend'
+        if: inputs.module == 'save-frontend' || inputs.module == 'save-cosv-frontend'
         run: |
           echo GRADLE_TASKS=:${{ inputs.module}}:buildImage >> $GITHUB_ENV
-      - name: Prepare to build from branch
-        if: inputs.branch
-        run: |
-          git checkout origin/${{ inputs.branch }}
       - name: Override dockerTag
         if: inputs.override-docker-tag
         run: |
@@ -63,24 +62,42 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
-      - name: Install system packages
-        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox' || inputs.module == 'save-demo'
-        # libcurl is needed for ktor-client-curl
-        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
       - name: Download save-cli
         if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
         uses: actions/download-artifact@v3
         with:
           name: save-cli
-          path: ${{ github.workspace }}/save
-      - name: Override saveCliVersion and saveCliPath in Gradle
+          path: ${{ github.workspace }}/save-cli
+      - name: Set saveCliVersion and saveCliPath in Gradle
         if: ${{ endsWith(inputs.save-cli-version, '-SNAPSHOT') }}
         run: |
-          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save >> $GITHUB_ENV
+          echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save-cli >> $GITHUB_ENV
+
+      - name: Download save-agent
+        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox'
+        uses: actions/download-artifact@v3
+        with:
+          name: save-agent
+          path: ${{ github.workspace }}/save-agent
+      - name: Set saveAgentPath in Gradle
+        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox'
+        run: |
+          echo SAVE_AGENT_GRADLE_OPTS=-PsaveAgentPath=${{ github.workspace }}/save-agent >> $GITHUB_ENV
+
+      - name: Download save-demo-agent
+        if: inputs.module == 'save-demo'
+        uses: actions/download-artifact@v3
+        with:
+          name: save-demo-agent
+          path: ${{ github.workspace }}/save-demo-agent
+      - name: Set saveDemoAgentPath in Gradle
+        if: inputs.module == 'save-demo'
+        run: |
+          echo SAVE_DEMO_AGENT_GRADLE_OPTS=-PsaveDemoAgentPath=${{ github.workspace }}/save-demo-agent >> $GITHUB_ENV
+
       - name: Build image for ${{ inputs.module }}
         uses: gradle/gradle-build-action@v2
-        env:
-          DOWNLOAD_SAVE_CLI_DEPENDENCY: true
         with:
           gradle-version: wrapper
           arguments: |
@@ -91,21 +108,9 @@ jobs:
             -PgprUser=${{ github.actor }}
             -PgprKey=${{ secrets.GITHUB_TOKEN }}
             ${{ env.SAVE_CLI_GRADLE_OPTS }}
+            ${{ env.SAVE_AGENT_GRADLE_OPTS }}
+            ${{ env.SAVE_DEMO_AGENT_GRADLE_OPTS }}
             ${{ env.ADDITIONAL_GRADLE_OPTS }}
-      - name: Upload save-agent-distribution.jar
-        if: inputs.module == 'save-backend'
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-agent-distribution
-          path: 'save-agent/build/libs/save-agent-*-distribution.jar'
-          retention-days: 5
-      - name: Upload save-demo-agent-distribution.jar
-        if: inputs.module == 'save-demo'
-        uses: actions/upload-artifact@v3
-        with:
-          name: save-demo-agent-distribution
-          path: 'save-demo-agent/build/libs/save-demo-agent-*-distribution.jar'
-          retention-days: 5
       - name: Upload gradle reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
