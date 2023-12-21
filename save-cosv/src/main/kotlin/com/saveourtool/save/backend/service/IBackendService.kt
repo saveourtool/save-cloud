@@ -2,6 +2,7 @@
 
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
@@ -67,11 +68,40 @@ interface IBackendService {
 
     /**
      * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
-     * @param tagName tag to add
+     * @param tagName tags to add
      * @return new [LnkVulnerabilityMetadataTag]
      */
     fun addVulnerabilityTags(
         identifier: String,
         tagName: Set<String>
     ): List<LnkVulnerabilityMetadataTag>?
+
+    /**
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
+     * @param tagName tag to add
+     * @return new [LnkVulnerabilityMetadataTag]
+     */
+    fun addVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    ): LnkVulnerabilityMetadataTag
+
+    /**
+     * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
+     * @param tagName tag to delete
+     */
+    fun deleteVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    )
+
+    /**
+     * @param authentication
+     * @param organizationName
+     * @return the highest of two roles: the one in organization with name [organizationName] and global one.
+     */
+    fun getGlobalRoleOrOrganizationRole(
+        authentication: Authentication,
+        organizationName: String,
+    ): Role
 }
