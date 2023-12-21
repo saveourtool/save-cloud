@@ -3,7 +3,7 @@ name: Reusable build and test
 on:
   workflow_call:
     inputs:
-      do_build:
+      do-build:
         required: true
         type: boolean
       module:
@@ -17,7 +17,7 @@ on:
 jobs:
   build_module:
     name: ${{ inputs.module }}
-    if: inputs.do_build
+    if: inputs.do-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -75,7 +75,7 @@ jobs:
 
   build_module_skipped:
     name: '${{ inputs.module }} [SKIP]'
-    if: ${{ !inputs.do_build }}
+    if: ${{ !inputs.do-build }}
     runs-on: ubuntu-latest
     steps:
       - name: Do nothing
