@@ -127,7 +127,7 @@ jobs:
     needs: [ calculate_build_flags ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do-build: ${{ github.event_name != 'push' && needs.calculate_build_flags.outputs.save-cloud-common }}
+      do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-cloud-common }}
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
