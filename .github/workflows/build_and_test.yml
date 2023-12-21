@@ -127,7 +127,7 @@ jobs:
     needs: [ calculate_build_flags ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do_build: ${{ needs.calculate_build_flags.save-cloud-common }}
+      do_build: ${{ needs.calculate_build_flags.outputs.save-cloud-common }}
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
@@ -135,7 +135,7 @@ jobs:
     needs: [ calculate_build_flags, build_save-cloud-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do_build: ${{ needs.calculate_build_flags.save-orchestrator-common }}
+      do_build: ${{ needs.calculate_build_flags.outputs.save-orchestrator-common }}
       module: save-orchestrator-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-frontend-common:
@@ -143,7 +143,7 @@ jobs:
     needs: [ calculate_build_flags, build_save-orchestrator-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do_build: ${{ needs.calculate_build_flags.save-frontend-common }}
+      do_build: ${{ needs.calculate_build_flags.outputs.save-frontend-common }}
       module: save-frontend-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_all:
@@ -172,41 +172,41 @@ jobs:
         ]
         include:
           - module: api-gateway
-            do-build: ${{ needs.calculate_build_flags.api-gateway }}
+            do-build: ${{ needs.calculate_build_flags.outputs.api-gateway }}
           - module: authentication-service
-            do-build: ${{ needs.calculate_build_flags.api-gateway }}
+            do-build: ${{ needs.calculate_build_flags.outputs.api-gateway }}
           - module: save-agent
-            do-build: ${{ needs.calculate_build_flags.save-agent }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-agent }}
           - module: save-api
-            do-build: ${{ needs.calculate_build_flags.save-api }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-api }}
           - module: save-api-cli
-            do-build: ${{ needs.calculate_build_flags.save-api-cli }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-api-cli }}
           - module: save-demo-cpg
-            do-build: ${{ needs.calculate_build_flags.save-demo-cpg }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-demo-cpg }}
           - module: save-backend
-            do-build: ${{ needs.calculate_build_flags.save-backend }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-backend }}
           - module: save-cosv
-            do-build: ${{ needs.calculate_build_flags.save-cosv }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-cosv }}
           - module: save-cosv-frontend
-            do-build: ${{ needs.calculate_build_flags.save-cosv-frontend }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-cosv-frontend }}
           - module: save-demo
-            do-build: ${{ needs.calculate_build_flags.save-demo }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-demo }}
           - module: save-demo-agent
-            do-build: ${{ needs.calculate_build_flags.save-demo-agent }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-demo-agent }}
           - module: save-demo-cpg
-            do-build: ${{ needs.calculate_build_flags.save-demo-cpg }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-demo-cpg }}
           - module: save-frontend
-            do-build: ${{ needs.calculate_build_flags.save-frontend }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-frontend }}
           - module: save-orchestrator
-            do-build: ${{ needs.calculate_build_flags.save-orchestrator }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-orchestrator }}
           - module: save-preprocessor
-            do-build: ${{ needs.calculate_build_flags.save-preprocessor }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-preprocessor }}
           - module: save-sandbox
-            do-build: ${{ needs.calculate_build_flags.save-sandbox }}
+            do-build: ${{ needs.calculate_build_flags.outputs.save-sandbox }}
           - module: test-analysis-core
-            do-build: ${{ needs.calculate_build_flags.test-analysis-core }}
+            do-build: ${{ needs.calculate_build_flags.outputs.test-analysis-core }}
           - module: test-utils
-            do-build: ${{ needs.calculate_build_flags.test-utils }}
+            do-build: ${{ needs.calculate_build_flags.outputs.test-utils }}
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       do_build: ${{ matrix.do-build }}
