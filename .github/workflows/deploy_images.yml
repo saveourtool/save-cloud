@@ -28,7 +28,7 @@ on:
         default: true
         description: Build new image of save-frontend
         required: false
-      frontend-cosv:
+      cosv-frontend:
         type: boolean
         default: true
         description: Build new image of save-cosv-frontend
@@ -124,7 +124,7 @@ jobs:
           - module: save-frontend
             do-build: ${{ inputs.frontend }}
           - module: save-cosv-frontend
-            do-build: ${{ inputs.frontend-cosv }}
+            do-build: ${{ inputs.cosv-frontend }}
           - module: save-orchestrator
             do-build: ${{ inputs.orchestrator }}
           - module: save-preprocessor
