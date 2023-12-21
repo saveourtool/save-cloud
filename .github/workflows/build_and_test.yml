@@ -18,26 +18,26 @@ jobs:
     name: Detect build flags for modules
     runs-on: ubuntu-latest
     outputs:
-      api-gateway: ${{ steps.calculate-dependencies.api-gateway }}
-      authentication-service: ${{ steps.calculate-dependencies.authentication-service }}
-      save-agent: ${{ steps.calculate-dependencies.save-agent }}
-      save-api: ${{ steps.calculate-dependencies.save-api }}
-      save-api-cli: ${{ steps.calculate-dependencies.save-api-cli }}
-      save-backend: ${{ steps.calculate-dependencies.save-backend }}
-      save-cloud-common: ${{ steps.calculate-dependencies.save-cloud-common }}
-      save-cosv: ${{ steps.calculate-dependencies.save-cosv }}
-      save-cosv-frontend: ${{ steps.calculate-dependencies.save-cosv-frontend }}
-      save-demo: ${{ steps.calculate-dependencies.save-demo }}
-      save-demo-agent: ${{ steps.calculate-dependencies.save-demo-agent }}
-      save-demo-cpg: ${{ steps.calculate-dependencies.save-demo-cpg }}
-      save-frontend: ${{ steps.calculate-dependencies.save-frontend }}
-      save-frontend-common: ${{ steps.calculate-dependencies.save-frontend-common }}
-      save-orchestrator: ${{ steps.calculate-dependencies.save-orchestrator }}
-      save-orchestrator-common: ${{ steps.calculate-dependencies.save-orchestrator-common }}
-      save-preprocessor: ${{ steps.calculate-dependencies.save-preprocessor }}
-      save-sandbox: ${{ steps.calculate-dependencies.save-sandbox }}
-      test-analysis-core: ${{ steps.calculate-dependencies.test-analysis-core }}
-      test-utils: ${{ steps.calculate-dependencies.test-utils }}
+      api-gateway: ${{ steps.calculate-dependencies.outputs.api-gateway }}
+      authentication-service: ${{ steps.calculate-dependencies.outputs.authentication-service }}
+      save-agent: ${{ steps.calculate-dependencies.outputs.save-agent }}
+      save-api: ${{ steps.calculate-dependencies.outputs.save-api }}
+      save-api-cli: ${{ steps.calculate-dependencies.outputs.save-api-cli }}
+      save-backend: ${{ steps.calculate-dependencies.outputs.save-backend }}
+      save-cloud-common: ${{ steps.calculate-dependencies.outputs.save-cloud-common }}
+      save-cosv: ${{ steps.calculate-dependencies.outputs.save-cosv }}
+      save-cosv-frontend: ${{ steps.calculate-dependencies.outputs.save-cosv-frontend }}
+      save-demo: ${{ steps.calculate-dependencies.outputs.save-demo }}
+      save-demo-agent: ${{ steps.calculate-dependencies.outputs.save-demo-agent }}
+      save-demo-cpg: ${{ steps.calculate-dependencies.outputs.save-demo-cpg }}
+      save-frontend: ${{ steps.calculate-dependencies.outputs.save-frontend }}
+      save-frontend-common: ${{ steps.calculate-dependencies.outputs.save-frontend-common }}
+      save-orchestrator: ${{ steps.calculate-dependencies.outputs.save-orchestrator }}
+      save-orchestrator-common: ${{ steps.calculate-dependencies.outputs.save-orchestrator-common }}
+      save-preprocessor: ${{ steps.calculate-dependencies.outputs.save-preprocessor }}
+      save-sandbox: ${{ steps.calculate-dependencies.outputs.save-sandbox }}
+      test-analysis-core: ${{ steps.calculate-dependencies.outputs.test-analysis-core }}
+      test-utils: ${{ steps.calculate-dependencies.outputs.test-utils }}
     steps:
       - id: git-changed-files
         uses: tj-actions/changed-files@v40
@@ -91,35 +91,35 @@ jobs:
       - id: calculate-dependencies
         run: |
           set -x
-          all=$( ${{ steps.git-changed-files.root_gradle_any_changed }}  == 'true' )
-          save-cloud-common = $( $all || ${{ steps.git-changed-files.save-cloud-common_any_changed }} == 'true' )
-          save-frontend-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-frontend-common_any_changed }} == 'true' )
-          save-orchestrator-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-orchestrator-common_any_changed }} == 'true' )
+          all=$( ${{ steps.git-changed-files.outputs.root_gradle_any_changed }}  == 'true' )
+          save-cloud-common = $( $all || ${{ steps.git-changed-files.outputs.save-cloud-common_any_changed }} == 'true' )
+          save-frontend-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-frontend-common_any_changed }} == 'true' )
+          save-orchestrator-common = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-orchestrator-common_any_changed }} == 'true' )
 
-          authentication-service = $( ${save-cloud-common} || ${{ steps.git-changed-files.authentication-service_any_changed }} == 'true' )
-          save-api = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-api_any_changed }} == 'true' )
-          save-cosv = $( ${save-cloud-common} || ${{ steps.git-changed-files.save-cosv_any_changed }} == 'true' )
-          test-analysis-core = $( ${save-cloud-common} || ${{ steps.git-changed-files.test-analysis-core_any_changed }} == 'true' )
-          test-utils = $( ${{ steps.git-changed-files.test-utils_any_changed }} == 'true' )
+          authentication-service = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.authentication-service_any_changed }} == 'true' )
+          save-api = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-api_any_changed }} == 'true' )
+          save-cosv = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-cosv_any_changed }} == 'true' )
+          test-analysis-core = $( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.test-analysis-core_any_changed }} == 'true' )
+          test-utils = $( ${{ steps.git-changed-files.outputs.test-utils_any_changed }} == 'true' )
 
-          echo "api-gateway=$( ${save-cloud-common} || ${{ steps.git-changed-files.api-gateway_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "api-gateway=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.api-gateway_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "authentication-service=${authentication-service}" >> "$GITHUB_OUTPUT"
-          echo "save-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "save-api=${save-api}" >> "$GITHUB_OUTPUT"
-          echo "save-api-cli=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-api-cli_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-backend=$( ${save-cloud-common} || ${authentication-service} || ${test-analysis-core} || ${save-cosv} || ${test-utils} || ${{ steps.git-changed-files.save-backend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-api-cli=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-api-cli_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-backend=$( ${save-cloud-common} || ${authentication-service} || ${test-analysis-core} || ${save-cosv} || ${test-utils} || ${{ steps.git-changed-files.outputs.save-backend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "save-cloud-common=${save-cloud-common}" >> "$GITHUB_OUTPUT"
           echo "save-cosv=${save-cosv}" >> "$GITHUB_OUTPUT"
-          echo "save-cosv-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.save-cosv-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-demo=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-demo-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-demo-cpg=$( ${save-cloud-common} || ${{ steps.git-changed-files.save-demo-cpg_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.save-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-cosv-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.outputs.save-cosv-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-demo_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo-agent=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-demo-agent_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-demo-cpg=$( ${save-cloud-common} || ${{ steps.git-changed-files.outputs.save-demo-cpg_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-frontend=$( ${save-cloud-common} || ${save-frontend-common} || ${{ steps.git-changed-files.outputs.save-frontend_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "save-frontend-common=${save-frontend-common}" >> "$GITHUB_OUTPUT"
-          echo "save-orchestrator=$( ${save-cloud-common} || ${save-orchestrator-common} || ${test-utils} || ${{ steps.git-changed-files.save-orchestrator_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-orchestrator=$( ${save-cloud-common} || ${save-orchestrator-common} || ${test-utils} || ${{ steps.git-changed-files.outputs.save-orchestrator_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "save-orchestrator-common=${save-orchestrator-common}" >> "$GITHUB_OUTPUT"
-          echo "save-preprocessor=$( ${save-cloud-common} || ${test-utils} || ${{ steps.git-changed-files.save-preprocessor_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
-          echo "save-sandbox=$( ${save-cloud-common} || ${authentication-service} || ${test-utils} || ${{ steps.git-changed-files.save-sandbox_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-preprocessor=$( ${save-cloud-common} || ${test-utils} || ${{ steps.git-changed-files.outputs.save-preprocessor_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
+          echo "save-sandbox=$( ${save-cloud-common} || ${authentication-service} || ${test-utils} || ${{ steps.git-changed-files.outputs.save-sandbox_any_changed }} == 'true')" >> "$GITHUB_OUTPUT"
           echo "test-analysis-core=${test-analysis-core}" >> "$GITHUB_OUTPUT"
           echo "test-utils=${test-utils}" >> "$GITHUB_OUTPUT"
   build_save-cloud-common:
