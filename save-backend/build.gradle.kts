@@ -16,7 +16,7 @@ openApi {
     apiDocsUrl.set("http://localhost:5800/internal/v3/api-docs/latest")
     outputDir.set(file(projectDir))
     outputFileName.set("backend-api-docs.json")
-    waitTimeInSeconds.set(120)
+    waitTimeInSeconds.set(119)
 
     customBootRun {
         jvmArgs.add("-Dbackend.test-analysis-settings.replay-on-startup=false")

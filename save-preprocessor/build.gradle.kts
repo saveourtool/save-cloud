@@ -11,8 +11,8 @@ dependencies {
     testImplementation(projects.testUtils)
     implementation(libs.save.common.jvm)
     implementation(libs.save.core.jvm) {
-        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
         exclude("org.slf4j", "slf4j-api")
+        exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
     }
     implementation(libs.save.plugins.warn.jvm) {
         exclude("org.apache.logging.log4j", "log4j-slf4j2-impl")
