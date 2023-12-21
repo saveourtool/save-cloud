@@ -93,7 +93,6 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
  */
 fun mapKnownFontAwesomeIcons(registrationId: String) =
         when (registrationId) {
-            "codehub" -> faCopyright
             else -> faSignInAlt
         }
 
