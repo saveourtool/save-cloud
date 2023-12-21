@@ -6,8 +6,6 @@
 
 package com.saveourtool.save.frontend.common.utils
 
-import com.saveourtool.save.frontend.common.externals.fontawesome.*
-import com.saveourtool.save.frontend.common.externals.fontawesome.faCopyright
 import com.saveourtool.save.frontend.common.externals.fontawesome.faSignInAlt
 import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.save.info.OauthProviderInfo
@@ -43,7 +41,7 @@ fun ChildrenBuilder.processRegistrationId(
 ) = oauthLoginForKnownAwesomeIcons(
     oauthProvidersFeConfig,
     mapKnownUploadedIcons(oauthProvidersFeConfig.provider.registrationId),
-    mapKnownFontAwesomeIcons(oauthProvidersFeConfig.provider.registrationId)
+    faSignInAlt
 )
 
 /**
@@ -87,14 +85,6 @@ private fun ChildrenBuilder.oauthLoginForKnownAwesomeIcons(
         }
     }
 }
-
-/**
- * @param registrationId oauth provider name (same as in spring security config) from api-gateway
- */
-fun mapKnownFontAwesomeIcons(registrationId: String) =
-        when (registrationId) {
-            else -> faSignInAlt
-        }
 
 /**
  * Mapping ONLY for those icons that are uploaded to SAVE.
