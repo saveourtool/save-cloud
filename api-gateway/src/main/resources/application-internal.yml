@@ -1,0 +1,18 @@
+spring:
+  security:
+    oauth2:
+      client:
+        provider:
+          codehub:
+            authorization-uri: https://codehub-g.huawei.com/oauth/authorize
+            token-uri: https://codehub-g.huawei.com/oauth/token
+            user-info-uri: https://codehub-g.huawei.com/api/v4/user
+            user-name-attribute: username
+            user-info-authentication-method: post
+        registration:
+          codehub:
+            provider: codehub
+            redirect-uri: '${gateway.frontend.url}/{action}/oauth2/code/{registrationId}'
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope: profile
