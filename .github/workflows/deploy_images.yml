@@ -31,7 +31,7 @@ on:
       frontend-cosv:
         type: boolean
         default: true
-        description: Build new image of save-frontend-cosv
+        description: Build new image of save-cosv-frontend
         required: false
       orchestrator:
         type: boolean
@@ -113,7 +113,7 @@ jobs:
         module: [
           'api-gateway',
           'save-frontend',
-          'save-frontend-cosv',
+          'save-cosv-frontend',
           'save-orchestrator',
           'save-preprocessor',
           'save-demo-cpg',
@@ -123,7 +123,7 @@ jobs:
             do-build: ${{ inputs.gateway }}
           - module: save-frontend
             do-build: ${{ inputs.frontend }}
-          - module: save-frontend-cosv
+          - module: save-cosv-frontend
             do-build: ${{ inputs.frontend-cosv }}
           - module: save-orchestrator
             do-build: ${{ inputs.orchestrator }}
