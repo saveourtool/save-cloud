@@ -69,8 +69,8 @@ jobs:
     uses: ./.github/workflows/build_save-agent_reusable.yml
     with:
       branch: ${{ inputs.branch }}
-      build-save-agent: ${{ inputs.backend || inputs.sandbox }}
-      build-save-demo-agent: ${{ inputs.demo }}
+      build-save-agent: ${{ github.event_name != 'workflow_dispatch' || inputs.backend || inputs.sandbox }}
+      build-save-demo-agent: ${{ github.event_name != 'workflow_dispatch' || inputs.demo }}
 
   deploy_backend:
     name: save-backend
