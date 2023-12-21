@@ -124,7 +124,7 @@ jobs:
           echo "save-cloud-common=$save_cloud_common" >> "$GITHUB_OUTPUT"
           echo "save-cosv=$save_cosv" >> "$GITHUB_OUTPUT"
           echo "save-cosv-frontend=$save_cosv_frontend" >> "$GITHUB_OUTPUT"
-          echo "save-demo=$save-demo" >> "$GITHUB_OUTPUT"
+          echo "save-demo=$save_demo" >> "$GITHUB_OUTPUT"
           echo "save-demo-agent=$save_demo_agent" >> "$GITHUB_OUTPUT"
           echo "save-demo-cpg=$save_demo_cpg" >> "$GITHUB_OUTPUT"
           echo "save-frontend=$save_frontend" >> "$GITHUB_OUTPUT"
