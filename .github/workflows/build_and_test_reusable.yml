@@ -74,8 +74,8 @@ jobs:
           retention-days: 1
 
   build_module_skipped:
-    name: ${{ inputs.module }} [SKIP]
-    if: !inputs.do_build
+    name: '${{ inputs.module }} [SKIP]'
+    if: ${{ !inputs.do_build }}
     runs-on: ubuntu-latest
     steps:
       - name: Do nothing
