@@ -147,6 +147,7 @@ jobs:
       module: save-frontend-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_all:
+    name: 'Build and test'
     needs: [ calculate_build_flags, build_save-frontend-common ]
     strategy:
       fail-fast: false

@@ -16,7 +16,7 @@ on:
 
 jobs:
   build_module:
-    name: ${{ inputs.module }}
+    name: 'Build ${{ inputs.module }}'
     if: inputs.do-build
     runs-on: ubuntu-latest
     steps:
@@ -74,7 +74,7 @@ jobs:
           retention-days: 1
 
   build_module_skipped:
-    name: '${{ inputs.module }} [SKIP]'
+    name: 'Build ${{ inputs.module }}'
     if: ${{ !inputs.do-build }}
     runs-on: ubuntu-latest
     steps:
