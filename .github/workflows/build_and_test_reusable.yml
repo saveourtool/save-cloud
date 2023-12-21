@@ -17,7 +17,7 @@ on:
 jobs:
   build_module:
     name: 'Build ${{ inputs.module }}'
-    if: inputs.do-build
+    if: ${{ inputs.do-build }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
