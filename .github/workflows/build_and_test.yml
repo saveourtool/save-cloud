@@ -18,34 +18,33 @@ jobs:
     name: Detect build flags for modules
     runs-on: ubuntu-latest
     outputs:
-      all: ${{ steps.git-changed-files.root_gradle }}
-      api-gateway: ${{ steps.git-changed-files.api-gateway }}
-      authentication-service: ${{ steps.git-changed-files.authentication-service }}
-      save-agent: ${{ steps.git-changed-files.save-agent }}
-      save-api: ${{ steps.git-changed-files.save-api }}
-      save-api-cli: ${{ steps.git-changed-files.save-api-cli }}
-      save-backend: ${{ steps.git-changed-files.save-backend }}
-      save-cloud-common: ${{ steps.git-changed-files.save-cloud-common }}
-      save-cosv: ${{ steps.git-changed-files.save-cosv }}
-      save-cosv-frontend: ${{ steps.git-changed-files.save-cosv-frontend }}
-      save-demo: ${{ steps.git-changed-files.save-demo }}
-      save-demo-agent: ${{ steps.git-changed-files.save-demo-agent }}
-      save-demo-cpg: ${{ steps.git-changed-files.save-demo-cpg }}
-      save-frontend: ${{ steps.git-changed-files.save-frontend }}
-      save-frontend-common: ${{ steps.git-changed-files.save-frontend-common }}
-      save-orchestrator: ${{ steps.git-changed-files.save-orchestrator }}
-      save-orchestrator-common: ${{ steps.git-changed-files.save-orchestrator-common }}
-      save-preprocessor: ${{ steps.git-changed-files.save-preprocessor }}
-      save-sandbox: ${{ steps.git-changed-files.save-sandbox }}
-      test-analysis-core: ${{ steps.git-changed-files.test-analysis-core }}
-      test-utils: ${{ steps.git-changed-files.test-utils }}
+      api-gateway: ${{ steps.calculate-dependencies.api-gateway }}
+      authentication-service: ${{ steps.calculate-dependencies.authentication-service }}
+      save-agent: ${{ steps.calculate-dependencies.save-agent }}
+      save-api: ${{ steps.calculate-dependencies.save-api }}
+      save-api-cli: ${{ steps.calculate-dependencies.save-api-cli }}
+      save-backend: ${{ steps.calculate-dependencies.save-backend }}
+      save-cloud-common: ${{ steps.calculate-dependencies.save-cloud-common }}
+      save-cosv: ${{ steps.calculate-dependencies.save-cosv }}
+      save-cosv-frontend: ${{ steps.calculate-dependencies.save-cosv-frontend }}
+      save-demo: ${{ steps.calculate-dependencies.save-demo }}
+      save-demo-agent: ${{ steps.calculate-dependencies.save-demo-agent }}
+      save-demo-cpg: ${{ steps.calculate-dependencies.save-demo-cpg }}
+      save-frontend: ${{ steps.calculate-dependencies.save-frontend }}
+      save-frontend-common: ${{ steps.calculate-dependencies.save-frontend-common }}
+      save-orchestrator: ${{ steps.calculate-dependencies.save-orchestrator }}
+      save-orchestrator-common: ${{ steps.calculate-dependencies.save-orchestrator-common }}
+      save-preprocessor: ${{ steps.calculate-dependencies.save-preprocessor }}
+      save-sandbox: ${{ steps.calculate-dependencies.save-sandbox }}
+      test-analysis-core: ${{ steps.calculate-dependencies.test-analysis-core }}
+      test-utils: ${{ steps.calculate-dependencies.test-utils }}
     steps:
       - id: git-changed-files
         uses: tj-actions/changed-files@v40
         with:
           files_yaml: |
             root_gradle:
-              - *.gradle.kts
+              - '*.gradle.kts'
               - gradle.properties
               - gradle/**
               - buildSrc/**
