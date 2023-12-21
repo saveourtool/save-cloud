@@ -78,6 +78,7 @@ mysql:
   backend_schema: save_cloud
   sandbox_schema: save_sandbox
   demo_schema: save_demo
+  cosv_schema: cosv
   root_password: '123'
   migrations:
     # Whether database migrations should be executed while deploying the application

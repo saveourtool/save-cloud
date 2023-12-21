@@ -55,7 +55,7 @@ expect class GenericAtomicReference<T>(valueToStore: T) {
  * using [valueGetter]
  *
  * @param expirationTime value expiration time
- * @property valueGetter a function to calculate the value of type [T]
+ * @param valueGetter a function to calculate the value of type [T]
  */
 class ExpiringValueWrapper<T : Any>(
     expirationTime: Duration,

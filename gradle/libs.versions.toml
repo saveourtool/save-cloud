@@ -14,7 +14,7 @@ spring-cloud-kubernetes = "2.1.8"
 kafka-client = "3.6.0"
 junit = "5.10.1"
 assertj = "3.24.2"
-diktat = "1.2.5"
+diktat = "2.0.0"
 detekt = "1.23.3"
 liquibase-core = "4.24.0"
 docker-java = "3.3.4"
@@ -37,7 +37,6 @@ spotless = "6.22.0"
 fabric8 = "6.9.2"
 arrow-kt = "1.2.1"
 publish = "1.3.0"
-download = "5.5.0"
 cpg = "7.1.2"
 # should be taken from cpg
 cpg-neo4j-ogm = { strictly = "4.0.6" }
@@ -55,7 +54,6 @@ kotlin-plugin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.re
 talaiot-base = { id = "io.github.cdsap.talaiot.plugin.base", version = "2.0.3" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 spotless = { id = "com.diffplug.gradle.spotless", version.ref = "spotless" }
-download = { id = "de.undercouch.download", version.ref = "download" }
 
 [libraries]
 save-common = { module = "com.saveourtool.save:save-common", version.ref = "save-cli" }
@@ -68,7 +66,6 @@ save-plugins-warn-jvm = { module = "com.saveourtool.save:warn-plugin-jvm", versi
 save-plugins-fixAndWarn-jvm = { module = "com.saveourtool.save:fix-and-warn-plugin-jvm", version.ref = "save-cli" }
 save-reporters = { module = "com.saveourtool.save:save-reporters", version.ref = "save-cli" }
 publish-gradle-plugin = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "publish"}
-download-plugin = { module = "de.undercouch:gradle-download-task", version.ref = "download" }
 
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlin-plugin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
@@ -185,7 +182,7 @@ dockerJava-core = { module = "com.github.docker-java:docker-java-core", version.
 dockerJava-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "docker-java" }
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus" }
-diktat-gradle-plugin = { module = "org.cqfn.diktat:diktat-gradle-plugin", version.ref = "diktat" }
+diktat-gradle-plugin = { module = "com.saveourtool.diktat:diktat-gradle-plugin", version.ref = "diktat" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 reckon-gradle-plugin = { module = "org.ajoberstar.reckon:reckon-gradle", version.ref = "reckon" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }

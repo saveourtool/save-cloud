@@ -12,8 +12,8 @@ import com.saveourtool.save.test.analysis.results.RegularTest
 /**
  * The default implementation of [TestAnalysisService].
  *
+ * @param algorithms the algorithms used by this service.
  * @property statisticsStorage the storage of statistical data about test runs.
- * @property algorithms the algorithms used by this service.
  */
 internal class DefaultTestAnalysisService(
     override val statisticsStorage: TestStatisticsStorage,

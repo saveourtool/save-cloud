@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional
 /**
  * Service for contests sample
  *
- * @property contestSampleRepository
- * @property contestSampleFieldRepository
- * @property userRepository
+ * @param contestSampleRepository
+ * @param contestSampleFieldRepository
+ * @param userRepository
  */
 @Service
 class ContestSampleService(
