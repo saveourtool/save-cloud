@@ -16,8 +16,8 @@ on:
 
 jobs:
   build_module:
-    name: Build ${{ inputs.module }}
-    if: ${{ inputs.do-build }}
+    name: Build
+    if: inputs.do-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -74,7 +74,7 @@ jobs:
           retention-days: 1
 
   build_module_skipped:
-    name: Build ${{ inputs.module }}
+    name: Build
     if: ${{ !inputs.do-build }}
     runs-on: ubuntu-latest
     steps:
