@@ -39,6 +39,11 @@ jobs:
       test-analysis-core: ${{ steps.calculate-dependencies.outputs.test-analysis-core }}
       test-utils: ${{ steps.calculate-dependencies.outputs.test-utils }}
     steps:
+      - id: checkout
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - id: git-changed-files
         uses: tj-actions/changed-files@v40
         with:
