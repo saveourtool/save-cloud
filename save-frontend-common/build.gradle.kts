@@ -249,7 +249,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack> {
 
 val distribution: Configuration by configurations.creating
 val distributionJarTask by tasks.registering(Jar::class) {
-    dependsOn(":save-cosv-frontend:browserDistribution")
+    dependsOn(":save-frontend-common:browserDistribution")
     archiveClassifier.set("distribution")
     from("$buildDir/$distributionsDirName") {
         into("static")
