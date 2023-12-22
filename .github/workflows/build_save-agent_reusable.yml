@@ -36,7 +36,7 @@ jobs:
       - name: Set save-demo-agent build task
         if: inputs.build-save-demo-agent
         run: |
-          echo SAVE_DEMO_AGENT_GRADLE_TASK=':save-agent:copyAgentDistribution' >> $GITHUB_ENV
+          echo SAVE_DEMO_AGENT_GRADLE_TASK=':save-demo-agent:copyAgentDistribution' >> $GITHUB_ENV
 
       - name: Store Kotlin version in env
         run: |
