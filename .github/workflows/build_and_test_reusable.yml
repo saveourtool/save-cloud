@@ -3,6 +3,9 @@ name: Reusable build and test
 on:
   workflow_call:
     inputs:
+      do-build:
+        required: true
+        type: boolean
       module:
         required: true
         type: string
@@ -13,7 +16,8 @@ on:
 
 jobs:
   build_module:
-    name: Build ${{ inputs.module }}
+    name: Build
+    if: inputs.do-build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -68,3 +72,12 @@ jobs:
           name: save-frontend
           path: 'save-frontend/build/libs/save-frontend-*-distribution.jar'
           retention-days: 1
+
+  build_module_skipped:
+    name: Build
+    if: ${{ !inputs.do-build }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do nothing
+        run: |
+          echo "Build of ${{ inputs.module }} is skipped"
