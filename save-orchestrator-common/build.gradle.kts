@@ -14,8 +14,8 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(projects.saveCloudCommon)
-    implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.dockerJava.core)
+    implementation(libs.dockerJava.transport.httpclient5)
     implementation(libs.kotlinx.serialization.json.jvm)
     implementation(libs.commons.compress)
     implementation(libs.kotlinx.datetime)
