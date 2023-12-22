@@ -136,7 +136,7 @@ jobs:
           echo "test-analysis-core=$test_analysis_core" >> "$GITHUB_OUTPUT"
           echo "test-utils=$test_utils" >> "$GITHUB_OUTPUT"
   build_save-cloud-common:
-    name: Build and test save-cloud-common
+    name: 'Build and test (save-cloud-common)'
     needs: [ calculate_build_flags ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
@@ -144,7 +144,7 @@ jobs:
       module: save-cloud-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
-    name: Build and test save-orchestrator-common
+    name: 'Build and test (save-orchestrator-common)'
     needs: [ calculate_build_flags, build_save-cloud-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
@@ -152,7 +152,7 @@ jobs:
       module: save-orchestrator-common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-frontend-common:
-    name: Build and test save-frontend-common
+    name: 'Build and test (save-frontend-common)'
     needs: [ calculate_build_flags, build_save-orchestrator-common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
