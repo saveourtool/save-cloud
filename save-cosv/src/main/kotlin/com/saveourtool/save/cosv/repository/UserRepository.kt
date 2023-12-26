@@ -33,7 +33,7 @@ interface UserRepository {
      * @return found [User] by name
      */
     @Query(
-        value = "select * from save_cloud.user where name = :name)",
+        value = "select * from save_cloud.user where name = :name",
         nativeQuery = true,
     )
     fun getUserByName(@Param("name") name: String): User
