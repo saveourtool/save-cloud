@@ -13,18 +13,18 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 interface UserRepository {
     /**
-     * @param userId user id for update
+     * @param userName user name for update
      * @param rating new user rating
      * @return updated user
      */
     @Transactional
     @Modifying
     @Query(
-        value = "update save_cloud.user u set u.rating = :rating where u.id = :user_id",
+        value = "update save_cloud.user u set u.rating = :rating where u.name = :user_name",
         nativeQuery = true,
     )
     fun updateUser(
-        @Param("user_id") userId: Long,
+        @Param("user_name") userName: String,
         @Param("rating") rating: Long,
     )
 
