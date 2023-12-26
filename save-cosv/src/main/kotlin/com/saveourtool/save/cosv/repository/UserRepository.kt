@@ -7,9 +7,11 @@ import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Repository to access data about users
+ */
 @Repository
 interface UserRepository {
-
     /**
      * @param userId user id for update
      * @param rating new user rating
@@ -35,5 +37,4 @@ interface UserRepository {
         nativeQuery = true,
     )
     fun getUserByName(@Param("name") name: String): User
-
 }
