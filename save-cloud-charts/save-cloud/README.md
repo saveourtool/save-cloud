@@ -17,13 +17,6 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
 * **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
-  * For **backend** service
-    * `backend.s3-storage.bucketName`
-    * `backend.s3-storage.credentials.accessKeyId`
-    * `backend.s3-storage.credentials.secretAccessKey`
-    * `backend.s3-storage.endpoint`
-    * `backend.s3-storage.prefix`
-  * For **demo** and **sandbox** services
     * `s3-storage.bucketName`
     * `s3-storage.credentials.accessKeyId`
     * `s3-storage.credentials.secretAccessKey`
