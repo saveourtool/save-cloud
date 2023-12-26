@@ -16,6 +16,7 @@ import java.nio.file.Path
  * Service for [IBackendService] to get required info for COSV from backend
  */
 @Service
+@Suppress("LongParameterList")
 class BackendForCosvService(
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
