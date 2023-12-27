@@ -51,20 +51,6 @@ command line using `--set` flag.
   ```bash
   minikube addons enable csi-hostpath-driver
   ```
-  This StorageClass must be provided in values e.g:
-  ```yaml
-  storage:
-    storageClassName: csi-hostpath-driver
-    size: 24Gi
-    annotations:
-      everest.io/disk-volume-type: SAS
-      volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
-  reposStorage:
-    storageClassName: csi-hostpath-driver
-    annotations:
-      everest.io/disk-volume-type: SAS
-      volume.beta.kubernetes.io/storage-provisioner: hostpath.csi.k8s.io
-  ```
 * [optional] modify kube config file to use base64 encripted info about certs and keys instead of using path to cert file
   Change this:
   ```yaml
@@ -77,10 +63,6 @@ command line using `--set` flag.
   certificate-authority-data: <base64 encoded cert>
   client-certificate-data: <base64 encoded cert>
   client-key-data: <base64 encoded cert>
-  ```
-  you can convert it via base64 util
-  ```bash
-  cat </path/to/cert> | base64 
   ```
 * Environment should be prepared:
   ```bash
