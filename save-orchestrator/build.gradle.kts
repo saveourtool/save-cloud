@@ -4,7 +4,6 @@ plugins {
     id("com.saveourtool.save.buildutils.kotlin-jvm-configuration")
     id("com.saveourtool.save.buildutils.spring-boot-app-configuration")
     id("com.saveourtool.save.buildutils.code-quality-convention")
-    id("de.undercouch.download")
 }
 
 tasks.withType<KotlinCompile> {
@@ -24,7 +23,9 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.zip4j)
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
-    implementation(libs.fabric8.kubernetes.client)
+    implementation(libs.fabric8.kubernetes.client) {
+        exclude("org.slf4j", "slf4j-api")
+    }
     implementation(libs.spring.kafka)
     testImplementation(projects.testUtils)
     testImplementation(libs.fabric8.kubernetes.server.mock)

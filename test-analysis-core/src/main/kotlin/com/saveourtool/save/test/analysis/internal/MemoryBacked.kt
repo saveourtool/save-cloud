@@ -11,10 +11,10 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * The memory-backed [TestStatisticsStorage] implementation.
  *
+ * @param slidingWindowSize the size of the sliding window (the maximum sample
+ *   size preserved in memory for any given test).
  * @property testStatusProvider the converter from the implementation-specific
  *   test status into boolean success/failure flags.
- * @property slidingWindowSize the size of the sliding window (the maximum sample
- *   size preserved in memory for any given test).
  * @see TestStatisticsStorage
  */
 class MemoryBacked(

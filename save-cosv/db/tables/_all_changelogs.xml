@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="raw-cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-file.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-tag.xml" relativeToChangelogFile="true"/>
+    <include file="lnk-vulnerability-metadata-user.xml" relativeToChangelogFile="true"/>
+    <include file="vulnerability-metadata-project.xml" relativeToChangelogFile="true"/>
+    <include file="cosv-generated-id.xml" relativeToChangelogFile="true"/>
+
+    <changeSet id="cosv-tag" author="frolov">
+        <tagDatabase tag="cosv-tables"/>
+    </changeSet>
+
+</databaseChangeLog>

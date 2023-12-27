@@ -2,7 +2,7 @@
 
 package com.saveourtool.save.frontend.components.topbar
 
-import com.saveourtool.save.frontend.utils.TopBarUrl
+import com.saveourtool.save.frontend.common.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 
 import react.FC

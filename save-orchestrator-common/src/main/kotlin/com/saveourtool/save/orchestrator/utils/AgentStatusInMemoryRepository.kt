@@ -27,7 +27,7 @@ import kotlinx.datetime.*
  *
  * Collection is thread safe
  *
- * @property configProperties it needs [ConfigProperties.agentsHeartBeatTimeoutMillis] as a threshold in millis to detect crashed containers
+ * @param configProperties it needs [ConfigProperties.agentsHeartBeatTimeoutMillis] as a threshold in millis to detect crashed containers
  */
 @Service
 class AgentStatusInMemoryRepository(

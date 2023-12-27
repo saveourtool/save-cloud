@@ -29,7 +29,7 @@ import kotlinx.serialization.serializer
 /**
  * A Spring controller for git project downloading
  *
- * @property configProperties config properties
+ * @param configProperties config properties
  */
 @RestController
 class AwesomeBenchmarksDownloadController(

@@ -17,10 +17,10 @@ import org.springframework.transaction.annotation.Transactional
 /**
  * Service for project problem
  *
- * @property projectRepository
- * @property projectProblemRepository
- * @property vulnerabilityMetadataRepository
- * @property userRepository
+ * @param projectRepository
+ * @param projectProblemRepository
+ * @param vulnerabilityMetadataRepository
+ * @param userRepository
  */
 @Service
 class ProjectProblemService(

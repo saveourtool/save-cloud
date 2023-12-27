@@ -18,6 +18,7 @@ import com.saveourtool.save.frontend.common.http.getProject
 import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.frontend.components.basic.projects.*
+import com.saveourtool.save.frontend.utils.ProjectMenuBar
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
 

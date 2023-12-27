@@ -19,7 +19,7 @@ import kotlin.NoSuchElementException
 /**
  * Service for organization
  *
- * @property organizationRepository
+ * @param organizationRepository
  */
 @Service
 class OrganizationService(

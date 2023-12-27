@@ -135,3 +135,9 @@
     - GetMapping
     - PostMapping
     - Repository
+- name: KDOC_NO_CONSTRUCTOR_PROPERTY
+  enabled: true
+  configuration:
+    isParamTagsForParameters: false
+    isParamTagsForPrivateProperties: false
+    isParamTagsForGenericTypes: false

@@ -20,7 +20,7 @@ import kotlinx.coroutines.reactor.asCoroutineDispatcher
 /**
  * Initializer for [StorageProjectReactor]
  *
- * @property storageName
+ * @param storageName
  */
 class StorageInitializer(
     private val storageName: String,

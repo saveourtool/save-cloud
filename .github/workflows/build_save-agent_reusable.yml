@@ -1,0 +1,93 @@
+name: Reusable build save-agent and save-demo-agent
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+      build-save-agent:
+        type: boolean
+        required: true
+      build-save-demo-agent:
+        type: boolean
+        required: true
+
+jobs:
+  build:
+    name: Build save-agent and save-demo-agent
+    if: inputs.build-save-agent || inputs.build-save-demo-agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout save-cloud
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.branch }}
+
+      - name: Prepare to build
+        run: |
+          echo SAVE_AGENT_GRADLE_TASK = >> $GITHUB_ENV
+          echo SAVE_DEMO_AGENT_GRADLE_TASK = >> $GITHUB_ENV
+      - name: Set save-agent build task
+        if: inputs.build-save-agent
+        run: |
+          echo SAVE_AGENT_GRADLE_TASK=':save-agent:copyAgentDistribution' >> $GITHUB_ENV
+      - name: Set save-demo-agent build task
+        if: inputs.build-save-demo-agent
+        run: |
+          echo SAVE_DEMO_AGENT_GRADLE_TASK=':save-demo-agent:copyAgentDistribution' >> $GITHUB_ENV
+
+      - name: Store Kotlin version in env
+        run: |
+          kv=$(cat gradle/libs.versions.toml | grep -m1 '^kotlin =' | awk -F'[=]' '{print $2}' | tr -d '" ')
+          echo KOTLIN_VERSION=$kv >> $GITHUB_ENV
+      - name: Cache konan
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-gradle-konan-${{ env.KOTLIN_VERSION }}
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Install system packages
+        # libcurl is needed for ktor-client-curl
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+
+      - name: Build save-agent and save-demo-agent
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: wrapper
+          arguments: |
+            ${{ env.SAVE_AGENT_GRADLE_TASK }}
+            ${{ env.SAVE_DEMO_AGENT_GRADLE_TASK }}
+            --stacktrace
+            --build-cache
+            -Pdetekt.multiplatform.disabled=true
+            -x detekt
+            -x spotlessCheck
+            -PgprUser=${{ github.actor }}
+            -PgprKey=${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload save-agent
+        if: inputs.build-save-agent
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-agent
+          path: 'save-agent/build/libs/save-agent-*-distribution.jar'
+      - name: Upload save-demo-agent
+        if: inputs.build-save-demo-agent
+        uses: actions/upload-artifact@v3
+        with:
+          name: save-demo-agent
+          path: 'save-demo-agent/build/libs/save-demo-agent-*-distribution.jar'
+
+      - name: Upload gradle reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: gradle-reports
+          path: '**/build/reports/'
+          retention-days: 1
