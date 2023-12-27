@@ -17,10 +17,10 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
 * **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
-    * `s3-storage.bucketName`
-    * `s3-storage.credentials.accessKeyId`
-    * `s3-storage.credentials.secretAccessKey`
-    * `s3-storage.endpoint`
+  * `s3-storage.endpoint`
+  * `s3-storage.bucketName`
+  * `s3-storage.credentials.accessKeyId`
+  * `s3-storage.credentials.secretAccessKey`
 
   These secrets are then mounted under the path specified as `S3_SECRETS_PATH` environment variable.
   
@@ -52,13 +52,6 @@ command line using `--set` flag.
   minikube addons enable csi-hostpath-driver
   ```
 * [optional] modify kube config file to use base64 encripted info about certs and keys instead of using path to cert file
-  Change this:
-  ```yaml
-  certificate-authority: </path/to/file>
-  client-certificate: </path/to/file>
-  client-key: </path/to/file>
-  ```
-  to this:
   ```yaml
   certificate-authority-data: <base64 encoded cert>
   client-certificate-data: <base64 encoded cert>
