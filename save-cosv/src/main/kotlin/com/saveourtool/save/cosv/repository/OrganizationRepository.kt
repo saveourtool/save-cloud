@@ -11,16 +11,16 @@ import org.springframework.stereotype.Repository
 @Repository
 interface OrganizationRepository {
     /**
-     * @param organizationId organization id for update
+     * @param organizationName organization name for update
      * @param rating new organization rating
      * @return updated organization
      */
     @Query(
-        value = "update save_cloud.organization o set o.rating = :rating where o.id = :user_id",
+        value = "update save_cloud.organization o set o.rating = :rating where o.name = :organization_name",
         nativeQuery = true,
     )
     fun updateOrganization(
-        @Param("organization_id") organizationId: Long,
+        @Param("organization_name") organizationName: String,
         @Param("rating") rating: Long,
     )
 

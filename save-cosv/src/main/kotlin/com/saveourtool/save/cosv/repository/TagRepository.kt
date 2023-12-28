@@ -19,7 +19,7 @@ interface TagRepository {
      * @return [Tag] if found, null otherwise
      */
     @Query(
-        value = "select * from save_cloud.tag where name = :name",
+        value = "select * from save_cloud.tag t where t.name = :name",
         nativeQuery = true,
     )
     fun findByName(@Param("name") name: String): Tag?
