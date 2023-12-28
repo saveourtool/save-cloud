@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.UserPermissionEvaluator
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
@@ -15,12 +16,14 @@ import java.nio.file.Path
  * Service for [IBackendService] to get required info for COSV from backend
  */
 @Service
+@Suppress("LongParameterList")
 class BackendForCosvService(
     private val organizationService: OrganizationService,
     private val userDetailsService: UserDetailsService,
     private val userPermissionEvaluator: UserPermissionEvaluator,
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
     private val tagService: TagService,
+    private val lnkUserOrganizationService: LnkUserOrganizationService,
     configProperties: ConfigProperties,
 ) : IBackendService {
     override val workingDir: Path = configProperties.workingDir
@@ -48,4 +51,19 @@ class BackendForCosvService(
         identifier: String,
         tagName: Set<String>
     ): List<LnkVulnerabilityMetadataTag>? = tagService.addVulnerabilityTags(identifier, tagName)
+
+    override fun addVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    ): LnkVulnerabilityMetadataTag = tagService.addVulnerabilityTag(identifier, tagName)
+
+    override fun deleteVulnerabilityTag(
+        identifier: String,
+        tagName: String
+    ) = tagService.deleteVulnerabilityTag(identifier, tagName)
+
+    override fun getGlobalRoleOrOrganizationRole(
+        authentication: Authentication,
+        organizationName: String,
+    ): Role = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organizationName)
 }
