@@ -1,11 +1,9 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.User
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 
 /**
  * Repository to access data about users
@@ -17,8 +15,6 @@ interface UserRepository {
      * @param rating new user rating
      * @return updated user
      */
-    @Transactional
-    @Modifying
     @Query(
         value = "update save_cloud.user u set u.rating = :rating where u.name = :user_name",
         nativeQuery = true,
