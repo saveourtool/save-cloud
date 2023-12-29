@@ -67,8 +67,21 @@ spec:
       initContainers:
         - name: git-cloner
           image: alpine/git
+          env:
+            {{ if .Values.proxy.enabled }}
+            {{- with .Values.proxy.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{ end }}
           args:
             - clone
+            - --progress
+            - --verbose
+            {{ if .Values.proxy.enabled }}
+            {{- with .Values.proxy.extraArgs }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{ end }}
             - --single-branch
             - --branch
             - {{ .Values.mysql.migrations.branch | default "master" }}
@@ -114,6 +127,11 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: spring.datasource.password
+            {{ if .Values.proxy.enabled }}
+            {{- with .Values.proxy.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{ end }}
           volumeMounts:
             - mountPath: /liquibase/changelog
               name: migrations-data
