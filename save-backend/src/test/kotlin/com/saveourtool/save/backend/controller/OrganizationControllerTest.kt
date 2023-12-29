@@ -89,7 +89,6 @@ import java.util.concurrent.TimeUnit
     MockBean(LnkOrganizationTestSuiteService::class),
     MockBean(LnkExecutionTestSuiteService::class),
     MockBean(AvatarStorage::class),
-    MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
     MockBean(LnkVulnerabilityMetadataUserRepository::class),

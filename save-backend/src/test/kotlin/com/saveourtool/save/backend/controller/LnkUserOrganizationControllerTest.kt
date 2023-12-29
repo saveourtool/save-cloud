@@ -35,7 +35,6 @@ import org.springframework.test.web.reactive.server.WebTestClient
 @MockBeans(
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
-    MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
     MockBean(LnkVulnerabilityMetadataUserRepository::class),

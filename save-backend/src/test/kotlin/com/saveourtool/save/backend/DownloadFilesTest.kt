@@ -70,7 +70,6 @@ import kotlin.io.path.*
     MockBean(ProjectPermissionEvaluator::class),
     MockBean(DebugInfoStorage::class),
     MockBean(ExecutionInfoStorage::class),
-    MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
     MockBean(LnkVulnerabilityMetadataUserRepository::class),

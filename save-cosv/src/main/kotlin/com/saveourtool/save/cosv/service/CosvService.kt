@@ -1,6 +1,5 @@
 package com.saveourtool.save.cosv.service
 
-import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
@@ -40,7 +39,9 @@ typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDto>
 class CosvService(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
-    private val backendService: IBackendService,
+    private val userService: UserService,
+    private val organizationService: OrganizationService,
+    private val tagService: TagService,
     private val cosvProcessor: CosvProcessor,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val vulnerabilityRatingService: VulnerabilityRatingService,
@@ -86,7 +87,7 @@ class CosvService(
         .flatMap { groupedFlux ->
             val (userName, organizationName) = groupedFlux.key()
             blockingToMono {
-                backendService.getUserByName(userName) to backendService.getOrganizationByName(organizationName)
+                userService.getUserByName(userName) to organizationService.getOrganizationByName(organizationName)
             }
                 .flatMap { (user, organization) ->
                     groupedFlux
@@ -141,7 +142,7 @@ class CosvService(
                     .collectList()
                     .blockingMap { identifierToTagsList ->
                         identifierToTagsList.forEach { (identifier, tags) ->
-                            backendService.addVulnerabilityTags(identifier, tags)
+                            tagService.addVulnerabilityTags(identifier, tags)
                         }
                     }
                     .subscribeOn(scheduler)
@@ -221,9 +222,9 @@ class CosvService(
     ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
-                backendService.getUserByName(rawCosvExt.metadataDto.user.name),
+                userService.getUserByName(rawCosvExt.metadataDto.user.name),
                 rawCosvExt.metadataDto.organization?.let { organization ->
-                    backendService.getOrganizationByName(organization.name)
+                    organizationService.getOrganizationByName(organization.name)
                 }
             )
         }
@@ -287,7 +288,7 @@ class CosvService(
                     metadataDto = metadata.toDto().copy(tags = tags),
                     cosv = content,
                     // FixMe: need to fix bug here when mapping is empty
-                    saveContributors = content.getSaveContributes().map { backendService.getUserByName(it.name).toUserInfo() },
+                    saveContributors = content.getSaveContributes().map { userService.getUserByName(it.name).toUserInfo() },
                 )
             }
         }

@@ -44,7 +44,6 @@ import reactor.util.function.Tuples
     MockBean(LnkUserOrganizationService::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
-    MockBean(IBackendService::class),
     MockBean(VulnerabilityMetadataRepository::class),
     MockBean(LnkVulnerabilityMetadataTagRepository::class),
     MockBean(LnkVulnerabilityMetadataUserRepository::class),
