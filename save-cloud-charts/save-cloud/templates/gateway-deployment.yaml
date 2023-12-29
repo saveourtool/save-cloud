@@ -35,10 +35,37 @@ spec:
               memory: 300M
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
+            - mountPath: /layers/paketo-buildpacks_bellsoft-liberica/jre/lib/security
+              name: cacerts
             - mountPath: /home/cnb/secrets/oauth
               name: oauth-credentials
+      {{ if .Values.gateway.initCerts.enabled }}
+      initContainers:
+      - name: init-cacerts
+        image: ghcr.io/saveourtool/api-gateway:0.4.0-alpha.0.408-9b56d61
+        command:
+        - bash
+        - -c
+        - |
+          cp -R /layers/paketo-buildpacks_bellsoft-liberica/jre/lib/security/* /home/cnb/cacerts
+          chmod 661 /home/cnb/cacerts/cacerts
+          find /layers -type f -name keytool -exec {} -import -noprompt -trustcacerts -alias HuaweiITRootCA -file /security/HuaweiITRootCA.pem -keystore /home/cnb/cacerts/cacerts -storepass changeit \;
+          find /layers -type f -name keytool -exec {} -import -noprompt -trustcacerts -alias HWITEnterpriseCA1 -file /security/HWITEnterpriseCA1.pem -keystore /home/cnb/cacerts/cacerts -storepass changeit \;
+        volumeMounts:
+        - mountPath: /home/cnb/cacerts
+          name: cacerts
+        - mountPath: /security
+          name: his-certs
+      {{ end }}    
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 | trim }}
         - name: oauth-credentials
           secret:
             secretName: oauth-credentials
+        - name: his-certs
+          secret:
+            secretName: his-certs
+        - name: cacerts
+          emptyDir: {}
+
+        

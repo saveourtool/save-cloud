@@ -47,6 +47,8 @@ preprocessor:
   # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
   clusterIP: null
 gateway:
+  initCerts:
+    enabled: true
   name: gateway
   profile: dev,kubernetes
   imageName: api-gateway
