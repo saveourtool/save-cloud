@@ -11,6 +11,7 @@ import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
 import org.slf4j.Logger
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -100,6 +101,16 @@ class TagService(
 
         lnkVulnerabilityMetadataTagRepository.delete(link)
     }
+
+    /**
+     * @param prefix [String] that should be matched with tag prefix
+     * @param page [Pageable]
+     * @return [List] of [Tag]s with [Tag.name] that starts with [prefix]
+     */
+    fun getVulnerabilityTagsByPrefix(
+        prefix: String,
+        page: Pageable,
+    ) = lnkVulnerabilityMetadataTagRepository.findAllByTagNameStartingWith(prefix, page).map { it.tag }
 
     companion object {
         private val log: Logger = getLogger<TagService>()

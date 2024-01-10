@@ -1,9 +1,8 @@
-package com.saveourtool.save.backend.event
+package com.saveourtool.save.cosv.event
 
-import com.saveourtool.save.backend.service.NotificationService
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
+import com.saveourtool.save.cosv.repository.NotificationRepository
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
-import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.CommentEvent
 import com.saveourtool.save.utils.orNotFound
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class CommentListener(
-    private val notificationService: NotificationService,
+    private val notificationRepository: NotificationRepository,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataUserRepository: LnkVulnerabilityMetadataUserRepository,
 ) {
@@ -44,13 +43,9 @@ class CommentListener(
             )
 
         val message = messageNewVulnComment(commentOwner, identifier)
-        val notifications = recipients.map { user ->
-            Notification(
-                message = message,
-                user = user,
-            )
+        recipients.map { user ->
+            notificationRepository.saveNotification(message, user.requiredId())
         }
-        notificationService.saveAll(notifications)
     }
 
     companion object {
