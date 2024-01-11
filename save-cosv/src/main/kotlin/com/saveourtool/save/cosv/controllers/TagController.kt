@@ -1,7 +1,7 @@
-package com.saveourtool.save.backend.controllers
+package com.saveourtool.save.cosv.controllers
 
-import com.saveourtool.save.backend.service.TagService
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.cosv.service.TagService
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.v1
 import io.swagger.v3.oas.annotations.Operation

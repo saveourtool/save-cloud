@@ -1,7 +1,8 @@
 package com.saveourtool.save.cosv.storage
 
-import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.cosv.repository.RawCosvFileRepository
+import com.saveourtool.save.cosv.service.OrganizationService
+import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.RawCosvFile
@@ -24,7 +25,8 @@ import org.springframework.transaction.annotation.Transactional
 class RawCosvFileS3KeyManager(
     s3OperationsPropertiesProvider: S3OperationsProperties.Provider,
     rawCosvFileRepository: RawCosvFileRepository,
-    private val backendService: IBackendService,
+    private val userService: UserService,
+    private val organizationService: OrganizationService,
     blockingBridge: BlockingBridge,
 ) : AbstractS3KeyDtoManager<RawCosvFileDto, RawCosvFile, RawCosvFileRepository>(
     concatS3Key(s3OperationsPropertiesProvider.s3Storage.prefix, "raw-cosv"),
@@ -38,7 +40,7 @@ class RawCosvFileS3KeyManager(
     )
 
     override fun createNewEntityFromDto(dto: RawCosvFileDto): RawCosvFile =
-            dto.toNewEntity(backendService::getUserByName, backendService::getOrganizationByName)
+            dto.toNewEntity(userService::getUserByName, organizationService::getOrganizationByName)
 
     /**
      * @param organizationName

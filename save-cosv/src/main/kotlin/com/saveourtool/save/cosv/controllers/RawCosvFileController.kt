@@ -1,9 +1,10 @@
 package com.saveourtool.save.cosv.controllers
 
-import com.saveourtool.save.backend.service.IBackendService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
+import com.saveourtool.save.cosv.service.OrganizationService
+import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
@@ -31,6 +32,7 @@ import reactor.kotlin.core.publisher.toFlux
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.*
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
@@ -47,10 +49,12 @@ typealias PathAndSizeAndAccumitiveSize = Triple<Path, Long, Long>
 class RawCosvFileController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
-    private val backendService: IBackendService,
+    private val userService: UserService,
+    private val organizationService: OrganizationService,
 ) {
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
-        backendService.workingDir.createDirectories(),
+        // FixMe: Need to read the path from ConfigurationProperties
+        Paths.get(WORKING_DIR).createDirectories(),
         "archive-"
     )
 
@@ -275,7 +279,7 @@ class RawCosvFileController(
         .thenReturn(ResponseEntity.ok("Submitted $ids to be processed"))
         .doOnSuccess {
             blockingToMono {
-                backendService.getOrganizationByName(organizationName) to backendService.getUserByName(authentication.name)
+                organizationService.getOrganizationByName(organizationName) to userService.getUserByName(authentication.name)
             }
                 .flatMap { (organization, user) ->
                     cosvService.processAndAddTagsAndUpdateRating(ids, user, organization)
@@ -409,7 +413,7 @@ class RawCosvFileController(
         permission: Permission,
         operation: String,
     ): Mono<Unit> = blockingToMono {
-        backendService.hasPermissionInOrganization(authentication, organizationName, permission)
+        organizationService.hasPermissionInOrganization(authentication, organizationName, permission)
     }
         .filter { it }
         .switchIfEmptyToResponseException(HttpStatus.FORBIDDEN) {
@@ -426,7 +430,7 @@ class RawCosvFileController(
         authentication: Authentication,
         organizationName: String,
     ) = blockingMap {
-        backendService.getUserPermissionsByOrganizationName(authentication, organizationName)
+        organizationService.getUserPermissionsByOrganizationName(authentication, organizationName)
     }
         .filter { it.inOrganizations[organizationName]?.canDoBulkUpload == true }
         .orResponseStatusException(HttpStatus.FORBIDDEN) {
@@ -439,6 +443,7 @@ class RawCosvFileController(
 
         // to show progress bar
         private const val PROGRESS_FOR_ARCHIVE = 5
+        private const val WORKING_DIR = "/home/cnb/working-dir"
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,

@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.cosv.CosvConfiguration
 import com.saveourtool.save.s3.DefaultS3Configuration
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Import
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
     DefaultS3Configuration::class,
-    CosvConfiguration::class,
 )
 class SaveApplication
 
