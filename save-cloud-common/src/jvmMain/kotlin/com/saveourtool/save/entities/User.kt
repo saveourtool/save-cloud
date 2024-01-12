@@ -31,6 +31,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  */
 @Entity
 @Suppress("LongParameterList")
+@Table(schema = "save_cloud", name = "user")
 class User(
     var name: String,
     var password: String?,

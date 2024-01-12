@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository
  * Repository to access data about users
  */
 @Repository
-interface UserRepository {
+interface UserRepository : BaseEntityRepository<User> {
     /**
      * @param userName user name for update
      * @param rating new user rating

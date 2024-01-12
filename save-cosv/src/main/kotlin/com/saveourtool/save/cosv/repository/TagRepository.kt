@@ -1,6 +1,7 @@
 package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.entities.Tag
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository
  * The repository of tag entities.
  */
 @Repository
-interface TagRepository {
+interface TagRepository : BaseEntityRepository<Tag> {
     /**
      * Find [Tag] by its [Tag.name]
      *

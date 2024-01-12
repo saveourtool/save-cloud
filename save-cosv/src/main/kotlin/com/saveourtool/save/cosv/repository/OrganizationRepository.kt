@@ -3,6 +3,7 @@ package com.saveourtool.save.cosv.repository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Repository
  * The repository of organization entities
  */
 @Repository
-interface OrganizationRepository {
+interface OrganizationRepository : BaseEntityRepository<Organization> {
     /**
      * @param organizationName organization name for update
      * @param rating new organization rating

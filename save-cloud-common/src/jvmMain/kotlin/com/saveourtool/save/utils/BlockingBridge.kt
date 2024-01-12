@@ -1,6 +1,7 @@
 package com.saveourtool.save.utils
 
 import org.jetbrains.annotations.NonBlocking
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
  * @property ioScheduler [Scheduler] for IO operations for [Mono] and [Flux]
  * @property ioDispatcher [CoroutineDispatcher] for IO operations in suspend function
  */
+@Component
 class BlockingBridge(
     val ioScheduler: Scheduler = Schedulers.boundedElastic(),
     val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,

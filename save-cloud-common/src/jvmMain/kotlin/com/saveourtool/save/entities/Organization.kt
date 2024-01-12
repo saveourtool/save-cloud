@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
  */
 @Entity
 @Serializable
+@Table(schema = "save_cloud", name = "organization")
 data class Organization(
     var name: String,
     @Enumerated(EnumType.STRING)
