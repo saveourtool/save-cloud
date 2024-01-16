@@ -1,6 +1,6 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadata
+import com.saveourtool.save.entitiescosv.VulnerabilityMetadata
 import com.saveourtool.save.spring.entity.BaseEntityWithDateAndDto
 import javax.persistence.*
 

@@ -1,6 +1,6 @@
 package com.saveourtool.save.cosv.storage
 
-import com.saveourtool.save.entities.cosv.CosvFile
+import com.saveourtool.save.entitiescosv.CosvFile
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase

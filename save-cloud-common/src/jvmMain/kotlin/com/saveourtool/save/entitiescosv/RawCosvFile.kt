@@ -1,7 +1,9 @@
-package com.saveourtool.save.entities.cosv
+package com.saveourtool.save.entitiescosv
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.spring.entity.BaseEntityWithDtoWithId
 import com.saveourtool.save.spring.entity.IBaseEntityWithDate
 import com.saveourtool.save.utils.ZIP_ARCHIVE_EXTENSION

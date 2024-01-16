@@ -1,8 +1,8 @@
 package com.saveourtool.save.cosv.storage
 
 import com.saveourtool.save.cosv.repository.CosvFileRepository
-import com.saveourtool.save.entities.cosv.CosvFile
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadata
+import com.saveourtool.save.entitiescosv.CosvFile
+import com.saveourtool.save.entitiescosv.VulnerabilityMetadata
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager

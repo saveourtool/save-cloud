@@ -5,15 +5,16 @@ import com.saveourtool.save.cosv.service.OrganizationService
 import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.RawCosvFile
-import com.saveourtool.save.entities.cosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entitiescosv.RawCosvFile
+import com.saveourtool.save.entitiescosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

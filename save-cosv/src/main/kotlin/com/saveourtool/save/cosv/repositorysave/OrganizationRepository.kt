@@ -1,4 +1,4 @@
-package com.saveourtool.save.cosv.repository
+package com.saveourtool.save.cosv.repositorysave
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization

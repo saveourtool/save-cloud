@@ -2,8 +2,8 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.cosv.repository.OrganizationRepository
-import com.saveourtool.save.cosv.repository.UserRepository
+import com.saveourtool.save.cosv.repositorysave.OrganizationRepository
+import com.saveourtool.save.cosv.repositorysave.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getHighestRole

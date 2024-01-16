@@ -9,6 +9,7 @@ import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.*
+import com.saveourtool.save.entitiescosv.CosvGeneratedId
 import com.saveourtool.save.utils.*
 
 import com.saveourtool.osv4k.*

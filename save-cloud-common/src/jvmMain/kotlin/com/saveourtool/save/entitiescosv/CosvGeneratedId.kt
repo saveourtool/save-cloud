@@ -1,4 +1,4 @@
-package com.saveourtool.save.entities.cosv
+package com.saveourtool.save.entitiescosv
 
 import com.saveourtool.save.spring.entity.BaseEntityWithDate
 import javax.persistence.Entity

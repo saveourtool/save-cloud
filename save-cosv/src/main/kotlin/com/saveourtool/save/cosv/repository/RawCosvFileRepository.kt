@@ -1,6 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.save.entities.cosv.RawCosvFile
+import com.saveourtool.save.entitiescosv.RawCosvFile
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Repository

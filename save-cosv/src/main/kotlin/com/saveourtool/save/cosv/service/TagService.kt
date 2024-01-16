@@ -1,10 +1,10 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
-import com.saveourtool.save.cosv.repository.TagRepository
+import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
 import com.saveourtool.save.entities.Tag
-import com.saveourtool.save.entities.cosv.LnkVulnerabilityMetadataTag
+import com.saveourtool.save.entitiescosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound

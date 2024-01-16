@@ -2,7 +2,6 @@ package com.saveourtool.save.cosv.storage
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
@@ -12,15 +11,18 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJso
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entitiescosv.RawCosvFile
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.*
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
 
 typealias OrganizationAndOwner = Pair<Organization, User>
