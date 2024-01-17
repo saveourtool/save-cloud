@@ -23,16 +23,16 @@ on:
         default: true
         description: Build new image of save-backend
         required: false
-      frontend:
-        type: boolean
-        default: true
-        description: Build new image of save-frontend
-        required: false
-      save-cosv:
-        type: boolean
-        default: true
-        description: Build new image of save-cosv
-        required: false
+      # frontend:
+      #   type: boolean
+      #   default: true
+      #   description: Build new image of save-frontend
+      #   required: false
+      # save-cosv:
+      #   type: boolean
+      #   default: true
+      #   description: Build new image of save-cosv
+      #   required: false
       cosv-frontend:
         type: boolean
         default: true
@@ -126,13 +126,13 @@ jobs:
         ]
         include:
           - module: save-cosv
-            do-build: ${{ inputs.save-cosv }}
+            do-build: ${{ inputs.backend }}
           - module: api-gateway
             do-build: ${{ inputs.gateway }}
           - module: save-frontend
             do-build: ${{ inputs.frontend }}
           - module: save-cosv-frontend
-            do-build: ${{ inputs.cosv-frontend }}
+            do-build: ${{ inputs.frontend }}
           - module: save-orchestrator
             do-build: ${{ inputs.orchestrator }}
           - module: save-preprocessor
