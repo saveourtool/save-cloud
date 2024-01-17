@@ -23,21 +23,21 @@ on:
         default: true
         description: Build new image of save-backend
         required: false
-      # frontend:
-      #   type: boolean
-      #   default: true
-      #   description: Build new image of save-frontend
-      #   required: false
+      frontend:
+        type: boolean
+        default: true
+        description: Build new image of save-frontend
+        required: false
       # save-cosv:
       #   type: boolean
       #   default: true
       #   description: Build new image of save-cosv
       #   required: false
-      cosv-frontend:
-        type: boolean
-        default: true
-        description: Build new image of save-cosv-frontend
-        required: false
+      # cosv-frontend:
+      #   type: boolean
+      #   default: true
+      #   description: Build new image of save-cosv-frontend
+      #   required: false
       orchestrator:
         type: boolean
         default: true
