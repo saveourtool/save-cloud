@@ -1,6 +1,5 @@
 package com.saveourtool.save.entities
 
-import com.saveourtool.save.entitiescosv.VulnerabilityMetadata
 import com.saveourtool.save.spring.entity.BaseEntityWithDateAndDto
 import javax.persistence.*
 
@@ -8,7 +7,7 @@ import javax.persistence.*
  * @property name
  * @property description
  * @property critical
- * @property vulnerabilityMetadata
+ * @property vulnerabilityMetadataId
  * @property project
  * @property userId
  * @property isClosed
@@ -24,9 +23,7 @@ class ProjectProblem(
     @Enumerated(EnumType.STRING)
     var critical: ProjectProblemCritical,
 
-    @ManyToOne
-    @JoinColumn(name = "vulnerability_metadata_id")
-    var vulnerabilityMetadata: VulnerabilityMetadata?,
+    var vulnerabilityMetadataId: Long?,
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -41,7 +38,7 @@ class ProjectProblem(
         name = name,
         description = description,
         critical = critical,
-        identifier = vulnerabilityMetadata?.identifier,
+        identifier = "",
         organizationName = project.organization.name,
         projectName = project.name,
         isClosed = isClosed,

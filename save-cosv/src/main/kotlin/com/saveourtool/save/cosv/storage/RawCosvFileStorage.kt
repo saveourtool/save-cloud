@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono
 
 import java.nio.ByteBuffer
 
-typealias OrganizationAndOwner = Pair<Organization, User>
+typealias OrganizationIdAndOwnerId = Pair<Long, Long>
 typealias RawCosvFileDtoCollection = Collection<RawCosvFileDto>
 
 /**
@@ -70,15 +70,15 @@ class RawCosvFileStorage(
         .publishOn(s3Operations.scheduler)
 
     /**
-     * @param organizationName
-     * @param userName
-     * @return statistics [RawCosvFileStatisticDto] for all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     * @param organizationId
+     * @param userId
+     * @return statistics [RawCosvFileStatisticDto] for all [RawCosvFileDto]s which belongs to [organizationId] and uploaded by [userId]
      */
     fun statisticsByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
+        organizationId: Long,
+        userId: Long,
     ): Mono<RawCosvFileStatisticsDto> = blockingToMono {
-        val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
+        val filesList = s3KeyManager.listByOrganizationAndUser(organizationId, userId).toList()
         RawCosvFileStatisticsDto(
             filesList.count(),
             filesList.count { it.isZipArchive() },
@@ -91,17 +91,17 @@ class RawCosvFileStorage(
     }
 
     /**
-     * @param organizationName
-     * @param userName
+     * @param organizationId
+     * @param userId
      * @param pageRequest
-     * @return all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     * @return all [RawCosvFileDto]s which belongs to [organizationId] and uploaded by [userId]
      */
     fun listByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
+        organizationId: Long,
+        userId: Long,
         pageRequest: PageRequest? = null,
     ): Mono<RawCosvFileDtoCollection> = blockingToMono {
-        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest).toList()
+        s3KeyManager.listByOrganizationAndUser(organizationId, userId, pageRequest).toList()
     }
 
     /**
@@ -130,9 +130,9 @@ class RawCosvFileStorage(
      * @param id
      * @return [Organization] to which is uploaded and [User] who uploaded
      */
-    fun getOrganizationAndOwner(
+    fun getOrganizationIdAndOwnerId(
         id: Long,
-    ): Mono<OrganizationAndOwner> = blockingToMono { s3KeyManager.getOrganizationAndOwner(id) }
+    ): Mono<OrganizationIdAndOwnerId> = blockingToMono { s3KeyManager.getOrganizationAndOwner(id) }
 
     /**
      * @param id

@@ -5,6 +5,7 @@ import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
+import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
@@ -30,7 +31,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.serializer
 
-typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDto>
+typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDtoWithUserAndOrganization>
 
 /**
  * Service for vulnerabilities
@@ -48,6 +49,7 @@ class CosvService(
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
+    private val tagRepository: TagRepository,
 ) {
     private val scheduler = Schedulers.boundedElastic()
 
@@ -133,10 +135,10 @@ class CosvService(
         .map { it.flatten() }
         .flatMap { metadataList ->
             Mono.just(metadataList.size).doOnSuccess {
-                metadataList.toFlux().flatMap { vulnerabilityMetadataDto ->
-                    getVulnerabilityExt(vulnerabilityMetadataDto.identifier).mapNotNull { vulnerabilityExt ->
+                metadataList.toFlux().flatMap { metadataDto ->
+                    getVulnerabilityExt(metadataDto.vulnerabilityMetadataDto.identifier).mapNotNull { vulnerabilityExt ->
                         vulnerabilityExt.cosv.affected?.mapNotNull { it.`package`?.ecosystem }?.toSet()?.let {
-                            vulnerabilityExt.metadataDto.identifier to it
+                            vulnerabilityExt.metadataDto.vulnerabilityMetadataDto.identifier to it
                         }
                     }
                 }
@@ -163,9 +165,9 @@ class CosvService(
         rawCosvFileId: Long,
         user: User,
         organization: Organization,
-    ): Mono<*> = rawCosvFileStorage.getOrganizationAndOwner(rawCosvFileId)
-        .filter { (organizationForRawCosvFile, userForRawCosvFile) ->
-            organization.requiredId() == organizationForRawCosvFile.requiredId() && user.requiredId() == userForRawCosvFile.requiredId()
+    ): Mono<*> = rawCosvFileStorage.getOrganizationIdAndOwnerId(rawCosvFileId)
+        .filter { (organizationIdForRawCosvFile, userIdForRawCosvFile) ->
+            organization.requiredId() == organizationIdForRawCosvFile && user.requiredId() == userIdForRawCosvFile
         }
         .switchIfEmpty {
             log.error {
@@ -199,7 +201,7 @@ class CosvService(
                     rawCosvFileStorage.update(
                         rawCosvFileId,
                         RawCosvFileStatus.PROCESSED,
-                        "Processed as ${metadataList.map(VulnerabilityMetadataDto::identifier)}"
+                        "Processed as ${metadataList.map(VulnerabilityMetadataDtoWithUserAndOrganization::vulnerabilityMetadataDto).map(VulnerabilityMetadataDto::identifier)}"
                     )
                         .flatMap {
                             rawCosvFileStorage.deleteById(rawCosvFileId)
@@ -220,7 +222,7 @@ class CosvService(
     fun update(
         cosvId: String,
         updater: (RawCosvSchema) -> Mono<RawCosvSchema>,
-    ): Mono<VulnerabilityMetadataDto> = getVulnerabilityExt(cosvId)
+    ): Mono<VulnerabilityMetadataDtoWithUserAndOrganization> = getVulnerabilityExt(cosvId)
         .blockingMap { rawCosvExt ->
             rawCosvExt to Pair(
                 userService.getUserByName(rawCosvExt.metadataDto.user.name),
@@ -251,17 +253,18 @@ class CosvService(
         cosv: ManualCosvSchema,
         user: User,
         organization: Organization?,
-    ): Mono<VulnerabilityMetadataDto> = save(cosv, user, organization)
+    ): Mono<VulnerabilityMetadataDtoWithUserAndOrganization> = save(cosv, user, organization)
 
     private inline fun <reified D, reified A_E, reified A_D, reified A_R_D> save(
         cosv: CosvSchema<D, A_E, A_D, A_R_D>,
         user: User,
         organization: Organization?,
         isAutoApprove: Boolean = false,
-    ): Mono<VulnerabilityMetadataDto> = cosvRepository.save(cosv, serializer())
+    ): Mono<VulnerabilityMetadataDtoWithUserAndOrganization> = cosvRepository.save(cosv, serializer())
         .flatMap { key ->
             blockingToMono {
-                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isAutoApprove).toDto()
+                vulnerabilityMetadataService.createOrUpdate(key, cosv, user, organization, isAutoApprove)
+                    .toDtoWithUserAndOrganization(user.toUserInfo(), organization?.toDto())
             }
                 .onErrorResume { error ->
                     log.error(error) {
@@ -280,13 +283,16 @@ class CosvService(
     fun getVulnerabilityExt(identifier: String): Mono<VulnerabilityExt> = blockingToMono { vulnerabilityMetadataService.findByIdentifier(identifier) }
         .flatMap { metadata ->
             cosvRepository.download(metadata.latestCosvFile, serializer<RawCosvSchema>()).blockingMap { content ->
-                val tags = lnkVulnerabilityMetadataTagRepository
+                val links = lnkVulnerabilityMetadataTagRepository
                     .findAllByVulnerabilityMetadataIdentifier(identifier)
-                    .map { it.tag.name }
-                    .toSet()
+                    .map { it.tagId }
+
+                val tags = tagRepository.findAllByIdIn(links).map { it.name }.toSet()
+                val user = userService.findById(metadata.userId).toUserInfo()
+                val organization = metadata.organizationId?.let { organizationService.getOrganizationById(it).toDto() }
 
                 VulnerabilityExt(
-                    metadataDto = metadata.toDto().copy(tags = tags),
+                    metadataDto = VulnerabilityMetadataDtoWithUserAndOrganization(metadata.toDto().copy(tags = tags), user, organization),
                     cosv = content,
                     // FixMe: need to fix bug here when mapping is empty
                     saveContributors = content.getSaveContributes().map { userService.getUserByName(it.name).toUserInfo() },

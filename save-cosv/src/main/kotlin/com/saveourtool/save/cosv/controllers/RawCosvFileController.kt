@@ -1,7 +1,9 @@
 package com.saveourtool.save.cosv.controllers
 
+import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.save.cosv.configs.ConfigProperties
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.service.OrganizationService
 import com.saveourtool.save.cosv.service.UserService
@@ -32,7 +34,6 @@ import reactor.kotlin.core.publisher.toFlux
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import kotlin.io.path.*
 
 typealias RawCosvFileDtoFlux = Flux<RawCosvFileDto>
@@ -51,10 +52,10 @@ class RawCosvFileController(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val userService: UserService,
     private val organizationService: OrganizationService,
+    private val configProperties: ConfigProperties,
 ) {
     private fun createTempDirectoryForArchive() = Files.createTempDirectory(
-        // FixMe: Need to read the path from ConfigurationProperties
-        Paths.get(WORKING_DIR).createDirectories(),
+        configProperties.workingDir.createDirectories(),
         "archive-"
     )
 
@@ -258,15 +259,18 @@ class RawCosvFileController(
     fun submitAllUploadedToProcess(
         @PathVariable organizationName: String,
         authentication: Authentication,
-    ): Mono<StringResponse> = rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
-        .map { files ->
-            files
-                .filter { it.isUploadedJsonFile() }
-                .map { it.requiredId() }
-        }
-        .flatMap { ids ->
-            doSubmitToProcess(organizationName, ids, authentication)
-        }
+    ): Mono<StringResponse> {
+        val organization = organizationService.getOrganizationByName(organizationName)
+        return rawCosvFileStorage.listByOrganizationAndUser(organization.requiredId(), authentication.userId())
+            .map { files ->
+                files
+                    .filter { it.isUploadedJsonFile() }
+                    .map { it.requiredId() }
+            }
+            .flatMap { ids ->
+                doSubmitToProcess(organizationName, ids, authentication)
+            }
+    }
 
     private fun doSubmitToProcess(
         organizationName: String,
@@ -300,7 +304,8 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<RawCosvFileStatisticsDto> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMap {
-            rawCosvFileStorage.statisticsByOrganizationAndUser(organizationName, authentication.name)
+            val organization = organizationService.getOrganizationByName(organizationName)
+            rawCosvFileStorage.statisticsByOrganizationAndUser(organization.requiredId(), authentication.userId())
         }
 
     /**
@@ -323,7 +328,10 @@ class RawCosvFileController(
         authentication: Authentication,
     ): ResponseEntity<RawCosvFileDtoFlux> = hasPermission(authentication, organizationName, Permission.READ, "read")
         .flatMap {
-            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name, PageRequest.of(page, size, Sort.by("isZip").descending().and(Sort.by("id"))))
+            val organization = organizationService.getOrganizationByName(organizationName)
+            rawCosvFileStorage.listByOrganizationAndUser(organization.requiredId(), authentication.userId(), PageRequest.of(page, size, Sort.by("isZip").descending().and(Sort.by(
+                "id"
+            ))))
         }
         .flatMapIterable { it }
         .let {
@@ -391,7 +399,8 @@ class RawCosvFileController(
         authentication: Authentication,
     ): Mono<StringResponse> = hasPermission(authentication, organizationName, Permission.DELETE, "delete")
         .flatMap {
-            rawCosvFileStorage.listByOrganizationAndUser(organizationName, authentication.name)
+            val organization = organizationService.getOrganizationByName(organizationName)
+            rawCosvFileStorage.listByOrganizationAndUser(organization.requiredId(), authentication.userId())
                 .map { files ->
                     files.filter { it.isDuplicate() }
                 }

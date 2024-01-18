@@ -41,6 +41,7 @@ class User(
     var company: String? = null,
     var location: String? = null,
     var linkedin: String? = null,
+    @Column(name = "git_hub")
     var gitHub: String? = null,
     var twitter: String? = null,
     @Enumerated(EnumType.STRING)
@@ -54,7 +55,9 @@ class User(
     var originalLogins: List<OriginalLogin> = emptyList(),
     var rating: Long = 0,
     var website: String? = null,
+    @Column(name = "free_text")
     var freeText: String? = null,
+    @Column(name = "real_name")
     var realName: String? = null,
 ) : BaseEntityWithDate() {
     /**

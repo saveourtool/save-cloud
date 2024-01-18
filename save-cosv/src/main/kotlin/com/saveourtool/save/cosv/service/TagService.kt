@@ -1,8 +1,8 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
-import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
+import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entitiescosv.LnkVulnerabilityMetadataTag
 import com.saveourtool.save.utils.error
@@ -10,6 +10,7 @@ import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
 import com.saveourtool.save.validation.isValidTag
+
 import org.slf4j.Logger
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
@@ -54,7 +55,7 @@ class TagService(
         val tag = tagRepository.findByName(tagName) ?: tagRepository.saveTag(tagName)
 
         return lnkVulnerabilityMetadataTagRepository.save(
-            LnkVulnerabilityMetadataTag(metadata, tag)
+            LnkVulnerabilityMetadataTag(metadata, tag.requiredId())
         )
     }
 
@@ -78,7 +79,7 @@ class TagService(
         val links = tagNames.map {
             tagRepository.findByName(it) ?: tagRepository.saveTag(it)
         }.map {
-            LnkVulnerabilityMetadataTag(metadata, it)
+            LnkVulnerabilityMetadataTag(metadata, it.requiredId())
         }
 
         return lnkVulnerabilityMetadataTagRepository.saveAll(links)
@@ -94,9 +95,10 @@ class TagService(
             "Could not find metadata for vulnerability $identifier"
         }
 
-        val link = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataIdAndTagName(
+        val tag = tagRepository.findByName(tagName).orNotFound { "Could not find tag with name $tagName" }
+        val link = lnkVulnerabilityMetadataTagRepository.findByVulnerabilityMetadataIdAndTagId(
             metadata.requiredId(),
-            tagName
+            tag.requiredId()
         ).orNotFound { "Tag '$tagName' is not linked with vulnerability $identifier." }
 
         lnkVulnerabilityMetadataTagRepository.delete(link)
@@ -110,7 +112,7 @@ class TagService(
     fun getVulnerabilityTagsByPrefix(
         prefix: String,
         page: Pageable,
-    ) = lnkVulnerabilityMetadataTagRepository.findAllByTagNameStartingWith(prefix, page).map { it.tag }
+    ) = tagRepository.findAllByNameStartingWith(prefix)
 
     companion object {
         private val log: Logger = getLogger<TagService>()
