@@ -109,6 +109,7 @@ class TagService(
      * @param page [Pageable]
      * @return [List] of [Tag]s with [Tag.name] that starts with [prefix]
      */
+    @Suppress("UnusedParameter")
     fun getVulnerabilityTagsByPrefix(
         prefix: String,
         page: Pageable,

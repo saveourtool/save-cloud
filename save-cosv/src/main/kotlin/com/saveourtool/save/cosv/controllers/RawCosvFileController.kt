@@ -452,7 +452,6 @@ class RawCosvFileController(
 
         // to show progress bar
         private const val PROGRESS_FOR_ARCHIVE = 5
-        private const val WORKING_DIR = "/home/cnb/working-dir"
 
         private fun RawCosvFileStorage.uploadAndWrapDuplicateKeyException(
             key: RawCosvFileDto,
