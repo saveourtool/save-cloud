@@ -29,7 +29,7 @@ frontend:
   name: frontend
   imageName: save-frontend
   containerPort: 5810
-frontend-cosv:
+frontend_cosv:
   name: frontend-cosv
   imageName: save-cosv-frontend
   containerPort: 5820
