@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.backend_cosv.name }}-config
+data:
+  application.properties: |
+    backend.preprocessor-url=http://preprocessor
+    backend.orchestrator-url=http://orchestrator
+    backend.demo-url=http://demo
+    backend.loki.url=http://loki:3100
+    backend.loki.labels.agent-container-name=pod
+    backend.loki.labels.application-name=app
+    backend.agent-settings.backend-url=http://{{ .Values.backend_cosv.name }}
+    server.shutdown=graceful
+    management.endpoints.web.exposure.include=*
+    management.server.port={{ .Values.backend_cosv.managementPort }}
+    spring.datasource.url=${spring.datasource.backend-cosv-url}
+    logging.level.org.springframework=DEBUG
+    logging.level.com.saveourtool=DEBUG

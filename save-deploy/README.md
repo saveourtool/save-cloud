@@ -76,6 +76,13 @@ preprocessor:
 ## Database
 The service is designed to work with MySQL database. Migrations are applied with liquibase. They expect event scheduler to be enabled on the DB.
 
+## Provide Hostname (Domain name)
+In the file `/home/saveu/configs/gateway/application.properties` the following properties should be provided:
+* `hosts.save`
+* `hosts.cosv`
+
+It is needed because the 'save' and 'cosv' services have been divided, and now all the routing determines whether you are trying to visit the 'save' app (i.e., save.example.com) or the 'cosv' app (i.e., cosv.example.com) 
+
 ## Enabling api-gateway with external OAuth providers
 In the file `/home/saveu/configs/gateway/application.properties` the following properties should be provided:
 * `spring.security.oauth2.client.provider.<provider name>.issuer-uri`
