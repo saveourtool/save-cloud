@@ -55,7 +55,7 @@ class ProjectProblemService(
             name = problem.name,
             description = problem.description,
             critical = problem.critical,
-            vulnerabilityMetadata = vulnerabilityMetadata,
+            vulnerabilityMetadataId = vulnerabilityMetadata?.requiredId(),
             project = project,
             userId = user.requiredId(),
             isClosed = false,
@@ -75,7 +75,7 @@ class ProjectProblemService(
             description = projectProblemDto.description
             critical = projectProblemDto.critical
             isClosed = projectProblemDto.isClosed
-            this.vulnerabilityMetadata = vulnerabilityMetadata
+            this.vulnerabilityMetadataId = vulnerabilityMetadata?.requiredId()
         }
         projectProblemRepository.save(problem)
     }
