@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Import
 @Import(
     DefaultS3Configuration::class,
 )
-@EntityScan("com.saveourtool.save.entities")
+@EntityScan(basePackages = ["com.saveourtool.save.entities", "com.saveourtool.save.entitiescosv"])
 class CosvApplication
 
 fun main(args: Array<String>) {

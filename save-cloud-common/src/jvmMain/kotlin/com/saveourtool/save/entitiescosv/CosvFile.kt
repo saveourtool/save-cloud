@@ -1,11 +1,13 @@
-package com.saveourtool.save.entities.cosv
+package com.saveourtool.save.entitiescosv
 
+import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.spring.entity.BaseEntity
 
 import java.time.LocalDateTime
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.OneToOne
+import javax.persistence.Table
 
 import kotlinx.datetime.toKotlinLocalDateTime
 
@@ -16,6 +18,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property prevCosvFile
  */
 @Entity
+@Table(name = "cosv_file")
 class CosvFile(
     var identifier: String,
     var modified: LocalDateTime,

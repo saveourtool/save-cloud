@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.Table
 
 /**
  * @property name
@@ -14,6 +15,7 @@ import javax.persistence.ManyToOne
  * @property source
  */
 @Entity
+@Table(schema = "save_cloud", name = "original_login")
 class OriginalLogin(
     var name: String,
     @ManyToOne

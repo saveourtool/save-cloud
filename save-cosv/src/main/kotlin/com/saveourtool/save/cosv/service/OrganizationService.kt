@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.cosv.repository.OrganizationRepository
+import com.saveourtool.save.cosv.repositorysave.OrganizationRepository
 import com.saveourtool.save.cosv.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
@@ -9,7 +9,9 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.info.UserPermissions
 import com.saveourtool.save.info.UserPermissionsInOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.orNotFound
 import org.jetbrains.annotations.Blocking
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
@@ -31,6 +33,12 @@ class OrganizationService(
      * @return organization with [name]
      */
     fun getOrganizationByName(name: String): Organization = organizationRepository.getOrganizationByName(name)
+
+    /**
+     * @param id
+     * @return organization with [id]
+     */
+    fun getOrganizationById(id: Long): Organization = organizationRepository.findByIdOrNull(id).orNotFound { "Organization with id: $id not found" }
 
     /**
      * @param authentication

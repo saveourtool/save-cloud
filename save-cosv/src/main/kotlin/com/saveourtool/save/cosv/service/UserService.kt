@@ -2,12 +2,13 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.cosv.repository.OrganizationRepository
-import com.saveourtool.save.cosv.repository.UserRepository
+import com.saveourtool.save.cosv.repositorysave.OrganizationRepository
+import com.saveourtool.save.cosv.repositorysave.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.utils.orNotFound
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 
@@ -29,7 +30,19 @@ class UserService(
      * @param name
      * @return user with [name]
      */
-    fun getUserByName(name: String): User = userRepository.getUserByName(name).orNotFound { "Not found user by name $name" }
+    fun getUserByName(name: String): User = userRepository.findByName(name).orNotFound { "Not found user by name $name" }
+
+    /**
+     * @param id
+     * @return user with [id]
+     */
+    fun findById(id: Long): User = userRepository.findByIdOrNull(id).orNotFound { "Not found user by id $id" }
+
+    /**
+     * @param ids
+     * @return users with [ids]
+     */
+    fun findAllByIdIn(ids: List<Long>): List<User> = userRepository.findAllByIdIn(ids)
 
     /**
      * @param authentication

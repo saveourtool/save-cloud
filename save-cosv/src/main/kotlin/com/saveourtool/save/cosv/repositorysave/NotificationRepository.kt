@@ -1,4 +1,4 @@
-package com.saveourtool.save.cosv.repository
+package com.saveourtool.save.cosv.repositorysave
 
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.spring.repository.BaseEntityRepository
