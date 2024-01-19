@@ -31,7 +31,6 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
         TopBarLink(hrefAnchor = FrontendRoutes.DEMO.path, text = "Demo".t()),
         TopBarLink(hrefAnchor = "${FrontendRoutes.DEMO}/cpg", text = "CPG".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.AWESOME_BENCHMARKS.path, text = "Awesome Benchmarks".t()),
-        TopBarLink(hrefAnchor = FrontendRoutes.SANDBOX.path, text = "Try SAVE format".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.PROJECTS.path, text = "Projects board".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.CONTESTS.path, text = "Contests".t()),
         TopBarLink(hrefAnchor = FrontendRoutes.ABOUT_US.path, text = "About us".t()),

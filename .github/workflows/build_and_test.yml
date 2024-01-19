@@ -35,7 +35,6 @@ jobs:
       save-orchestrator: ${{ steps.calculate-dependencies.outputs.save-orchestrator }}
       save-orchestrator-common: ${{ steps.calculate-dependencies.outputs.save-orchestrator-common }}
       save-preprocessor: ${{ steps.calculate-dependencies.outputs.save-preprocessor }}
-      save-sandbox: ${{ steps.calculate-dependencies.outputs.save-sandbox }}
       test-analysis-core: ${{ steps.calculate-dependencies.outputs.test-analysis-core }}
       test-utils: ${{ steps.calculate-dependencies.outputs.test-utils }}
     steps:
@@ -87,8 +86,6 @@ jobs:
               - save-orchestrator-common/**
             save-preprocessor:
               - save-preprocessor/**
-            save-sandbox:
-              - save-sandbox/**
             test-analysis-core:
               - test-analysis-core/**
             test-utils:
@@ -118,7 +115,6 @@ jobs:
           save_frontend=$(( $save_cloud_common + $save_frontend_common + ${{ steps.git-changed-files.outputs.save-frontend_all_changed_files_count }} ))
           save_orchestrator=$(( $save_cloud_common + $save_orchestrator_common + $test_utils + ${{ steps.git-changed-files.outputs.save-orchestrator_all_changed_files_count }} ))
           save_preprocessor=$(( $save_cloud_common + $test_utils + ${{ steps.git-changed-files.outputs.save-preprocessor_all_changed_files_count }} ))
-          save_sandbox=$(( $save_cloud_common + $authentication_service + $test_utils + ${{ steps.git-changed-files.outputs.save-sandbox_all_changed_files_count }} ))
 
           echo "api-gateway=$api_gateway" >> "$GITHUB_OUTPUT"
           echo "authentication-service=$authentication_service" >> "$GITHUB_OUTPUT"
@@ -137,7 +133,6 @@ jobs:
           echo "save-orchestrator=$save_orchestrator" >> "$GITHUB_OUTPUT"
           echo "save-orchestrator-common=$save_orchestrator_common" >> "$GITHUB_OUTPUT"
           echo "save-preprocessor=$save_preprocessor" >> "$GITHUB_OUTPUT"
-          echo "save-sandbox=$save_sandbox" >> "$GITHUB_OUTPUT"
           echo "test-analysis-core=$test_analysis_core" >> "$GITHUB_OUTPUT"
           echo "test-utils=$test_utils" >> "$GITHUB_OUTPUT"
   build_save-cloud-common:
@@ -185,7 +180,6 @@ jobs:
           'save-frontend',
           'save-orchestrator',
           'save-preprocessor',
-          'save-sandbox',
           'test-analysis-core',
           'test-utils'
         ]
@@ -220,8 +214,6 @@ jobs:
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-orchestrator > 0 }}
           - module: save-preprocessor
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-preprocessor > 0 }}
-          - module: save-sandbox
-            do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-sandbox > 0 }}
           - module: test-analysis-core
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.test-analysis-core > 0 }}
           - module: test-utils

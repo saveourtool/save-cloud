@@ -33,7 +33,6 @@ enum class FrontendRoutes(val path: String) {
     PROFILE("profile"),
     PROJECTS("projects"),
     REGISTRATION("registration"),
-    SANDBOX("sandbox"),
     SAVE("save"),
     SETTINGS_DELETE("$SETTINGS/delete"),
     SETTINGS_EMAIL("$SETTINGS/email"),

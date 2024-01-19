@@ -97,7 +97,7 @@ class WebSecurityConfig(
             // they are not proxied from gateway.
             "/actuator/**",
             "/internal/**",
-            // Agents should communicate with sandbox without authorization
+            // Agents should communicate without authorization
             "/heartbeat",
             // `CollectionView` is a public page
             "/api/$v1/projects/by-filters",

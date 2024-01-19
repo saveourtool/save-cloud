@@ -30,11 +30,7 @@ fun Project.registerLiquibaseTask(profile: String) {
         relativeChangeLogFile = "db/db.changelog-master.xml",
         profile = profile
     )
-    val registerLiquibaseTaskSandbox = registerLiquibaseTask(
-        projectName = "save-sandbox",
-        relativeChangeLogFile = "save-sandbox/db/db.changelog-sandbox.xml",
-        profile = profile
-    )
+
     val registerLiquibaseTaskDemo = registerLiquibaseTask(
         projectName = "save-demo",
         relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
@@ -48,7 +44,6 @@ fun Project.registerLiquibaseTask(profile: String) {
     tasks.register("liquibaseUpdate") {
         dependsOn(
             registerLiquibaseTaskBackend,
-            registerLiquibaseTaskSandbox,
             registerLiquibaseTaskDemo,
             registerLiquibaseTaskCosv,
         )
@@ -211,7 +206,6 @@ fun Project.createStackDeployTask(profile: String) {
                     FRONTEND_TAG=${defaultVersionOrProperty("frontend.dockerTag")}
                     GATEWAY_TAG=${defaultVersionOrProperty("gateway.dockerTag")}
                     ORCHESTRATOR_TAG=${defaultVersionOrProperty("orchestrator.dockerTag")}
-                    SANDBOX_TAG=${defaultVersionOrProperty("sandbox.dockerTag")}
                     PREPROCESSOR_TAG=${defaultVersionOrProperty("preprocessor.dockerTag")}
                     DEMO_TAG=${defaultVersionOrProperty("demo.dockerTag")}
                     PROFILE=$profile
@@ -248,7 +242,6 @@ fun Project.createStackDeployTask(profile: String) {
             Files.createDirectories(configsDir.resolve("backend"))
             Files.createDirectories(configsDir.resolve("gateway"))
             Files.createDirectories(configsDir.resolve("orchestrator"))
-            Files.createDirectories(configsDir.resolve("sandbox"))
             Files.createDirectories(configsDir.resolve("preprocessor"))
             Files.createDirectories(configsDir.resolve("demo"))
         }
@@ -331,7 +324,6 @@ fun Project.createStackDeployTask(profile: String) {
             "up",
             "-d",
             "orchestrator",
-            "sandbox",
             "backend",
             "frontend",
             "preprocessor",
@@ -351,7 +343,7 @@ fun Project.createStackDeployTask(profile: String) {
                     project(componentName).tasks.named<BootBuildImage>("bootBuildImage")
             dependsOn(buildTask)
             val serviceName = when (componentName) {
-                "save-backend", "save-frontend", "save-orchestrator", "save-sandbox", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
+                "save-backend", "save-frontend", "save-orchestrator", "save-preprocessor" -> "save_${componentName.substringAfter("save-")}"
                 "api-gateway" -> "save_gateway"
                 else -> error("Wrong component name $componentName")
             }

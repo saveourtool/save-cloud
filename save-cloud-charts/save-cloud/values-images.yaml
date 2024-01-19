@@ -17,8 +17,6 @@ preprocessor:
     dockerTag: '0.4.0-alpha.0.379-70423bd'
 orchestrator:
     dockerTag: '0.4.0-alpha.0.379-70423bd'
-sandbox:
-    dockerTag: '0.4.0-alpha.0.379-70423bd'
 demo:
     dockerTag: '0.4.0-alpha.0.379-70423bd'
 demo_cpg:
