@@ -30,15 +30,6 @@ orchestrator:
   # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
   clusterIP: null
   dockerHost: tcp://${HOST_IP}:2375
-sandbox:
-  name: sandbox
-  profile: dev,secure
-  imageName: save-sandbox
-  containerPort: 5400
-  managementPort: 5401
-  # Fixed ClusterIP can be assigned to make it easier to query orchestrator from services outside Kubernetes
-  clusterIP: null
-  dockerHost: tcp://${HOST_IP}:2375
 preprocessor:
   name: preprocessor
   imageName: save-preprocessor
@@ -78,7 +69,6 @@ mysql:
   ip: 192.168.65.2
   # Name of the database schema that will be used by save-cloud deployment
   backend_schema: save_cloud
-  sandbox_schema: save_sandbox
   demo_schema: save_demo
   cosv_schema: cosv
   root_password: '123'

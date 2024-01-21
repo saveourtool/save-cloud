@@ -75,13 +75,13 @@ jobs:
           echo SAVE_CLI_GRADLE_OPTS=-PsaveCliVersion=${{ inputs.save-cli-version }} -PsaveCliPath=${{ github.workspace }}/save-cli >> $GITHUB_ENV
 
       - name: Download save-agent
-        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox'
+        if: inputs.module == 'save-backend'
         uses: actions/download-artifact@v3
         with:
           name: save-agent
           path: ${{ github.workspace }}/save-agent
       - name: Set saveAgentPath in Gradle
-        if: inputs.module == 'save-backend' || inputs.module == 'save-sandbox'
+        if: inputs.module == 'save-backend'
         run: |
           echo SAVE_AGENT_GRADLE_OPTS=-PsaveAgentPath=${{ github.workspace }}/save-agent >> $GITHUB_ENV
 

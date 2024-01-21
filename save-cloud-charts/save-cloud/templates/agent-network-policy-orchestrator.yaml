@@ -6,8 +6,7 @@ metadata:
 spec:
   # Should be applied to save-agents only
   #
-  # As for now, there is no way to tell orchestrator pod from sandbox pod so need to allow connection to both
-  # orchestrator and sandbox.
+  # As for now, there is no way to tell orchestrator pod so need to allow connection to orchestrator.
   podSelector:
     matchLabels:
       io.kompose.service: save-agent
@@ -36,14 +35,3 @@ spec:
       ports:
         - protocol: TCP
           port: {{ .Values.backend.containerPort }}
-    - to:
-        # Allow traffic to save-sandbox
-        - namespaceSelector:
-            matchLabels:
-              name: {{ .Values.namespace }}
-        - podSelector:
-            matchLabels:
-              io.kompose.service: sandbox
-      ports:
-        - protocol: TCP
-          port: {{ .Values.sandbox.containerPort }}
