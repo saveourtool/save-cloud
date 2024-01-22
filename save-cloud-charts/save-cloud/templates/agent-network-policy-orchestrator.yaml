@@ -37,13 +37,13 @@ spec:
         - protocol: TCP
           port: {{ .Values.backend.containerPort }}
     - to:
-        # Allow traffic to save-sandbox
+        # Allow traffic to save-backend-cosv
         - namespaceSelector:
             matchLabels:
               name: {{ .Values.namespace }}
         - podSelector:
             matchLabels:
-              io.kompose.service: sandbox
+              io.kompose.service: backend-cosv
       ports:
         - protocol: TCP
-          port: {{ .Values.sandbox.containerPort }}
+          port: {{ .Values.backend_cosv.containerPort }}
