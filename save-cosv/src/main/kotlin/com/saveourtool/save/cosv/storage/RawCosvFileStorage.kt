@@ -2,7 +2,6 @@ package com.saveourtool.save.cosv.storage
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.RawCosvFile
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
@@ -12,18 +11,21 @@ import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJso
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
 import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entitiescosv.RawCosvFile
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.DefaultStorageProjectReactor
 import com.saveourtool.save.storage.ReactiveStorageWithDatabase
 import com.saveourtool.save.storage.deleteUnexpectedKeys
 import com.saveourtool.save.utils.*
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+
 import java.nio.ByteBuffer
 
-typealias OrganizationAndOwner = Pair<Organization, User>
+typealias OrganizationIdAndOwnerId = Pair<Long, Long>
 typealias RawCosvFileDtoCollection = Collection<RawCosvFileDto>
 
 /**
@@ -68,15 +70,15 @@ class RawCosvFileStorage(
         .publishOn(s3Operations.scheduler)
 
     /**
-     * @param organizationName
-     * @param userName
-     * @return statistics [RawCosvFileStatisticDto] for all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     * @param organizationId
+     * @param userId
+     * @return statistics [RawCosvFileStatisticDto] for all [RawCosvFileDto]s which belongs to [organizationId] and uploaded by [userId]
      */
     fun statisticsByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
+        organizationId: Long,
+        userId: Long,
     ): Mono<RawCosvFileStatisticsDto> = blockingToMono {
-        val filesList = s3KeyManager.listByOrganizationAndUser(organizationName, userName).toList()
+        val filesList = s3KeyManager.listByOrganizationAndUser(organizationId, userId).toList()
         RawCosvFileStatisticsDto(
             filesList.count(),
             filesList.count { it.isZipArchive() },
@@ -89,17 +91,17 @@ class RawCosvFileStorage(
     }
 
     /**
-     * @param organizationName
-     * @param userName
+     * @param organizationId
+     * @param userId
      * @param pageRequest
-     * @return all [RawCosvFileDto]s which belongs to [organizationName] and uploaded by [userName]
+     * @return all [RawCosvFileDto]s which belongs to [organizationId] and uploaded by [userId]
      */
     fun listByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
+        organizationId: Long,
+        userId: Long,
         pageRequest: PageRequest? = null,
     ): Mono<RawCosvFileDtoCollection> = blockingToMono {
-        s3KeyManager.listByOrganizationAndUser(organizationName, userName, pageRequest).toList()
+        s3KeyManager.listByOrganizationAndUser(organizationId, userId, pageRequest).toList()
     }
 
     /**
@@ -128,9 +130,9 @@ class RawCosvFileStorage(
      * @param id
      * @return [Organization] to which is uploaded and [User] who uploaded
      */
-    fun getOrganizationAndOwner(
+    fun getOrganizationIdAndOwnerId(
         id: Long,
-    ): Mono<OrganizationAndOwner> = blockingToMono { s3KeyManager.getOrganizationAndOwner(id) }
+    ): Mono<OrganizationIdAndOwnerId> = blockingToMono { s3KeyManager.getOrganizationAndOwner(id) }
 
     /**
      * @param id

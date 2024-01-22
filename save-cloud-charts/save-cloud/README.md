@@ -10,7 +10,6 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
   * `spring.datasource.username`
   * `spring.datasource.password`
   * `spring.datasource.backend-url`
-  * `spring.datasource.sandbox-url`
   * `spring.datasource.demo-url`
 
   These secrets are then mounted under the path specified as `DATABASE_SECRETS_PATH` environment variable.
@@ -75,6 +74,6 @@ command line using `--set` flag.
   $ helm --kube-context=minikube --namespace=save-cloud upgrade -i save-cloud save-cloud-0.1.0.tgz/<or use ulr oci://ghcr.io/saveourtool/save-cloud> --values values-minikube.yaml --values=values-images.yaml <any other value files and/or --set flags>
   ```
 * Database migrations can be run by setting value `mysql.migrations.enabled` to `true` (no additional setup, migrations
-  are executed by init container, but may be too slow with constant recreations of backend/sandbox pods)
+  are executed by init container, but may be too slow with constant recreations of backend pods)
   or port 3306 of mysql pod can be forwarded and `liquibaseUpdate` can be executed manually. If needed, don't forget that
   JDBC URL for liquibase in dev profile is read from `application-dev.properties` value `dev.datasource.url`.

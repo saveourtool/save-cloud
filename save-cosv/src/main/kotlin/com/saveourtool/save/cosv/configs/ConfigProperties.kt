@@ -10,10 +10,12 @@ import java.nio.file.Path
  *
  * @property s3Storage configuration of S3 storage
  * @property workingDir a local folder for tmp files
+ * @property gatewayUrl
  */
 @ConstructorBinding
 @ConfigurationProperties(prefix = "cosv")
 data class ConfigProperties(
     override val s3Storage: S3OperationsProperties,
     val workingDir: Path,
+    val gatewayUrl: String,
 ) : S3OperationsProperties.Provider

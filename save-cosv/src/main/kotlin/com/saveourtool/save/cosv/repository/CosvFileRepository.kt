@@ -1,6 +1,6 @@
 package com.saveourtool.save.cosv.repository
 
-import com.saveourtool.save.entities.cosv.CosvFile
+import com.saveourtool.save.entitiescosv.CosvFile
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime

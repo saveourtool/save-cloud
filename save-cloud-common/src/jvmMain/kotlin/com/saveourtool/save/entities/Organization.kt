@@ -27,10 +27,13 @@ data class Organization(
     @Enumerated(EnumType.STRING)
     var status: OrganizationStatus,
     @Contextual
+    @Column(name = "date_created")
     var dateCreated: LocalDateTime,
     var avatar: String? = null,
     var description: String? = null,
+    @Column(name = "can_create_contests")
     var canCreateContests: Boolean = false,
+    @Column(name = "can_bulk_upload")
     var canBulkUpload: Boolean = false,
     var rating: Long = 0,
 ) : BaseEntityWithDto<OrganizationDto>() {

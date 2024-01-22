@@ -2,8 +2,8 @@ package com.saveourtool.save.cosv.repository
 
 import com.saveourtool.save.cosv.storage.CosvFileS3KeyManager
 import com.saveourtool.save.cosv.storage.CosvFileStorage
-import com.saveourtool.save.entities.cosv.CosvFile
 import com.saveourtool.save.entities.cosv.CosvFileDto
+import com.saveourtool.save.entitiescosv.CosvFile
 import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Component

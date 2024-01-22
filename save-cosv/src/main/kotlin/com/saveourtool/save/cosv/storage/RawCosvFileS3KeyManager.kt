@@ -3,17 +3,16 @@ package com.saveourtool.save.cosv.storage
 import com.saveourtool.save.cosv.repository.RawCosvFileRepository
 import com.saveourtool.save.cosv.service.OrganizationService
 import com.saveourtool.save.cosv.service.UserService
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.RawCosvFile
-import com.saveourtool.save.entities.cosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
+import com.saveourtool.save.entitiescosv.RawCosvFile
+import com.saveourtool.save.entitiescosv.RawCosvFile.Companion.toNewEntity
 import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.key.AbstractS3KeyDtoManager
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.getByIdOrNotFound
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -33,28 +32,34 @@ class RawCosvFileS3KeyManager(
     rawCosvFileRepository,
     blockingBridge,
 ) {
-    override fun findByDto(dto: RawCosvFileDto): RawCosvFile? = repository.findByOrganizationNameAndUserNameAndFileName(
-        organizationName = dto.organizationName,
-        userName = dto.userName,
-        fileName = dto.fileName,
-    )
+    override fun findByDto(dto: RawCosvFileDto): RawCosvFile? {
+        val organization = organizationService.getOrganizationByName(dto.organizationName)
+        val user = userService.getUserByName(dto.userName)
+        return repository.findByOrganizationIdAndUserIdAndFileName(
+            organizationId = organization.requiredId(),
+            userId = user.requiredId(),
+            fileName = dto.fileName,
+        )
+    }
 
     override fun createNewEntityFromDto(dto: RawCosvFileDto): RawCosvFile =
-            dto.toNewEntity(userService::getUserByName, organizationService::getOrganizationByName)
+            dto.toNewEntity({ userName -> userService.getUserByName(userName).requiredId() },
+                { organizationName -> organizationService.getOrganizationByName(organizationName).requiredId() }
+            )
 
     /**
-     * @param organizationName
-     * @param userName
+     * @param organizationId
+     * @param userId
      * @param pageRequest
      * @return all [RawCosvFileDto]s which has provided [RawCosvFileDto.organizationName] and [RawCosvFileDto.userName]
      */
     fun listByOrganizationAndUser(
-        organizationName: String,
-        userName: String,
+        organizationId: Long,
+        userId: Long,
         pageRequest: PageRequest? = null,
     ): Collection<RawCosvFileDto> = run {
-        pageRequest?.let { repository.findAllByOrganizationNameAndUserName(organizationName, userName, it) }
-            ?: repository.findAllByOrganizationNameAndUserName(organizationName, userName)
+        pageRequest?.let { repository.findAllByOrganizationIdAndUserId(organizationId, userId, it) }
+            ?: repository.findAllByOrganizationIdAndUserId(organizationId, userId)
     }.map { it.toDto() }
 
     /**
@@ -90,12 +95,12 @@ class RawCosvFileS3KeyManager(
 
     /**
      * @param id
-     * @return [Organization] to which is uploaded and [User] who uploaded
+     * @return organizationId to which is uploaded and userId who uploaded
      */
     fun getOrganizationAndOwner(
         id: Long,
-    ): Pair<Organization, User> = repository.getByIdOrNotFound(id).let {
-        it.organization to it.user
+    ): Pair<Long, Long> = repository.getByIdOrNotFound(id).let {
+        it.organizationId to it.userId
     }
 
     @Transactional

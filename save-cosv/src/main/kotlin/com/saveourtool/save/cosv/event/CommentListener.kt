@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.event
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
-import com.saveourtool.save.cosv.repository.NotificationRepository
+import com.saveourtool.save.cosv.repositorysave.NotificationRepository
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.CommentEvent
@@ -36,15 +36,15 @@ class CommentListener(
         val vulnerability = vulnerabilityMetadataService.findByIdentifier(identifier).orNotFound { "Vulnerability with id: $identifier not found" }
 
         val recipients = lnkVulnerabilityMetadataUserRepository.findByVulnerabilityMetadataId(vulnerability.requiredId())
-            .map { it.user }
-            .plus(vulnerability.user)
+            .map { it.userId }
+            .plus(vulnerability.userId)
             .minus(
-                commentOwner
+                commentOwner.requiredId()
             )
 
         val message = messageNewVulnComment(commentOwner, identifier)
-        recipients.map { user ->
-            notificationRepository.saveNotification(message, user.requiredId())
+        recipients.map { userId ->
+            notificationRepository.saveNotification(message, userId)
         }
     }
 

@@ -7,6 +7,7 @@ import com.saveourtool.save.cosv.service.OrganizationService
 import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
+import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDtoWithUserAndOrganization
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus
@@ -44,7 +45,7 @@ class CosvController(
         @RequestParam(required = false, defaultValue = "false") isGenerateIdentifier: Boolean,
         @RequestParam(required = false) organizationName: String?,
         authentication: Authentication,
-    ): Mono<VulnerabilityMetadataDto> = cosv.id.toMono()
+    ): Mono<VulnerabilityMetadataDtoWithUserAndOrganization> = cosv.id.toMono()
         .filter { identifier -> isGenerateIdentifier && identifier.isEmpty() || identifier.isNotEmpty() }
         .switchIfEmptyToResponseException(HttpStatus.CONFLICT) {
             "Identifier is not provided: either set identifier auto-generation and provide no identifier or provide an identifier."

@@ -156,7 +156,6 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
         listOf(
             indexView.create { userInfo = props.userInfo } to "/",
             saveWelcomeView.create { userInfo = props.userInfo } to SAVE,
-            sandboxView.create() to SANDBOX,
             AboutUsView::class.react.create() to ABOUT_US,
             createOrganizationView.create() to CREATE_ORGANIZATION,
             registrationView.create {

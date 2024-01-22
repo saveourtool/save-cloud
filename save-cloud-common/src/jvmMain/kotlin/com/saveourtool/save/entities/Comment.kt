@@ -15,7 +15,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
  * @property user
  */
 @Entity
-@Table(name = "comments")
+@Table(schema = "save_cloud", name = "comments")
 class Comment(
 
     var message: String,

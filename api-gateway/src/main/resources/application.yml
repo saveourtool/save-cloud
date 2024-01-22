@@ -11,8 +11,6 @@ gateway:
     url: http://frontend:5810
   frontend-cosv:
     url: http://frontend-cosv:5820
-  sandbox:
-    url: http://sandbox:5400
   demo:
     url: http://demo:5421
   demo-cpg:
@@ -31,14 +29,6 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: sandbox-api_route
-          uri: ${gateway.sandbox.url}
-          predicates:
-            - Path=/api/sandbox/**
-          filters:
-            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
-            - RemoveRequestHeader=Cookie
-            - AuthorizationHeaders=
         - id: demo-api_route
           uri: ${gateway.demo.url}
           predicates:
