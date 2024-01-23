@@ -3,7 +3,10 @@ package com.saveourtool.save.cosv.repositorysave
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserOrganization
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.repository.ValidateRepository
 import com.saveourtool.save.spring.repository.BaseEntityRepository
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
@@ -12,7 +15,8 @@ import org.springframework.stereotype.Repository
  * The repository of organization entities
  */
 @Repository
-interface OrganizationRepository : BaseEntityRepository<Organization> {
+interface OrganizationRepository : BaseEntityRepository<Organization>,
+ValidateRepository {
     /**
      * @param organizationName organization name for update
      * @param rating new organization rating
@@ -90,4 +94,19 @@ interface OrganizationRepository : BaseEntityRepository<Organization> {
         @Param("user_id") userId: Long,
         @Param("organization_name") organizationName: String,
     ): LnkUserOrganization?
+
+    /**
+     * @param name
+     * @param statuses
+     * @return organization by [name] and [statuses]
+     */
+    fun findByNameAndStatusIn(name: String, statuses: Set<OrganizationStatus>): Organization?
+
+    /**
+     * @param prefix prefix of organization name
+     * @param statuses is set of statuses, one of which an organization can have
+     * @param pageable [Pageable]
+     * @return list of organizations with names that start with [prefix]
+     */
+    fun findByNameStartingWithAndStatusIn(prefix: String, statuses: Set<OrganizationStatus>, pageable: Pageable): List<Organization>
 }

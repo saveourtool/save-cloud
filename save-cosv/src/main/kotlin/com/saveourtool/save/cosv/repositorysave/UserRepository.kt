@@ -2,6 +2,7 @@ package com.saveourtool.save.cosv.repositorysave
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.repository.ValidateRepository
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository
  * Repository to access data about users
  */
 @Repository
-interface UserRepository : BaseEntityRepository<User> {
+interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
     /**
      * @param userName user name for update
      * @param rating new user rating
