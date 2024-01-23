@@ -18,10 +18,21 @@ backend:
   # Fixed ClusterIP can be assigned to make it easier to query backend from services outside Kubernetes.
   # Should be chosen depending on cluster's network configuration: https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address.
   clusterIP: null
+backend_cosv:
+  name: backend-cosv
+  profile: dev,secure,kubernetes
+  imageName: save-cosv
+  containerPort: 5700
+  managementPort: 5701
+  clusterIP: null
 frontend:
   name: frontend
   imageName: save-frontend
   containerPort: 5810
+frontend_cosv:
+  name: frontend-cosv
+  imageName: save-cosv-frontend
+  containerPort: 5820
 orchestrator:
   name: orchestrator
   imageName: save-orchestrator
@@ -38,8 +49,9 @@ preprocessor:
   # Fixed ClusterIP can be assigned to make it easier to query preprocessor from services outside Kubernetes
   clusterIP: null
 gateway:
+  # Additional certs installation for internal CA case
   initCerts:
-    enabled: true
+    enabled: false
   name: gateway
   profile: dev,kubernetes
   imageName: api-gateway

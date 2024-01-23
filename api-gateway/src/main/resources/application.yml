@@ -5,8 +5,12 @@ server:
 gateway:
   backend:
     url: http://backend:5800
+  backend-cosv:
+    url: http://backend-cosv:5700
   frontend:
     url: http://frontend:5810
+  frontend-cosv:
+    url: http://frontend-cosv:5820
   demo:
     url: http://demo:5421
   demo-cpg:
@@ -43,6 +47,16 @@ spring:
         - id: api_route
           uri: ${gateway.backend.url}
           predicates:
+            - Host=**.${hosts.save}:5300
+            - Path=/api/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+            - AuthorizationHeaders=
+        - id: cosv_api_route
+          uri: ${gateway.backend-cosv.url}
+          predicates:
+            - Host=**.${hosts.cosv}:5300
             - Path=/api/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
@@ -57,6 +71,7 @@ spring:
         - id: resource_route
           uri: ${gateway.frontend.url}
           predicates:
+            - Host=**.${hosts.save}:5300
             - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
@@ -64,6 +79,23 @@ spring:
         - id: index_route
           uri: ${gateway.frontend.url}/index.html
           predicates:
+            - Host=**.${hosts.save}:5300
+            - Path=/**
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: resource_route_cosv
+          uri: ${gateway.frontend-cosv.url}
+          predicates:
+            - Host=**.${hosts.cosv}:5300
+            - Path=/*.html,/*.js*,/*.css,/img/**,/*.ico,/*.png
+          filters:
+            # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it
+            - RemoveRequestHeader=Cookie
+        - id: index_route_cosv
+          uri: ${gateway.frontend-cosv.url}/index.html
+          predicates:
+            - Host=**.${hosts.cosv}:5300
             - Path=/**
           filters:
             # If SESSION cookie is passed to downstream, it is then removed, because downstream discards it

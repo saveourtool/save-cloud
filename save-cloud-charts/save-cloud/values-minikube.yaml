@@ -5,6 +5,8 @@ ingress:
   enabled: false
 backend:
   profile: dev,secure,kubernetes
+backend-cosv:
+  profile: dev,secure,kubernetes
 gateway:
   profile: dev,kubernetes
   applicationProperties: |+

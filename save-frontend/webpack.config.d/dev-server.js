@@ -2,6 +2,7 @@ config.devServer = Object.assign(
     {},
     config.devServer || {},
     {
+        port: 8080,
         setupMiddlewares: (middlewares, devServer) => {
             devServer.app.get("/sec/oauth-providers", (req, res) => { return res.send([]); });
             return middlewares;
