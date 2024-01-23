@@ -24,6 +24,7 @@ import reactor.core.scheduler.Schedulers
  * Service for user
  */
 @Service
+@Suppress("LongParameterList")
 class UserService(
     private val userRepository: UserRepository,
     private val organizationRepository: OrganizationRepository,
