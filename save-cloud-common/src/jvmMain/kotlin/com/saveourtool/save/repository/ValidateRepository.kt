@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.repository
+package com.saveourtool.save.repository
 
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query

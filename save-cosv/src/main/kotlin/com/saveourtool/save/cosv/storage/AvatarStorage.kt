@@ -1,6 +1,6 @@
-package com.saveourtool.save.backend.storage
+package com.saveourtool.save.cosv.storage
 
-import com.saveourtool.save.backend.configs.ConfigProperties
+import com.saveourtool.save.cosv.configs.ConfigProperties
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
 import com.saveourtool.save.storage.AvatarKey

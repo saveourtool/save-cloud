@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne
  * @property role role of this user
  */
 @Entity
+@Table(schema = "save_cloud", name = "lnk_user_project")
 class LnkUserProject(
     @ManyToOne
     @JoinColumn(name = "project_id")

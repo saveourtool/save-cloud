@@ -3,9 +3,9 @@ package com.saveourtool.save.backend.controllers
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.UserDetailsService
-import com.saveourtool.save.backend.storage.AvatarKey
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.utils.ByteBufferFluxResponse
 import com.saveourtool.save.v1
