@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.storage
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.s3.S3Operations
 import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
+import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.storage.s3KeyToParts
 import com.saveourtool.save.utils.AvatarType

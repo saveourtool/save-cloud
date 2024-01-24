@@ -3,13 +3,13 @@ package com.saveourtool.save.cosv.service
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.cosv.repositorysave.*
-import com.saveourtool.save.cosv.storage.AvatarKey
 import com.saveourtool.save.cosv.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.utils.orNotFound
