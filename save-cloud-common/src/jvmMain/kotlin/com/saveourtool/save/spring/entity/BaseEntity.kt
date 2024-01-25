@@ -2,10 +2,7 @@ package com.saveourtool.save.spring.entity
 
 import com.saveourtool.save.listeners.DateListener
 import com.saveourtool.save.validation.Validatable
-import javax.persistence.EntityListeners
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
-import javax.persistence.MappedSuperclass
+import javax.persistence.*
 
 /**
  * base class for all entities
@@ -18,7 +15,7 @@ abstract class BaseEntity : Validatable {
      * generate a unique id
      */
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     open var id: Long? = null
 
     /**

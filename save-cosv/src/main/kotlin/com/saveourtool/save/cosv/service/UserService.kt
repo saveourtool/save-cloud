@@ -38,7 +38,7 @@ class UserService(
      * @param user user for update
      * @return updated user
      */
-    fun saveUser(user: User) = userRepository.updateUser(user.name, user.rating)
+    fun saveUser(user: User) = userRepository.save(user)
 
     /**
      * @param name
