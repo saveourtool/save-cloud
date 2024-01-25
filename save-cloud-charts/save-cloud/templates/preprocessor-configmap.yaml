@@ -4,8 +4,6 @@ metadata:
   name: {{ .Values.preprocessor.name }}-config
 data:
   application.properties: |
-    save.backend=http://backend/internal
-    save.orchestrator=http://orchestrator
-    server.shutdown=graceful
-    management.endpoints.web.exposure.include=*
-    management.server.port={{ .Values.preprocessor.managementPort }}
+    {{ if .Values.preprocessor.applicationProperties }}
+    {{- .Values.preprocessor.applicationProperties | nindent 4 }}
+    {{ end }}

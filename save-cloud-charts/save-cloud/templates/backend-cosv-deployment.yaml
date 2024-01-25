@@ -43,7 +43,6 @@ spec:
               memory: 2G
             requests:
               memory: 1G
-      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -122,7 +121,6 @@ spec:
               name: ca-certs
               subPath: cert-check.crt
               readOnly: false
-      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend_cosv) | indent 10 | trim }}
         - name: database-secret

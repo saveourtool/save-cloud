@@ -63,7 +63,6 @@ spec:
               memory: 1000M
             requests:
               memory: 800M
-      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -137,7 +136,6 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
-      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
         - name: database-secret
