@@ -6,8 +6,6 @@ import com.saveourtool.save.repository.ValidateRepository
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 /**
@@ -15,20 +13,6 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface UserRepository : BaseEntityRepository<User>, ValidateRepository {
-    /**
-     * @param userName user name for update
-     * @param rating new user rating
-     * @return updated user
-     */
-    @Query(
-        value = "update save_cloud.user u set u.rating = :rating where u.name = :user_name",
-        nativeQuery = true,
-    )
-    fun updateUser(
-        @Param("user_name") userName: String,
-        @Param("rating") rating: Long,
-    )
-
     /**
      * @param ids
      * @return users with [ids]
