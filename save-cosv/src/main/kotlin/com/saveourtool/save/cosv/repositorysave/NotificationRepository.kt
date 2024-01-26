@@ -2,8 +2,6 @@ package com.saveourtool.save.cosv.repositorysave
 
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.spring.repository.BaseEntityRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 /**
@@ -12,16 +10,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface NotificationRepository : BaseEntityRepository<Notification> {
     /**
-     * @param message message of notification
-     * @param userId id of user
-     * @return save tag
+     * @param name
+     * @return list of notification
      */
-    @Query(
-        value = "insert into save_cloud.notification (message, user_id) values (:message, :userId)",
-        nativeQuery = true,
-    )
-    fun saveNotification(
-        @Param("message") message: String,
-        @Param("userId") userId: Long,
-    ): Notification
+    fun findByUserName(name: String): List<Notification>
 }
