@@ -2,10 +2,10 @@ package com.saveourtool.save.backend.service
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.CommentRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.evententities.CommentEvent
+import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.getByIdOrNotFound
 
 import org.springframework.context.ApplicationEventPublisher

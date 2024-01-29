@@ -18,7 +18,7 @@ import javax.sql.DataSource
  */
 @Configuration
 @EnableJpaRepositories(
-    basePackages = ["com.saveourtool.save.cosv.repositorysave"],
+    basePackages = ["com.saveourtool.save.cosv.repositorysave", "com.saveourtool.save.repository"],
     entityManagerFactoryRef = "saveEntityManagerFactory",
     transactionManagerRef = "saveTransactionManager")
 class PersistenceSaveAutoConfiguration {

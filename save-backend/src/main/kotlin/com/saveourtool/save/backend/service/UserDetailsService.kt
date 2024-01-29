@@ -4,7 +4,6 @@ import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
@@ -12,6 +11,7 @@ import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.utils.*
 import org.slf4j.Logger

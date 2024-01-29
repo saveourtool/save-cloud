@@ -9,6 +9,7 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole

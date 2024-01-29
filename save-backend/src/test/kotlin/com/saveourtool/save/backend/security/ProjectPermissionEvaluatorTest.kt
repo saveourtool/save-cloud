@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.backend.repository.LnkUserProjectRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.SaveUserDetails

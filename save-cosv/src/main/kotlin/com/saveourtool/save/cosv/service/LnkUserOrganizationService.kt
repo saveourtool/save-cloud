@@ -2,10 +2,10 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.cosv.repositorysave.LnkUserOrganizationRepository
-import com.saveourtool.save.cosv.repositorysave.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
 

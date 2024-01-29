@@ -1,10 +1,7 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.SetRoleRequest
 import org.junit.jupiter.api.Assertions

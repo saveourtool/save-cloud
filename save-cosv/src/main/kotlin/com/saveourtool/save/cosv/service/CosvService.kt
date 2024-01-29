@@ -5,7 +5,6 @@ import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
 import com.saveourtool.save.cosv.repository.CosvSchema
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
-import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
@@ -49,7 +48,6 @@ class CosvService(
     private val vulnerabilityRatingService: VulnerabilityRatingService,
     private val lnkVulnerabilityMetadataTagRepository: LnkVulnerabilityMetadataTagRepository,
     private val cosvGeneratedIdRepository: CosvGeneratedIdRepository,
-    private val tagRepository: TagRepository,
 ) {
     private val scheduler = Schedulers.boundedElastic()
 
@@ -287,7 +285,7 @@ class CosvService(
                     .findAllByVulnerabilityMetadataIdentifier(identifier)
                     .map { it.tagId }
 
-                val tags = tagRepository.findAllByIdIn(links).map { it.name }.toSet()
+                val tags = tagService.findAllByIds(links).map { it.name }.toSet()
                 val user = userService.findById(metadata.userId).toUserInfo()
                 val organization = metadata.organizationId?.let { organizationService.getOrganizationById(it).toDto() }
 
