@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.orchestrator.name }}-config
-data:
-  application.properties: |
-    {{ if .Values.orchestrator.applicationProperties }}
-    {{- .Values.orchestrator.applicationProperties | nindent 4 }}
-    {{ end }}

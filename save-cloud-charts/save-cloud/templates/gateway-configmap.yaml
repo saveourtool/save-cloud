@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.gateway.name }}-config
-data:
-  application.properties: |
-    {{ if .Values.gateway.applicationProperties }}
-    {{- .Values.gateway.applicationProperties | nindent 4 }}
-    {{ end }}

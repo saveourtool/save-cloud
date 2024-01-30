@@ -1,68 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo
+  name: backend-cosv
   labels:
-    {{- include "common.labels" (merge (dict "service" .Values.demo) .) | nindent 4 }}
+    {{- include "common.labels" (merge (dict "service" .Values.backend_cosv) .) | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      io.kompose.service: demo
+      io.kompose.service: backend-cosv
   strategy:
     # Because of shared volume with multi-attach problem
     type: Recreate
   template:
     metadata:
       labels:
-        {{- include "pod.common.labels" (merge (dict "service" .Values.demo ) .) | nindent 8 }}
+        {{- include "pod.common.labels" (merge (dict "service" .Values.backend_cosv ) .) | nindent 8 }}
       annotations:
-        {{- include "pod.common.annotations" (dict "service" .Values.demo ) | nindent 8 }}
+        {{- include "pod.common.annotations" (dict "service" .Values.backend_cosv ) | nindent 8 }}
     spec:
-      serviceAccountName: demo-sa
       restartPolicy: Always
-      {{- if .Values.demo.nodeName }}
-      nodeName: {{ .Values.demo.nodeName }}
-      {{- end }}
-      {{- include "cnb.securityContext" . | nindent 6}}
+      {{- include "cnb.securityContext" . | nindent 6 }}
       containers:
-        - name: demo
-          {{- include "spring-boot.common" (merge (dict "service" .Values.demo) .) | nindent 10 }}
+        - name: backend-cosv
+          {{- include "spring-boot.common" (merge (dict "service" .Values.backend_cosv) .) | nindent 10 }}
           env:
-            {{- include "spring-boot.common.env" (merge (dict "service" .Values.demo) .) | nindent 12 }}
+            {{- include "spring-boot.common.env" (merge (dict "service" .Values.backend_cosv) .) | nindent 12 }}
             - name: DATABASE_SECRETS_PATH
               value: {{ .Values.mysql.dbPasswordFile }}
             - name: S3_SECRETS_PATH
               value: {{ .Values.s3.secretFile }}
             - name: JAVA_TOOL_OPTIONS
               value: -XX:ReservedCodeCacheSize=48M
-            - name: HOST_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: POD_SERVICE_ACCOUNT
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.serviceAccountName
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           volumeMounts:
             - {{ include "spring-boot.config-volume-mount" . | indent 14 | trim }}
             - name: database-secret
               mountPath: {{ .Values.mysql.dbPasswordFile }}
             - name: s3-secrets
               mountPath: {{ .Values.s3.secretFile }}
-          {{- include "spring-boot.management" .Values.demo | nindent 10 }}
+          {{- include "spring-boot.management" .Values.backend_cosv | nindent 10 }}
           resources:
             limits:
-              memory: 1000M
+              memory: 2G
             requests:
-              memory: 800M
+              memory: 1G
       initContainers:
         - name: git-cloner
           image: alpine/git
@@ -97,7 +77,7 @@ spec:
             runAsGroup: 1001
           args:
             - --url=$(DB_URL)?createDatabaseIfNotExist=true
-            - --changeLogFile=save-demo/db/db.changelog-demo.xml
+            - --changeLogFile=db/db.changelog-master.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
             - --log-level=info
@@ -109,13 +89,14 @@ spec:
             limits:
               memory: 300M
           env:
+            # See https://hub.docker.com/r/liquibase/liquibase, section 'Notice for MySQL Users'
             - name: INSTALL_MYSQL
               value: 'true'
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: spring.datasource.demo-url
+                  key: spring.datasource.backend-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -136,8 +117,12 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+            - mountPath: /etc/ssl/certs/ca-certificates.crt
+              name: ca-certs
+              subPath: cert-check.crt
+              readOnly: false
       volumes:
-        - {{ include "spring-boot.config-volume" (dict "service" .Values.demo) | indent 10 | trim }}
+        - {{ include "spring-boot.config-volume" (dict "service" .Values.backend_cosv) | indent 10 | trim }}
         - name: database-secret
           secret:
             secretName: db-secrets
@@ -145,4 +130,30 @@ spec:
           secret:
             secretName: s3-secrets
         - name: migrations-data
-          emptyDir: { }
+          emptyDir: {}
+        - name: ca-certs
+          configMap:
+            name: ca-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+{{- include "service.common.metadata" (dict "service" .Values.backend_cosv) | nindent 2 }}
+spec:
+  {{ if .Values.backend_cosv.clusterIP }}
+  clusterIP: {{ .Values.backend_cosv.clusterIP }}
+  {{ end }}
+  ports:
+    {{- include "service.common.ports" (dict "service" .Values.backend_cosv) | nindent 4 }}
+  selector:
+    {{- include "service.common.selectors" (dict "service" .Values.backend_cosv) | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.backend_cosv.name }}-config
+data:
+  application.properties: |
+    {{ if .Values.backend_cosv.applicationProperties }}
+    {{- .Values.backend_cosv.applicationProperties | nindent 4 }}
+    {{ end }}

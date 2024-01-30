@@ -55,3 +55,71 @@ spec:
               memory: 600M
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.orchestrator) | indent 10 | trim }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+{{- include "service.common.metadata" (dict "service" .Values.orchestrator) | nindent 2 }}
+spec:
+  {{ if .Values.orchestrator.clusterIP }}
+  clusterIP: {{ .Values.orchestrator.clusterIP }}
+  {{ end }}
+  ports:
+    {{- include "service.common.ports" (dict "service" .Values.orchestrator) | nindent 4 }}
+  selector:
+    {{- include "service.common.selectors" (dict "service" .Values.orchestrator) | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.orchestrator.name }}-config
+data:
+  application.properties: |
+    {{ if .Values.orchestrator.applicationProperties }}
+    {{- .Values.orchestrator.applicationProperties | nindent 4 }}
+    {{ end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orchestrator-sa
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jobs-executor
+  {{ if .Values.agentNamespace }}
+  namespace: {{ .Values.agentNamespace }}
+  {{ end }}
+rules:
+  - apiGroups: [""]  # "" indicates the core API group
+    resources: [services]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [batch]
+    resources: [jobs]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]  # "" indicates the core API group
+    resources: [pods]
+    verbs: [list, get, delete, create]
+  # this rule is required for sprint-cloud-kubernetes-fabric8-config
+  - apiGroups: [""]  # "" indicates the core API group
+    resources: [configmaps, secrets]
+    verbs: [list, get, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: orchestrator-jobs-binding
+  {{ if .Values.agentNamespace }}
+  namespace: {{ .Values.agentNamespace }}
+  {{ end }}
+subjects:
+  - kind: ServiceAccount
+    name: orchestrator-sa
+    namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jobs-executor

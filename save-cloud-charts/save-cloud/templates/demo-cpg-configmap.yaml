@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.demo_cpg.name }}-config
-data:
-  application.properties: |
-    {{ if .Values.demo_cpg.applicationProperties }}
-    {{- .Values.demo_cpg.applicationProperties | nindent 4 }}
-    {{ end }}

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.backend_cosv.name }}-config
-data:
-  application.properties: |
-    {{ if .Values.backend_cosv.applicationProperties }}
-    {{- .Values.backend_cosv.applicationProperties | nindent 4 }}
-    {{ end }}
