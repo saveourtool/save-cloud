@@ -13,10 +13,7 @@ import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.repository.GitRepository
-import com.saveourtool.save.repository.LnkUserOrganizationRepository
-import com.saveourtool.save.repository.OrganizationRepository
-import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.repository.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
