@@ -11,6 +11,7 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.repository.UserRepository
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

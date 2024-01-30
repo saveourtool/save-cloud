@@ -10,6 +10,7 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.BlockingBridge
