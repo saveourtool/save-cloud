@@ -41,7 +41,7 @@ val logoButtons: FC<Props> = FC {
 
         logo(
             "VULN",
-            "/${FrontendCosvRoutes.VULN}",
+            "https://cosv.gitlink.org.cn/${FrontendCosvRoutes.VULN}",
             "Archive of 1-Day Vulnerabilities Aggregated from Various Sources".t(),
             "/img/vuln-logo-bg.png",
 
