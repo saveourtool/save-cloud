@@ -9,6 +9,8 @@ import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.storage.AvatarKey
 import com.saveourtool.save.utils.AvatarType
@@ -28,7 +30,6 @@ import reactor.core.scheduler.Schedulers
 @Suppress("LongParameterList")
 class UserService(
     private val userRepository: UserRepository,
-    private val organizationRepository: OrganizationRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val originalLoginRepository: OriginalLoginRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
@@ -73,7 +74,7 @@ class UserService(
      * @param organizationName
      * @return role for user in organization by user ID and organization name
      */
-    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = organizationRepository
+    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
         .findByUserIdAndOrganizationName(userId, organizationName)
         ?.role
         ?: Role.NONE

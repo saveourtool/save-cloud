@@ -1,7 +1,6 @@
 package com.saveourtool.save.cosv.event
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
-import com.saveourtool.save.cosv.repositorysave.NotificationRepository
 import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
 import com.saveourtool.save.entities.Notification
