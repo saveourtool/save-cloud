@@ -3,10 +3,10 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.ProjectProblemRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.entities.ProjectProblem
 import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.save.filters.ProjectProblemFilter
+import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.getByIdOrNotFound
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.security.core.Authentication

@@ -13,7 +13,7 @@ import org.springframework.web.reactive.config.EnableWebFlux
 
 @Configuration
 @EnableWebFlux
-@EnableJpaRepositories(basePackages = ["com.saveourtool.save.backend.repository"])
+@EnableJpaRepositories(basePackages = ["com.saveourtool.save.backend.repository", "com.saveourtool.save.repository"])
 @EntityScan("com.saveourtool.save.entities")
 @ImportAutoConfiguration(HibernateMetricsAutoConfiguration::class)
 @Suppress("MISSING_KDOC_TOP_LEVEL")

@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.repository
+package com.saveourtool.save.repository
 
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.spring.repository.BaseEntityRepository
