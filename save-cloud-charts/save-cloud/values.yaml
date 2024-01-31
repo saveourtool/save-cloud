@@ -81,6 +81,8 @@ mysql:
   backend_schema: save_cloud
   demo_schema: save_demo
   cosv_schema: cosv
+  migrations:
+    branch: {}
   dbPasswordFile: /home/cnb/secrets/db_secrets
 
 # Values for dependencies
