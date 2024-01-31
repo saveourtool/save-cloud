@@ -1,8 +1,8 @@
 package com.saveourtool.save.cosv.processor
 
+import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import com.saveourtool.save.cosv.utils.toJsonArrayOrSingle
 
-import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.springframework.stereotype.Component
 
 import java.io.InputStream
