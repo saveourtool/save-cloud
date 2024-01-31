@@ -41,7 +41,7 @@ jobs:
           echo SAVE_DEMO_AGENT_GRADLE_OPTS = >> $GITHUB_ENV
           echo GRADLE_TASKS=:${{ inputs.module}}:bootBuildImage >> $GITHUB_ENV
       - name: Override gradle command for frontend
-        if: inputs.module == 'save-frontend' || inputs.module == 'save-cosv-frontend'
+        if: inputs.module == 'save-frontend' || inputs.module == 'cosv-frontend'
         run: |
           echo GRADLE_TASKS=:${{ inputs.module}}:buildImage >> $GITHUB_ENV
       - name: Override dockerTag

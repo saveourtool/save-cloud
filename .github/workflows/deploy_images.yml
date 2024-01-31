@@ -92,7 +92,7 @@ jobs:
           'save-cosv',
           'api-gateway',
           'save-frontend',
-          'save-cosv-frontend',
+          'cosv-frontend',
           'save-orchestrator',
           'save-preprocessor',
           'save-demo-cpg',
@@ -104,7 +104,7 @@ jobs:
             do-build: ${{ inputs.gateway }}
           - module: save-frontend
             do-build: ${{ inputs.frontend }}
-          - module: save-cosv-frontend
+          - module: cosv-frontend
             do-build: ${{ inputs.frontend }}
           - module: save-orchestrator
             do-build: ${{ inputs.orchestrator }}
