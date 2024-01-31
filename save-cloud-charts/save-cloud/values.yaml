@@ -226,7 +226,7 @@ demo:
 namespace: save-cloud
 agentNamespace: save-agent
 
-#optional proxy params
+# optional proxy params
 proxy:
   enabled: false
   extraEnv:
