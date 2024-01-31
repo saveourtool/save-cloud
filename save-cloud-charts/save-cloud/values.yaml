@@ -71,6 +71,9 @@ gateway:
     annotations: {}
     # Any additional options for Service `spec` block
     spec: {}
+storage:
+  size: 24Gi
+  annotations: {}
 s3:
   secretFile: /home/cnb/secrets/s3_secrets
 mysql:
