@@ -225,3 +225,15 @@ demo:
 
 namespace: save-cloud
 agentNamespace: save-agent
+
+#optional proxy params
+proxy:
+  enabled: false
+  extraEnv:
+    - name: http_proxy
+      value: {}
+    - name: HTTPS_PROXY
+      value: {}
+    - name: NO_PROXY
+      value: {}
+  extraArgs: {}
