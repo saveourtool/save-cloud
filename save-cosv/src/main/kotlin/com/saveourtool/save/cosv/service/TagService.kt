@@ -2,9 +2,9 @@ package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.save.cosv.repository.VulnerabilityMetadataRepository
-import com.saveourtool.save.cosv.repositorysave.TagRepository
 import com.saveourtool.save.entities.Tag
 import com.saveourtool.save.entitiescosv.LnkVulnerabilityMetadataTag
+import com.saveourtool.save.repository.TagRepository
 import com.saveourtool.save.utils.error
 import com.saveourtool.save.utils.getLogger
 import com.saveourtool.save.utils.orNotFound
@@ -29,14 +29,21 @@ class TagService(
 ) {
     /**
      * @param name name of tag
+     * @return Tag
      */
-    fun saveTag(name: String) = tagRepository.saveTag(name)
+    fun saveTag(name: String) = tagRepository.save(Tag(name))
 
     /**
      * @param name
      * @return tag with [name]
      */
     fun findTagByName(name: String): Tag? = tagRepository.findByName(name)
+
+    /**
+     * @param ids
+     * @return list of tag
+     */
+    fun findAllByIds(ids: List<Long>): List<Tag> = tagRepository.findAllByIdIn(ids)
 
     /**
      * @param identifier [com.saveourtool.save.entities.cosv.VulnerabilityMetadata.identifier]
@@ -52,7 +59,7 @@ class TagService(
         val metadata = vulnerabilityMetadataRepository.findByIdentifier(identifier).orNotFound {
             "Could not find metadata for vulnerability $identifier"
         }
-        val tag = tagRepository.findByName(tagName) ?: tagRepository.saveTag(tagName)
+        val tag = tagRepository.findByName(tagName) ?: tagRepository.save(Tag(tagName))
 
         return lnkVulnerabilityMetadataTagRepository.save(
             LnkVulnerabilityMetadataTag(metadata, tag.requiredId())
@@ -77,7 +84,7 @@ class TagService(
         }
 
         val links = tagNames.map {
-            tagRepository.findByName(it) ?: tagRepository.saveTag(it)
+            tagRepository.findByName(it) ?: tagRepository.save(Tag(it))
         }.map {
             LnkVulnerabilityMetadataTag(metadata, it.requiredId())
         }

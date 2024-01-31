@@ -1,9 +1,9 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.GitRepository
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.entities.Organization
+import com.saveourtool.save.repository.GitRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
