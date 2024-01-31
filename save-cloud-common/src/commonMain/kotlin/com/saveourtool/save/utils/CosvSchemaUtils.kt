@@ -4,11 +4,10 @@
 
 package com.saveourtool.save.utils
 
-import com.saveourtool.save.entities.vulnerability.*
-import com.saveourtool.save.info.UserInfo
-
 import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.OsvSchema as CosvSchema
+import com.saveourtool.save.entities.vulnerability.*
+import com.saveourtool.save.info.UserInfo
 
 import kotlinx.datetime.LocalDateTime
 

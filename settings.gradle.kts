@@ -36,6 +36,7 @@ plugins {
 
 includeBuild("gradle/plugins")
 include("api-gateway")
+include("cosv-frontend")
 include("save-backend")
 include("save-orchestrator-common")
 include("save-orchestrator")
@@ -52,7 +53,6 @@ include("save-demo-cpg")
 include("test-analysis-core")
 include("save-demo-agent")
 include("save-cosv")
-include("save-cosv-frontend")
 include("save-frontend-common")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
