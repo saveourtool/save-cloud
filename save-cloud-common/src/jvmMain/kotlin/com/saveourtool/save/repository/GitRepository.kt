@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.repository
+package com.saveourtool.save.repository
 
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.Organization

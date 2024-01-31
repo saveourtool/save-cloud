@@ -4,7 +4,6 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
@@ -14,6 +13,7 @@ import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.utils.DATABASE_DELIMITER
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.BeforeEach

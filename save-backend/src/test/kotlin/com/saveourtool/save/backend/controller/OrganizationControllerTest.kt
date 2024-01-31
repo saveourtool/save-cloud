@@ -4,8 +4,6 @@ import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
 import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.repository.OrganizationRepository
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
@@ -15,6 +13,7 @@ import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.repository.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer

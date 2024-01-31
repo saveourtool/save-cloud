@@ -1,11 +1,11 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.OrganizationRepository
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.isValidLengthName

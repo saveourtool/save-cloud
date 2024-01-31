@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.service
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.cosv.repositorysave.OrganizationRepository
+import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.cosv.utils.hasRole
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
@@ -13,6 +13,8 @@ import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.info.UserPermissions
 import com.saveourtool.save.info.UserPermissionsInOrganization
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.isValidLengthName
 import org.jetbrains.annotations.Blocking
@@ -29,6 +31,7 @@ import java.util.*
 @Service
 class OrganizationService(
     private val organizationRepository: OrganizationRepository,
+    private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val projectService: ProjectService,
 ) {
     /**
@@ -56,7 +59,7 @@ class OrganizationService(
      * @param name
      * @return organization with [name]
      */
-    fun getOrganizationByName(name: String): Organization = organizationRepository.getOrganizationByName(name)
+    fun getOrganizationByName(name: String): Organization = organizationRepository.findByName(name).orNotFound { "Organization with name: $name not found" }
 
     /**
      * @param id
@@ -82,8 +85,8 @@ class OrganizationService(
             return true
         }
 
-        val organization = organizationRepository.getOrganizationByName(organizationName)
-        val organizationRole = organization.id?.let { organizationRepository.findRoleByUserIdAndOrganization(userId, it) }
+        val organization = getOrganizationByName(organizationName)
+        val organizationRole = organization.id?.let { lnkUserOrganizationRepository.findByUserIdAndOrganizationId(userId, it)?.role }
         organizationRole ?: return permission == Permission.READ
         return when (permission) {
             Permission.READ -> hasReadAccess(userId, organizationRole)
@@ -102,7 +105,7 @@ class OrganizationService(
         authentication: Authentication,
         organizationName: String,
     ): UserPermissions {
-        val lnkOrganization = organizationRepository.findByUserNameAndOrganizationStatusAndOrganizationName(authentication.userId(), OrganizationStatus.CREATED.name,
+        val lnkOrganization = lnkUserOrganizationRepository.findByUserNameAndOrganizationStatusAndOrganizationName(authentication.username(), OrganizationStatus.CREATED,
             organizationName)
 
         val isPermittedCreateContest = lnkOrganization?.organization?.canCreateContests ?: false
