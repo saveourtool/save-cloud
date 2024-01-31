@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.storage
+package com.saveourtool.save.storage
 
 import com.saveourtool.save.utils.AvatarType
 

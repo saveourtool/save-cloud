@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
+import com.saveourtool.save.repository.ValidateRepository
 import com.saveourtool.save.spring.repository.BaseEntityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

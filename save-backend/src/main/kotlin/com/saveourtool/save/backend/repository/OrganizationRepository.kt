@@ -2,6 +2,7 @@ package com.saveourtool.save.backend.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.repository.ValidateRepository
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor

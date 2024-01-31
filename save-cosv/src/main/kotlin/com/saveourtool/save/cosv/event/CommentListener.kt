@@ -2,7 +2,9 @@ package com.saveourtool.save.cosv.event
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
 import com.saveourtool.save.cosv.repositorysave.NotificationRepository
+import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
+import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.CommentEvent
 import com.saveourtool.save.utils.orNotFound
@@ -17,6 +19,7 @@ class CommentListener(
     private val notificationRepository: NotificationRepository,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataUserRepository: LnkVulnerabilityMetadataUserRepository,
+    private val userService: UserService,
 ) {
     /**
      * @param commentEvent new commentEvent
@@ -43,9 +46,14 @@ class CommentListener(
             )
 
         val message = messageNewVulnComment(commentOwner, identifier)
-        recipients.map { userId ->
-            notificationRepository.saveNotification(message, userId)
+        val users = userService.findAllByIdIn(recipients)
+        val notifications = users.map { user ->
+            Notification(
+                message = message,
+                user = user,
+            )
         }
+        notificationRepository.saveAll(notifications)
     }
 
     companion object {
