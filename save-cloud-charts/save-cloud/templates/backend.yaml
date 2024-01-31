@@ -47,7 +47,7 @@ spec:
         - name: git-cloner
           image: alpine/git
           env:
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -56,7 +56,7 @@ spec:
             - clone
             - --progress
             - --verbose
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraArgs }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -107,7 +107,7 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: spring.datasource.password
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
