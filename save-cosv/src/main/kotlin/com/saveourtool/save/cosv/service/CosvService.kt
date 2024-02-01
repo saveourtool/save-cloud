@@ -1,5 +1,7 @@
 package com.saveourtool.save.cosv.service
 
+import com.saveourtool.osv4k.*
+import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import com.saveourtool.save.cosv.processor.CosvProcessor
 import com.saveourtool.save.cosv.repository.CosvGeneratedIdRepository
 import com.saveourtool.save.cosv.repository.CosvRepository
@@ -12,8 +14,6 @@ import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entitiescosv.CosvGeneratedId
 import com.saveourtool.save.utils.*
 
-import com.saveourtool.osv4k.*
-import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

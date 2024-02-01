@@ -35,7 +35,7 @@ frontend:
   containerPort: 5810
 frontend_cosv:
   name: frontend-cosv
-  imageName: save-cosv-frontend
+  imageName: cosv-frontend
   containerPort: 5820
 orchestrator:
   name: orchestrator
