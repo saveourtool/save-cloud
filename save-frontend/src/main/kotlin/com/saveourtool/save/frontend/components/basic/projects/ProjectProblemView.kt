@@ -206,7 +206,7 @@ val projectProblem: FC<ProjectProblemViewProps> = FC {props ->
                                             className = ClassName("mt-2 pl-2")
                                             projectProblem.identifier?.let {
                                                 Link {
-                                                    to = "/${FrontendCosvRoutes.VULN}/${projectProblem.identifier}"
+                                                    to = "https://cosv.gitlink.org.cn/${FrontendCosvRoutes.VULN}/${projectProblem.identifier}"
                                                     +it
                                                 }
                                             } ?: +"No known CVE"

@@ -43,12 +43,11 @@ spec:
               memory: 2G
             requests:
               memory: 1G
-      {{ if .Values.mysql.migrations.enabled }}
       initContainers:
         - name: git-cloner
           image: alpine/git
           env:
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -57,7 +56,7 @@ spec:
             - clone
             - --progress
             - --verbose
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraArgs }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -108,7 +107,7 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: spring.datasource.password
-            {{ if .Values.proxy.enabled }}
+            {{ if .Values.proxy.enabled | default false }}
             {{- with .Values.proxy.extraEnv }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -118,7 +117,6 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
-      {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: database-secret
@@ -129,3 +127,26 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+{{- include "service.common.metadata" (dict "service" .Values.backend) | nindent 2 }}
+spec:
+  {{ if .Values.backend.clusterIP }}
+  clusterIP: {{ .Values.backend.clusterIP }}
+  {{ end }}
+  ports:
+    {{- include "service.common.ports" (dict "service" .Values.backend) | nindent 4 }}
+  selector:
+    {{- include "service.common.selectors" (dict "service" .Values.backend) | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.backend.name }}-config
+data:
+  application.properties: |
+    {{ if .Values.backend.applicationProperties }}
+    {{- .Values.backend.applicationProperties | nindent 4 }}
+    {{ end }}
