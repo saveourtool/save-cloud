@@ -25,9 +25,4 @@ class ApplicationConfiguration {
     @Bean
     fun logService(configProperties: ConfigProperties): LogService = LokiLogService.createOrStub(configProperties.loki)
 
-/*    *//**
-     * @return [BlockingBridge]
-     *//*
-    @Bean
-    fun blockingBridge(): BlockingBridge = BlockingBridge.default*/
 }
