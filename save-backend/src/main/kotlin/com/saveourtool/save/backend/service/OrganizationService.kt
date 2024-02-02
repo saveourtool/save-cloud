@@ -6,6 +6,7 @@ import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.ProjectStatus.*
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.repository.OrganizationRepository
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.validation.isValidLengthName

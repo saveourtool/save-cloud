@@ -6,7 +6,6 @@ import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.controllers.FileController
 import com.saveourtool.save.backend.controllers.internal.FileInternalController
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser

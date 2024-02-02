@@ -15,6 +15,8 @@ import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 

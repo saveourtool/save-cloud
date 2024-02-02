@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role

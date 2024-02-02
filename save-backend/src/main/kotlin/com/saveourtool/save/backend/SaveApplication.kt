@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Import
 /**
  * An entrypoint for spring for save-backend
  */
-@SpringBootApplication(scanBasePackages = ["com.saveourtool.save.backend", "com.saveourtool.save.repository"])
+@SpringBootApplication(scanBasePackages = ["com.saveourtool.save.backend", "com.saveourtool.save"])
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
     DefaultS3Configuration::class,

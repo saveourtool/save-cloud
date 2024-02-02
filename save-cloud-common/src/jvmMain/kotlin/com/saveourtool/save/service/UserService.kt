@@ -1,27 +1,21 @@
-package com.saveourtool.save.cosv.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.cosv.repositorysave.*
-import com.saveourtool.save.cosv.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.repository.LnkUserOrganizationRepository
-import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.storage.AvatarKey
-import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.getHighestRole
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.username
+
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.scheduler.Schedulers
 
 /**
  * Service for user
@@ -31,10 +25,7 @@ import reactor.core.scheduler.Schedulers
 class UserService(
     private val userRepository: UserRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val originalLoginRepository: OriginalLoginRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
-    private val lnkUserProjectRepository: LnkUserProjectRepository,
-    private val avatarStorage: AvatarStorage,
 ) {
     /**
      * @param user user for update
@@ -74,8 +65,8 @@ class UserService(
      * @param organizationName
      * @return role for user in organization by user ID and organization name
      */
-    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
-        .findByUserIdAndOrganizationName(userId, organizationName)
+    fun findRoleByUserNameAndOrganizationName(userName: String, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserNameAndOrganizationName(userName, organizationName)
         ?.role
         ?: Role.NONE
 
@@ -85,9 +76,9 @@ class UserService(
      * @return the highest of two roles: the one in organization with name [organizationName] and global one.
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
-        val selfId = authentication.userId()
+        val selfName = authentication.username()
         val selfGlobalRole = getGlobalRole(authentication)
-        val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
+        val selfOrganizationRole = findRoleByUserNameAndOrganizationName(selfName, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
 
@@ -130,49 +121,6 @@ class UserService(
                 UserSaveStatus.UPDATE
             }
         }
-    }
-
-    /**
-     * @param name name of user
-     * @param authentication
-     * @return UserSaveStatus
-     */
-    @Transactional
-    fun deleteUser(
-        name: String,
-        authentication: Authentication,
-    ): UserSaveStatus {
-        val user: User = userRepository.findByIdOrNull(authentication.userId()).orNotFound {
-            "User with id ${authentication.userId()} not found in database"
-        }
-        val newName = "Deleted-${user.id}"
-        userRepository.deleteHighLevelName(user.name)
-        userRepository.saveHighLevelName(newName)
-        userRepository.save(user.apply {
-            this.name = newName
-            this.status = UserStatus.DELETED
-            this.avatar = null
-            this.company = null
-            this.twitter = null
-            this.email = null
-            this.gitHub = null
-            this.linkedin = null
-            this.location = null
-        })
-
-        val avatarKey = AvatarKey(
-            AvatarType.USER,
-            name,
-        )
-        avatarStorage.delete(avatarKey)
-            .subscribeOn(Schedulers.boundedElastic())
-            .subscribe()
-
-        originalLoginRepository.deleteByUserId(user.requiredId())
-        lnkUserProjectRepository.deleteByUserId(user.requiredId())
-        lnkUserOrganizationRepository.deleteByUserId(user.requiredId())
-
-        return UserSaveStatus.DELETED
     }
 
     /**

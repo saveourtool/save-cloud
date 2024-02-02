@@ -40,7 +40,7 @@ typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDtoWithUserAn
 class CosvService(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
-    private val userService: UserService,
+    private val userService: CosvUserService,
     private val organizationService: OrganizationService,
     private val tagService: TagService,
     private val cosvProcessor: CosvProcessor,

@@ -1,8 +1,8 @@
 package com.saveourtool.save.cosv.storage
 
 import com.saveourtool.save.cosv.repository.RawCosvFileRepository
+import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.cosv.service.OrganizationService
-import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.entities.cosv.RawCosvFileDto
 import com.saveourtool.save.entities.cosv.RawCosvFileStatus
 import com.saveourtool.save.entitiescosv.RawCosvFile
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional
 class RawCosvFileS3KeyManager(
     s3OperationsPropertiesProvider: S3OperationsProperties.Provider,
     rawCosvFileRepository: RawCosvFileRepository,
-    private val userService: UserService,
+    private val userService: CosvUserService,
     private val organizationService: OrganizationService,
     blockingBridge: BlockingBridge,
 ) : AbstractS3KeyDtoManager<RawCosvFileDto, RawCosvFile, RawCosvFileRepository>(

@@ -4,7 +4,7 @@ import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.configs.ConfigProperties
-import com.saveourtool.save.cosv.service.UserService
+import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.domain.UserSaveStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserInfo
@@ -40,7 +40,7 @@ import reactor.kotlin.core.publisher.toMono
 @RequestMapping(path = ["/api/$v1/users"])
 class UsersDetailsController(
     private val userRepository: UserRepository,
-    private val userDetailsService: UserService,
+    private val userDetailsService: CosvUserService,
     configProperties: ConfigProperties,
     jackson2WebClientCustomizer: WebClientCustomizer,
 ) {

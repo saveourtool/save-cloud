@@ -5,8 +5,8 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.configs.ConfigProperties
 import com.saveourtool.save.cosv.service.CosvService
+import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.cosv.service.OrganizationService
-import com.saveourtool.save.cosv.service.UserService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
@@ -50,7 +50,7 @@ typealias PathAndSizeAndAccumitiveSize = Triple<Path, Long, Long>
 class RawCosvFileController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
-    private val userService: UserService,
+    private val userService: CosvUserService,
     private val organizationService: OrganizationService,
     private val configProperties: ConfigProperties,
 ) {

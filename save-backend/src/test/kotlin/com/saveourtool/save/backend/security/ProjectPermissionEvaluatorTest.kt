@@ -1,17 +1,16 @@
 package com.saveourtool.save.backend.security
 
-import com.saveourtool.save.backend.repository.LnkUserProjectRepository
-import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.SaveUserDetails
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.repository.LnkUserProjectRepository
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.security.ProjectPermissionEvaluator
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

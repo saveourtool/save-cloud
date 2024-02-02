@@ -1,6 +1,5 @@
-package com.saveourtool.save.cosv.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilter
@@ -8,6 +7,7 @@ import com.saveourtool.save.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.utils.username
 
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
@@ -33,12 +33,12 @@ class LnkUserOrganizationService(
                 .associate { it.user to it.role }
 
     /**
-     * @param userId
+     * @param userName
      * @param organization
      * @return role for user in [organization]
      */
-    fun findRoleByUserIdAndOrganization(userId: Long, organization: Organization) = lnkUserOrganizationRepository
-        .findByUserIdAndOrganization(userId, organization)
+    fun findRoleByUserNameAndOrganization(userName: String, organization: Organization) = lnkUserOrganizationRepository
+        .findByUserNameAndOrganization(userName, organization)
         ?.role
         ?: Role.NONE
 
@@ -133,12 +133,12 @@ class LnkUserOrganizationService(
     }
 
     /**
-     * @param userId
+     * @param userName
      * @param organizationName
-     * @return role for user in organization by user ID and organization name
+     * @return role for user in organization by user name and organization name
      */
-    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
-        .findByUserIdAndOrganizationName(userId, organizationName)
+    fun findRoleByUserNameAndOrganizationName(userName: String, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserNameAndOrganizationName(userName, organizationName)
         ?.role
         ?: Role.NONE
 
@@ -193,9 +193,9 @@ class LnkUserOrganizationService(
      * @return the highest of two roles: the one in [organization] and global one.
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organization: Organization): Role {
-        val selfId = authentication.userId()
+        val selfName = authentication.username()
         val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
-        val selfOrganizationRole = findRoleByUserIdAndOrganization(selfId, organization)
+        val selfOrganizationRole = findRoleByUserNameAndOrganization(selfName, organization)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
 
@@ -205,9 +205,9 @@ class LnkUserOrganizationService(
      * @return the highest of two roles: the one in organization with name [organizationName] and global one.
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
-        val selfId = authentication.userId()
+        val selfName = authentication.username()
         val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
-        val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
+        val selfOrganizationRole = findRoleByUserNameAndOrganizationName(selfName, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
 

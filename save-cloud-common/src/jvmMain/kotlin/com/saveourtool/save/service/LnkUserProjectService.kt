@@ -1,14 +1,14 @@
-package com.saveourtool.save.backend.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.backend.repository.LnkUserProjectRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.entities.User
+import com.saveourtool.save.repository.LnkUserProjectRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.utils.username
 
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.Authentication
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service
 class LnkUserProjectService(
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val userRepository: UserRepository,
-    private val userDetailsService: UserDetailsService,
+    private val userDetailsService: UserService,
 ) {
     /**
      * @param project
@@ -37,6 +37,16 @@ class LnkUserProjectService(
      */
     fun findRoleByUserIdAndProject(userId: Long, project: Project) = lnkUserProjectRepository
         .findByUserIdAndProject(userId, project)
+        ?.role
+        ?: Role.NONE
+
+    /**
+     * @param userName
+     * @param project
+     * @return role for user in [project] by user name
+     */
+    fun findRoleByUserNameAndProject(userName: String, project: Project) = lnkUserProjectRepository
+        .findByUserNameAndProject(userName, project)
         ?.role
         ?: Role.NONE
 
@@ -129,9 +139,9 @@ class LnkUserProjectService(
      * @return the highest of two roles: the one in [project] and global one.
      */
     fun getGlobalRoleOrProjectRole(authentication: Authentication, project: Project): Role {
-        val selfId = authentication.userId()
+        val selfName = authentication.username()
         val selfGlobalRole = userDetailsService.getGlobalRole(authentication)
-        val selfOrganizationRole = findRoleByUserIdAndProject(selfId, project)
+        val selfOrganizationRole = findRoleByUserNameAndProject(selfName, project)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
 }

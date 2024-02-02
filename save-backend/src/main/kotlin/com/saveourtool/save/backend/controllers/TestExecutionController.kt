@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -26,6 +25,7 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import arrow.core.plus
+import com.saveourtool.save.security.ProjectPermissionEvaluator
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory

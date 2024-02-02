@@ -1,7 +1,7 @@
 package com.saveourtool.save.cosv.event
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
-import com.saveourtool.save.cosv.service.UserService
+import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.entities.User
@@ -19,7 +19,7 @@ class CommentListener(
     private val notificationRepository: NotificationRepository,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataUserRepository: LnkVulnerabilityMetadataUserRepository,
-    private val userService: UserService,
+    private val userService: CosvUserService,
 ) {
     /**
      * @param commentEvent new commentEvent

@@ -4,9 +4,7 @@ import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
-import com.saveourtool.save.backend.repository.ProjectRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.postJsonAndAssert
 import com.saveourtool.save.entities.Execution

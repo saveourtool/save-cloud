@@ -1,12 +1,12 @@
-package com.saveourtool.save.backend.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.evententities.CommentEvent
 import com.saveourtool.save.repository.CommentRepository
 import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.utils.getByIdOrNotFound
+import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.username
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.core.Authentication
@@ -31,8 +31,8 @@ class CommentService(
      */
     @Transactional
     fun saveComment(comment: CommentDto, authentication: Authentication) {
-        val userId = authentication.userId()
-        val user = userRepository.getByIdOrNotFound(userId)
+        val userName = authentication.username()
+        val user = userRepository.findByName(userName).orNotFound { "User with name [$userName] was not found." }
 
         val newComment = Comment(
             comment.message,
