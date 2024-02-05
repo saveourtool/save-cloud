@@ -5,6 +5,8 @@ import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.ProjectService
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

@@ -9,6 +9,7 @@ import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.entities.AgentStatusDtoList
+import com.saveourtool.save.security.ProjectPermissionEvaluator
 import kotlinx.datetime.LocalDateTime
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue

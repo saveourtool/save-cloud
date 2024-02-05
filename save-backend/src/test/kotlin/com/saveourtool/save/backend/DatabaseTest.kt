@@ -6,6 +6,7 @@ import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.repository.ProjectRepository
 import com.saveourtool.save.utils.BlockingBridge
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

@@ -11,6 +11,11 @@ import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.security.ProjectPermissionEvaluator
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test

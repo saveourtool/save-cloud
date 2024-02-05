@@ -11,6 +11,8 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.repository.LnkUserProjectRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.security.ProjectPermissionEvaluator
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.LnkUserProjectService
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

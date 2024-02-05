@@ -8,6 +8,8 @@ import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.service.LnkUserOrganizationService
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

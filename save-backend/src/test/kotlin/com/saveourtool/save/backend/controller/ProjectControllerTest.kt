@@ -6,6 +6,8 @@ import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.repository.OrganizationRepository
+import com.saveourtool.save.repository.ProjectRepository
+import com.saveourtool.save.service.LnkUserProjectService
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
