@@ -61,8 +61,8 @@ class UserService(
         ?: Role.VIEWER
 
     /**
-     * @param userId
      * @param organizationName
+     * @param userName
      * @return role for user in organization by user ID and organization name
      */
     fun findRoleByUserNameAndOrganizationName(userName: String, organizationName: String) = lnkUserOrganizationRepository

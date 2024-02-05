@@ -17,6 +17,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.security.ProjectPermissionEvaluator
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
@@ -25,7 +26,6 @@ import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 
 import arrow.core.plus
-import com.saveourtool.save.security.ProjectPermissionEvaluator
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
 import org.slf4j.LoggerFactory

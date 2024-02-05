@@ -9,13 +9,13 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.test.TestsSourceSnapshotDto
 import com.saveourtool.save.utils.*
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import com.saveourtool.save.service.ProjectService
 import generated.SAVE_CLI_VERSION
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Lazy
