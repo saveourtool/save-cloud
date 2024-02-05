@@ -2,15 +2,20 @@ package com.saveourtool.save.service
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
+import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.utils.getLogger
+import com.saveourtool.save.utils.info
 import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.username
 
+import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
@@ -26,12 +31,33 @@ class UserService(
     private val userRepository: UserRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
+    private val originalLoginRepository: OriginalLoginRepository,
 ) {
     /**
      * @param user user for update
      * @return updated user
      */
     fun saveUser(user: User) = userRepository.save(user)
+
+    /**
+     * @param username
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByName(username: String) = userRepository.findByName(username)
+
+    /**
+     * @param role
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByRole(role: String) = userRepository.findByRole(role)
+
+    /**
+     * @param username
+     * @param source source (where the user identity is coming from)
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByOriginalLogin(username: String, source: String) =
+            originalLoginRepository.findByNameAndSource(username, source)?.user
 
     /**
      * @param name
@@ -156,5 +182,70 @@ class UserService(
         userRepository.save(user)
 
         return UserSaveStatus.BANNED
+    }
+
+    /**
+     * @param source
+     * @param name
+     * @return existed [User] or a new one
+     */
+    @Transactional
+    fun saveNewUserIfRequired(source: String, name: String): User =
+            originalLoginRepository.findByNameAndSource(name, source)
+                ?.user
+                ?.also {
+                    log.debug("User $name ($source) is already present in the DB")
+                }
+                ?: run {
+                    log.info {
+                        "Saving user $name ($source) with authorities $roleForNewUser to the DB"
+                    }
+                    saveNewUser(name).also { savedUser ->
+                        addSource(savedUser, name, source)
+                    }
+                }
+
+    /**
+     * @param user
+     * @param nameInSource
+     * @param source
+     */
+    @Transactional
+    fun addSource(user: User, nameInSource: String, source: String) {
+        originalLoginRepository.save(OriginalLogin(nameInSource, user, source))
+    }
+
+    /**
+     * @param userNameCandidate
+     * @return created [User]
+     */
+    private fun saveNewUser(userNameCandidate: String): User {
+        val existedUser = userRepository.findByName(userNameCandidate)
+        val name = existedUser?.let {
+            val prefix = "$userNameCandidate$UNIQUE_NAME_SEPARATOR"
+            val suffix = userRepository.findByNameStartingWith(prefix)
+                .map { it.name.replace(prefix, "") }
+                .mapNotNull { it.toIntOrNull() }
+                .maxOrNull()
+                ?.inc()
+                ?: 1
+            "$prefix$suffix"
+        } ?: run {
+            userNameCandidate
+        }
+        return userRepository.save(
+            User(
+                name = name,
+                password = null,
+                role = roleForNewUser,
+                status = UserStatus.CREATED,
+            )
+        )
+    }
+
+    companion object {
+        private val log: Logger = getLogger<UserService>()
+        private const val UNIQUE_NAME_SEPARATOR = "_"
+        private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
     }
 }

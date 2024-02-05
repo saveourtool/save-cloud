@@ -38,6 +38,7 @@ class CosvUserService(
     userRepository,
     applicationEventPublisher,
     lnkUserOrganizationRepository,
+    originalLoginRepository,
 ) {
     /**
      * @param name name of user

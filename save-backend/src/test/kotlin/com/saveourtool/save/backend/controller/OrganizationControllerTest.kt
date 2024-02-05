@@ -14,10 +14,7 @@ import com.saveourtool.save.entities.*
 import com.saveourtool.save.repository.*
 import com.saveourtool.save.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.GitService
-import com.saveourtool.save.service.LnkUserOrganizationService
-import com.saveourtool.save.service.LnkUserProjectService
-import com.saveourtool.save.service.ProjectService
+import com.saveourtool.save.service.*
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
