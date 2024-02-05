@@ -4,10 +4,10 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.service.CosvService
 import com.saveourtool.save.cosv.service.CosvUserService
-import com.saveourtool.save.cosv.service.OrganizationService
 import com.saveourtool.save.entities.cosv.CosvFileDto
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
 import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDtoWithUserAndOrganization
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 import org.springframework.http.HttpStatus

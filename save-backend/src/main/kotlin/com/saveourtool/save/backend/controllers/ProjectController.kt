@@ -1,7 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.ProjectProblemService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
@@ -13,6 +12,7 @@ import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.security.ProjectPermissionEvaluator
 import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1

@@ -11,6 +11,7 @@ import com.saveourtool.save.entities.contest.ContestStatus
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.request.TestFilesRequest
 import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.test.TestFilesContent
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1

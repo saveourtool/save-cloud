@@ -12,6 +12,7 @@ import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entitiescosv.CosvGeneratedId
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger

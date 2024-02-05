@@ -9,7 +9,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
-import com.saveourtool.save.backend.service.OrganizationService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestsSourceVersionService
 import com.saveourtool.save.configs.ApiSwaggerSupport
@@ -23,6 +22,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.Rights
 import com.saveourtool.save.permission.SetRightsRequest
 import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound

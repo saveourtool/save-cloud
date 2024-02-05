@@ -1,8 +1,5 @@
-package com.saveourtool.save.cosv.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.cosv.utils.hasRole
 import com.saveourtool.save.domain.OrganizationSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
@@ -15,8 +12,10 @@ import com.saveourtool.save.info.UserPermissionsInOrganization
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.repository.OrganizationRepository
-import com.saveourtool.save.service.ProjectService
+import com.saveourtool.save.utils.AvatarType
+import com.saveourtool.save.utils.hasRole
 import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.utils.username
 import com.saveourtool.save.validation.isValidLengthName
 import org.jetbrains.annotations.Blocking
 import org.springframework.data.domain.Pageable
@@ -34,6 +33,7 @@ class OrganizationService(
     private val organizationRepository: OrganizationRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val projectService: ProjectService,
+    private val userService: UserService,
 ) {
     /**
      * Store [organization] in the database
@@ -81,7 +81,9 @@ class OrganizationService(
         permission: Permission,
     ): Boolean {
         authentication ?: return permission == Permission.READ
-        val userId = authentication.userId()
+        val userName = authentication.username()
+        val user = userService.getUserByName(userName)
+        val userId = user.requiredId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
@@ -157,6 +159,18 @@ class OrganizationService(
     fun deleteOrganization(organization: Organization): Organization = changeOrganizationStatus(organization, OrganizationStatus.DELETED)
 
     /**
+     * @param organizationName
+     * @param authentication
+     * @return global rating of organization by name [organizationName] based on ratings of all projects under this organization
+     */
+    fun getGlobalRating(organizationName: String, authentication: Authentication?) =
+            projectService.getProjectsByOrganizationNameAndCreatedStatus(organizationName, authentication)
+                .collectList()
+                .map { projectsList ->
+                    projectsList.sumOf { it.contestRating }
+                }
+
+    /**
      * Mark organization with [organization] as created.
      * If an organization was previously banned, then all its projects become deleted.
      *
@@ -173,6 +187,19 @@ class OrganizationService(
         }
         return changeOrganizationStatus(organization, OrganizationStatus.CREATED)
     }
+
+    /**
+     * @param name
+     * @return organization by name
+     * @throws NoSuchElementException
+     */
+    fun getByName(name: String) = findByNameAndCreatedStatus(name)
+        ?: throw NoSuchElementException("There is no organization with name $name.")
+
+    /**
+     * @return all organizations that were registered in SAVE
+     */
+    fun findAll(): List<Organization> = organizationRepository.findAll()
 
     /**
      * Mark organization with [organization] and all its projects as banned.
@@ -215,6 +242,26 @@ class OrganizationService(
         .let {
             organizationRepository.save(it)
         }
+
+    /**
+     * We change the version just to work-around the caching on the frontend
+     *
+     * @param name
+     * @return the id (version) of new avatar
+     * @throws NoSuchElementException
+     */
+    fun updateAvatarVersion(name: String): String {
+        val organization = organizationRepository.findByName(name).orNotFound()
+        var version = organization.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        val newAvatar = "${AvatarType.ORGANIZATION.toUrlStr(name)}?${++version}"
+
+        organization.apply {
+            avatar = newAvatar
+        }.orNotFound { "Organization with name [$name] was not found." }
+        organization.let { organizationRepository.save(it) }
+
+        return newAvatar
+    }
 
     @Suppress("FunctionOnlyReturningConstant", "UNUSED_PARAMETER")
     private fun hasReadAccess(userId: Long?, organizationRole: Role): Boolean = true
