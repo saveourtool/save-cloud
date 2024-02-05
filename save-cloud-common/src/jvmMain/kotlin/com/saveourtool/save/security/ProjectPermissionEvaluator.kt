@@ -30,7 +30,7 @@ class ProjectPermissionEvaluator(
     private var lnkUserProjectService: LnkUserProjectService,
     private var lnkUserProjectRepository: LnkUserProjectRepository,
     private var lnkUserOrganizationService: LnkUserOrganizationService,
-    private var userService: UserService,
+    private var userDetailsService: UserService,
 ) {
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -65,10 +65,10 @@ class ProjectPermissionEvaluator(
         }
 
         val userName = authentication.username()
-        val user = userService.getUserByName(userName)
+        val user = userDetailsService.getUserByName(userName)
         val userId = user.requiredId()
-        val organizationRole = lnkUserOrganizationService.findRoleByUserNameAndOrganization(userName, project.organization)
-        val projectRole = lnkUserProjectService.findRoleByUserNameAndProject(userName, project)
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
+        val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
         return when (permission) {
             Permission.READ -> project.public || hasReadAccess(userId, projectRole, organizationRole)

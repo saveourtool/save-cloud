@@ -33,7 +33,7 @@ class OrganizationService(
     private val organizationRepository: OrganizationRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
     private val projectService: ProjectService,
-    private val userService: UserService,
+    private val userDetailsService: UserService,
 ) {
     /**
      * Store [organization] in the database
@@ -82,7 +82,7 @@ class OrganizationService(
     ): Boolean {
         authentication ?: return permission == Permission.READ
         val userName = authentication.username()
-        val user = userService.getUserByName(userName)
+        val user = userDetailsService.getUserByName(userName)
         val userId = user.requiredId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true

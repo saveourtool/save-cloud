@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrganizationPermissionEvaluator(
     private var lnkUserOrganizationService: LnkUserOrganizationService,
-    private var userService: UserService,
+    private var userDetailsService: UserService,
 ) {
     /**
      * @param authentication
@@ -62,13 +62,13 @@ class OrganizationPermissionEvaluator(
     fun hasPermission(authentication: Authentication?, organization: Organization, permission: Permission): Boolean {
         authentication ?: return permission == Permission.READ
         val userName = authentication.username()
-        val user = userService.getUserByName(userName)
+        val user = userDetailsService.getUserByName(userName)
         val userId = user.requiredId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
 
-        val organizationRole = lnkUserOrganizationService.findRoleByUserNameAndOrganization(userName, organization)
+        val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization)
         return when (permission) {
             Permission.READ -> hasReadAccess(userId, organizationRole)
             Permission.WRITE -> hasWriteAccess(userId, organizationRole)

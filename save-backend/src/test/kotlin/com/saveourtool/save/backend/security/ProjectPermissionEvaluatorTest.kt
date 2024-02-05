@@ -137,6 +137,7 @@ class ProjectPermissionEvaluatorTest {
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
         given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(userId))
         whenever(lnkUserProjectRepository.findByUserIdAndProject(any(), any())).thenAnswer { invocation ->
             LnkUserProject(
                 invocation.arguments[1] as Project,

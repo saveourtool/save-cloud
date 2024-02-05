@@ -43,6 +43,16 @@ class LnkUserOrganizationService(
         ?: Role.NONE
 
     /**
+     * @param userId
+     * @param organization
+     * @return role for user in [organization]
+     */
+    fun findRoleByUserIdAndOrganization(userId: Long, organization: Organization) = lnkUserOrganizationRepository
+        .findByUserIdAndOrganization(userId, organization)
+        ?.role
+        ?: Role.NONE
+
+    /**
      * Set [role] of [user] in [organization].
      *
      * @throws IllegalStateException if [role] is [Role.NONE]

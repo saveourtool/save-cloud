@@ -100,6 +100,7 @@ class OrganizationPermissionEvaluatorTest {
     ) {
         val authentication = mockAuth(username, role.asSpringSecurityRole(), id = userId)
         given(userDetailsService.getGlobalRole(any())).willReturn(Role.VIEWER)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(userId))
         whenever(lnkUserOrganizationRepository.findByUserIdAndOrganization(any(), any())).thenAnswer { invocation ->
             LnkUserOrganization(
                 invocation.arguments[1] as Organization,
