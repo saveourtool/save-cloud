@@ -22,6 +22,8 @@ orchestrator:
     orchestrator.kubernetes.useGvisor=false
 demo_cpg:
   profile: dev
+  applicationProperties: |+
+    spring.neo4j.authentication.password={{ .Values.neo4j.neo4j.password }}
 demo:
   profile: dev
   dockerHost: tcp://${HOST_IP}:2376
