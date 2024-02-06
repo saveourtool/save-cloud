@@ -5,13 +5,13 @@ import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.cosv.configs.ConfigProperties
 import com.saveourtool.save.cosv.service.CosvService
-import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.cosv.storage.RawCosvFileStorage
 import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
 import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.service.OrganizationService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.storage.concatS3Key
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
@@ -50,7 +50,7 @@ typealias PathAndSizeAndAccumitiveSize = Triple<Path, Long, Long>
 class RawCosvFileController(
     private val cosvService: CosvService,
     private val rawCosvFileStorage: RawCosvFileStorage,
-    private val userService: CosvUserService,
+    private val userService: UserService,
     private val organizationService: OrganizationService,
     private val configProperties: ConfigProperties,
 ) {

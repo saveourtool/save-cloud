@@ -17,6 +17,7 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.security.ProjectPermissionEvaluator
 import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.service.ProjectService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.collectToInputStream
@@ -65,7 +66,7 @@ import kotlin.io.path.*
 @EnableConfigurationProperties(ConfigProperties::class)
 @MockBeans(
     MockBean(OrganizationService::class),
-    MockBean(UserDetailsService::class),
+    MockBean(UserService::class),
     MockBean(ExecutionService::class),
     MockBean(AgentService::class),
     MockBean(ProjectPermissionEvaluator::class),

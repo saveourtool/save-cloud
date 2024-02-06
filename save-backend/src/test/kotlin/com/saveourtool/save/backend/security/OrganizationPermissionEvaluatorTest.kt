@@ -1,6 +1,5 @@
 package com.saveourtool.save.backend.security
 
-import com.saveourtool.save.backend.service.UserDetailsService
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -10,6 +9,7 @@ import com.saveourtool.save.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.UserService
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -33,7 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 class OrganizationPermissionEvaluatorTest {
     @Autowired private lateinit var organizationPermissionEvaluator: OrganizationPermissionEvaluator
     @MockBean private lateinit var lnkUserOrganizationRepository: LnkUserOrganizationRepository
-    @MockBean private lateinit var userDetailsService: UserDetailsService
+    @MockBean private lateinit var userDetailsService: UserService
     private lateinit var mockOrganization: Organization
 
     private val ownerPermissions = Permission.values().filterNot { it == Permission.BAN }.toTypedArray()

@@ -1,12 +1,12 @@
 package com.saveourtool.save.cosv.event
 
 import com.saveourtool.save.cosv.repository.LnkVulnerabilityMetadataUserRepository
-import com.saveourtool.save.cosv.service.CosvUserService
 import com.saveourtool.save.cosv.service.VulnerabilityMetadataService
 import com.saveourtool.save.entities.Notification
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.CommentEvent
 import com.saveourtool.save.repository.NotificationRepository
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
@@ -19,7 +19,7 @@ class CommentListener(
     private val notificationRepository: NotificationRepository,
     private val vulnerabilityMetadataService: VulnerabilityMetadataService,
     private val lnkVulnerabilityMetadataUserRepository: LnkVulnerabilityMetadataUserRepository,
-    private val userService: CosvUserService,
+    private val userService: UserService,
 ) {
     /**
      * @param commentEvent new commentEvent

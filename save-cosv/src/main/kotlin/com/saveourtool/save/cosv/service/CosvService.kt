@@ -13,6 +13,7 @@ import com.saveourtool.save.entities.User
 import com.saveourtool.save.entities.cosv.*
 import com.saveourtool.save.entitiescosv.CosvGeneratedId
 import com.saveourtool.save.service.OrganizationService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
@@ -41,7 +42,7 @@ typealias VulnerabilityMetadataDtoList = List<VulnerabilityMetadataDtoWithUserAn
 class CosvService(
     private val rawCosvFileStorage: RawCosvFileStorage,
     private val cosvRepository: CosvRepository,
-    private val userService: CosvUserService,
+    private val userService: UserService,
     private val organizationService: OrganizationService,
     private val tagService: TagService,
     private val cosvProcessor: CosvProcessor,
