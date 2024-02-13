@@ -1,13 +1,15 @@
-package com.saveourtool.save.cosv.security
+package com.saveourtool.save.security
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.cosv.service.LnkUserOrganizationService
-import com.saveourtool.save.cosv.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationStatus
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.UserService
+import com.saveourtool.save.utils.hasRole
+import com.saveourtool.save.utils.username
+
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
@@ -16,7 +18,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OrganizationPermissionEvaluator(
-    private var lnkUserOrganizationService: LnkUserOrganizationService
+    private var lnkUserOrganizationService: LnkUserOrganizationService,
+    private var userDetailsService: UserService,
 ) {
     /**
      * @param authentication
@@ -26,11 +29,11 @@ class OrganizationPermissionEvaluator(
      */
     fun hasOrganizationRole(authentication: Authentication?, organization: Organization, role: Role): Boolean {
         authentication ?: return false
-        val userId = authentication.userId()
+        val userName = authentication.username()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
-        return lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, organization).isHigherOrEqualThan(role)
+        return lnkUserOrganizationService.findRoleByUserNameAndOrganization(userName, organization).isHigherOrEqualThan(role)
     }
 
     /**
@@ -58,7 +61,9 @@ class OrganizationPermissionEvaluator(
      */
     fun hasPermission(authentication: Authentication?, organization: Organization, permission: Permission): Boolean {
         authentication ?: return permission == Permission.READ
-        val userId = authentication.userId()
+        val userName = authentication.username()
+        val user = userDetailsService.getUserByName(userName)
+        val userId = user.requiredId()
         if (authentication.hasRole(Role.SUPER_ADMIN)) {
             return true
         }
@@ -115,7 +120,7 @@ class OrganizationPermissionEvaluator(
         requestedRole: Role = Role.NONE
     ): Boolean {
         val selfRole = lnkUserOrganizationService.getGlobalRoleOrOrganizationRole(authentication, organization)
-        val otherRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(otherUser.id!!, organization)
+        val otherRole = lnkUserOrganizationService.findRoleByUserNameAndOrganization(otherUser.name, organization)
         return selfRole.isHigherOrEqualThan(Role.OWNER) || selfRole.isHigherOrEqualThan(Role.ADMIN) && hasAnotherUserLessPermissions(selfRole, otherRole) &&
                 isRequestedPermissionsCanBeSetByUser(selfRole, requestedRole)
     }
@@ -145,9 +150,10 @@ class OrganizationPermissionEvaluator(
      */
     fun isRequestedPermissionsCanBeSetByUser(selfRole: Role, requestedRole: Role): Boolean = selfRole.priority > requestedRole.priority
 
-    private fun OrganizationStatus.isBan(): Boolean =
-            this == OrganizationStatus.BANNED
     companion object {
         val contestCreatorMinimalRole = Role.ADMIN
     }
 }
+
+private fun OrganizationStatus.isBan(): Boolean =
+        this == OrganizationStatus.BANNED

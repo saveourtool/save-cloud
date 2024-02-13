@@ -3,6 +3,7 @@ package com.saveourtool.save.backend.service
 import com.saveourtool.save.backend.repository.LnkContestProjectRepository
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.*
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.debug
 import com.saveourtool.save.utils.getLogger
 import org.springframework.data.domain.PageRequest

@@ -1,4 +1,4 @@
-package com.saveourtool.save.cosv.repositorysave
+package com.saveourtool.save.repository
 
 import com.saveourtool.save.entities.LnkUserProject
 import com.saveourtool.save.entities.Project
@@ -27,6 +27,13 @@ interface LnkUserProjectRepository : BaseEntityRepository<LnkUserProject> {
      * @return [LnkUserProject] by [userId] and [Project]
      */
     fun findByUserIdAndProject(userId: Long, project: Project): LnkUserProject?
+
+    /**
+     * @param userName
+     * @param project
+     * @return [LnkUserProject] by [userName] and [Project]
+     */
+    fun findByUserNameAndProject(userName: String, project: Project): LnkUserProject?
 
     /**
      * @param userId

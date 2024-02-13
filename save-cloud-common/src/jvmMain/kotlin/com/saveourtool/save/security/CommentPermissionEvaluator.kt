@@ -1,10 +1,11 @@
-package com.saveourtool.save.backend.security
+package com.saveourtool.save.security
 
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.utils.hasRole
+
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Component
 
