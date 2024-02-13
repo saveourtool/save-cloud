@@ -49,7 +49,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser
     fun `should return all public projects`() {
-        mutateMockedUser(id = 99)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
 
         webClient
             .post()
@@ -86,9 +86,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
-        val mockUser = User("mocked", null, null, "").apply { this.id = 99 }
-
-        given(userDetailsService.getUserByName(any())).willReturn(mockUser)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus().isOk
         }
@@ -97,7 +95,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
-        mutateMockedUser(id = 99)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
 
         getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
@@ -161,7 +159,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
     fun `delete project without owner permission`() {
-        mutateMockedUser(id = 3)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(3))
         val organization: Organization = organizationRepository.getOrganizationById(2)
         val project = Project(
             "ToDelete1",
@@ -188,6 +186,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "JohnDoe", roles = ["VIEWER"])
     fun `check save new project`() {
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(2))
         mutateMockedUser(id = 2)
 
         // `project` references an existing user from test data
@@ -220,7 +219,7 @@ class ProjectControllerTest {
             organization = organizationRepository.findById(1).get()
         }
         projectRepository.save(project)
-        mutateMockedUser(id = 3)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(3))
 
         webClient.post()
             .uri("/api/$v1/projects/update")
@@ -261,4 +260,6 @@ class ProjectControllerTest {
             .exchange()
             .let { getAssertion(it) }
     }
+
+    private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }
