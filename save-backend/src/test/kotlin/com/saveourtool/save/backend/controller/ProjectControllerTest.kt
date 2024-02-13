@@ -8,11 +8,14 @@ import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.repository.ProjectRepository
 import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -40,6 +43,8 @@ class ProjectControllerTest {
 
     @Autowired
     lateinit var webClient: WebTestClient
+
+    @MockBean private lateinit var userDetailsService: UserService
 
     @Test
     @WithMockUser
@@ -81,8 +86,9 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
-        mutateMockedUser(id = 99)
+        val mockUser = User("mocked", null, null, "").apply { this.id = 99 }
 
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser)
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus().isOk
         }
