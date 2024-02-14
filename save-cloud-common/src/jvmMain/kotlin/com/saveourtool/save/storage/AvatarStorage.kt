@@ -1,11 +1,7 @@
-package com.saveourtool.save.cosv.storage
+package com.saveourtool.save.storage
 
-import com.saveourtool.save.cosv.configs.ConfigProperties
 import com.saveourtool.save.s3.S3Operations
-import com.saveourtool.save.storage.AbstractSimpleReactiveStorage
-import com.saveourtool.save.storage.AvatarKey
-import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.s3KeyToParts
+import com.saveourtool.save.s3.S3OperationsProperties
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.orNotFound
 import org.springframework.stereotype.Service
@@ -16,7 +12,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class AvatarStorage(
-    configProperties: ConfigProperties,
+    configProperties: S3OperationsProperties.Provider,
     s3Operations: S3Operations,
 ) : AbstractSimpleReactiveStorage<AvatarKey>(
     s3Operations,

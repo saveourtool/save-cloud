@@ -1,27 +1,28 @@
-package com.saveourtool.save.cosv.service
+package com.saveourtool.save.service
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.cosv.repositorysave.*
-import com.saveourtool.save.cosv.storage.AvatarStorage
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.UserSaveStatus
+import com.saveourtool.save.entities.OriginalLogin
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.evententities.UserEvent
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.repository.LnkUserOrganizationRepository
+import com.saveourtool.save.repository.LnkUserProjectRepository
 import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.storage.AvatarKey
-import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.getHighestRole
-import com.saveourtool.save.utils.orNotFound
+import com.saveourtool.save.storage.AvatarStorage
+import com.saveourtool.save.utils.*
+
+import org.slf4j.Logger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.scheduler.Schedulers
+import java.lang.IllegalArgumentException
+import java.util.NoSuchElementException
 
 /**
  * Service for user
@@ -31,8 +32,8 @@ import reactor.core.scheduler.Schedulers
 class UserService(
     private val userRepository: UserRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val originalLoginRepository: OriginalLoginRepository,
     private val lnkUserOrganizationRepository: LnkUserOrganizationRepository,
+    private val originalLoginRepository: OriginalLoginRepository,
     private val lnkUserProjectRepository: LnkUserProjectRepository,
     private val avatarStorage: AvatarStorage,
 ) {
@@ -41,6 +42,26 @@ class UserService(
      * @return updated user
      */
     fun saveUser(user: User) = userRepository.save(user)
+
+    /**
+     * @param username
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByName(username: String) = userRepository.findByName(username)
+
+    /**
+     * @param role
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByRole(role: String) = userRepository.findByRole(role)
+
+    /**
+     * @param username
+     * @param source source (where the user identity is coming from)
+     * @return spring's UserDetails retrieved from save's user found by provided values
+     */
+    fun findByOriginalLogin(username: String, source: String) =
+            originalLoginRepository.findByNameAndSource(username, source)?.user
 
     /**
      * @param name
@@ -70,12 +91,12 @@ class UserService(
         ?: Role.VIEWER
 
     /**
-     * @param userId
      * @param organizationName
+     * @param userName
      * @return role for user in organization by user ID and organization name
      */
-    fun findRoleByUserIdAndOrganizationName(userId: Long, organizationName: String) = lnkUserOrganizationRepository
-        .findByUserIdAndOrganizationName(userId, organizationName)
+    fun findRoleByUserNameAndOrganizationName(userName: String, organizationName: String) = lnkUserOrganizationRepository
+        .findByUserNameAndOrganizationName(userName, organizationName)
         ?.role
         ?: Role.NONE
 
@@ -85,9 +106,9 @@ class UserService(
      * @return the highest of two roles: the one in organization with name [organizationName] and global one.
      */
     fun getGlobalRoleOrOrganizationRole(authentication: Authentication, organizationName: String): Role {
-        val selfId = authentication.userId()
+        val selfName = authentication.username()
         val selfGlobalRole = getGlobalRole(authentication)
-        val selfOrganizationRole = findRoleByUserIdAndOrganizationName(selfId, organizationName)
+        val selfOrganizationRole = findRoleByUserNameAndOrganizationName(selfName, organizationName)
         return getHighestRole(selfOrganizationRole, selfGlobalRole)
     }
 
@@ -134,6 +155,100 @@ class UserService(
 
     /**
      * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun approveUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound()
+
+        userRepository.save(user.apply {
+            this.status = UserStatus.ACTIVE
+        })
+
+        return UserSaveStatus.APPROVED
+    }
+
+    /**
+     * @param name name of user
+     * @return UserSaveStatus
+     */
+    @Transactional
+    fun banUser(
+        name: String,
+    ): UserSaveStatus {
+        val user: User = userRepository.findByName(name).orNotFound().apply {
+            this.status = UserStatus.BANNED
+        }
+        applicationEventPublisher.publishEvent(UserEvent(user))
+
+        userRepository.save(user)
+
+        return UserSaveStatus.BANNED
+    }
+
+    /**
+     * @param source
+     * @param name
+     * @return existed [User] or a new one
+     */
+    @Transactional
+    fun saveNewUserIfRequired(source: String, name: String): User =
+            originalLoginRepository.findByNameAndSource(name, source)
+                ?.user
+                ?.also {
+                    log.debug("User $name ($source) is already present in the DB")
+                }
+                ?: run {
+                    log.info {
+                        "Saving user $name ($source) with authorities $roleForNewUser to the DB"
+                    }
+                    saveNewUser(name).also { savedUser ->
+                        addSource(savedUser, name, source)
+                    }
+                }
+
+    /**
+     * @param user
+     * @param nameInSource
+     * @param source
+     */
+    @Transactional
+    fun addSource(user: User, nameInSource: String, source: String) {
+        originalLoginRepository.save(OriginalLogin(nameInSource, user, source))
+    }
+
+    /**
+     * @param userNameCandidate
+     * @return created [User]
+     */
+    private fun saveNewUser(userNameCandidate: String): User {
+        val existedUser = userRepository.findByName(userNameCandidate)
+        val name = existedUser?.let {
+            val prefix = "$userNameCandidate$UNIQUE_NAME_SEPARATOR"
+            val suffix = userRepository.findByNameStartingWith(prefix)
+                .map { it.name.replace(prefix, "") }
+                .mapNotNull { it.toIntOrNull() }
+                .maxOrNull()
+                ?.inc()
+                ?: 1
+            "$prefix$suffix"
+        } ?: run {
+            userNameCandidate
+        }
+        return userRepository.save(
+            User(
+                name = name,
+                password = null,
+                role = roleForNewUser,
+                status = UserStatus.CREATED,
+            )
+        )
+    }
+
+    /**
+     * @param name name of user
      * @param authentication
      * @return UserSaveStatus
      */
@@ -142,8 +257,8 @@ class UserService(
         name: String,
         authentication: Authentication,
     ): UserSaveStatus {
-        val user: User = userRepository.findByIdOrNull(authentication.userId()).orNotFound {
-            "User with id ${authentication.userId()} not found in database"
+        val user: User = userRepository.findByName(authentication.username()).orNotFound {
+            "User with name ${authentication.username()} not found in database"
         }
         val newName = "Deleted-${user.id}"
         userRepository.deleteHighLevelName(user.name)
@@ -176,37 +291,45 @@ class UserService(
     }
 
     /**
-     * @param name name of user
-     * @return UserSaveStatus
+     * We change the version just to work-around the caching on the frontend
+     *
+     * @param name
+     * @return the id (version) of new avatar
+     * @throws NoSuchElementException
      */
-    @Transactional
-    fun approveUser(
-        name: String,
-    ): UserSaveStatus {
-        val user: User = userRepository.findByName(name).orNotFound()
+    fun updateAvatarVersion(name: String): String {
+        val user = userRepository.findByName(name).orNotFound()
+        var version = user.avatar?.find { it == '?' }?.let {
+            user.avatar?.substringAfterLast("?")?.toInt() ?: 0
+        } ?: 0
+        val newAvatar = "${AvatarType.USER.toUrlStr(name)}?${++version}"
+        user.apply { avatar = newAvatar }
+            .let { userRepository.save(it) }
 
-        userRepository.save(user.apply {
-            this.status = UserStatus.ACTIVE
-        })
-
-        return UserSaveStatus.APPROVED
+        return newAvatar
     }
 
     /**
-     * @param name name of user
-     * @return UserSaveStatus
+     * Only for static resources!
+     *
+     * @param name
+     * @param resource
+     * @throws IllegalArgumentException
      */
-    @Transactional
-    fun banUser(
-        name: String,
-    ): UserSaveStatus {
-        val user: User = userRepository.findByName(name).orNotFound().apply {
-            this.status = UserStatus.BANNED
+    fun setAvatarFromResource(name: String, resource: String) {
+        if (!resource.startsWith(AVATARS_PACKS_DIR)) {
+            throw IllegalArgumentException("Only avatars from $AVATARS_PACKS_DIR can be set for user $name")
         }
-        applicationEventPublisher.publishEvent(UserEvent(user))
 
-        userRepository.save(user)
+        userRepository.findByName(name)
+            .orNotFound()
+            .apply { avatar = resource }
+            .let { userRepository.save(it) }
+    }
 
-        return UserSaveStatus.BANNED
+    companion object {
+        private val log: Logger = getLogger<UserService>()
+        private const val UNIQUE_NAME_SEPARATOR = "_"
+        private val roleForNewUser = Role.VIEWER.asSpringSecurityRole()
     }
 }

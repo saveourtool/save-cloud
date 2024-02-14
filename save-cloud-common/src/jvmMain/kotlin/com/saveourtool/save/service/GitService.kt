@@ -1,4 +1,4 @@
-package com.saveourtool.save.backend.service
+package com.saveourtool.save.service
 
 import com.saveourtool.save.entities.Git
 import com.saveourtool.save.entities.GitDto

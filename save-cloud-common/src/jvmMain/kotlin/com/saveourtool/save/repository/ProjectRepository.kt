@@ -1,4 +1,4 @@
-package com.saveourtool.save.cosv.repositorysave
+package com.saveourtool.save.repository
 
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.Project

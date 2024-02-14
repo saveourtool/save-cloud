@@ -1,14 +1,18 @@
-package com.saveourtool.save.backend.security
+package com.saveourtool.save.security
 
-import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.backend.repository.LnkUserProjectRepository
-import com.saveourtool.save.backend.service.LnkUserOrganizationService
-import com.saveourtool.save.backend.service.LnkUserProjectService
-import com.saveourtool.save.backend.utils.hasRole
 import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
+import com.saveourtool.save.entities.Execution
+import com.saveourtool.save.entities.Project
+import com.saveourtool.save.entities.ProjectStatus
+import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.repository.LnkUserProjectRepository
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.utils.hasRole
+import com.saveourtool.save.utils.username
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
@@ -25,7 +29,8 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class ProjectPermissionEvaluator(
     private var lnkUserProjectService: LnkUserProjectService,
     private var lnkUserProjectRepository: LnkUserProjectRepository,
-    private var lnkUserOrganizationService: LnkUserOrganizationService
+    private var lnkUserOrganizationService: LnkUserOrganizationService,
+    private var userDetailsService: UserService,
 ) {
     /**
      * @param authentication [Authentication] describing an authenticated request
@@ -59,7 +64,9 @@ class ProjectPermissionEvaluator(
             return true
         }
 
-        val userId = authentication.userId()
+        val userName = authentication.username()
+        val user = userDetailsService.getUserByName(userName)
+        val userId = user.requiredId()
         val organizationRole = lnkUserOrganizationService.findRoleByUserIdAndOrganization(userId, project.organization)
         val projectRole = lnkUserProjectService.findRoleByUserIdAndProject(userId, project)
 
@@ -77,7 +84,7 @@ class ProjectPermissionEvaluator(
      * @param statusIfForbidden
      * @return a [Mono] containing the project or `Mono.error` if project can't or shouldn't be accessed by the current user
      */
-    internal fun Mono<Project?>.filterByPermission(
+    fun Mono<Project?>.filterByPermission(
         authentication: Authentication?,
         permission: Permission,
         statusIfForbidden: HttpStatus,
@@ -125,7 +132,7 @@ class ProjectPermissionEvaluator(
      * @param permission
      * @return [Mono] containing `true` if the current user is granted [permission] on the project for this [execution] or Mono with `false` otherwise
      */
-    internal fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
+    fun checkPermissions(authentication: Authentication, execution: Execution, permission: Permission): Mono<Boolean> =
             Mono.justOrEmpty(execution.project)
                 .filterByPermission(authentication, permission, HttpStatus.FORBIDDEN)
                 .map { true }

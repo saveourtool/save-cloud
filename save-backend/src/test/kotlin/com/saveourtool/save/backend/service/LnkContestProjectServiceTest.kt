@@ -5,6 +5,7 @@ import com.saveourtool.save.entities.Contest
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.Project
+import com.saveourtool.save.service.ProjectService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.*

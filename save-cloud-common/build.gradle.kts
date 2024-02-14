@@ -70,6 +70,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project.dependencies.platform(libs.spring.boot.dependencies))
+                implementation(libs.spring.security.core)
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
