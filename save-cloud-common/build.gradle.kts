@@ -74,7 +74,7 @@ kotlin {
                 implementation(libs.spring.web)
                 implementation(libs.spring.webflux)
                 implementation(libs.spring.boot)
-                implementation("org.springframework.boot:spring-boot-starter-web")
+                implementation(libs.spring.boot.starter.quartz)
                 implementation(libs.spring.data.jpa)
                 implementation(libs.jackson.module.kotlin)
                 implementation(libs.hibernate.core)
