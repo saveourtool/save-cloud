@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Import
  * An entrypoint for spring for save-backend
  */
 @SpringBootApplication(scanBasePackages = [
+    "com.saveourtool.save.configs",
     "com.saveourtool.save.backend",
     "com.saveourtool.save.service",
     "com.saveourtool.save.storage",

@@ -2,13 +2,13 @@ package com.saveourtool.save.backend
 
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
-import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.DownloadFilesController
 import com.saveourtool.save.backend.controllers.FileController
 import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.configs.WebConfig
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.domain.*

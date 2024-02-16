@@ -5,7 +5,7 @@
     "MISSING_KDOC_ON_FUNCTION",
 )
 
-package com.saveourtool.save.backend.configs
+package com.saveourtool.save.configs
 
 import com.saveourtool.save.domain.supportTestStatus
 import com.saveourtool.save.test.analysis.metrics.supportTestMetrics
@@ -24,9 +24,9 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder
 import org.springframework.web.reactive.config.WebFluxConfigurer
 
 @Configuration
-class WebConfig {
+open class WebConfig {
     @Bean
-    fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
+    open fun jackson2ObjectMapperBuilderCustomizer() = Jackson2ObjectMapperBuilderCustomizer { builder: Jackson2ObjectMapperBuilder ->
         builder
             .supportTestStatus()
             .supportKLocalDateTime()
@@ -35,13 +35,13 @@ class WebConfig {
     }
 
     @Bean
-    fun jackson2JsonEncoder(mapper: ObjectMapper) = Jackson2JsonEncoder(mapper)
+    open fun jackson2JsonEncoder(mapper: ObjectMapper) = Jackson2JsonEncoder(mapper)
 
     @Bean
-    fun jackson2JsonDecoder(mapper: ObjectMapper) = Jackson2JsonDecoder(mapper)
+    open fun jackson2JsonDecoder(mapper: ObjectMapper) = Jackson2JsonDecoder(mapper)
 
     @Bean
-    fun webFluxConfigurer(encoder: Jackson2JsonEncoder, decoder: Jackson2JsonDecoder) =
+    open fun webFluxConfigurer(encoder: Jackson2JsonEncoder, decoder: Jackson2JsonDecoder) =
             object : WebFluxConfigurer {
                 override fun configureHttpMessageCodecs(configurer: ServerCodecConfigurer) {
                     configurer.defaultCodecs().jackson2JsonEncoder(encoder)
@@ -50,7 +50,7 @@ class WebConfig {
             }
 
     @Bean
-    fun jackson2WebClientCustomizer(jackson2JsonEncoder: Jackson2JsonEncoder, jackson2JsonDecoder: Jackson2JsonDecoder): WebClientCustomizer = WebClientCustomizer { builder ->
+    open fun jackson2WebClientCustomizer(jackson2JsonEncoder: Jackson2JsonEncoder, jackson2JsonDecoder: Jackson2JsonDecoder): WebClientCustomizer = WebClientCustomizer { builder ->
         builder.codecs {
             it.defaultCodecs().jackson2JsonEncoder(jackson2JsonEncoder)
             it.defaultCodecs().jackson2JsonDecoder(jackson2JsonDecoder)
