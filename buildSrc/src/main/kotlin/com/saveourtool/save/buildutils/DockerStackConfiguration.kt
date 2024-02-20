@@ -28,18 +28,22 @@ fun Project.registerLiquibaseTask(profile: String) {
     val registerLiquibaseTaskBackend = registerLiquibaseTask(
         projectName = "save-backend",
         relativeChangeLogFile = "db/db.changelog-master.xml",
-        profile = profile
+        profile = profile,
+        mustRunAfterTask = null,
     )
 
     val registerLiquibaseTaskDemo = registerLiquibaseTask(
         projectName = "save-demo",
         relativeChangeLogFile = "save-demo/db/db.changelog-demo.xml",
-        profile = profile
+        profile = profile,
+        mustRunAfterTask = "save-backend",
     )
+
     val registerLiquibaseTaskCosv = registerLiquibaseTask(
-        projectName = "save-cosv",
-        relativeChangeLogFile = "save-cosv/db/db.changelog-cosv.xml",
-        profile = profile
+        projectName = "cosv-backend",
+        relativeChangeLogFile = "cosv-backend/db/db.changelog-cosv.xml",
+        profile = profile,
+        mustRunAfterTask = "save-backend",
     )
     tasks.register("liquibaseUpdate") {
         dependsOn(
@@ -50,11 +54,16 @@ fun Project.registerLiquibaseTask(profile: String) {
     }
 }
 
-private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String): TaskProvider<Exec> {
+private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String, mustRunAfterTask: String?): TaskProvider<Exec> {
     val taskName = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
     val credentials = getDatabaseCredentials(projectName, profile)
 
     return tasks.register<Exec>(taskName) {
+
+        mustRunAfterTask?.let {
+            mustRunAfter("liquibaseUpdate" + it.split("-").map { it.capitalized() }.joinToString(""))
+        }
+
         val contexts = when (profile) {
             "prod" -> "prod"
             "dev" -> "dev"
