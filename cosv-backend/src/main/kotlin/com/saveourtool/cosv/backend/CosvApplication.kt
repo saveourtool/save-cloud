@@ -12,14 +12,8 @@ import org.springframework.context.annotation.Import
  * An entrypoint for spring for cosv-backend
  */
 @SpringBootApplication(scanBasePackages = [
-    "com.saveourtool.save.configs",
-    "com.saveourtool.cosv.backend",
-    "com.saveourtool.save.service",
-    "com.saveourtool.save.storage",
-    "com.saveourtool.save.security",
-    "com.saveourtool.save.utils",
-    "com.saveourtool.save.repository",
-    "com.saveourtool.save.authservice",
+    "com.saveourtool.save",
+    "com.saveourtool.cosv",
 ])
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
