@@ -55,13 +55,13 @@ fun Project.registerLiquibaseTask(profile: String) {
 }
 
 private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLogFile: String, profile: String, mustRunAfterTask: String?): TaskProvider<Exec> {
-    val taskName = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
+    val taskName = getTaskName(projectName)
     val credentials = getDatabaseCredentials(projectName, profile)
 
     return tasks.register<Exec>(taskName) {
 
         mustRunAfterTask?.let {
-            mustRunAfter("liquibaseUpdate" + it.split("-").map { it.capitalized() }.joinToString(""))
+            mustRunAfter(getTaskName(it))
         }
 
         val contexts = when (profile) {
@@ -90,6 +90,8 @@ private fun Project.registerLiquibaseTask(projectName: String, relativeChangeLog
         )
     }
 }
+
+private fun getTaskName(projectName: String) = "liquibaseUpdate" + projectName.split("-").map { it.capitalized() }.joinToString("")
 
 /**
  * @param profile deployment profile, used, for example, to start SQL database in dev profile only
