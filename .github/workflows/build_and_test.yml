@@ -25,7 +25,7 @@ jobs:
       save-api-cli: ${{ steps.calculate-dependencies.outputs.save-api-cli }}
       save-backend: ${{ steps.calculate-dependencies.outputs.save-backend }}
       save-cloud-common: ${{ steps.calculate-dependencies.outputs.save-cloud-common }}
-      save-cosv: ${{ steps.calculate-dependencies.outputs.save-cosv }}
+      cosv-backend: ${{ steps.calculate-dependencies.outputs.cosv-backend }}
       cosv-frontend: ${{ steps.calculate-dependencies.outputs.cosv-frontend }}
       save-demo: ${{ steps.calculate-dependencies.outputs.save-demo }}
       save-demo-agent: ${{ steps.calculate-dependencies.outputs.save-demo-agent }}
@@ -66,8 +66,8 @@ jobs:
               - save-backend/**
             save-cloud-common:
               - save-cloud-common/**
-            save-cosv:
-              - save-cosv/**
+            cosv-backend:
+              - cosv-backend/**
             cosv-frontend:
               - cosv-frontend/**
             save-demo:
@@ -100,14 +100,14 @@ jobs:
 
           authentication_service=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.authentication-service_all_changed_files_count }} ))
           save_api=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-api_all_changed_files_count }} ))
-          save_cosv=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-cosv_all_changed_files_count }} ))
+          cosv_backend=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.cosv-backend_all_changed_files_count }} ))
           test_analysis_core=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.test-analysis-core_all_changed_files_count }} ))
           test_utils=$(( ${{ steps.git-changed-files.outputs.test-utils_all_changed_files_count }} ))
 
           api_gateway=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.api-gateway_all_changed_files_count }} ))
           save_agent=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-agent_all_changed_files_count }} ))
           save_api_cli=$(( $save_cloud_common + $save_api + ${{ steps.git-changed-files.outputs.save-api-cli_all_changed_files_count }} ))
-          save_backend=$(( $save_cloud_common + $authentication_service + $test_analysis_core + $save_cosv + $test_utils + ${{ steps.git-changed-files.outputs.save-backend_all_changed_files_count }} ))
+          save_backend=$(( $save_cloud_common + $authentication_service + $test_analysis_core + $cosv_backend + $test_utils + ${{ steps.git-changed-files.outputs.save-backend_all_changed_files_count }} ))
           cosv_frontend=$(( $save_cloud_common + $save_frontend_common + ${{ steps.git-changed-files.outputs.cosv-frontend_all_changed_files_count }} ))
           save_demo=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-demo_all_changed_files_count }} ))
           save_demo_agent=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-demo-agent_all_changed_files_count }} ))
@@ -123,7 +123,7 @@ jobs:
           echo "save-api-cli=$save_api_cli" >> "$GITHUB_OUTPUT"
           echo "save-backend=$save_backend" >> "$GITHUB_OUTPUT"
           echo "save-cloud-common=$save_cloud_common" >> "$GITHUB_OUTPUT"
-          echo "save-cosv=$save_cosv" >> "$GITHUB_OUTPUT"
+          echo "cosv-backend=$cosv_backend" >> "$GITHUB_OUTPUT"
           echo "cosv-frontend=$cosv_frontend" >> "$GITHUB_OUTPUT"
           echo "save-demo=$save_demo" >> "$GITHUB_OUTPUT"
           echo "save-demo-agent=$save_demo_agent" >> "$GITHUB_OUTPUT"
@@ -172,7 +172,7 @@ jobs:
           'save-api',
           'save-api-cli',
           'save-backend',
-          'save-cosv',
+          'cosv-backend',
           'cosv-frontend',
           'save-demo',
           'save-demo-agent',
@@ -198,8 +198,8 @@ jobs:
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-demo-cpg > 0 }}
           - module: save-backend
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-backend > 0 }}
-          - module: save-cosv
-            do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-cosv > 0 }}
+          - module: cosv-backend
+            do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.cosv-backend > 0 }}
           - module: cosv-frontend
             do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.cosv-frontend > 0 }}
           - module: save-demo
