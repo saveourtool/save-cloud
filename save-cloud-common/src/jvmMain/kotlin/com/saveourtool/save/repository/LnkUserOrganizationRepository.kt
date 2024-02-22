@@ -59,6 +59,14 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     fun findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId: Long, canCreateContests: Boolean, roles: List<Role>): List<LnkUserOrganization>
 
     /**
+     * @param userName
+     * @param canCreateContests flag that indicates if organization can create contests
+     * @param roles list of roles that are required for user
+     * @return list of [LnkUserOrganization] where user has role from [roles] and [Organization] can create contests
+     */
+    fun findByUserNameAndOrganizationCanCreateContestsAndRoleIn(userName: String, canCreateContests: Boolean, roles: List<Role>): List<LnkUserOrganization>
+
+    /**
      * @param userId
      * @param organizationId
      * @return [LnkUserOrganization] if user is connected to organization with [organizationId] and `null` otherwise
