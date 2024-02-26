@@ -7,6 +7,7 @@ import com.saveourtool.save.repository.LnkUserOrganizationRepository
 import com.saveourtool.save.repository.UserRepository
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.getHighestRole
+import com.saveourtool.save.utils.orNotFound
 import com.saveourtool.save.utils.username
 
 import org.springframework.data.domain.PageRequest
@@ -31,6 +32,12 @@ class LnkUserOrganizationService(
     fun getAllUsersAndRolesByOrganization(organization: Organization) =
             lnkUserOrganizationRepository.findByOrganization(organization)
                 .associate { it.user to it.role }
+
+    /**
+     * @param userName
+     * @return user with [userName]
+     */
+    fun findUserByName(userName: String): User = userRepository.findByName(userName).orNotFound { "Not found user by name $userName" }
 
     /**
      * @param userName
@@ -232,6 +239,20 @@ class LnkUserOrganizationService(
         }
         .let {
             lnkUserOrganizationRepository.findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId, true, it)
+        }
+        .map { it.organization }
+
+    /**
+     * @param userName
+     * @param requestedRole role that user with name [userName] should have in organization
+     * @return list of organizations that can create contests
+     */
+    fun getSuperOrganizationsWithRole(userName: String, requestedRole: Role = Role.OWNER): List<Organization> = Role.values()
+        .filter {
+            it.isHigherOrEqualThan(requestedRole)
+        }
+        .let {
+            lnkUserOrganizationRepository.findByUserNameAndOrganizationCanCreateContestsAndRoleIn(userName, true, it)
         }
         .map { it.organization }
 
