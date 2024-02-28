@@ -4,11 +4,11 @@
 
 package com.saveourtool.save.frontend
 
-import com.saveourtool.save.frontend.common.components.basic.cookieBanner
-import com.saveourtool.save.frontend.common.components.basic.scrollToTopButton
-import com.saveourtool.save.frontend.common.components.footer
-import com.saveourtool.save.frontend.common.externals.modal.ReactModal
-import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.frontend.common.components.basic.cookieBanner
+import com.saveourtool.frontend.common.components.basic.scrollToTopButton
+import com.saveourtool.frontend.common.components.footer
+import com.saveourtool.frontend.common.externals.modal.ReactModal
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n

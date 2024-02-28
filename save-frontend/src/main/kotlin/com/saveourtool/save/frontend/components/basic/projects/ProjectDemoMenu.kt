@@ -11,8 +11,8 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.frontend.common.components.basic.cardComponent
-import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.frontend.common.components.basic.cardComponent
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.demo.*
 import com.saveourtool.save.frontend.components.basic.demo.management.*

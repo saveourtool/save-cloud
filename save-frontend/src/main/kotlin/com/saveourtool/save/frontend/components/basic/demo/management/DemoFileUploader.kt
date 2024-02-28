@@ -7,7 +7,7 @@ package com.saveourtool.save.frontend.components.basic.demo.management
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.frontend.common.utils.apiUrl
+import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.save.frontend.components.basic.fileuploader.FileDtosSetter
 import com.saveourtool.save.frontend.components.basic.fileuploader.simpleFileUploader
 

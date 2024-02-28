@@ -2,7 +2,7 @@
 
 package com.saveourtool.cosv.frontend.components.topbar
 
-import com.saveourtool.save.frontend.common.externals.i18next.useTranslation
+import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import react.*

@@ -2,7 +2,7 @@
 
 package com.saveourtool.cosv.frontend.components.topbar
 
-import com.saveourtool.save.frontend.common.utils.TopBarUrl
+import com.saveourtool.frontend.common.utils.TopBarUrl
 import com.saveourtool.save.utils.URL_PATH_DELIMITER
 import com.saveourtool.save.validation.FrontendCosvRoutes
 
