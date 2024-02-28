@@ -25,9 +25,16 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     /**
      * @param userId
      * @param organizationName
-     * @return lnkUserOrganization by user ID and organization
+     * @return lnkUserOrganization by user ID and organization name
      */
     fun findByUserIdAndOrganizationName(userId: Long, organizationName: String): LnkUserOrganization?
+
+    /**
+     * @param userName
+     * @param organizationName
+     * @return lnkUserOrganization by user name and organization name
+     */
+    fun findByUserNameAndOrganizationName(userName: String, organizationName: String): LnkUserOrganization?
 
     /**
      * @param userId
@@ -37,12 +44,27 @@ interface LnkUserOrganizationRepository : BaseEntityRepository<LnkUserOrganizati
     fun findByUserIdAndOrganization(userId: Long, organization: Organization): LnkUserOrganization?
 
     /**
+     * @param userName
+     * @param organization
+     * @return lnkUserOrganization by user name and organization
+     */
+    fun findByUserNameAndOrganization(userName: String, organization: Organization): LnkUserOrganization?
+
+    /**
      * @param userId
      * @param canCreateContests flag that indicates if organization can create contests
      * @param roles list of roles that are required for user
      * @return list of [LnkUserOrganization] where user has role from [roles] and [Organization] can create contests
      */
     fun findByUserIdAndOrganizationCanCreateContestsAndRoleIn(userId: Long, canCreateContests: Boolean, roles: List<Role>): List<LnkUserOrganization>
+
+    /**
+     * @param userName
+     * @param canCreateContests flag that indicates if organization can create contests
+     * @param roles list of roles that are required for user
+     * @return list of [LnkUserOrganization] where user has role from [roles] and [Organization] can create contests
+     */
+    fun findByUserNameAndOrganizationCanCreateContestsAndRoleIn(userName: String, canCreateContests: Boolean, roles: List<Role>): List<LnkUserOrganization>
 
     /**
      * @param userId

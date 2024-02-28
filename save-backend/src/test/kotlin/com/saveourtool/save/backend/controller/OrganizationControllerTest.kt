@@ -1,19 +1,20 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.NoopWebSecurityConfig
-import com.saveourtool.save.backend.configs.WebConfig
 import com.saveourtool.save.backend.controllers.OrganizationController
 import com.saveourtool.save.backend.repository.*
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.S11nTestConfig
-import com.saveourtool.save.backend.storage.AvatarStorage
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
+import com.saveourtool.save.configs.WebConfig
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.repository.*
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.security.ProjectPermissionEvaluator
+import com.saveourtool.save.service.*
+import com.saveourtool.save.storage.AvatarStorage
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
@@ -62,7 +63,7 @@ import java.util.concurrent.TimeUnit
     WebConfig::class,
     ProjectPermissionEvaluator::class,
     LnkUserProjectService::class,
-    UserDetailsService::class,
+    UserService::class,
     S11nTestConfig::class,
 )
 @MockBeans(

@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.Role
@@ -11,6 +10,9 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.repository.OriginalLoginRepository
 import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test

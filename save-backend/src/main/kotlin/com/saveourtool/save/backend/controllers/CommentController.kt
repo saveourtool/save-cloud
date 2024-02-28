@@ -1,11 +1,11 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.backend.security.CommentPermissionEvaluator
-import com.saveourtool.save.backend.service.CommentService
 import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.entities.Comment
 import com.saveourtool.save.entities.CommentDto
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.security.CommentPermissionEvaluator
+import com.saveourtool.save.service.CommentService
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.switchIfEmptyToNotFound

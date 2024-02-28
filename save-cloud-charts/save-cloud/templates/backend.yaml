@@ -117,6 +117,10 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+            - name: ca-pemstore
+              mountPath: /etc/ssl/certs/ca-certificates.crt
+              subPath: ca-certificates.crt
+              readOnly: false
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend) | indent 10 | trim }}
         - name: database-secret
@@ -127,6 +131,9 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: {}
+        - name: ca-pemstore
+          configMap:
+            name: ca-pemstore
 ---
 apiVersion: v1
 kind: Service

@@ -20,6 +20,7 @@ import kotlinx.serialization.Serializable
  */
 @Entity
 @Serializable
+@Table(schema = "save_cloud", name = "project")
 data class Project(
     var name: String,
     var url: String?,
@@ -28,11 +29,13 @@ data class Project(
     var status: ProjectStatus,
     var public: Boolean = true,
     var email: String? = null,
+    @Column(name = "number_of_containers")
     var numberOfContainers: Int = 3,
 
     @ManyToOne
     @JoinColumn(name = "organization_id")
     var organization: Organization,
+    @Column(name = "contest_rating")
     var contestRating: Double = 0.0,
 ) : BaseEntityWithDto<ProjectDto>() {
     /**

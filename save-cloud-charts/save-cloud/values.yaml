@@ -23,7 +23,7 @@ backend:
 backend_cosv:
   name: backend-cosv
   profile: dev,secure,kubernetes
-  imageName: save-cosv
+  imageName: cosv-backend
   containerPort: 5700
   managementPort: 5701
   clusterIP: null

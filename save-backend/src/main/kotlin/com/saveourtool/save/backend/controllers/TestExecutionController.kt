@@ -4,7 +4,6 @@ import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.agent.TestExecutionResult
 import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
@@ -18,6 +17,7 @@ import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
 import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.security.ProjectPermissionEvaluator
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
