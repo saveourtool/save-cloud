@@ -2,11 +2,11 @@ package components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
-import com.saveourtool.save.frontend.common.components.views.organization.OrganizationMenuBar
-import com.saveourtool.save.frontend.common.components.views.organization.OrganizationType
-import com.saveourtool.save.frontend.common.components.views.organization.organizationView
-import com.saveourtool.save.frontend.common.externals.*
-import com.saveourtool.save.frontend.common.utils.apiUrl
+import com.saveourtool.frontend.common.components.views.organization.OrganizationMenuBar
+import com.saveourtool.frontend.common.components.views.organization.OrganizationType
+import com.saveourtool.frontend.common.components.views.organization.organizationView
+import com.saveourtool.frontend.common.externals.*
+import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.save.info.UserInfo
 import externals.*
 import utils.mockMswResponse

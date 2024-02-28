@@ -1,6 +1,6 @@
 package components
 
-import com.saveourtool.save.frontend.common.components.footer
+import com.saveourtool.frontend.common.components.footer
 import externals.render
 import externals.screen
 

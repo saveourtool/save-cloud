@@ -1,11 +1,11 @@
 package components.basic
 
 import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.frontend.common.components.basic.SelectFormRequiredProps
-import com.saveourtool.save.frontend.common.components.inputform.InputTypes
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.externals.*
-import com.saveourtool.save.frontend.common.components.basic.selectFormRequired
+import com.saveourtool.frontend.common.components.basic.SelectFormRequiredProps
+import com.saveourtool.frontend.common.components.inputform.InputTypes
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.externals.*
+import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.save.v1
 import externals.render
 import externals.rest

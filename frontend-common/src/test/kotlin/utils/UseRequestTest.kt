@@ -1,9 +1,9 @@
 package utils
 
-import com.saveourtool.save.frontend.common.utils.get
-import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
-import com.saveourtool.save.frontend.common.utils.useDeferredRequest
-import com.saveourtool.save.frontend.common.utils.useRequest
+import com.saveourtool.frontend.common.utils.get
+import com.saveourtool.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.frontend.common.utils.useDeferredRequest
+import com.saveourtool.frontend.common.utils.useRequest
 import externals.render
 import externals.rest
 import externals.setupWorker

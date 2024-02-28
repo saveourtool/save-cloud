@@ -1,6 +1,6 @@
 package utils
 
-import com.saveourtool.save.frontend.common.utils.useNdjson
+import com.saveourtool.frontend.common.utils.useNdjson
 import externals.render
 import externals.rest
 import externals.setupWorker
