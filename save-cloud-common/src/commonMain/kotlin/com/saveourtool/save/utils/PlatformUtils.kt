@@ -5,7 +5,6 @@
 package com.saveourtool.save.utils
 
 import com.saveourtool.save.core.logging.logDebug
-import com.saveourtool.save.core.utils.GenericAtomicReference
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
