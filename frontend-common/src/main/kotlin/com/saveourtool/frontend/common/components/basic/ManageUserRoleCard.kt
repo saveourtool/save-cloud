@@ -6,12 +6,12 @@
 
 package com.saveourtool.frontend.common.components.basic
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.frontend.common.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.frontend.common.components.inputform.renderUserWithAvatar
 import com.saveourtool.frontend.common.externals.fontawesome.faTimesCircle
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.OWNER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.permission.SetRoleRequest
 import com.saveourtool.save.utils.getHighestRole

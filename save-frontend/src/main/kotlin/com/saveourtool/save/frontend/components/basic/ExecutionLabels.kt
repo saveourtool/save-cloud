@@ -7,10 +7,10 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.frontend.common.externals.fontawesome.faRedo
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.utils.calculateRate
 import com.saveourtool.save.utils.getPrecisionRate
 import com.saveourtool.save.utils.getRecallRate

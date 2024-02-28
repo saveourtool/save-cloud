@@ -4,10 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.entities.OrganizationWithRating
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.filters.OrganizationFilter
-import com.saveourtool.save.filters.ProjectFilter
 import com.saveourtool.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.components.basic.table.filters.nameFiltersRow
@@ -21,6 +17,10 @@ import com.saveourtool.frontend.common.components.tables.visibleColumnsCount
 import com.saveourtool.frontend.common.components.views.AbstractView
 import com.saveourtool.frontend.common.externals.fontawesome.faTrophy
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.OrganizationWithRating
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.save.filters.ProjectFilter
 
 import js.core.jso
 import react.*

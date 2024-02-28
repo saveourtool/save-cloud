@@ -2,10 +2,6 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.frontend.common.components.basic.scoreCard
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
@@ -19,10 +15,14 @@ import com.saveourtool.frontend.common.externals.fontawesome.faTrashAlt
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.isSuperAdmin
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectStatus
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
-import org.w3c.fetch.Response
 
+import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.button

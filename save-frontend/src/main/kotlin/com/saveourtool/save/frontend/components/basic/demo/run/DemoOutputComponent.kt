@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic.demo.run
 
-import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.demo.DemoResult
 
 import js.core.jso
 import react.*

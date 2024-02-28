@@ -2,8 +2,6 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.entities.CommentDto
-import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.frontend.common.components.basic.cardComponent
 import com.saveourtool.frontend.common.components.basic.commentWindow
 import com.saveourtool.frontend.common.components.basic.markdown
@@ -12,6 +10,8 @@ import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.entities.CommentDto
+import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso

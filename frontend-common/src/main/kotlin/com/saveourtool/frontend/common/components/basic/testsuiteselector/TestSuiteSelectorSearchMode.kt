@@ -6,11 +6,11 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuiteselector
 
-import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.frontend.common.components.basic.showAvailableTestSuites
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.TestSuiteSelectorPurpose.CONTEST
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopResponseHandler
+import com.saveourtool.save.filters.TestSuiteFilter
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 

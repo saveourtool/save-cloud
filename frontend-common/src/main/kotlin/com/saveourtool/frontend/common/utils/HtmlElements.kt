@@ -4,9 +4,9 @@
 
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.entities.*
 import com.saveourtool.frontend.common.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.entities.*
 
 import js.core.jso
 import react.ChildrenBuilder

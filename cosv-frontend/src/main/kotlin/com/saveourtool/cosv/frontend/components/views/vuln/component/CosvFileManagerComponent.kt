@@ -2,16 +2,6 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.component
 
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.cosv.RawCosvFileDto
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
-import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
-import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
-import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.frontend.common.components.basic.fileuploader.defaultProgressBarComponent
 import com.saveourtool.frontend.common.components.basic.fileuploader.deleteFileButton
 import com.saveourtool.frontend.common.components.basic.fileuploader.downloadFileButton
@@ -23,6 +13,16 @@ import com.saveourtool.frontend.common.externals.fontawesome.faReload
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isDuplicate
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isHasErrors
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isPendingRemoved
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isProcessing
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isUploadedJsonFile
+import com.saveourtool.save.entities.cosv.RawCosvFileDto.Companion.isZipArchive
+import com.saveourtool.save.entities.cosv.RawCosvFileStatisticsDto
+import com.saveourtool.save.entities.cosv.RawCosvFileStreamingResponse
 import com.saveourtool.save.utils.FILE_PART_NAME
 import com.saveourtool.save.utils.toKilobytes
 import com.saveourtool.save.validation.isValidName

@@ -5,15 +5,15 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.entities.ProjectProblemDto
-import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
 import com.saveourtool.frontend.common.components.tables.tableComponent
 import com.saveourtool.frontend.common.components.tables.value
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.ProjectDto
+import com.saveourtool.save.entities.ProjectProblemDto
+import com.saveourtool.save.filters.ProjectProblemFilter
 import com.saveourtool.save.info.UserInfo
 
 import react.*

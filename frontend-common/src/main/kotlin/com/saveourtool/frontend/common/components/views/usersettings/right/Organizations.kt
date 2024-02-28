@@ -4,10 +4,6 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings.right
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.entities.OrganizationWithUsers
-import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.components.views.usersettings.SettingsProps
@@ -15,6 +11,10 @@ import com.saveourtool.frontend.common.externals.fontawesome.faRedo
 import com.saveourtool.frontend.common.externals.fontawesome.faTrashAlt
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.save.entities.OrganizationWithUsers
+import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso

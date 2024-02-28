@@ -6,13 +6,13 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.execution.TestingType
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.showPrivateTestSuitesSelectorModal
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.showPublicTestSuitesSelectorModal
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.save.execution.TestingType
 import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*

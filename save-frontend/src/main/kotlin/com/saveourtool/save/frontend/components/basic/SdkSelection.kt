@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
-import com.saveourtool.save.domain.*
 import com.saveourtool.frontend.common.utils.selectorBuilder
 import com.saveourtool.frontend.common.utils.useStateFromProps
+import com.saveourtool.save.domain.*
 
 import react.*
 import react.dom.html.ReactHTML.div

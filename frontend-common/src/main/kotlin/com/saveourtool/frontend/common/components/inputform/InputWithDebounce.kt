@@ -2,9 +2,9 @@
 
 package com.saveourtool.frontend.common.components.inputform
 
-import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.frontend.common.components.basic.renderAvatar
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 

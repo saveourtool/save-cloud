@@ -2,6 +2,8 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.frontend.common.components.basic.cardComponent
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoStatus
@@ -11,8 +13,6 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.Sdk
 import com.saveourtool.save.domain.orEmpty
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.frontend.common.components.basic.cardComponent
-import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.basic.demo.*
 import com.saveourtool.save.frontend.components.basic.demo.management.*

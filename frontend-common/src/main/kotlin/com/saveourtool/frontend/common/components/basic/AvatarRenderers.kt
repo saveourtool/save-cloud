@@ -4,13 +4,14 @@
 
 package com.saveourtool.frontend.common.components.basic
 
+import com.saveourtool.frontend.common.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.frontend.common.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.info.UserStatus
 import com.saveourtool.save.v1
 import com.saveourtool.save.validation.FrontendCosvRoutes
+
 import js.core.jso
 import react.CSSProperties
 import react.ChildrenBuilder

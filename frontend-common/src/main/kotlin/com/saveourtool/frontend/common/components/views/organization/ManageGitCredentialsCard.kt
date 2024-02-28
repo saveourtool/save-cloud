@@ -6,16 +6,16 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.getHighestRole
-import js.core.jso
 
+import js.core.jso
 import org.w3c.fetch.Response
 import react.FC
 import react.Props

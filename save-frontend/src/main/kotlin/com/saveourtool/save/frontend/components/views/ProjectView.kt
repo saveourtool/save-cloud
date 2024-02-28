@@ -6,9 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
@@ -17,6 +14,9 @@ import com.saveourtool.frontend.common.components.views.AbstractView
 import com.saveourtool.frontend.common.http.getProject
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopResponseHandler
+import com.saveourtool.save.domain.*
+import com.saveourtool.save.entities.*
+import com.saveourtool.save.execution.ExecutionDto
 import com.saveourtool.save.frontend.components.basic.projects.*
 import com.saveourtool.save.frontend.utils.ProjectMenuBar
 import com.saveourtool.save.info.UserInfo

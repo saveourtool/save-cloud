@@ -4,11 +4,11 @@
 
 package com.saveourtool.save.frontend.components.basic.demo.welcome
 
-import com.saveourtool.save.demo.DemoDto
-import com.saveourtool.save.filters.DemoFilter
 import com.saveourtool.frontend.common.components.basic.cardComponent
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.demo.DemoDto
+import com.saveourtool.save.filters.DemoFilter
 
 import js.core.jso
 import react.FC

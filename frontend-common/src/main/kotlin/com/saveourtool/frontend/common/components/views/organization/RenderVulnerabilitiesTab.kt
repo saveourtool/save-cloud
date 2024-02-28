@@ -4,9 +4,10 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.frontend.common.components.views.vuln.vulnerabilityTableComponent
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.info.UserInfo
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

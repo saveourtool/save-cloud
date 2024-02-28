@@ -2,7 +2,6 @@
 
 package com.saveourtool.frontend.common.components.basic.contests
 
-import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.showContestTestSuitesSelectorModal
 import com.saveourtool.frontend.common.components.inputform.*
@@ -12,6 +11,7 @@ import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.externals.modal.Styles
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
+import com.saveourtool.save.entities.contest.ContestDto
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidName
 

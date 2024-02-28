@@ -4,15 +4,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExtDto
-import com.saveourtool.save.core.logging.describe
-import com.saveourtool.save.core.result.CountWarnings
-import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.components.requestStatusContext
@@ -30,6 +21,15 @@ import com.saveourtool.frontend.common.http.getDebugInfoFor
 import com.saveourtool.frontend.common.http.getExecutionInfoFor
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.agent.TestExecutionDto
+import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.save.core.logging.describe
+import com.saveourtool.save.core.result.CountWarnings
+import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.save.domain.TestResultStatus
+import com.saveourtool.save.execution.ExecutionDto
+import com.saveourtool.save.execution.ExecutionUpdateDto
+import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.displayExecutionInfoHeader
 import com.saveourtool.save.frontend.components.basic.displayTestNotFound
 import com.saveourtool.save.frontend.components.basic.executionStatusComponent

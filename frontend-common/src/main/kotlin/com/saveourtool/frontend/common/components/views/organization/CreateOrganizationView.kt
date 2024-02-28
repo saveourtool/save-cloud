@@ -6,13 +6,13 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.entities.*
 import com.saveourtool.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 

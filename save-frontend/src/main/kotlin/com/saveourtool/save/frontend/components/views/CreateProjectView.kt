@@ -6,7 +6,6 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.entities.*
 import com.saveourtool.frontend.common.components.basic.SelectFormRequiredProps
 import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.frontend.common.components.inputform.InputTypes
@@ -22,6 +21,7 @@ import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.frontend.common.utils.particles
 import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.frontend.common.utils.useDeferredRequest
+import com.saveourtool.save.entities.*
 import com.saveourtool.save.validation.FrontendRoutes
 import com.saveourtool.save.validation.isValidLengthName
 import com.saveourtool.save.validation.isValidName

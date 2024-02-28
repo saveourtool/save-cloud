@@ -2,8 +2,6 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuitessources
 
-import com.saveourtool.save.domain.EntitySaveStatus
-import com.saveourtool.save.entities.GitDto
 import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextDisabled
@@ -15,6 +13,8 @@ import com.saveourtool.frontend.common.externals.fontawesome.faTimesCircle
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.externals.modal.Styles
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.domain.EntitySaveStatus
+import com.saveourtool.save.entities.GitDto
 import com.saveourtool.save.testsuite.TestSuitesSourceDto
 import com.saveourtool.save.v1
 

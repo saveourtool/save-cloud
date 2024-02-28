@@ -4,16 +4,16 @@
 
 package com.saveourtool.frontend.common.http
 
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.utils.AvatarType
 import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
 import com.saveourtool.save.utils.FILE_PART_NAME
-import js.core.jso
 
+import js.core.jso
 import org.w3c.fetch.Headers
 import org.w3c.fetch.Response
 import web.file.File

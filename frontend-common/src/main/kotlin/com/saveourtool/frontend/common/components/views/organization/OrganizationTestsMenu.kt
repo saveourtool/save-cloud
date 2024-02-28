@@ -7,7 +7,6 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.domain.Role
 import com.saveourtool.frontend.common.components.basic.testsuitespermissions.PermissionManagerMode
 import com.saveourtool.frontend.common.components.basic.testsuitespermissions.manageTestSuitePermissionsComponent
 import com.saveourtool.frontend.common.components.basic.testsuitessources.fetch.testSuitesSourceFetcher
@@ -17,6 +16,7 @@ import com.saveourtool.frontend.common.utils.WithRequestStatusContext
 import com.saveourtool.frontend.common.utils.loadingHandler
 import com.saveourtool.frontend.common.utils.useTooltip
 import com.saveourtool.frontend.common.utils.useWindowOpenness
+import com.saveourtool.save.domain.Role
 import com.saveourtool.save.test.*
 import com.saveourtool.save.testsuite.*
 

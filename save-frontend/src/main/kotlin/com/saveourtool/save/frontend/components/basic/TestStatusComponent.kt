@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.frontend.common.components.tables.visibleColumnsCount
+import com.saveourtool.frontend.common.externals.fontawesome.faExternalLinkAlt
+import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.save.agent.TestExecutionDto
 import com.saveourtool.save.agent.TestExecutionExtDto
 import com.saveourtool.save.core.result.Crash
@@ -10,9 +13,6 @@ import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
 import com.saveourtool.save.core.result.TestStatus
 import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.frontend.common.components.tables.visibleColumnsCount
-import com.saveourtool.frontend.common.externals.fontawesome.faExternalLinkAlt
-import com.saveourtool.frontend.common.utils.buttonBuilder
 
 import react.FC
 import react.Props

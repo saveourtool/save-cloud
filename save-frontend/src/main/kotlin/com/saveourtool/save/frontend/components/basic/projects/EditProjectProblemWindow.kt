@@ -2,13 +2,13 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
-import com.saveourtool.save.entities.ProjectProblemCritical
-import com.saveourtool.save.entities.ProjectProblemDto
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextFormOptional
 import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
 import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.save.entities.ProjectProblemCritical
+import com.saveourtool.save.entities.ProjectProblemDto
 
 import js.core.jso
 import react.FC

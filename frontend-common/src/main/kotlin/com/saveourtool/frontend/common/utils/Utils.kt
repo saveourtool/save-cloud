@@ -4,10 +4,10 @@
 
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.frontend.common.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.save.domain.Role
+import com.saveourtool.save.domain.Role.SUPER_ADMIN
 import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
