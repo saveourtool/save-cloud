@@ -1,3 +1,7 @@
+/**
+ * Platform utils
+ */
+
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 /**
  * Platform dependent utility methods
