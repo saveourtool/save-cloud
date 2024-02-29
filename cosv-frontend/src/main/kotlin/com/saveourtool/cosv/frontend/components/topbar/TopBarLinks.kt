@@ -49,9 +49,9 @@ val topBarLinks: FC<TopBarLinksProps> = FC { props ->
                             className = ClassName(
                                 "nav-link d-flex align-items-center me-2 ${
                                     textColor(
-                                        elem.hrefAnchor,
-                                        props.location
-                                    )
+                                            elem.hrefAnchor,
+                                            props.location
+                                        )
                                 } active mx-2 text-nowrap col-auto"
                             )
                             to = elem.hrefAnchor
