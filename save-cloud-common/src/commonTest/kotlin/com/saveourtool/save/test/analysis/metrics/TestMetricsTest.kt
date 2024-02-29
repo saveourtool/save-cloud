@@ -21,7 +21,7 @@ class TestMetricsTest {
     @JsName("encodeSingle")
     fun `encode single`() {
         @Suppress("ComplexRedundantLet")
-        Json.encodeToString(NoDataAvailable.instance).let { encoded ->
+        Json.encodeToString(NoDataAvailable).let { encoded ->
             assertNotEquals(illegal = "", actual = encoded)
         }
 
@@ -58,7 +58,7 @@ class TestMetricsTest {
     @JsName("encodeMultiple")
     fun `encode multiple`() {
         val results: List<TestMetrics> = listOf(
-            NoDataAvailable.instance,
+            NoDataAvailable,
             RegularTestMetrics(1, 2, 3, 4, null, null),
         )
 
@@ -71,7 +71,7 @@ class TestMetricsTest {
     @JsName("decodeSingle")
     fun `decode single`() {
         sequenceOf(
-            NoDataAvailable.instance,
+            NoDataAvailable,
             RegularTestMetrics(1, 2, 3, 4, null, null),
             RegularTestMetrics(1, 2, 3, 4, 5.toDuration(MINUTES), 6.toDuration(SECONDS)),
         ).forEach { result ->
@@ -85,7 +85,7 @@ class TestMetricsTest {
     @JsName("decodeMultiple")
     fun `decode multiple`() {
         val results: List<TestMetrics> = listOf(
-            NoDataAvailable.instance,
+            NoDataAvailable,
             RegularTestMetrics(1, 2, 3, 4, null, null),
             RegularTestMetrics(1, 2, 3, 4, 5.toDuration(MINUTES), 6.toDuration(SECONDS)),
         )

@@ -48,7 +48,7 @@ class TestStatisticsStorageTest {
 
     @Test
     fun `test metrics should get updated`() {
-        assertThat(storage.getTestMetrics(testId)).isEqualTo(NoDataAvailable.instance)
+        assertThat(storage.getTestMetrics(testId)).isEqualTo(NoDataAvailable)
 
         storage[testId] += TestRun(PASSED, null)
         assertThat(storage.getTestMetrics(testId)).isInstanceOfSatisfying(RegularTestMetrics::class.java) { metrics ->

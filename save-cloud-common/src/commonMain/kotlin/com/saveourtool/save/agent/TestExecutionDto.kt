@@ -51,7 +51,7 @@ data class TestExecutionDto(
      */
     fun toExtended(
         hasDebugInfo: Boolean? = null,
-        testMetrics: TestMetrics = NoDataAvailable.instance,
+        testMetrics: TestMetrics = NoDataAvailable,
         analysisResults: List<AnalysisResult> = emptyList(),
     ): TestExecutionExtDto =
             TestExecutionExtDto(

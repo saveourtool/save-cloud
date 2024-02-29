@@ -37,7 +37,7 @@ interface TestStatisticsStorage : TestStatusProviderScope<TestResultStatus> {
                 val testRuns = getExecutionStatistics(id)
 
                 when {
-                    testRuns.isEmpty() -> NoDataAvailable.instance
+                    testRuns.isEmpty() -> NoDataAvailable
                     else -> RegularTestMetrics(
                         successCount = testRuns.count { it.isSuccess() },
                         failureCount = testRuns.count { it.isFailure() },
