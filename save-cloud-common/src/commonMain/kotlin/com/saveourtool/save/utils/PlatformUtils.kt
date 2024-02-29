@@ -32,12 +32,6 @@ interface AtomicLong {
 }
 
 /**
- * @param value
- * @return [AtomicLong] with initial value [value]
- */
-expect fun createAtomicLong(value: Long): AtomicLong
-
-/**
  * Class that holds value and shares atomic reference to the value
  */
 interface GenericAtomicReference<T> {
@@ -51,13 +45,6 @@ interface GenericAtomicReference<T> {
      */
     fun set(newValue: T)
 }
-
-
-/**
- * @param valueToStore
- * @return create [GenericAtomicReference] with initial value [valueToStore]
- */
-expect fun <T> createGenericAtomicReference(valueToStore: T): GenericAtomicReference<T>
 
 /**
  * A wrapper around a value of type [T] that caches it for [expirationTimeSeconds] and then recalculates
@@ -86,6 +73,18 @@ class ExpiringValueWrapper<T : Any>(
         return value.get()
     }
 }
+
+/**
+ * @param value
+ * @return [AtomicLong] with initial value [value]
+ */
+expect fun createAtomicLong(value: Long): AtomicLong
+
+/**
+ * @param valueToStore
+ * @return create [GenericAtomicReference] with initial value [valueToStore]
+ */
+expect fun <T> createGenericAtomicReference(valueToStore: T): GenericAtomicReference<T>
 
 /**
  * @param envName
