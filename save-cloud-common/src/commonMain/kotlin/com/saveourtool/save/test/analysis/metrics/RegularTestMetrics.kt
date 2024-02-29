@@ -27,7 +27,7 @@ data class RegularTestMetrics(
     val ignoredCount: Int,
     val averageDurationOrNull: Duration?,
     val medianDurationOrNull: Duration?
-) : TestMetrics() {
+) : TestMetrics {
     /**
      * The run count of this test within the _sliding window_.
      */
