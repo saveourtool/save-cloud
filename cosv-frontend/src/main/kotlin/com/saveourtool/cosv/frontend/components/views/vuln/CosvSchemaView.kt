@@ -7,11 +7,11 @@ package com.saveourtool.cosv.frontend.components.views.vuln
 import com.saveourtool.cosv.frontend.components.views.vuln.utils.COSV_SCHEMA_JSON
 import com.saveourtool.cosv.frontend.components.views.vuln.utils.cosvFieldsDescriptionsMap
 import com.saveourtool.cosv.frontend.components.views.vuln.utils.keysOnlyFromCosv
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.Style
-import com.saveourtool.save.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.frontend.common.utils.particles
-import com.saveourtool.save.frontend.common.utils.useBackground
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.Style
+import com.saveourtool.frontend.common.utils.buttonBuilder
+import com.saveourtool.frontend.common.utils.particles
+import com.saveourtool.frontend.common.utils.useBackground
 
 import js.core.jso
 import react.FC

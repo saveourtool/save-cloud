@@ -7,7 +7,7 @@ package com.saveourtool.cosv.frontend.components.views.welcome.pagers.vuln
 import com.saveourtool.cosv.frontend.components.views.welcome.BIG_FONT_SIZE
 import com.saveourtool.cosv.frontend.components.views.welcome.FIRST_RAW_HEIGHT
 import com.saveourtool.cosv.frontend.components.views.welcome.SECOND_RAW_HEIGHT
-import com.saveourtool.save.frontend.common.externals.i18next.TranslationFunction
+import com.saveourtool.frontend.common.externals.i18next.TranslationFunction
 import com.saveourtool.save.validation.FrontendCosvRoutes
 import js.core.jso
 import react.ChildrenBuilder

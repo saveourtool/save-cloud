@@ -6,8 +6,8 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.save.frontend.common.utils.Style
-import com.saveourtool.save.frontend.common.utils.useBackground
+import com.saveourtool.frontend.common.utils.Style
+import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.save.info.UserInfo
 
 import react.*

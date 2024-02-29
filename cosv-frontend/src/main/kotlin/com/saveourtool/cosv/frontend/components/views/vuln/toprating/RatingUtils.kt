@@ -2,8 +2,8 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.toprating
 
-import com.saveourtool.save.frontend.common.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.frontend.common.externals.fontawesome.faTrophy
+import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import js.core.jso
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.td

@@ -6,13 +6,14 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.toprating
 
+import com.saveourtool.frontend.common.externals.fontawesome.faTrophy
+import com.saveourtool.frontend.common.utils.Style
+import com.saveourtool.frontend.common.utils.tab
+import com.saveourtool.frontend.common.utils.title
+import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.frontend.common.externals.fontawesome.faTrophy
-import com.saveourtool.save.frontend.common.utils.Style
-import com.saveourtool.save.frontend.common.utils.tab
-import com.saveourtool.save.frontend.common.utils.title
-import com.saveourtool.save.frontend.common.utils.useBackground
 import com.saveourtool.save.validation.FrontendCosvRoutes
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

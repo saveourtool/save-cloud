@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.frontend.components.views.index
 
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.noopResponseHandler
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.info.OauthProviderInfo
 

@@ -6,14 +6,14 @@
 
 package com.saveourtool.save.frontend.components.basic.fileuploader
 
+import com.saveourtool.frontend.common.components.basic.fileuploader.deleteFileButton
+import com.saveourtool.frontend.common.components.basic.fileuploader.downloadFileButton
+import com.saveourtool.frontend.common.components.inputform.dragAndDropForm
+import com.saveourtool.frontend.common.http.postUploadFile
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.domain.ProjectCoordinates
 import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.frontend.common.components.basic.fileuploader.deleteFileButton
-import com.saveourtool.save.frontend.common.components.basic.fileuploader.downloadFileButton
-import com.saveourtool.save.frontend.common.components.inputform.dragAndDropForm
-import com.saveourtool.save.frontend.common.http.postUploadFile
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.save.utils.toMegabytes
 
 import js.core.asList
