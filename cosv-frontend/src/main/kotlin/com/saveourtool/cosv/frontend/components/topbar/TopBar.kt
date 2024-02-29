@@ -6,12 +6,12 @@
 
 package com.saveourtool.cosv.frontend.components.topbar
 
-import com.saveourtool.save.frontend.common.components.basic.languageSelector
-import com.saveourtool.save.frontend.common.externals.fontawesome.*
-import com.saveourtool.save.frontend.common.externals.fontawesome.FontAwesomeIconModule
-import com.saveourtool.save.frontend.common.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.frontend.common.utils.UserInfoAwarePropsWithChildren
-import com.saveourtool.save.frontend.common.utils.notIn
+import com.saveourtool.frontend.common.components.basic.languageSelector
+import com.saveourtool.frontend.common.externals.fontawesome.*
+import com.saveourtool.frontend.common.externals.fontawesome.FontAwesomeIconModule
+import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
+import com.saveourtool.frontend.common.utils.UserInfoAwarePropsWithChildren
+import com.saveourtool.frontend.common.utils.notIn
 import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso

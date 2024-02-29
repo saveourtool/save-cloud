@@ -3,7 +3,7 @@ package com.saveourtool.save.frontend.components.views
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.frontend.externals.*
-import com.saveourtool.save.frontend.common.utils.apiUrl
+import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.save.frontend.utils.mockMswResponse
 import com.saveourtool.save.frontend.utils.wrapper
 import com.saveourtool.save.info.UserInfo

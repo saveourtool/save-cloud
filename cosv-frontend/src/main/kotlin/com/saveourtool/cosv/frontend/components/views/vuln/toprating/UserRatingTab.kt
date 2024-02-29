@@ -2,11 +2,11 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.toprating
 
-import com.saveourtool.save.frontend.common.components.basic.renderUserAvatarWithName
-import com.saveourtool.save.frontend.common.components.basic.table.filters.nameFiltersRow
-import com.saveourtool.save.frontend.common.components.tables.*
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.noopResponseHandler
+import com.saveourtool.frontend.common.components.basic.renderUserAvatarWithName
+import com.saveourtool.frontend.common.components.basic.table.filters.nameFiltersRow
+import com.saveourtool.frontend.common.components.tables.*
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.info.UserInfo
 import react.*
 import react.dom.html.ReactHTML.div

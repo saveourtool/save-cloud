@@ -6,13 +6,13 @@
 
 package com.saveourtool.save.frontend.components.basic.demo
 
+import com.saveourtool.frontend.common.externals.fontawesome.faCaretSquareRight
+import com.saveourtool.frontend.common.externals.fontawesome.faInfoCircle
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.demo.cpg.CpgAdditionalParams
 import com.saveourtool.save.demo.cpg.CpgEngine
 import com.saveourtool.save.demo.cpg.CpgRunRequest
 import com.saveourtool.save.demo.cpg.cytoscape.CytoscapeLayout
-import com.saveourtool.save.frontend.common.externals.fontawesome.faCaretSquareRight
-import com.saveourtool.save.frontend.common.externals.fontawesome.faInfoCircle
-import com.saveourtool.save.frontend.common.utils.*
 import com.saveourtool.save.frontend.components.basic.codeeditor.codeEditorComponent
 import com.saveourtool.save.frontend.externals.reactace.AceMarkers
 import com.saveourtool.save.frontend.externals.reactace.AceThemes

@@ -8,12 +8,12 @@ import com.saveourtool.cosv.frontend.components.ErrorBoundary
 import com.saveourtool.cosv.frontend.components.requestModalHandler
 import com.saveourtool.cosv.frontend.components.topbar.topBarComponent
 import com.saveourtool.cosv.frontend.routing.basicRouting
-import com.saveourtool.save.frontend.common.components.*
-import com.saveourtool.save.frontend.common.components.basic.cookieBanner
-import com.saveourtool.save.frontend.common.components.basic.scrollToTopButton
-import com.saveourtool.save.frontend.common.externals.i18next.initI18n
-import com.saveourtool.save.frontend.common.externals.modal.ReactModal
-import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.frontend.common.components.*
+import com.saveourtool.frontend.common.components.basic.cookieBanner
+import com.saveourtool.frontend.common.components.basic.scrollToTopButton
+import com.saveourtool.frontend.common.externals.i18next.initI18n
+import com.saveourtool.frontend.common.externals.modal.ReactModal
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.info.UserInfo
 import com.saveourtool.save.validation.FrontendRoutes
 

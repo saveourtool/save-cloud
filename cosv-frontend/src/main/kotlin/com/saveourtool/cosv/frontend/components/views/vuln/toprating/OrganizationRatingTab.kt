@@ -2,14 +2,14 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.toprating
 
+import com.saveourtool.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
+import com.saveourtool.frontend.common.components.basic.avatarRenderer
+import com.saveourtool.frontend.common.components.basic.table.filters.nameFiltersRow
+import com.saveourtool.frontend.common.components.tables.*
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.noopResponseHandler
 import com.saveourtool.save.entities.OrganizationDto
 import com.saveourtool.save.filters.OrganizationFilter
-import com.saveourtool.save.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
-import com.saveourtool.save.frontend.common.components.basic.avatarRenderer
-import com.saveourtool.save.frontend.common.components.basic.table.filters.nameFiltersRow
-import com.saveourtool.save.frontend.common.components.tables.*
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.noopResponseHandler
 
 import js.core.jso
 import react.*

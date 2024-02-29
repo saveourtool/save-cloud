@@ -4,10 +4,10 @@
 
 package com.saveourtool.save.frontend.components.views.welcome
 
-import com.saveourtool.save.frontend.common.externals.fontawesome.*
-import com.saveourtool.save.frontend.common.themes.Colors
-import com.saveourtool.save.frontend.common.utils.OauthProvidersFeConfig
-import com.saveourtool.save.frontend.common.utils.processRegistrationId
+import com.saveourtool.frontend.common.externals.fontawesome.*
+import com.saveourtool.frontend.common.themes.Colors
+import com.saveourtool.frontend.common.utils.OauthProvidersFeConfig
+import com.saveourtool.frontend.common.utils.processRegistrationId
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
 import com.saveourtool.save.info.OauthProviderInfo
 import com.saveourtool.save.info.UserInfo

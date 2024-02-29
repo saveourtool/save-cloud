@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.frontend.components.views
 
-import com.saveourtool.save.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
 import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserStatus
