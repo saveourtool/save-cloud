@@ -15,7 +15,7 @@
     "KDOC_WITHOUT_RETURN_TAG",
 )
 
-package externals
+package com.saveourtool.frontend.common.externals
 
 import web.html.HTMLElement
 import react.Props

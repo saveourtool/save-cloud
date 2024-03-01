@@ -10,9 +10,9 @@
     "KDOC_WITHOUT_RETURN_TAG",
 )
 
-package utils
+package com.saveourtool.frontend.common.utils
 
-import externals.BoundFunctions
+import com.saveourtool.frontend.common.externals.BoundFunctions
 import web.html.HTMLElement
 
 inline fun <reified T : HTMLElement> BoundFunctions.findByTextAndCast(text: String, options: dynamic = undefined, waitForOptions: dynamic = null) =

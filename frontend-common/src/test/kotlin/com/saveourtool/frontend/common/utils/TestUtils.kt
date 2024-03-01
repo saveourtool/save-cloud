@@ -2,7 +2,7 @@
  * Utilities for testing frontend
  */
 
-package utils
+package com.saveourtool.frontend.common.utils
 
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.requestStatusContext
