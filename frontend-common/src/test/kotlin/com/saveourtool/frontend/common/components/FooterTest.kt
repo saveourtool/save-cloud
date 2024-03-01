@@ -1,6 +1,5 @@
 package com.saveourtool.frontend.common.components
 
-import com.saveourtool.frontend.common.components.footer
 import com.saveourtool.frontend.common.externals.render
 import com.saveourtool.frontend.common.externals.screen
 
