@@ -1,21 +1,21 @@
 package com.saveourtool.frontend.common.components.basic
 
 import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.save.v1
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.externals.*
-import com.saveourtool.save.v1
 import com.saveourtool.frontend.common.externals.render
 import com.saveourtool.frontend.common.externals.rest
 import com.saveourtool.frontend.common.externals.screen
 import com.saveourtool.frontend.common.externals.setupWorker
+import com.saveourtool.frontend.common.utils.findByTextAndCast
+import com.saveourtool.frontend.common.utils.mockMswResponse
+import com.saveourtool.frontend.common.utils.wrapper
 import web.html.HTMLDivElement
 import web.html.HTMLOptionElement
 import web.html.HTMLSelectElement
 import react.*
-import com.saveourtool.frontend.common.utils.findByTextAndCast
-import com.saveourtool.frontend.common.utils.mockMswResponse
-import com.saveourtool.frontend.common.utils.wrapper
 import kotlin.js.Promise
 import kotlin.test.*
 
