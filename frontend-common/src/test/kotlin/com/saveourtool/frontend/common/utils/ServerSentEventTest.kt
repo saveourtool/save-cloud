@@ -1,6 +1,5 @@
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.frontend.common.utils.useNdjson
 import com.saveourtool.frontend.common.externals.render
 import com.saveourtool.frontend.common.externals.rest
 import com.saveourtool.frontend.common.externals.setupWorker

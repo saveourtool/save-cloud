@@ -8,7 +8,6 @@ import com.saveourtool.frontend.common.components.views.organization.organizatio
 import com.saveourtool.frontend.common.externals.*
 import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.save.info.UserInfo
-import externals.*
 import com.saveourtool.frontend.common.utils.mockMswResponse
 import kotlinx.datetime.LocalDateTime
 
