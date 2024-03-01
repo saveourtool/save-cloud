@@ -1,12 +1,12 @@
-package utils
+package com.saveourtool.frontend.common.utils
 
 import com.saveourtool.frontend.common.utils.get
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.frontend.common.utils.useDeferredRequest
 import com.saveourtool.frontend.common.utils.useRequest
-import externals.render
-import externals.rest
-import externals.setupWorker
+import com.saveourtool.frontend.common.externals.render
+import com.saveourtool.frontend.common.externals.rest
+import com.saveourtool.frontend.common.externals.setupWorker
 
 import org.w3c.fetch.Headers
 import react.FC

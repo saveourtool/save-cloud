@@ -1,4 +1,4 @@
-package components.views
+package com.saveourtool.frontend.common.components.views
 
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -9,7 +9,7 @@ import com.saveourtool.frontend.common.externals.*
 import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.save.info.UserInfo
 import externals.*
-import utils.mockMswResponse
+import com.saveourtool.frontend.common.utils.mockMswResponse
 import kotlinx.datetime.LocalDateTime
 
 import react.create
@@ -17,7 +17,7 @@ import react.create
 import kotlin.js.Promise
 import kotlin.test.*
 import js.core.jso
-import utils.wrapper
+import com.saveourtool.frontend.common.utils.wrapper
 
 class OrganizationViewTest {
     private val testOrganization = OrganizationDto.empty
@@ -106,7 +106,7 @@ class OrganizationViewTest {
         organizationView {
             organizationName = testOrganization.name
             currentUserInfo = userInfo
-            organizationType = TestOrganizationType
+            organizationType = com.saveourtool.frontend.common.components.views.TestOrganizationType
         }
     }
         .let {
