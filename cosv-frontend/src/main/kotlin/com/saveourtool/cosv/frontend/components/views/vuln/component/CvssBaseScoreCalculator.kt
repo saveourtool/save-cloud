@@ -2,9 +2,10 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.component
 
+import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.save.cvsscalculator.*
 import com.saveourtool.save.cvsscalculator.v3.*
-import com.saveourtool.save.frontend.common.utils.buttonBuilder
+
 import js.core.jso
 import react.ChildrenBuilder
 import react.FC
@@ -21,6 +22,7 @@ import react.useState
 import web.cssom.*
 import web.html.HTMLLabelElement
 import web.html.InputType
+
 import kotlin.Float
 
 val cvssBaseScoreCalculator: FC<CvssBaseScoreCalculatorProps> = FC { props ->

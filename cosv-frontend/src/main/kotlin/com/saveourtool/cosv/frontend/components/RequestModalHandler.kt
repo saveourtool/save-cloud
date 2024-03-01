@@ -3,11 +3,11 @@
 package com.saveourtool.cosv.frontend.components
 
 import com.saveourtool.cosv.frontend.components.topbar.topBarComponent
-import com.saveourtool.save.frontend.common.components.*
-import com.saveourtool.save.frontend.common.components.modal.loaderModalStyle
-import com.saveourtool.save.frontend.common.components.modal.modal
-import com.saveourtool.save.frontend.common.components.views.FallbackView
-import com.saveourtool.save.frontend.common.utils.UserInfoAwarePropsWithChildren
+import com.saveourtool.frontend.common.components.*
+import com.saveourtool.frontend.common.components.modal.loaderModalStyle
+import com.saveourtool.frontend.common.components.modal.modal
+import com.saveourtool.frontend.common.components.views.FallbackView
+import com.saveourtool.frontend.common.utils.UserInfoAwarePropsWithChildren
 
 import org.w3c.fetch.Response
 import react.*

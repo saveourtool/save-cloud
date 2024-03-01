@@ -53,7 +53,7 @@ include("save-demo-cpg")
 include("test-analysis-core")
 include("save-demo-agent")
 include("cosv-backend")
-include("save-frontend-common")
+include("frontend-common")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

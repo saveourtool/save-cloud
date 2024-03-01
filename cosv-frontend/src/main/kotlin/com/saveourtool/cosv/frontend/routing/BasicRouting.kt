@@ -11,14 +11,14 @@ import com.saveourtool.cosv.frontend.components.views.vuln.*
 import com.saveourtool.cosv.frontend.components.views.vuln.toprating.topRatingView
 import com.saveourtool.cosv.frontend.components.views.vuln.vulnerabilityCollectionView
 import com.saveourtool.cosv.frontend.components.views.welcome.vulnWelcomeView
-import com.saveourtool.save.frontend.common.components.views.FallbackView
-import com.saveourtool.save.frontend.common.components.views.organization.createOrganizationView
-import com.saveourtool.save.frontend.common.components.views.organization.organizationView
-import com.saveourtool.save.frontend.common.components.views.registrationView
-import com.saveourtool.save.frontend.common.components.views.userprofile.userProfileView
-import com.saveourtool.save.frontend.common.components.views.usersettings.userSettingsView
-import com.saveourtool.save.frontend.common.utils.*
-import com.saveourtool.save.frontend.common.utils.withRouter
+import com.saveourtool.frontend.common.components.views.FallbackView
+import com.saveourtool.frontend.common.components.views.organization.createOrganizationView
+import com.saveourtool.frontend.common.components.views.organization.organizationView
+import com.saveourtool.frontend.common.components.views.registrationView
+import com.saveourtool.frontend.common.components.views.userprofile.userProfileView
+import com.saveourtool.frontend.common.components.views.usersettings.userSettingsView
+import com.saveourtool.frontend.common.utils.*
+import com.saveourtool.frontend.common.utils.withRouter
 import com.saveourtool.save.validation.FrontendCosvRoutes.*
 import com.saveourtool.save.validation.FrontendRoutes
 

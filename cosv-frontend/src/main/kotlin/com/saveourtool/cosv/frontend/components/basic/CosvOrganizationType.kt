@@ -1,7 +1,7 @@
 package com.saveourtool.cosv.frontend.components.basic
 
-import com.saveourtool.save.frontend.common.components.views.organization.OrganizationMenuBar
-import com.saveourtool.save.frontend.common.components.views.organization.OrganizationType
+import com.saveourtool.frontend.common.components.views.organization.OrganizationMenuBar
+import com.saveourtool.frontend.common.components.views.organization.OrganizationType
 
 object CosvOrganizationType : OrganizationType {
     override val listTab: Array<OrganizationMenuBar> = arrayOf(
