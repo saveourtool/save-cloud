@@ -1,4 +1,4 @@
-package utils
+package com.saveourtool.frontend.common.utils
 
 import kotlinx.serialization.Serializable
 
