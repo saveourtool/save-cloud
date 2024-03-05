@@ -30,6 +30,7 @@ import kotlinx.datetime.toKotlinLocalDateTime
 @Table(schema = "cosv", name = "raw_cosv_file")
 @Suppress("LongParameterList")
 class RawCosvFile(
+    @Column(name = "file_name")
     var fileName: String,
     @Column(name = "user_id")
     var userId: Long,
@@ -39,9 +40,13 @@ class RawCosvFile(
     var status: RawCosvFileStatus,
     @Formula("LOWER(file_name) LIKE '%_$ZIP_ARCHIVE_EXTENSION'")
     var isZip: Boolean? = null,
+    @Column(name = "status_message")
     var statusMessage: String? = null,
+    @Column(name = "content_length")
     var contentLength: Long? = null,
+    @Column(name = "create_date")
     override var createDate: LocalDateTime? = null,
+    @Column(name = "update_date")
     override var updateDate: LocalDateTime? = null,
 ) : BaseEntityWithDtoWithId<RawCosvFileDto>(), IBaseEntityWithDate {
     override fun toDto(): RawCosvFileDto = RawCosvFileDto(
