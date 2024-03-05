@@ -1,9 +1,8 @@
-package utils
+package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.frontend.common.utils.useNdjson
-import externals.render
-import externals.rest
-import externals.setupWorker
+import com.saveourtool.frontend.common.externals.render
+import com.saveourtool.frontend.common.externals.rest
+import com.saveourtool.frontend.common.externals.setupWorker
 import react.FC
 import react.Props
 import react.create

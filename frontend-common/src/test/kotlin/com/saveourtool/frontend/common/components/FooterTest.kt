@@ -1,8 +1,7 @@
-package components
+package com.saveourtool.frontend.common.components
 
-import com.saveourtool.frontend.common.components.footer
-import externals.render
-import externals.screen
+import com.saveourtool.frontend.common.externals.render
+import com.saveourtool.frontend.common.externals.screen
 
 import generated.SAVE_CLOUD_VERSION
 
