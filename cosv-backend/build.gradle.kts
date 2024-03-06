@@ -15,7 +15,7 @@ dependencies {
     implementation(libs.spring.data.jpa)
     implementation(libs.hibernate.jpa21.api)
 
-    //needed for kubernetes configs and secrets to be added as additional configurations
+    // needed for kubernetes configs and secrets to be added as additional configurations
 
     implementation(libs.spring.cloud.starter.kubernetes.client.config)
 }
