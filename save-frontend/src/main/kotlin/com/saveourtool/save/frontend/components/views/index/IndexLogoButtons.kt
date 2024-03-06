@@ -5,7 +5,6 @@
 package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.validation.FrontendCosvRoutes
 import com.saveourtool.save.validation.FrontendRoutes
 import js.core.jso
 import react.ChildrenBuilder
