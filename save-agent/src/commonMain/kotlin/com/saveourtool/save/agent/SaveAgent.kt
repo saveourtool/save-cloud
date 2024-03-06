@@ -51,12 +51,12 @@ class SaveAgent(
     /**
      * The current [AgentState] of this agent. Initial value corresponds to the period when agent needs to finish its configuration.
      */
-    val state = GenericAtomicReference(AgentState.BUSY)
+    val state = createGenericAtomicReference(AgentState.BUSY)
 
     // fixme (limitation of old MM): can't use atomic reference to Instant here, because when using `Clock.System.now()` as an assigned value
     // Kotlin throws `kotlin.native.concurrent.InvalidMutabilityException: mutation attempt of frozen kotlinx.datetime.Instant...`
-    private val executionStartSeconds = AtomicLong(0L)
-    private val saveProcessJob: GenericAtomicReference<Job?> = GenericAtomicReference(null)
+    private val executionStartSeconds = createAtomicLong(0L)
+    private val saveProcessJob: GenericAtomicReference<Job?> = createGenericAtomicReference(null)
     private val backgroundContext = newSingleThreadContext("background")
     private val saveProcessContext = newSingleThreadContext("save-process")
     private val reportFormat = Json {
