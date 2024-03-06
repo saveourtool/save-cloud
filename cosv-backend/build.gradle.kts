@@ -17,5 +17,7 @@ dependencies {
 
     // needed for kubernetes configs and secrets to be added as additional configurations
 
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config) {
+        because("needed for kubernetes configs and secrets to be added as additional configurations")
+    }
 }
