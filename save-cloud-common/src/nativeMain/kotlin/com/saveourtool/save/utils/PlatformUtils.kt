@@ -7,23 +7,22 @@ package com.saveourtool.save.utils
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 
-actual class AtomicLong actual constructor(value: Long) {
-    private val kotlinAtomicLong = kotlin.native.concurrent.AtomicLong(value)
+actual fun createAtomicLong(value: Long): AtomicLong = object : AtomicLong {
+    private val kotlinAtomicLong = kotlin.concurrent.AtomicLong(value)
 
-    actual fun get(): Long = kotlinAtomicLong.value
+    override fun get(): Long = kotlinAtomicLong.value
 
-    actual fun set(newValue: Long) {
+    override fun set(newValue: Long) {
         kotlinAtomicLong.value = newValue
     }
 
-    actual fun addAndGet(delta: Long): Long = kotlinAtomicLong.addAndGet(delta)
+    override fun addAndGet(delta: Long): Long = kotlinAtomicLong.addAndGet(delta)
 }
 
-@Suppress("USE_DATA_CLASS")
-actual class GenericAtomicReference<T> actual constructor(valueToStore: T) {
+actual fun <T> createGenericAtomicReference(valueToStore: T): GenericAtomicReference<T> = object : GenericAtomicReference<T> {
     private val holder: kotlin.concurrent.AtomicReference<T> = kotlin.concurrent.AtomicReference(valueToStore)
-    actual fun get(): T = holder.value
-    actual fun set(newValue: T) {
+    override fun get(): T = holder.value
+    override fun set(newValue: T) {
         holder.value = newValue
     }
 }

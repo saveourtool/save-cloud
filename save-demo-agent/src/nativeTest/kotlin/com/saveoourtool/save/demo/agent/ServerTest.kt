@@ -10,6 +10,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.test.*
 
 class ServerTest {
@@ -27,6 +28,7 @@ class ServerTest {
         server.stop()
     }
 
+    @OptIn(ExperimentalNativeApi::class)
     @Test
     fun testServerStartup() {
         httpClient().use { client ->
