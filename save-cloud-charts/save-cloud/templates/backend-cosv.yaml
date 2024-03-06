@@ -137,7 +137,7 @@ spec:
         - name: ca-pemstore
           configMap:
             name: ca-pemstore
-        {{ if .Values.gateway.initCerts.enabled }}
+        {{ end }}
 ---
 apiVersion: v1
 kind: ConfigMap
