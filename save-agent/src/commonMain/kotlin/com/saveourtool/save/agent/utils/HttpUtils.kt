@@ -8,7 +8,7 @@ import com.saveourtool.save.agent.AgentState
 import com.saveourtool.save.agent.SaveAgent
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.utils.AtomicLong
+import com.saveourtool.save.utils.createAtomicLong
 import com.saveourtool.save.utils.failureOrNotOk
 import com.saveourtool.save.utils.fs
 import com.saveourtool.save.utils.notOk
@@ -82,7 +82,7 @@ internal suspend fun HttpClient.download(url: String, file: Path): Result<HttpRe
         .execute { httpResponse ->
             if (httpResponse.status.isSuccess()) {
                 val channel: ByteReadChannel = httpResponse.body()
-                val totalBytes = AtomicLong(0L)
+                val totalBytes = createAtomicLong(0L)
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_HTTP_BUFFER_SIZE.toLong())
                     while (!packet.isEmpty) {

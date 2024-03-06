@@ -13,7 +13,7 @@ import kotlinx.datetime.Clock
 /**
  * Atomic values
  */
-expect class AtomicLong(value: Long) {
+interface AtomicLong {
     /**
      * @return value
      */
@@ -32,12 +32,9 @@ expect class AtomicLong(value: Long) {
 }
 
 /**
- *  Class that holds value and shares atomic reference to the value
- *
- *  @param valueToStore value to store
+ * Class that holds value and shares atomic reference to the value
  */
-@Suppress("USE_DATA_CLASS")
-expect class GenericAtomicReference<T>(valueToStore: T) {
+interface GenericAtomicReference<T> {
     /**
      * @return stored value
      */
@@ -61,8 +58,8 @@ class ExpiringValueWrapper<T : Any>(
     private val valueGetter: () -> T,
 ) {
     private val expirationTimeSeconds = expirationTime.toLong(DurationUnit.SECONDS)
-    private val lastUpdateTimeSeconds = AtomicLong(0)
-    private val value: GenericAtomicReference<T> = GenericAtomicReference(valueGetter())
+    private val lastUpdateTimeSeconds = createAtomicLong(0)
+    private val value: GenericAtomicReference<T> = createGenericAtomicReference(valueGetter())
 
     /**
      * @return cached value or refreshes the value and returns it
@@ -76,6 +73,18 @@ class ExpiringValueWrapper<T : Any>(
         return value.get()
     }
 }
+
+/**
+ * @param value
+ * @return [AtomicLong] with initial value [value]
+ */
+expect fun createAtomicLong(value: Long): AtomicLong
+
+/**
+ * @param valueToStore
+ * @return create [GenericAtomicReference] with initial value [valueToStore]
+ */
+expect fun <T> createGenericAtomicReference(valueToStore: T): GenericAtomicReference<T>
 
 /**
  * @param envName
