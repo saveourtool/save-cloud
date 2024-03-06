@@ -40,11 +40,11 @@ jobs:
     steps:
       - id: checkout
         if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - id: git-changed-files
-        uses: tj-actions/changed-files@v41
+        uses: tj-actions/changed-files@v42
         with:
           files_yaml: |
             root_gradle:
@@ -230,9 +230,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download gradle reports
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Code coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           fail_ci_if_error: false
