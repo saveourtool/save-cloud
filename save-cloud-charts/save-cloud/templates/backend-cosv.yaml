@@ -77,7 +77,7 @@ spec:
             runAsGroup: 1001
           args:
             - --url=$(DB_URL)?createDatabaseIfNotExist=true
-            - --changeLogFile=db/db.changelog-master.xml
+            - --changeLogFile=cosv-backend/db/db.changelog-cosv.xml
             - --username=$(DB_USERNAME)
             - --password=$(DB_PASSWORD)
             - --log-level=info
@@ -96,7 +96,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: spring.datasource.backend-url
+                  key: spring.datasource.backend-cosv-url
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -117,10 +117,12 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
+            {{ if .Values.gateway.initCerts.enabled }}
             - name: ca-pemstore
               mountPath: /etc/ssl/certs/ca-certificates.crt
               subPath: ca-certificates.crt
               readOnly: false
+            {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.backend_cosv) | indent 10 | trim }}
         - name: database-secret
@@ -131,9 +133,11 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: {}
+        {{ if .Values.gateway.initCerts.enabled }}
         - name: ca-pemstore
           configMap:
             name: ca-pemstore
+        {{ if .Values.gateway.initCerts.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
