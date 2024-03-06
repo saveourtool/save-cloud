@@ -117,7 +117,7 @@ spec:
               name: migrations-data
             - mountPath: {{ .Values.mysql.dbPasswordFile }}
               name: database-secret
-            {{ if .Values.gateway.initCerts.enabled }}
+            {{ if .Values.initCerts.enabled }}
             - name: ca-pemstore
               mountPath: /etc/ssl/certs/ca-certificates.crt
               subPath: ca-certificates.crt
@@ -133,7 +133,7 @@ spec:
             secretName: s3-secrets
         - name: migrations-data
           emptyDir: {}
-        {{ if .Values.gateway.initCerts.enabled }}
+        {{ if .Values.initCerts.enabled }}
         - name: ca-pemstore
           configMap:
             name: ca-pemstore
