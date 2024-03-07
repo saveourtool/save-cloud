@@ -53,7 +53,9 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.security.core)
     implementation(libs.hibernate.micrometer)
-    implementation(libs.spring.cloud.starter.kubernetes.client.config)
+    implementation(libs.spring.cloud.starter.kubernetes.client.config) {
+        because("needed for kubernetes configs and secrets to be added as additional configurations")
+    }
     implementation(libs.reactor.extra)
     implementation(libs.arrow.kt.core)
     implementation(project.dependencies.platform(libs.aws.sdk.bom))

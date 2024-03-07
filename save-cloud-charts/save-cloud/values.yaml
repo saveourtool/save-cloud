@@ -2,6 +2,9 @@ imageRegistry: ghcr.io/saveourtool
 # dockerTag: <TDB>  # this should be set explicitly during chart installation
 
 env: staging
+# Additional certs installation for internal CA case
+initCerts:
+  enabled: false
 # Unless overridden, this will be set as Spring profile of a component.
 profile: dev
 pullPolicy: IfNotPresent
@@ -57,9 +60,6 @@ preprocessor:
   # Additional properties for `application.properties` file that will be mounted as an optional property source.
   applicationProperties:
 gateway:
-  # Additional certs installation for internal CA case
-  initCerts:
-    enabled: false
   name: gateway
   profile: dev,kubernetes
   imageName: api-gateway

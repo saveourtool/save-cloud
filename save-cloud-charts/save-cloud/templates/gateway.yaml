@@ -39,7 +39,7 @@ spec:
               name: cacerts
             - mountPath: /home/cnb/secrets/oauth
               name: oauth-credentials
-      {{ if .Values.gateway.initCerts.enabled }}
+      {{ if .Values.initCerts.enabled }}
       initContainers:
         - name: init-cacerts
           image: ghcr.io/saveourtool/api-gateway:0.4.0-alpha.0.408-9b56d61
