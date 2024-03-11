@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 jetbrains-annotations = "24.0.1"
 save-cli = "0.3.10"
 ktor = "2.3.6"
