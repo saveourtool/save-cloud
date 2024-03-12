@@ -305,7 +305,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
             }
         }
 
-        if (currentUser?.isSuperAdmin() == true && currentUser.name != user?.name) {
+        if (currentUser?.isSuperAdmin() == true && currentUser.name != user?.name && user?.status != UserStatus.BANNED) {
             div {
                 className = ClassName("row h5 font-weight-bold justify-content-center text-gray-800 my-3")
 
