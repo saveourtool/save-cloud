@@ -4,11 +4,10 @@
 
 @file:Suppress("FILE_NAME_MATCH_CLASS")
 
-package com.saveourtool.save.frontend.components.views
+package com.saveourtool.frontend.common.components.views
 
+import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.utils.*
 import com.saveourtool.save.info.UserStatus
 import js.core.jso
 import react.FC

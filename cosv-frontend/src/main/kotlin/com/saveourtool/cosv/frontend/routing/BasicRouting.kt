@@ -15,6 +15,7 @@ import com.saveourtool.frontend.common.components.views.FallbackView
 import com.saveourtool.frontend.common.components.views.organization.createOrganizationView
 import com.saveourtool.frontend.common.components.views.organization.organizationView
 import com.saveourtool.frontend.common.components.views.registrationView
+import com.saveourtool.frontend.common.components.views.thanksForRegistrationView
 import com.saveourtool.frontend.common.components.views.userprofile.userProfileView
 import com.saveourtool.frontend.common.components.views.usersettings.userSettingsView
 import com.saveourtool.frontend.common.utils.*
@@ -83,6 +84,7 @@ val basicRouting: FC<UserInfoAwareMutablePropsWithChildren> = FC { props ->
             createOrganizationView.create() to CREATE_ORGANIZATION,
             organizationView.create() to ":owner",
             userProfileView.create() to "$PROFILE/:name",
+            thanksForRegistrationView.create() to THANKS_FOR_REGISTRATION,
 
             userSettingsView.create {
                 this.userInfoSetter = props.userInfoSetter
