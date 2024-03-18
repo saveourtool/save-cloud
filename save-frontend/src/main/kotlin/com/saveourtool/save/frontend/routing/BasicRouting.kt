@@ -11,6 +11,7 @@ import com.saveourtool.frontend.common.components.views.FallbackView
 import com.saveourtool.frontend.common.components.views.organization.createOrganizationView
 import com.saveourtool.frontend.common.components.views.organization.organizationView
 import com.saveourtool.frontend.common.components.views.registrationView
+import com.saveourtool.frontend.common.components.views.thanksForRegistrationView
 import com.saveourtool.frontend.common.components.views.userprofile.userProfileView
 import com.saveourtool.frontend.common.components.views.usersettings.*
 import com.saveourtool.frontend.common.utils.*
