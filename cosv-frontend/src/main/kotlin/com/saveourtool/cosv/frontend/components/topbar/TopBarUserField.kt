@@ -48,6 +48,7 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
+    var (avatar, setAvatar) = useStateFromProps(props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER)
 
     ul {
         className = ClassName("navbar-nav ml-auto")
@@ -86,12 +87,15 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                             }
                         }
                     }
-                    props.userInfo?.let { userInfo ->
+                    props.userInfo?.run {
                         img {
                             className =
                                     ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
+                            src = avatar
                             style = logoSize
+                            onError = {
+                                setAvatar(AVATAR_PROFILE_PLACEHOLDER)
+                            }
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"
