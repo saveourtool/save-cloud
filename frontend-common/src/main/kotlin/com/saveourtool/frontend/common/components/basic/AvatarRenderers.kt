@@ -232,6 +232,32 @@ fun ChildrenBuilder.renderOrganizationAvatar(
     }
 }
 
+/**
+ * Render topBar avatar or placeholder
+ *
+ * @param avatarLink link to avatar
+ * @param classes
+ * @param styleBuilder [CSSProperties] builder
+ * @param isError
+ * @param setIsError
+ */
+fun ChildrenBuilder.renderTopBarAvatar(
+    avatarLink: String,
+    classes: String,
+    styleBuilder: CSSProperties,
+    isError: Boolean,
+    setIsError: () -> Unit,
+) {
+    img {
+        className = ClassName("avatar avatar-user border color-bg-default rounded-circle $classes")
+        src = if (!isError) avatarLink else AVATAR_PROFILE_PLACEHOLDER
+        style = styleBuilder
+        onError = {
+            setIsError()
+        }
+    }
+}
+
 private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,
     classes: String,
