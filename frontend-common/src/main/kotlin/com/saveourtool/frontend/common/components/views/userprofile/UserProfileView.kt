@@ -5,6 +5,7 @@
 package com.saveourtool.frontend.common.components.views.userprofile
 
 import com.saveourtool.frontend.common.components.basic.renderAvatar
+import com.saveourtool.frontend.common.components.basic.renderOrganizationAvatar
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
@@ -47,6 +48,7 @@ val userProfileView: FC<UserProfileViewProps> = FC { props ->
     val (organizations, setOrganizations) = useState<List<OrganizationDto>>(emptyList())
     val (selectedMenu, setSelectedMenu) = useState(UserProfileTab.VULNERABILITIES)
     val (countUsers, setCountUsers) = useState(0)
+    val (isError, setIsError) = useState(false)
 
     useRequest {
         val userNew: UserInfo = get(
@@ -172,6 +174,7 @@ fun ChildrenBuilder.renderLeftUserMenu(
 ) {
     val navigate = useNavigate()
     val banUserWindowOpenness = useWindowOpenness()
+    val (errorAvatars, setErrorAvatars) = useState(emptySet<String>())
 
     val banUser = useDeferredRequest {
         user?.name?.let {
@@ -369,7 +372,11 @@ fun ChildrenBuilder.renderLeftUserMenu(
             div {
                 className = ClassName("row")
                 organizations.forEach { organization ->
-                    renderAvatar(organization) {
+                    renderOrganizationAvatar(
+                        organization,
+                        errorAvatars = errorAvatars,
+                        setErrorAvatars = { name -> setErrorAvatars(errorAvatars.plus(name)) }
+                    ) {
                         width = 4.rem
                         height = 4.rem
                     }

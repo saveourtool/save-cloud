@@ -5,6 +5,7 @@
 package com.saveourtool.cosv.frontend.components.topbar
 
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
+import com.saveourtool.frontend.common.components.basic.renderTopBarAvatar
 import com.saveourtool.frontend.common.components.modal.logoutModal
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
@@ -19,7 +20,6 @@ import react.*
 import react.dom.aria.*
 import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.img
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.small
 import react.dom.html.ReactHTML.span
@@ -48,6 +48,7 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
     val navigate = useNavigate()
     var isLogoutModalOpen by useState(false)
     var isAriaExpanded by useState(false)
+    var (isError, setIsError) = useState(false)
 
     ul {
         className = ClassName("navbar-nav ml-auto")
@@ -86,12 +87,14 @@ val topBarUserField: FC<UserInfoAwareProps> = FC { props ->
                             }
                         }
                     }
-                    props.userInfo?.let { userInfo ->
-                        img {
-                            className =
-                                    ClassName("ml-2 align-self-center avatar avatar-user width-full border color-bg-default rounded-circle fas mr-2")
-                            src = props.userInfo?.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER
-                            style = logoSize
+                    props.userInfo?.let { it ->
+                        renderTopBarAvatar(
+                            it.avatar?.avatarRenderer() ?: AVATAR_PROFILE_PLACEHOLDER,
+                            "ml-2 align-self-center width-full fas mr-2",
+                            logoSize,
+                            isError,
+                        ) {
+                            setIsError(true)
                         }
                     } ?: fontAwesomeIcon(icon = faUser) {
                         it.className = "m-2 align-self-center fas fa-lg fa-fw mr-2 text-gray-400"

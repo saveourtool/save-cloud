@@ -18,6 +18,7 @@ import react.ChildrenBuilder
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.img
 import react.router.dom.Link
+import react.useState
 import web.cssom.ClassName
 import web.cssom.rem
 
@@ -198,17 +199,81 @@ fun ChildrenBuilder.renderOrganizationWithName(
     }
 }
 
+/**
+ * Render organization avatar or placeholder
+ *
+ * @param organizationDto organization to render avatar
+ * @param styleBuilder [CSSProperties] builder
+ * @param errorAvatars
+ * @param setErrorAvatars
+ */
+fun ChildrenBuilder.renderOrganizationAvatar(
+    organizationDto: OrganizationDto,
+    errorAvatars: Set<String>,
+    setErrorAvatars: (String) -> Unit,
+    styleBuilder: CSSProperties.() -> Unit = {},
+) {
+    val avatarLink = organizationDto.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER
+    val linkOrganization = "/${organizationDto.name}"
+
+    val renderImg: ChildrenBuilder.() -> Unit = {
+        img {
+            className = ClassName("avatar avatar-user border color-bg-default rounded-circle")
+            src = if (errorAvatars.contains(organizationDto.name)) AVATAR_PROFILE_PLACEHOLDER else avatarLink
+            style = jso { styleBuilder() }
+            onError = {
+                setErrorAvatars(organizationDto.name)
+            }
+        }
+    }
+    Link {
+        to = linkOrganization
+        renderImg()
+    }
+}
+
+/**
+ * Render topBar avatar or placeholder
+ *
+ * @param avatarLink link to avatar
+ * @param classes
+ * @param styleBuilder [CSSProperties] builder
+ * @param isError
+ * @param setIsError
+ */
+fun ChildrenBuilder.renderTopBarAvatar(
+    avatarLink: String,
+    classes: String,
+    styleBuilder: CSSProperties,
+    isError: Boolean,
+    setIsError: () -> Unit,
+) {
+    img {
+        className = ClassName("avatar avatar-user border color-bg-default rounded-circle $classes")
+        src = if (!isError) avatarLink else AVATAR_PROFILE_PLACEHOLDER
+        style = styleBuilder
+        onError = {
+            setIsError()
+        }
+    }
+}
+
 private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,
     classes: String,
     link: String?,
     styleBuilder: CSSProperties.() -> Unit,
 ) {
+    val (avatar, setAvatar) = useState(avatarLink)
+
     val renderImg: ChildrenBuilder.() -> Unit = {
         img {
             className = ClassName("avatar avatar-user border color-bg-default rounded-circle $classes")
-            src = avatarLink
+            src = avatar
             style = jso { styleBuilder() }
+            onError = {
+                setAvatar(AVATAR_PROFILE_PLACEHOLDER)
+            }
         }
     }
     link?.let {
