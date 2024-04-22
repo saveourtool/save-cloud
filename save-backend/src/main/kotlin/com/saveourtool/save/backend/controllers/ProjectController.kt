@@ -2,22 +2,22 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.domain.ProjectSaveStatus
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.filters.ProjectFilter
+import com.saveourtool.common.filters.ProjectProblemFilter
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.LnkUserProjectService
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.utils.*
 import com.saveourtool.common.v1
+import com.saveourtool.common.validation.NAMING_MAX_LENGTH
+import com.saveourtool.common.validation.isValidLengthName
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.ProjectProblemService
-import com.saveourtool.save.domain.ProjectSaveStatus
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.filters.ProjectProblemFilter
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.LnkUserProjectService
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.validation.NAMING_MAX_LENGTH
-import com.saveourtool.save.validation.isValidLengthName
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -44,12 +44,12 @@ import java.util.*
 /**
  * Controller for working with projects.
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/projects"])
+@RequestMapping(path = ["/api/$v1/projects"])
 class ProjectController(
     private val projectService: ProjectService,
     private val projectProblemService: ProjectProblemService,
@@ -58,7 +58,7 @@ class ProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
     @GetMapping("/")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -122,7 +122,7 @@ class ProjectController(
     }
 
     @PostMapping("/save")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -180,7 +180,7 @@ class ProjectController(
         }
 
     @PostMapping("/update")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -212,7 +212,7 @@ class ProjectController(
         }
 
     @PostMapping("/{organizationName}/{projectName}/change-status")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

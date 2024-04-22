@@ -1,6 +1,8 @@
 package com.saveourtool.save.orchestrator.docker
 
 import com.saveourtool.common.agent.AgentEnvName
+import com.saveourtool.common.utils.debug
+import com.saveourtool.common.utils.getLogger
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
@@ -12,8 +14,6 @@ import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.runner.EXECUTION_DIR
 import com.saveourtool.save.orchestrator.runner.SAVE_AGENT_USER_HOME
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
 
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CopyArchiveToContainerCmd
@@ -137,7 +137,7 @@ class DockerContainerRunner(
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         val envVariables = configuration.env.mapToEnvs() +
-                com.saveourtool.common.agent.AgentEnvName.CONTAINER_NAME.toEnv(containerName) +
+                AgentEnvName.CONTAINER_NAME.toEnv(containerName) +
                 kubernetesEnv
 
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
@@ -182,7 +182,7 @@ class DockerContainerRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
-                ${com.saveourtool.common.agent.AgentEnvName.CONTAINER_ID.name}=$containerId
+                ${AgentEnvName.CONTAINER_ID.name}=$containerId
                 """.trimIndent()
             )
         }
@@ -218,10 +218,10 @@ class DockerContainerRunner(
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
         private const val RUNNING_STATUS = "running"
-        private val kubernetesEnv: String = com.saveourtool.common.agent.AgentEnvName.KUBERNETES.toEnv(false)
+        private val kubernetesEnv: String = AgentEnvName.KUBERNETES.toEnv(false)
 
-        private fun Map<com.saveourtool.common.agent.AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
+        private fun Map<AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
 
-        private fun com.saveourtool.common.agent.AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
+        private fun AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
     }
 }

@@ -1,15 +1,16 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.*
+import com.saveourtool.common.agent.*
 import com.saveourtool.common.agent.AgentState.*
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatus
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.execution.ExecutionStatus
+import com.saveourtool.common.entities.AgentDto
+import com.saveourtool.common.entities.AgentStatus
+import com.saveourtool.common.entities.AgentStatusDto
+import com.saveourtool.common.execution.ExecutionStatus
+import com.saveourtool.common.utils.*
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
-import com.saveourtool.save.utils.*
+
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientException
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.onErrorResume
+
 import java.time.Duration
 
 /**
@@ -40,9 +42,9 @@ class AgentService(
      * @param containerId
      * @return [Mono] of [InitResponse]
      */
-    internal fun getInitConfig(containerId: String): Mono<com.saveourtool.common.agent.HeartbeatResponse> =
+    internal fun getInitConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getInitConfig(containerId)
-                .map { com.saveourtool.common.agent.InitResponse(it) }
+                .map { InitResponse(it) }
 
     /**
      * Sets new tests ids
@@ -50,9 +52,9 @@ class AgentService(
      * @param containerId
      * @return [Mono] of [NewJobResponse] if there is some job to do or [Mono.empty]
      */
-    internal fun getNextRunConfig(containerId: String): Mono<com.saveourtool.common.agent.HeartbeatResponse> =
+    internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
             orchestratorAgentService.getNextRunConfig(containerId)
-                .map { com.saveourtool.common.agent.NewJobResponse(it) }
+                .map { NewJobResponse(it) }
 
     /**
      * Save new agent to the DB
@@ -233,7 +235,7 @@ class AgentService(
 
     private fun Collection<AgentStatusDto>.areFinishedOrStopped() = areAllStatesIn(*finishedOrStoppedStates)
 
-    private fun Collection<AgentStatusDto>.areAllStatesIn(vararg states: com.saveourtool.common.agent.AgentState) = all { it.state in states }
+    private fun Collection<AgentStatusDto>.areAllStatesIn(vararg states: AgentState) = all { it.state in states }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentService::class.java)

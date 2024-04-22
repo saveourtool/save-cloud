@@ -1,14 +1,14 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.storage.AvatarKey
+import com.saveourtool.common.storage.AvatarStorage
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.utils.ByteBufferFluxResponse
 import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.storage.AvatarKey
-import com.saveourtool.save.storage.AvatarStorage
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.ByteBufferFluxResponse
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -34,12 +34,12 @@ import kotlin.time.toJavaDuration
 /**
  * Controller for working with avatars.
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "avatars"),
 )
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/avatar"])
+@RequestMapping(path = ["/api/$v1/avatar"])
 internal class AvatarController(
     private val avatarStorage: AvatarStorage,
     private val organizationService: OrganizationService,

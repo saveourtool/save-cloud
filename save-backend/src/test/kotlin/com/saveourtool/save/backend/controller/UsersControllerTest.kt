@@ -2,7 +2,7 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.common.v1
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -33,7 +33,7 @@ class UsersControllerTest {
             .isOk
 
         webTestClient.get()
-            .uri("/api/${com.saveourtool.common.v1}/users/admin")
+            .uri("/api/${v1}/users/admin")
             .exchange()
             .expectStatus()
             .isOk

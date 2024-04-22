@@ -6,9 +6,9 @@ import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.TestRepository
 import com.saveourtool.save.backend.repository.TestSuiteRepository
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.test.TestDto
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.getLogger
+import com.saveourtool.common.test.TestDto
+import com.saveourtool.common.utils.debug
+import com.saveourtool.common.utils.getLogger
 import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.junit.jupiter.api.Assertions.assertNotNull

@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.entities.benchmarks.BenchmarkEntity
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.AwesomeBenchmarksService
-import com.saveourtool.save.entities.benchmarks.BenchmarkEntity
 
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.annotation.*
@@ -35,7 +35,7 @@ class AwesomeBenchmarksController(
     /**
      * @return all benchmarks from backend to frontend
      */
-    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/awesome-benchmarks"])
+    @GetMapping(path = ["/api/$v1/awesome-benchmarks"])
     fun getAllAwesomeBenchmarks() =
             awesomeBenchmarksService.getAllBenchmarks()
 }

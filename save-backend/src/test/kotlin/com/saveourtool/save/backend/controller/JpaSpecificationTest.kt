@@ -4,7 +4,7 @@ import com.saveourtool.common.agent.AgentState
 import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.utils.BlockingBridge
+import com.saveourtool.common.utils.BlockingBridge
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -33,7 +33,7 @@ class JpaSpecificationTest {
         val agentStatusToList = agentStatusRepository.findOne { root, _, cb ->
             cb.and(
                 cb.equal(root.get<Long>("id"), 4),
-                cb.equal(root.get<com.saveourtool.common.agent.AgentState>("state"), com.saveourtool.common.agent.AgentState.FINISHED)
+                cb.equal(root.get<AgentState>("state"), com.saveourtool.common.agent.AgentState.FINISHED)
             )
         }.get()
 

@@ -2,18 +2,18 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.domain.EntitySaveStatus
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.entities.TestSuitesSource.Companion.toTestSuiteSource
+import com.saveourtool.common.service.GitService
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.test.TestsSourceVersionInfoList
+import com.saveourtool.common.testsuite.*
+import com.saveourtool.common.utils.*
 import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.toResponseEntity
-import com.saveourtool.save.domain.EntitySaveStatus
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.entities.TestSuitesSource.Companion.toTestSuiteSource
-import com.saveourtool.save.service.GitService
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.test.TestsSourceVersionInfoList
-import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -38,12 +38,12 @@ typealias EntitySaveStatusResponse = ResponseEntity<EntitySaveStatus>
 /**
  * Controller for [TestSuitesSource]
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @RestController
 @Tags(
     Tag(name = "test-suites-source"),
 )
-@RequestMapping("/api/${com.saveourtool.common.v1}/test-suites-sources")
+@RequestMapping("/api/$v1/test-suites-sources")
 class TestSuitesSourceController(
     private val testSuitesSourceService: TestSuitesSourceService,
     private val testsSourceVersionService: TestsSourceVersionService,
@@ -51,7 +51,7 @@ class TestSuitesSourceController(
     private val gitService: GitService,
 ) {
     @GetMapping("/{organizationName}/list")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -72,7 +72,7 @@ class TestSuitesSourceController(
         }
 
     @GetMapping("/{organizationName}/{sourceName}")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -95,7 +95,7 @@ class TestSuitesSourceController(
         .map { it.toDto() }
 
     @GetMapping("/{organizationName}/{sourceName}/list-version")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -121,7 +121,7 @@ class TestSuitesSourceController(
         }
 
     @GetMapping("/{organizationName}/list-version")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -141,7 +141,7 @@ class TestSuitesSourceController(
         }
 
     @PostMapping("/create")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -166,7 +166,7 @@ class TestSuitesSourceController(
         }
 
     @PostMapping("/update")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -206,7 +206,7 @@ class TestSuitesSourceController(
         }
 
     @DeleteMapping("/{organizationName}/{sourceName}/delete-version")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "DELETE",
@@ -260,7 +260,7 @@ class TestSuitesSourceController(
                 }
 
     @PostMapping("/{organizationName}/{sourceName}/fetch")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -293,7 +293,7 @@ class TestSuitesSourceController(
         }
 
     @GetMapping("/{organizationName}/{sourceName}/tag-list-to-fetch")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -313,7 +313,7 @@ class TestSuitesSourceController(
         }
 
     @GetMapping("/{organizationName}/{sourceName}/branch-list-to-fetch")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -329,7 +329,7 @@ class TestSuitesSourceController(
         .map { ResponseEntity.ok().body(it) }
 
     @GetMapping("/available")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",

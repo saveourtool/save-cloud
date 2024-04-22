@@ -9,15 +9,15 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.entities.ProjectDto
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.LnkUserProjectService
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.utils.switchIfEmptyToNotFound
 import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.LnkUserProjectService
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -38,19 +38,19 @@ import reactor.kotlin.core.util.function.component2
 /**
  * Controller for processing links between users and their roles in projects
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping("/api/${com.saveourtool.common.v1}/projects")
+@RequestMapping("/api/$v1/projects")
 class LnkUserProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
     private val projectService: ProjectService,
     private val projectPermissionEvaluator: ProjectPermissionEvaluator,
 ) {
     @GetMapping(path = ["/get-for-current-user"])
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @Operation(
         method = "GET",
         summary = "Get projects of current authenticated user",
@@ -67,7 +67,7 @@ class LnkUserProjectController(
         .map { it.toDto() }
 
     @GetMapping(path = ["/{organizationName}/{projectName}/users"])
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -103,7 +103,7 @@ class LnkUserProjectController(
         .defaultIfEmpty(emptyList())
 
     @GetMapping("/{organizationName}/{projectName}/users/not-from")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "GET",

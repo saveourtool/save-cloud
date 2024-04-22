@@ -92,12 +92,12 @@ internal fun DockerClient.findImage(imageId: String, meterRegistry: MeterRegistr
 internal fun fillAgentPropertiesFromConfiguration(
     agentSettings: AgentSettings,
     executionId: Long,
-): Map<com.saveourtool.common.agent.AgentEnvName, String> = buildMap {
-    put(com.saveourtool.common.agent.AgentEnvName.EXECUTION_ID, executionId.toString())
+): Map<AgentEnvName, String> = buildMap {
+    put(AgentEnvName.EXECUTION_ID, executionId.toString())
 
     with(agentSettings) {
-        put(com.saveourtool.common.agent.AgentEnvName.HEARTBEAT_URL, heartbeatUrl)
-        debug?.let { put(com.saveourtool.common.agent.AgentEnvName.DEBUG, it.toString()) }
+        put(AgentEnvName.HEARTBEAT_URL, heartbeatUrl)
+        debug?.let { put(AgentEnvName.DEBUG, it.toString()) }
     }
 }
 

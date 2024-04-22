@@ -3,14 +3,14 @@ package com.saveourtool.save.orchestrator.service
 import com.saveourtool.common.agent.AgentInitConfig
 import com.saveourtool.common.agent.AgentRunConfig
 import com.saveourtool.common.agent.TestExecutionDto
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.test.TestBatch
-import com.saveourtool.save.utils.EmptyResponse
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.execution.ExecutionStatus
+import com.saveourtool.common.test.TestBatch
+import com.saveourtool.common.utils.EmptyResponse
 
 import reactor.core.publisher.Mono
 
-typealias TestExecutionList = List<com.saveourtool.common.agent.TestExecutionDto>
+typealias TestExecutionList = List<TestExecutionDto>
 
 /**
  * Repository to work with agents
@@ -22,7 +22,7 @@ interface OrchestratorAgentService {
      * @param containerId
      * @return [Mono] of [AgentInitConfig]
      */
-    fun getInitConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentInitConfig>
+    fun getInitConfig(containerId: String): Mono<AgentInitConfig>
 
     /**
      * Gets new tests ids
@@ -30,7 +30,7 @@ interface OrchestratorAgentService {
      * @param containerId
      * @return [Mono] of [TestBatch]
      */
-    fun getNextRunConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentRunConfig>
+    fun getNextRunConfig(containerId: String): Mono<AgentRunConfig>
 
     /**
      * Save new agents to the DB and insert their statuses

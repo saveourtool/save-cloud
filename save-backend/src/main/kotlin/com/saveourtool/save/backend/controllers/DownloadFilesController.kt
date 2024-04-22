@@ -1,12 +1,12 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.domain.*
+import com.saveourtool.common.entities.TestExecution
+import com.saveourtool.common.utils.*
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
-import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.TestExecution
-import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.tags.Tags
@@ -22,7 +22,7 @@ import java.nio.ByteBuffer
  * A Spring controller for file downloading
  */
 @RestController
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "files"),
 )
@@ -37,7 +37,7 @@ class DownloadFilesController(
      * @throws ResponseStatusException if request is invalid or result cannot be returned
      */
     @Suppress("ThrowsCount", "UnsafeCallOnNullableType")
-    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/files/get-debug-info"])
+    @GetMapping(path = ["/api/$v1/files/get-debug-info"])
     fun getDebugInfo(
         @RequestParam testExecutionId: Long,
     ): Flux<ByteBuffer> = debugInfoStorage.download(testExecutionId)

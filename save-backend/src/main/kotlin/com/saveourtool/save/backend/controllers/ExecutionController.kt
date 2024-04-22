@@ -1,23 +1,23 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.entities.Execution
+import com.saveourtool.common.entities.Project
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionUpdateDto
+import com.saveourtool.common.execution.TestingType
+import com.saveourtool.common.filters.ExecutionFilter
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.utils.blockingMap
+import com.saveourtool.common.utils.orNotFound
+import com.saveourtool.common.utils.switchIfEmptyToNotFound
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.entities.Execution
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.execution.TestingType
-import com.saveourtool.save.filters.ExecutionFilter
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.utils.blockingMap
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
 
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -72,7 +72,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution if it has been found
      */
-    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/execution", "/internal/execution"])
+    @GetMapping(path = ["/api/$v1/execution", "/internal/execution"])
     @Transactional(readOnly = true)
     @Suppress("UnsafeCallOnNullableType")
     fun getExecution(
@@ -100,7 +100,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return execution dto
      */
-    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/executionDto"])
+    @GetMapping(path = ["/api/$v1/executionDto"])
     fun getExecutionDto(@RequestParam executionId: Long, authentication: Authentication): Mono<ExecutionDto> =
             executionService.findExecution(executionId)
                 .toMonoOrNotFound()
@@ -115,7 +115,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return list of execution dtos
      */
     @Suppress("PARAMETER_NAME_IN_OUTER_LAMBDA")
-    @PostMapping(path = ["/api/${com.saveourtool.common.v1}/executionDtoList"])
+    @PostMapping(path = ["/api/$v1/executionDtoList"])
     fun getExecutionByProject(
         @RequestParam projectName: String,
         @RequestParam organizationName: String,
@@ -159,7 +159,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @return Execution
      * @throws ResponseStatusException if execution is not found
      */
-    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/latestExecution"])
+    @GetMapping(path = ["/api/$v1/latestExecution"])
     fun getLatestExecutionForProject(@RequestParam name: String, @RequestParam organizationName: String, authentication: Authentication): Mono<ExecutionDto> =
             Mono.justOrEmpty(
                 executionService.getLatestExecutionByProjectNameAndProjectOrganizationName(name, organizationName)
@@ -178,7 +178,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * @param authentication
      * @return ResponseEntity
      */
-    @PostMapping(path = ["/api/${com.saveourtool.common.v1}/execution/delete-all-except-contest"])
+    @PostMapping(path = ["/api/$v1/execution/delete-all-except-contest"])
     @Suppress("UnsafeCallOnNullableType")
     fun deleteExecutionForProject(
         @RequestParam name: String,
@@ -208,7 +208,7 @@ class ExecutionController(private val executionService: ExecutionService,
      * - status 404 if all executions are missing or the project is hidden from the current user
      * @throws ResponseStatusException
      */
-    @PostMapping(path = ["/api/${com.saveourtool.common.v1}/execution/delete"])
+    @PostMapping(path = ["/api/$v1/execution/delete"])
     @Suppress("TOO_LONG_FUNCTION", "NonBooleanPropertyPrefixedWithIs")
     fun deleteExecutionsByExecutionIds(@RequestParam executionIds: List<Long>, authentication: Authentication): Mono<ResponseEntity<*>> {
         val isProjectHidden = AtomicBoolean(false)

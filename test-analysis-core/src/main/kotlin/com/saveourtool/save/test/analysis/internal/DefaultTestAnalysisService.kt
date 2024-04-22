@@ -1,13 +1,13 @@
 package com.saveourtool.save.test.analysis.internal
 
-import com.saveourtool.save.test.analysis.algorithms.Algorithm
-import com.saveourtool.save.test.analysis.api.TestAnalysisService
-import com.saveourtool.save.test.analysis.api.TestId
-import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
 import com.saveourtool.common.test.analysis.metrics.NoDataAvailable
 import com.saveourtool.common.test.analysis.metrics.RegularTestMetrics
 import com.saveourtool.common.test.analysis.results.AnalysisResult
 import com.saveourtool.common.test.analysis.results.RegularTest
+import com.saveourtool.save.test.analysis.algorithms.Algorithm
+import com.saveourtool.save.test.analysis.api.TestAnalysisService
+import com.saveourtool.save.test.analysis.api.TestId
+import com.saveourtool.save.test.analysis.api.TestStatisticsStorage
 
 /**
  * The default implementation of [TestAnalysisService].

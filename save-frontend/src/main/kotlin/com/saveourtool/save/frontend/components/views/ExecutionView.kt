@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionExtDto
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.components.requestStatusContext
@@ -21,8 +23,6 @@ import com.saveourtool.frontend.common.http.getDebugInfoFor
 import com.saveourtool.frontend.common.http.getExecutionInfoFor
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.common.agent.TestExecutionDto
-import com.saveourtool.common.agent.TestExecutionExtDto
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo

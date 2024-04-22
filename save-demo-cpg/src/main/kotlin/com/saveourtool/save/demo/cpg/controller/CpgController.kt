@@ -1,14 +1,14 @@
 package com.saveourtool.save.demo.cpg.controller
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
-import com.saveourtool.save.demo.cpg.*
+import com.saveourtool.common.demo.cpg.*
+import com.saveourtool.common.utils.blockingToMono
+import com.saveourtool.common.utils.getLogger
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.repository.CpgRepository
 import com.saveourtool.save.demo.cpg.service.CpgService
 import com.saveourtool.save.demo.cpg.service.TreeSitterService
 import com.saveourtool.save.demo.cpg.utils.*
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.getLogger
 
 import arrow.core.getOrElse
 import de.fraunhofer.aisec.cpg.*
@@ -35,7 +35,7 @@ const val FILE_NAME_SEPARATOR = "==="
  * @property cpgRepository
  * @property treeSitterService
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "cpg-demo"),
 )

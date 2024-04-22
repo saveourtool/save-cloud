@@ -2,15 +2,15 @@ package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.common.agent.AgentInitConfig
 import com.saveourtool.common.agent.AgentRunConfig
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.entities.AgentDto
-import com.saveourtool.save.entities.AgentStatusDto
-import com.saveourtool.save.entities.AgentStatusDtoList
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.spring.utils.applyAll
-import com.saveourtool.save.utils.*
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.entities.AgentDto
+import com.saveourtool.common.entities.AgentStatusDto
+import com.saveourtool.common.entities.AgentStatusDtoList
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionStatus
+import com.saveourtool.common.execution.ExecutionUpdateDto
+import com.saveourtool.common.spring.utils.applyAll
+import com.saveourtool.common.utils.*
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
@@ -33,13 +33,13 @@ class BackendOrchestratorAgentService(
         .applyAll(customizers)
         .build()
 
-    override fun getInitConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentInitConfig> = webClientBackend
+    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 
-    override fun getNextRunConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentRunConfig> = webClientBackend
+    override fun getNextRunConfig(containerId: String): Mono<AgentRunConfig> = webClientBackend
         .get()
         .uri("/agents/get-next-run-config?containerId=$containerId")
         .retrieve()

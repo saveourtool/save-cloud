@@ -1,9 +1,9 @@
 package com.saveourtool.save.test.analysis.algorithms
 
-import com.saveourtool.save.test.analysis.api.TestRuns
 import com.saveourtool.common.test.analysis.metrics.RegularTestMetrics
 import com.saveourtool.common.test.analysis.metrics.TestMetrics
 import com.saveourtool.common.test.analysis.results.IrregularTest
+import com.saveourtool.save.test.analysis.api.TestRuns
 
 /**
  * A heuristic algorithm which accepts test history ([TestRuns]), pre-calculated

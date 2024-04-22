@@ -9,25 +9,25 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.domain.isAllowedForContests
+import com.saveourtool.common.entities.LnkOrganizationTestSuiteDto
+import com.saveourtool.common.entities.TestSuite
+import com.saveourtool.common.filters.TestSuiteFilter
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.permission.Rights
+import com.saveourtool.common.permission.SetRightsRequest
+import com.saveourtool.common.security.OrganizationPermissionEvaluator
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.testsuite.TestSuiteVersioned
+import com.saveourtool.common.utils.StringResponse
+import com.saveourtool.common.utils.switchIfEmptyToNotFound
+import com.saveourtool.common.utils.switchIfEmptyToResponseException
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestsSourceVersionService
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.isAllowedForContests
-import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
-import com.saveourtool.save.entities.TestSuite
-import com.saveourtool.save.filters.TestSuiteFilter
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.permission.Rights
-import com.saveourtool.save.permission.SetRightsRequest
-import com.saveourtool.save.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.testsuite.TestSuiteVersioned
-import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.switchIfEmptyToNotFound
-import com.saveourtool.save.utils.switchIfEmptyToResponseException
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -57,7 +57,7 @@ import reactor.kotlin.core.util.function.component2
     Tag(name = "test-suites"),
 )
 @RestController
-@RequestMapping("/api/${com.saveourtool.common.v1}/test-suites")
+@RequestMapping("/api/$v1/test-suites")
 class LnkOrganizationTestSuiteController(
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val organizationService: OrganizationService,
@@ -67,7 +67,7 @@ class LnkOrganizationTestSuiteController(
     private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     @GetMapping("/{organizationName}/available")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -122,7 +122,7 @@ class LnkOrganizationTestSuiteController(
         .mapToInfo(isContest)
 
     @PostMapping("/{organizationName}/get-by-ids")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -182,7 +182,7 @@ class LnkOrganizationTestSuiteController(
         .mapToInfo(isContest)
 
     @GetMapping("/{organizationName}/{testSuiteId}")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -212,7 +212,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/{testSuiteId}")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -265,7 +265,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/batch-set-rights")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -335,7 +335,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @DeleteMapping("/{ownerOrganizationName}/{testSuiteId}/{requestedOrganizationName}")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "DELETE",
@@ -379,7 +379,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/batch-change-visibility")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

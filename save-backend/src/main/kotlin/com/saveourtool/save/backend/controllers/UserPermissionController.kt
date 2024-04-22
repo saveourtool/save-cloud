@@ -1,10 +1,10 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.info.UserPermissions
+import com.saveourtool.common.utils.blockingToMono
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.security.UserPermissionEvaluator
-import com.saveourtool.save.info.UserPermissions
-import com.saveourtool.save.utils.blockingToMono
 
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,9 +16,9 @@ import reactor.core.publisher.Mono
 /**
  * Controller for user permissions.
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}"])
+@RequestMapping(path = ["/api/$v1"])
 class UserPermissionController(
     private val userPermissionEvaluator: UserPermissionEvaluator,
 ) {

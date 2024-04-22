@@ -1,13 +1,13 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.entities.NotificationDto
+import com.saveourtool.common.utils.StringResponse
+import com.saveourtool.common.utils.blockingToFlux
+import com.saveourtool.common.utils.blockingToMono
 import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.service.NotificationService
-import com.saveourtool.save.entities.NotificationDto
-import com.saveourtool.save.utils.StringResponse
-import com.saveourtool.save.utils.blockingToFlux
-import com.saveourtool.save.utils.blockingToMono
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -25,12 +25,12 @@ import reactor.core.publisher.Mono
 /**
  * Controller for working with notifications.
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "notifications"),
 )
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/notifications"])
+@RequestMapping(path = ["/api/$v1/notifications"])
 class NotificationController(
     private val notificationService: NotificationService,
 ) {

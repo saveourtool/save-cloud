@@ -28,10 +28,10 @@ class ApiGroupsConfiguration {
         .build()
 
     @Bean
-    fun openApiV1(): GroupedOpenApi? = createGroupedOpenApi(com.saveourtool.common.v1, com.saveourtool.common.v1)
+    fun openApiV1(): GroupedOpenApi? = createGroupedOpenApi(v1, v1)
 
     @Bean
-    fun openApiLatestVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", com.saveourtool.common.latestVersion)
+    fun openApiLatestVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", latestVersion)
 
     @Bean
     fun customOpenApi(): OpenAPI? = OpenAPI()
@@ -39,7 +39,7 @@ class ApiGroupsConfiguration {
         .info(
             Info()
                 .title("SAVE Backend API")
-                .version(com.saveourtool.common.latestVersion)
+                .version(latestVersion)
         )
 
     private fun createGroupedOpenApi(groupName: String, version: String): GroupedOpenApi? = GroupedOpenApi.builder()

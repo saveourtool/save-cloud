@@ -2,19 +2,19 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.entities.Contest.Companion.toContest
+import com.saveourtool.common.entities.contest.ContestDto
+import com.saveourtool.common.entities.contest.ContestStatus
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.request.TestFilesRequest
+import com.saveourtool.common.security.OrganizationPermissionEvaluator
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.test.TestFilesContent
+import com.saveourtool.common.utils.*
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.entities.Contest.Companion.toContest
-import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.entities.contest.ContestStatus
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.request.TestFilesRequest
-import com.saveourtool.save.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.utils.*
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -40,12 +40,12 @@ import java.time.LocalDateTime
 /**
  * Controller for working with contests.
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "contests"),
 )
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/contests"])
+@RequestMapping(path = ["/api/$v1/contests"])
 @Suppress("LongParameterList")
 internal class ContestController(
     private val contestService: ContestService,
@@ -91,7 +91,7 @@ internal class ContestController(
         }
 
     @PostMapping("/featured/add-or-delete")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
         method = "POST",
@@ -309,7 +309,7 @@ internal class ContestController(
         }
 
     @PostMapping("/update")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -352,7 +352,7 @@ internal class ContestController(
         }
 
     @PostMapping("/update-all")
-    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+    @RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",

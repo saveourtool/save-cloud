@@ -1,14 +1,14 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.entities.FileDto
+import com.saveourtool.common.entities.Project
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.utils.ByteBufferFluxResponse
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.storage.FileStorage
-import com.saveourtool.save.entities.FileDto
-import com.saveourtool.save.entities.Project
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.utils.ByteBufferFluxResponse
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -37,8 +37,8 @@ typealias FileDtoResponse = ResponseEntity<FileDto>
  * A Spring controller for [FileDto]
  */
 @RestController
-@RequestMapping("/api/${com.saveourtool.common.v1}/files")
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@RequestMapping("/api/$v1/files")
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "files"),
 )

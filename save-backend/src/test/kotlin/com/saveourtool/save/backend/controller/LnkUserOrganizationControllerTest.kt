@@ -4,16 +4,16 @@ import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.LnkUserOrganizationController
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.permission.SetRoleRequest
-import com.saveourtool.save.repository.OriginalLoginRepository
-import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.service.LnkUserOrganizationService
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.utils.BlockingBridge
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.permission.SetRoleRequest
+import com.saveourtool.common.repository.OriginalLoginRepository
+import com.saveourtool.common.repository.UserRepository
+import com.saveourtool.common.security.OrganizationPermissionEvaluator
+import com.saveourtool.common.service.LnkUserOrganizationService
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.utils.BlockingBridge
 import com.saveourtool.common.v1
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
@@ -69,7 +69,7 @@ class LnkUserOrganizationControllerTest {
         )
         given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.post()
-            .uri("/api/${com.saveourtool.common.v1}/organizations/Huawei/users/roles")
+            .uri("/api/${v1}/organizations/Huawei/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -88,7 +88,7 @@ class LnkUserOrganizationControllerTest {
         )
 
         webTestClient.post()
-            .uri("/api/${com.saveourtool.common.v1}/organizations/Huawei/users/roles")
+            .uri("/api/${v1}/organizations/Huawei/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -106,7 +106,7 @@ class LnkUserOrganizationControllerTest {
             organizationRole = Role.VIEWER,
         )
         webTestClient.delete()
-            .uri("/api/${com.saveourtool.common.v1}/organizations/Huawei/users/roles/user")
+            .uri("/api/${v1}/organizations/Huawei/users/roles/user")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -125,7 +125,7 @@ class LnkUserOrganizationControllerTest {
 
         given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         webTestClient.delete()
-            .uri("/api/${com.saveourtool.common.v1}/organizations/Huawei/users/roles/user")
+            .uri("/api/${v1}/organizations/Huawei/users/roles/user")
             .exchange()
             .expectStatus()
             .isOk

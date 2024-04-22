@@ -1,8 +1,8 @@
 package com.saveourtool.save.backend.repository
 
-import com.saveourtool.save.entities.ProjectProblem
-import com.saveourtool.save.entitiescosv.VulnerabilityMetadata
-import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.common.entities.ProjectProblem
+import com.saveourtool.common.entitiescosv.VulnerabilityMetadata
+import com.saveourtool.common.spring.repository.BaseEntityRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository

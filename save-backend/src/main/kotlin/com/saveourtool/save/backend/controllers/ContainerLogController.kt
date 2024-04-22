@@ -1,12 +1,12 @@
 package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.service.LogService
+import com.saveourtool.common.utils.StringListResponse
+import com.saveourtool.common.utils.blockingToMono
+import com.saveourtool.common.utils.toInstantAtDefaultZone
 import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.service.LogService
-import com.saveourtool.save.utils.StringListResponse
-import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.utils.toInstantAtDefaultZone
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -26,12 +26,12 @@ import java.time.LocalDateTime
 /**
  * Controller to fetch logs
  */
-@com.saveourtool.common.configs.ApiSwaggerSupport
+@ApiSwaggerSupport
 @Tags(
     Tag(name = "logs"),
 )
 @RestController
-@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/logs"])
+@RequestMapping(path = ["/api/$v1/logs"])
 class ContainerLogController(
     private val logService: LogService,
     private val agentService: AgentService,

@@ -7,8 +7,8 @@
 package com.saveourtool.save.orchestrator.config
 
 import com.saveourtool.common.domain.supportTestStatus
-import com.saveourtool.save.utils.supportJLocalDateTime
-import com.saveourtool.save.utils.supportKLocalDateTime
+import com.saveourtool.common.utils.supportJLocalDateTime
+import com.saveourtool.common.utils.supportKLocalDateTime
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer

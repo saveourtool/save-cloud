@@ -1,12 +1,12 @@
 package com.saveourtool.save.orchestrator.kubernetes
 
 import com.saveourtool.common.agent.AgentEnvName
+import com.saveourtool.common.utils.debug
+import com.saveourtool.common.utils.warn
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.runner.ContainerRunner
 import com.saveourtool.save.orchestrator.runner.ContainerRunnerException
 import com.saveourtool.save.orchestrator.service.ContainerService
-import com.saveourtool.save.utils.debug
-import com.saveourtool.save.utils.warn
 
 import io.fabric8.kubernetes.api.model.*
 import io.fabric8.kubernetes.api.model.batch.v1.Job
@@ -148,7 +148,7 @@ class KubernetesManager(
         imageName: String,
         agentRunCmd: List<String>,
         workingDir: String,
-        env: Map<com.saveourtool.common.agent.AgentEnvName, String>,
+        env: Map<AgentEnvName, String>,
     ) = Container().apply {
         name = "save-agent-pod"
         image = imageName
@@ -179,7 +179,7 @@ class KubernetesManager(
     companion object {
         private val logger = LoggerFactory.getLogger(KubernetesManager::class.java)
         private const val EXECUTION_ID_LABEL = "executionId"
-        private val containerIdEnv = setOf(com.saveourtool.common.agent.AgentEnvName.CONTAINER_ID, com.saveourtool.common.agent.AgentEnvName.CONTAINER_NAME)
+        private val containerIdEnv = setOf(AgentEnvName.CONTAINER_ID, AgentEnvName.CONTAINER_NAME)
             .map { it.name }
             .map { envName ->
                 EnvVar().apply {
@@ -191,11 +191,11 @@ class KubernetesManager(
                     }
                 }
             }
-        private val kubernetesEnv: EnvVar = com.saveourtool.common.agent.AgentEnvName.KUBERNETES.toEnv(true)
+        private val kubernetesEnv: EnvVar = AgentEnvName.KUBERNETES.toEnv(true)
 
-        private fun Map<com.saveourtool.common.agent.AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = entries.map { (key, value) -> key.toEnv(value) }
+        private fun Map<AgentEnvName, Any>.mapToEnvs(): List<EnvVar> = entries.map { (key, value) -> key.toEnv(value) }
 
-        private fun com.saveourtool.common.agent.AgentEnvName.toEnv(value: Any): EnvVar = EnvVar().apply {
+        private fun AgentEnvName.toEnv(value: Any): EnvVar = EnvVar().apply {
             this.name = this@toEnv.name
             this.value = value.toString()
         }
