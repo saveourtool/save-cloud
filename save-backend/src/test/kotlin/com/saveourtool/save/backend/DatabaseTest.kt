@@ -1,13 +1,13 @@
 package com.saveourtool.save.backend
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.common.agent.AgentState
 import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.backend.utils.InfraExtension
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.repository.ProjectRepository
-import com.saveourtool.save.utils.BlockingBridge
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.repository.ProjectRepository
+import com.saveourtool.common.utils.BlockingBridge
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

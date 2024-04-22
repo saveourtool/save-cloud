@@ -6,7 +6,7 @@
 
 package com.saveourtool.frontend.common.components.inputform
 
-import com.saveourtool.save.validation.*
+import com.saveourtool.common.validation.*
 
 private const val URL_PLACEHOLDER = "https://example.com"
 private const val PURL_PLACEHOLDER = "pkg:example/example.com/version@v1.0.0"

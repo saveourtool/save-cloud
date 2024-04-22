@@ -1,11 +1,12 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.OrganizationSaveStatus.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -16,7 +17,6 @@ import com.saveourtool.save.service.GitService
 import com.saveourtool.save.service.LnkUserOrganizationService
 import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -41,6 +41,7 @@ import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import java.util.EnumSet
 
 typealias OrganizationDtoList = List<OrganizationDto>
@@ -48,12 +49,12 @@ typealias OrganizationDtoList = List<OrganizationDto>
 /**
  * Controller for working with organizations.
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "organizations"),
 )
 @RestController
-@RequestMapping(path = ["/api/$v1/organizations"])
+@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/organizations"])
 @Suppress("LongParameterList")
 internal class OrganizationController(
     private val organizationService: OrganizationService,
@@ -209,7 +210,7 @@ internal class OrganizationController(
         .collectList()
 
     @PostMapping("/{organizationName}/manage-contest-permission")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
         method = "POST",
@@ -251,7 +252,7 @@ internal class OrganizationController(
         }
 
     @PostMapping("/{organizationName}/manage-bulk-upload-permission")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("hasRole('ROLE_SUPER_ADMIN')")
     @Operation(
         method = "POST",
@@ -286,7 +287,7 @@ internal class OrganizationController(
         }
 
     @PostMapping("/save")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -319,7 +320,7 @@ internal class OrganizationController(
         }
 
     @PostMapping("/{organizationName}/update")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -370,7 +371,7 @@ internal class OrganizationController(
         }
 
     @PostMapping("/{organizationName}/change-status")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -433,7 +434,7 @@ internal class OrganizationController(
         }
 
     @GetMapping("/{organizationName}/list-git")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "GET",
@@ -464,7 +465,7 @@ internal class OrganizationController(
         .map { it.toDto() }
 
     @PostMapping("/{organizationName}/create-git")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -485,7 +486,7 @@ internal class OrganizationController(
     ): Mono<StringResponse> = upsertGitCredential(organizationName, gitDto, authentication, isUpdate = false)
 
     @PostMapping("/{organizationName}/update-git")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "POST",
@@ -506,7 +507,7 @@ internal class OrganizationController(
     ): Mono<StringResponse> = upsertGitCredential(organizationName, gitDto, authentication, isUpdate = true)
 
     @DeleteMapping("/{organizationName}/delete-git")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "DELETE",
@@ -568,7 +569,7 @@ internal class OrganizationController(
      * @return contest rating for organization
      */
     @GetMapping("/{organizationName}/get-organization-contest-rating")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "Get",

@@ -6,6 +6,9 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.contest.ContestDto
+import com.saveourtool.common.entities.contest.ContestStatus
 import com.saveourtool.frontend.common.components.basic.contests.showContestCreationModal
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
@@ -14,9 +17,6 @@ import com.saveourtool.frontend.common.components.tables.value
 import com.saveourtool.frontend.common.externals.fontawesome.faPlus
 import com.saveourtool.frontend.common.externals.fontawesome.faTrash
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.entities.contest.ContestStatus
 
 import org.w3c.fetch.Response
 import react.*

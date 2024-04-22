@@ -6,12 +6,12 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuiteselector
 
+import com.saveourtool.common.testsuite.TestSuiteVersioned
 import com.saveourtool.frontend.common.components.basic.showAvailableTestSuites
 import com.saveourtool.frontend.common.externals.fontawesome.faCheckDouble
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopResponseHandler
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*
 import react.dom.aria.AriaRole

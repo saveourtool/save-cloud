@@ -2,8 +2,8 @@
 
 package com.saveourtool.frontend.common.components.basic.contests
 
+import com.saveourtool.common.entities.contest.ContestResult
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.contest.ContestResult
 
 import react.*
 import react.dom.html.ReactHTML.div

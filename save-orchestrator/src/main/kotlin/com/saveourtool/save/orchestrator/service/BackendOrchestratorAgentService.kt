@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.AgentInitConfig
-import com.saveourtool.save.agent.AgentRunConfig
+import com.saveourtool.common.agent.AgentInitConfig
+import com.saveourtool.common.agent.AgentRunConfig
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatusDto
@@ -33,13 +33,13 @@ class BackendOrchestratorAgentService(
         .applyAll(customizers)
         .build()
 
-    override fun getInitConfig(containerId: String): Mono<AgentInitConfig> = webClientBackend
+    override fun getInitConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentInitConfig> = webClientBackend
         .get()
         .uri("/agents/get-init-config?containerId=$containerId")
         .retrieve()
         .bodyToMono()
 
-    override fun getNextRunConfig(containerId: String): Mono<AgentRunConfig> = webClientBackend
+    override fun getNextRunConfig(containerId: String): Mono<com.saveourtool.common.agent.AgentRunConfig> = webClientBackend
         .get()
         .uri("/agents/get-next-run-config?containerId=$containerId")
         .retrieve()

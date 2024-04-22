@@ -7,10 +7,11 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.authservice.utils.username
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Organization
 import com.saveourtool.save.entities.OrganizationWithUsers
@@ -24,7 +25,6 @@ import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -47,13 +47,13 @@ import reactor.kotlin.core.util.function.component2
 /**
  * Controller for processing links between users and their roles in organizations
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "roles"),
     Tag(name = "organizations"),
 )
 @RestController
-@RequestMapping("/api/$v1/organizations")
+@RequestMapping("/api/${com.saveourtool.common.v1}/organizations")
 class LnkUserOrganizationController(
     private val lnkUserOrganizationService: LnkUserOrganizationService,
     private val organizationService: OrganizationService,
@@ -117,7 +117,7 @@ class LnkUserOrganizationController(
     } ?: Role.NONE.toMono()
 
     @PostMapping("/{organizationName}/users/roles")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -150,7 +150,7 @@ class LnkUserOrganizationController(
         }
 
     @DeleteMapping("/{organizationName}/users/roles/{userName}")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "DELETE",
@@ -181,7 +181,7 @@ class LnkUserOrganizationController(
         }
 
     @GetMapping("/{organizationName}/users/not-from")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -231,7 +231,7 @@ class LnkUserOrganizationController(
         .defaultIfEmpty(emptyList())
 
     @GetMapping("/can-create-contests")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -248,7 +248,7 @@ class LnkUserOrganizationController(
     )
 
     @PostMapping("/by-filters")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

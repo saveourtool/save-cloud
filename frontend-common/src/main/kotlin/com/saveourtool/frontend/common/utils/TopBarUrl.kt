@@ -1,6 +1,6 @@
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.common.validation.FrontendRoutes
 
 /**
  * The class for analyzing url address and creating links in topBar

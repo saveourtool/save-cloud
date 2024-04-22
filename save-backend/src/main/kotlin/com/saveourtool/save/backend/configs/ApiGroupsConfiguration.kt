@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.configs
 
-import com.saveourtool.save.latestVersion
-import com.saveourtool.save.v1
+import com.saveourtool.common.latestVersion
+import com.saveourtool.common.v1
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
@@ -28,10 +28,10 @@ class ApiGroupsConfiguration {
         .build()
 
     @Bean
-    fun openApiV1(): GroupedOpenApi? = createGroupedOpenApi(v1, v1)
+    fun openApiV1(): GroupedOpenApi? = createGroupedOpenApi(com.saveourtool.common.v1, com.saveourtool.common.v1)
 
     @Bean
-    fun openApiLatestVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", latestVersion)
+    fun openApiLatestVersion(): GroupedOpenApi? = createGroupedOpenApi("latest", com.saveourtool.common.latestVersion)
 
     @Bean
     fun customOpenApi(): OpenAPI? = OpenAPI()
@@ -39,7 +39,7 @@ class ApiGroupsConfiguration {
         .info(
             Info()
                 .title("SAVE Backend API")
-                .version(latestVersion)
+                .version(com.saveourtool.common.latestVersion)
         )
 
     private fun createGroupedOpenApi(groupName: String, version: String): GroupedOpenApi? = GroupedOpenApi.builder()

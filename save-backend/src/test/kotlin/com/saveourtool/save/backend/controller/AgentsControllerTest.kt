@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.common.agent.AgentState
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -67,7 +67,7 @@ class AgentsControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                AgentStatusDto(AgentState.IDLE, "container-1")
+                AgentStatusDto(com.saveourtool.common.agent.AgentState.IDLE, "container-1")
             )
             .exchange()
             .expectStatus()
@@ -78,7 +78,7 @@ class AgentsControllerTest {
     @Suppress("TOO_LONG_FUNCTION")
     fun `check that agent statuses are updated`() {
         updateAgentStatuses(
-            AgentStatusDto(AgentState.IDLE, "container-2")
+            AgentStatusDto(com.saveourtool.common.agent.AgentState.IDLE, "container-2")
         )
 
         val firstAgentIdle = getLastIdleForSecondContainer()
@@ -89,21 +89,21 @@ class AgentsControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(
-                AgentStatusDto(AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
+                AgentStatusDto(com.saveourtool.common.agent.AgentState.IDLE, "container-2", LocalDateTime(2020, Month.MAY, 10, 16, 30, 20))
             )
             .exchange()
             .expectStatus()
             .isOk
 
         updateAgentStatuses(
-            AgentStatusDto(AgentState.BUSY, "container-2")
+            AgentStatusDto(com.saveourtool.common.agent.AgentState.BUSY, "container-2")
         )
 
         assertTrue(
             transactionTemplate.execute {
                 agentStatusRepository
                     .findAll()
-                    .count { it.state == AgentState.IDLE && it.agent.containerId == "container-2" } == 1
+                    .count { it.state == com.saveourtool.common.agent.AgentState.IDLE && it.agent.containerId == "container-2" } == 1
             }!!
         )
 
@@ -127,8 +127,8 @@ class AgentsControllerTest {
             .consumeWith {
                 val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
-                Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
+                Assertions.assertEquals(com.saveourtool.common.agent.AgentState.IDLE, statuses.first().state)
+                Assertions.assertEquals(com.saveourtool.common.agent.AgentState.BUSY, statuses[1].state)
             }
     }
 
@@ -144,8 +144,8 @@ class AgentsControllerTest {
             .consumeWith {
                 val statuses = requireNotNull(it.responseBody)
                 Assertions.assertEquals(2, statuses.size)
-                Assertions.assertEquals(AgentState.IDLE, statuses.first().state)
-                Assertions.assertEquals(AgentState.BUSY, statuses[1].state)
+                Assertions.assertEquals(com.saveourtool.common.agent.AgentState.IDLE, statuses.first().state)
+                Assertions.assertEquals(com.saveourtool.common.agent.AgentState.BUSY, statuses[1].state)
             }
     }
 
@@ -166,7 +166,7 @@ class AgentsControllerTest {
                 entityManager.createNativeQuery("select * from agent_status", AgentStatus::class.java)
                     .resultList
                     .first {
-                        (it as AgentStatus).state == AgentState.IDLE && it.agent.containerId == "container-2"
+                        (it as AgentStatus).state == com.saveourtool.common.agent.AgentState.IDLE && it.agent.containerId == "container-2"
                     }
                         as AgentStatus
             }!!

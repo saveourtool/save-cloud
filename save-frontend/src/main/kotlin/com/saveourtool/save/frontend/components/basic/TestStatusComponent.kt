@@ -5,8 +5,8 @@ package com.saveourtool.save.frontend.components.basic
 import com.saveourtool.frontend.common.components.tables.visibleColumnsCount
 import com.saveourtool.frontend.common.externals.fontawesome.faExternalLinkAlt
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionExtDto
 import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
@@ -39,8 +39,8 @@ const val EXTRA_INFO_COLUMN_WIDTH = 3
 fun testStatusComponent(
     organizationProjectPath: String,
     testResultDebugInfo: TestResultDebugInfo,
-    tableInstance: Table<TestExecutionExtDto>,
-    testExecutionDto: TestExecutionDto,
+    tableInstance: Table<com.saveourtool.common.agent.TestExecutionExtDto>,
+    testExecutionDto: com.saveourtool.common.agent.TestExecutionDto,
 ): FC<Props> = FC {
     val shortMessage: String = when (val status: TestStatus = testResultDebugInfo.testStatus) {
         is Pass -> (status.shortMessage ?: "").ifBlank { "Completed successfully without additional information" }

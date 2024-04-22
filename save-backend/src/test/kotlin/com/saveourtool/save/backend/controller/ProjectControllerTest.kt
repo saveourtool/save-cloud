@@ -9,7 +9,7 @@ import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.repository.ProjectRepository
 import com.saveourtool.save.service.LnkUserProjectService
 import com.saveourtool.save.service.UserService
-import com.saveourtool.save.v1
+import com.saveourtool.common.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -53,7 +53,7 @@ class ProjectControllerTest {
 
         webClient
             .post()
-            .uri("/api/$v1/projects/by-filters")
+            .uri("/api/${com.saveourtool.common.v1}/projects/by-filters")
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(ProjectFilter.created)
             .exchange()
@@ -118,7 +118,7 @@ class ProjectControllerTest {
         projectRepository.save(project)
 
         webClient.post()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
+            .uri("/api/${com.saveourtool.common.v1}/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -145,7 +145,7 @@ class ProjectControllerTest {
         projectRepository.save(project)
 
         webClient.post()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
+            .uri("/api/${com.saveourtool.common.v1}/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -172,7 +172,7 @@ class ProjectControllerTest {
         projectRepository.save(project)
 
         webClient.post()
-            .uri("/api/$v1/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
+            .uri("/api/${com.saveourtool.common.v1}/projects/${organization.name}/${project.name}/change-status?status=${ProjectStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -222,7 +222,7 @@ class ProjectControllerTest {
         given(userDetailsService.getUserByName(any())).willReturn(mockUser(3))
 
         webClient.post()
-            .uri("/api/$v1/projects/update")
+            .uri("/api/${com.saveourtool.common.v1}/projects/update")
             .bodyValue(project.toDto())
             .exchange()
             .expectStatus()
@@ -235,7 +235,7 @@ class ProjectControllerTest {
         assertion: WebTestClient.ResponseSpec.() -> Unit
     ) = webClient
         .get()
-        .uri("/api/$v1/projects/get/organization-name?name=$name&organizationName=$organizationName")
+        .uri("/api/${com.saveourtool.common.v1}/projects/get/organization-name?name=$name&organizationName=$organizationName")
         .accept(MediaType.APPLICATION_JSON)
         .exchange()
         .let { assertion(it) }
@@ -247,7 +247,7 @@ class ProjectControllerTest {
     ) {
         webClient
             .post()
-            .uri("/api/$v1/projects/save")
+            .uri("/api/${com.saveourtool.common.v1}/projects/save")
             .body(BodyInserters.fromValue(newProject.toDto()))
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
@@ -255,7 +255,7 @@ class ProjectControllerTest {
 
         webClient
             .get()
-            .uri("/api/$v1/projects/get/organization-name?name=${newProject.name}&organizationName=${newProject.organization.name}")
+            .uri("/api/${com.saveourtool.common.v1}/projects/get/organization-name?name=${newProject.name}&organizationName=${newProject.organization.name}")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .let { getAssertion(it) }

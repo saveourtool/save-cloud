@@ -4,7 +4,7 @@ import com.saveourtool.save.test.analysis.algorithms.FlipRateAnalysis
 import com.saveourtool.save.test.analysis.algorithms.PermanentFailureDetection
 import com.saveourtool.save.test.analysis.algorithms.RegressionDetection
 import com.saveourtool.save.test.analysis.internal.DefaultTestAnalysisService
-import com.saveourtool.save.test.analysis.results.AnalysisResult
+import com.saveourtool.common.test.analysis.results.AnalysisResult
 
 /**
  * Analyzes test runs for the given test id; see [analyze] for details.

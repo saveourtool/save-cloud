@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.common.agent.AgentEnvName
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.orchestrator.config.ConfigProperties
@@ -141,7 +141,7 @@ class ContainerService(
         val imageTag: String,
         val runCmd: List<String>,
         val workingDir: String = EXECUTION_DIR,
-        val env: Map<AgentEnvName, String>,
+        val env: Map<com.saveourtool.common.agent.AgentEnvName, String>,
     )
 
     companion object {

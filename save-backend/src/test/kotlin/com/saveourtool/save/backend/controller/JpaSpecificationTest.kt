@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.common.agent.AgentState
 import com.saveourtool.save.backend.configs.ApplicationConfiguration
 import com.saveourtool.save.backend.repository.AgentStatusRepository
 import com.saveourtool.save.backend.utils.InfraExtension
@@ -33,7 +33,7 @@ class JpaSpecificationTest {
         val agentStatusToList = agentStatusRepository.findOne { root, _, cb ->
             cb.and(
                 cb.equal(root.get<Long>("id"), 4),
-                cb.equal(root.get<AgentState>("state"), AgentState.FINISHED)
+                cb.equal(root.get<com.saveourtool.common.agent.AgentState>("state"), com.saveourtool.common.agent.AgentState.FINISHED)
             )
         }.get()
 

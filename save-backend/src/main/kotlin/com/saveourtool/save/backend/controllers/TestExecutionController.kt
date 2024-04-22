@@ -1,17 +1,18 @@
 package com.saveourtool.save.backend.controllers
 
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExtDto
-import com.saveourtool.save.agent.TestExecutionResult
-import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionExtDto
+import com.saveourtool.common.agent.TestExecutionResult
+import com.saveourtool.common.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.ExecutionService
 import com.saveourtool.save.backend.service.TestAnalysisService
 import com.saveourtool.save.backend.service.TestExecutionService
 import com.saveourtool.save.backend.storage.DebugInfoStorage
 import com.saveourtool.save.backend.storage.ExecutionInfoStorage
 import com.saveourtool.save.backend.utils.toMonoOrNotFound
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.TestResultLocation
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.entities.TestExecution
@@ -23,7 +24,6 @@ import com.saveourtool.save.test.analysis.api.testId
 import com.saveourtool.save.test.analysis.entities.metadata
 import com.saveourtool.save.test.analysis.metrics.TestMetrics
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import arrow.core.plus
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -49,7 +49,7 @@ import java.math.BigInteger
  *
  * @param testExecutionService service for test execution
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "test-executions"),
 )
@@ -77,8 +77,8 @@ class TestExecutionController(
      * @param testAnalysis if `true`, also perform test analysis.
      * @return a list of [TestExecutionDto]s
      */
-    @PostMapping("/api/$v1/test-executions")
-    @RequiresAuthorizationSourceHeader
+    @PostMapping("/api/${com.saveourtool.common.v1}/test-executions")
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Suppress("LongParameterList", "TOO_MANY_PARAMETERS", "TYPE_ALIAS")
     fun getTestExecutions(
         @RequestParam executionId: Long,
@@ -88,7 +88,7 @@ class TestExecutionController(
         @RequestParam(required = false, defaultValue = "false") checkDebugInfo: Boolean,
         @RequestParam(required = false, defaultValue = "false") testAnalysis: Boolean,
         authentication: Authentication,
-    ): Flux<TestExecutionExtDto> = blockingToMono {
+    ): Flux<com.saveourtool.common.agent.TestExecutionExtDto> = blockingToMono {
         executionService.findExecution(executionId)
     }
         .switchIfEmptyToNotFound()
@@ -132,7 +132,7 @@ class TestExecutionController(
                         )
                         .zipWith(
                             testAnalysisService.analyze(testId).collectList(),
-                            Pair<TestExecutionDto, TestMetrics>::plus,
+                            Pair<com.saveourtool.common.agent.TestExecutionDto, TestMetrics>::plus,
                         )
                 }.flatMap { (testExecution, metrics, results) ->
                     if (checkDebugInfo) {
@@ -155,7 +155,7 @@ class TestExecutionController(
             }
         }
 
-    private fun TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
+    private fun com.saveourtool.common.agent.TestExecutionDto.hasDebugInfoAsMono() = debugInfoStorage.doesExist(requiredId())
         .logicalOr(executionInfoStorage.doesExist(executionId))
         .switchIfEmptyToResponseException(HttpStatus.INTERNAL_SERVER_ERROR) {
             "Failure while checking for debug info availability."
@@ -169,8 +169,8 @@ class TestExecutionController(
      * @param authentication
      * @return a list of [TestExecutionDto]s
      */
-    @GetMapping(path = ["/api/$v1/testLatestExecutions"])
-    @RequiresAuthorizationSourceHeader
+    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/testLatestExecutions"])
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Suppress("TYPE_ALIAS", "MagicNumber")
     fun getTestExecutionsByStatus(
         @RequestParam executionId: Long,
@@ -178,7 +178,7 @@ class TestExecutionController(
         @RequestParam(required = false) page: Int?,
         @RequestParam(required = false) size: Int?,
         authentication: Authentication,
-    ): Mono<List<TestSuiteExecutionStatisticDto>> =
+    ): Mono<List<com.saveourtool.common.agent.TestSuiteExecutionStatisticDto>> =
             executionService.findExecution(executionId)
                 .toMonoOrNotFound()
                 .filterWhen {
@@ -187,11 +187,21 @@ class TestExecutionController(
                 .mapNotNull {
                     if (page == null || size == null) {
                         testExecutionService.getAllTestExecutions(executionId).groupBy { it.test.testSuite.name }.map { (testSuiteName, testExecutions) ->
-                            TestSuiteExecutionStatisticDto(testSuiteName, testExecutions.count(), testExecutions.count { it.status == status }, status)
+                            com.saveourtool.common.agent.TestSuiteExecutionStatisticDto(
+                                testSuiteName,
+                                testExecutions.count(),
+                                testExecutions.count { it.status == status },
+                                status
+                            )
                         }
                     } else {
                         testExecutionService.getByExecutionIdGroupByTestSuite(executionId, status, page, size)?.map {
-                            TestSuiteExecutionStatisticDto(it[0] as String, (it[1] as BigInteger).toInt(), (it[2] as BigInteger).toInt(), TestResultStatus.valueOf(it[3] as String))
+                            com.saveourtool.common.agent.TestSuiteExecutionStatisticDto(
+                                it[0] as String,
+                                (it[1] as BigInteger).toInt(),
+                                (it[2] as BigInteger).toInt(),
+                                TestResultStatus.valueOf(it[3] as String)
+                            )
                         }
                     }
                 }
@@ -204,12 +214,12 @@ class TestExecutionController(
      * @param authentication
      * @return TestExecution
      */
-    @PostMapping(path = ["/api/$v1/test-execution"])
-    @RequiresAuthorizationSourceHeader
+    @PostMapping(path = ["/api/${com.saveourtool.common.v1}/test-execution"])
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     fun getTestExecutionByLocation(@RequestParam executionId: Long,
                                    @RequestBody testResultLocation: TestResultLocation,
                                    authentication: Authentication,
-    ): Mono<TestExecutionDto> = executionService.findExecution(executionId)
+    ): Mono<com.saveourtool.common.agent.TestExecutionDto> = executionService.findExecution(executionId)
         .toMonoOrNotFound()
         .filterWhen {
             projectPermissionEvaluator.checkPermissions(authentication, it, Permission.READ)
@@ -230,8 +240,8 @@ class TestExecutionController(
      * @param testSuite
      * @param authentication
      */
-    @GetMapping(path = ["/api/$v1/testExecution/count"])
-    @RequiresAuthorizationSourceHeader
+    @GetMapping(path = ["/api/${com.saveourtool.common.v1}/testExecution/count"])
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     fun getTestExecutionsCount(
         @RequestParam executionId: Long,
         @RequestParam(required = false) status: TestResultStatus?,
@@ -279,7 +289,7 @@ class TestExecutionController(
      * @return response
      */
     @PostMapping(value = ["/internal/saveTestResult"])
-    fun saveTestResult(@RequestBody testExecutionResults: List<TestExecutionResult>): ResponseEntity<String> = try {
+    fun saveTestResult(@RequestBody testExecutionResults: List<com.saveourtool.common.agent.TestExecutionResult>): ResponseEntity<String> = try {
         if (testExecutionResults.isEmpty()) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty result cannot be saved")
         } else if (testExecutionService.saveTestResult(testExecutionResults).isEmpty()) {

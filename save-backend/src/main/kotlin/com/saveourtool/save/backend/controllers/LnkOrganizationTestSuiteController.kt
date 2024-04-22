@@ -7,12 +7,13 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.backend.security.TestSuitePermissionEvaluator
 import com.saveourtool.save.backend.service.LnkOrganizationTestSuiteService
 import com.saveourtool.save.backend.service.TestSuitesService
 import com.saveourtool.save.backend.service.TestsSourceVersionService
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.domain.isAllowedForContests
 import com.saveourtool.save.entities.LnkOrganizationTestSuiteDto
@@ -27,7 +28,6 @@ import com.saveourtool.save.testsuite.TestSuiteVersioned
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.switchIfEmptyToResponseException
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -50,14 +50,14 @@ import reactor.kotlin.core.util.function.component2
 /**
  * Controller for processing links between organizations and their rights over test suites
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "rights"),
     Tag(name = "organizations"),
     Tag(name = "test-suites"),
 )
 @RestController
-@RequestMapping("/api/$v1/test-suites")
+@RequestMapping("/api/${com.saveourtool.common.v1}/test-suites")
 class LnkOrganizationTestSuiteController(
     private val lnkOrganizationTestSuiteService: LnkOrganizationTestSuiteService,
     private val organizationService: OrganizationService,
@@ -67,7 +67,7 @@ class LnkOrganizationTestSuiteController(
     private val testsSourceVersionService: TestsSourceVersionService,
 ) {
     @GetMapping("/{organizationName}/available")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -122,7 +122,7 @@ class LnkOrganizationTestSuiteController(
         .mapToInfo(isContest)
 
     @PostMapping("/{organizationName}/get-by-ids")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -182,7 +182,7 @@ class LnkOrganizationTestSuiteController(
         .mapToInfo(isContest)
 
     @GetMapping("/{organizationName}/{testSuiteId}")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -212,7 +212,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/{testSuiteId}")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -265,7 +265,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/batch-set-rights")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -335,7 +335,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @DeleteMapping("/{ownerOrganizationName}/{testSuiteId}/{requestedOrganizationName}")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "DELETE",
@@ -379,7 +379,7 @@ class LnkOrganizationTestSuiteController(
         }
 
     @PostMapping("/{ownerOrganizationName}/batch-change-visibility")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

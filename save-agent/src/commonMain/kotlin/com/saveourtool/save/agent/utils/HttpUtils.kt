@@ -4,14 +4,14 @@
 
 package com.saveourtool.save.agent.utils
 
-import com.saveourtool.save.agent.AgentState
+import com.saveourtool.common.agent.AgentState
+import com.saveourtool.common.utils.createAtomicLong
+import com.saveourtool.common.utils.failureOrNotOk
+import com.saveourtool.common.utils.fs
+import com.saveourtool.common.utils.notOk
 import com.saveourtool.save.agent.SaveAgent
 import com.saveourtool.save.core.logging.logWarn
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.utils.createAtomicLong
-import com.saveourtool.save.utils.failureOrNotOk
-import com.saveourtool.save.utils.fs
-import com.saveourtool.save.utils.notOk
 
 import io.ktor.client.*
 import io.ktor.client.call.body

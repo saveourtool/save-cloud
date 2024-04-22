@@ -6,6 +6,8 @@
 
 package com.saveourtool.cosv.frontend.routing
 
+import com.saveourtool.common.validation.FrontendCosvRoutes.*
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.cosv.frontend.components.basic.CosvOrganizationType
 import com.saveourtool.cosv.frontend.components.views.vuln.*
 import com.saveourtool.cosv.frontend.components.views.vuln.toprating.topRatingView
@@ -20,8 +22,6 @@ import com.saveourtool.frontend.common.components.views.userprofile.userProfileV
 import com.saveourtool.frontend.common.components.views.usersettings.userSettingsView
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.withRouter
-import com.saveourtool.save.validation.FrontendCosvRoutes.*
-import com.saveourtool.save.validation.FrontendRoutes
 
 import org.w3c.dom.url.URLSearchParams
 import react.*

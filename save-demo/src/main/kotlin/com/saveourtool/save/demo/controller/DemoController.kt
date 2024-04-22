@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.controller
 
-import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.DemoDto
 import com.saveourtool.save.demo.DemoResult
 import com.saveourtool.save.demo.DemoRunRequest
@@ -27,7 +27,7 @@ import reactor.kotlin.core.util.function.component2
 /**
  * Controller for demo
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "demo"),
 )

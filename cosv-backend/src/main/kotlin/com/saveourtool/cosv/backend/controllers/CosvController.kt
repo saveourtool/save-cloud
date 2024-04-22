@@ -1,15 +1,15 @@
 package com.saveourtool.cosv.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.entities.cosv.CosvFileDto
+import com.saveourtool.common.entities.cosv.VulnerabilityMetadataDto
+import com.saveourtool.common.entities.cosv.VulnerabilityMetadataDtoWithUserAndOrganization
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.v1
 import com.saveourtool.cosv.backend.service.CosvService
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.cosv.CosvFileDto
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDto
-import com.saveourtool.save.entities.cosv.VulnerabilityMetadataDtoWithUserAndOrganization
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication

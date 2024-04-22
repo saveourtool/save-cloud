@@ -1,9 +1,10 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.LnkProjectGithubService
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.demo.DemoCreationRequest
 import com.saveourtool.save.entities.FileDto
 import com.saveourtool.save.entities.Project
@@ -13,7 +14,6 @@ import com.saveourtool.save.service.LogService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -34,14 +34,15 @@ import org.springframework.web.server.ResponseStatusException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+
 import java.time.LocalDateTime
 
 /**
  * Controller that allows adding tools to save-demo
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @RestController
-@RequestMapping("/api/$v1/demo")
+@RequestMapping("/api/${com.saveourtool.common.v1}/demo")
 class DemoManagerController(
     private val projectService: ProjectService,
     private val lnkProjectGithubService: LnkProjectGithubService,
@@ -56,7 +57,7 @@ class DemoManagerController(
         .build()
 
     @PostMapping("/{organizationName}/{projectName}/save-or-update")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -123,7 +124,7 @@ class DemoManagerController(
         }
 
     @PostMapping("/{organizationName}/{projectName}/upload-file", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -155,7 +156,7 @@ class DemoManagerController(
     }
 
     @GetMapping("/{organizationName}/{projectName}/list-file")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -190,7 +191,7 @@ class DemoManagerController(
         .flatMapIterable { it }
 
     @DeleteMapping("/{organizationName}/{projectName}/delete-file")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -220,7 +221,7 @@ class DemoManagerController(
     }
 
     @PostMapping("/{organizationName}/{projectName}/delete")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -246,7 +247,7 @@ class DemoManagerController(
     }
 
     @PostMapping("/{organizationName}/{projectName}/start")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -272,7 +273,7 @@ class DemoManagerController(
     }
 
     @PostMapping("/{organizationName}/{projectName}/stop")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),
@@ -298,7 +299,7 @@ class DemoManagerController(
     }
 
     @GetMapping("/{organizationName}/{projectName}/logs")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Parameters(
         Parameter(name = "organizationName", `in` = ParameterIn.PATH, description = "name of saveourtool organization", required = true),
         Parameter(name = "projectName", `in` = ParameterIn.PATH, description = "name of saveourtool project", required = true),

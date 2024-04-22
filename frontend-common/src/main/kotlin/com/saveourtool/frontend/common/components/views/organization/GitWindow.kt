@@ -6,11 +6,11 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.entities.GitDto
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.components.modal.smallTransparentModalStyle
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.GitDto
 
 import react.*
 import react.dom.html.ReactHTML.button

@@ -6,6 +6,10 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuitespermissions
 
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.permission.Rights
+import com.saveourtool.common.permission.SetRightsRequest
+import com.saveourtool.common.testsuite.TestSuiteVersioned
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.TestSuiteSelectorPurpose
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.testSuiteSelector
 import com.saveourtool.frontend.common.components.basic.testsuitespermissions.PermissionManagerMode.MESSAGE
@@ -19,10 +23,6 @@ import com.saveourtool.frontend.common.components.modal.largeTransparentModalSty
 import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.components.modal.modalBuilder
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.permission.Rights
-import com.saveourtool.save.permission.SetRightsRequest
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*
 import react.dom.html.ReactHTML.div

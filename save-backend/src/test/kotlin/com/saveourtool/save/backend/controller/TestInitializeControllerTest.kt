@@ -1,6 +1,6 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.agent.AgentRunConfig
+import com.saveourtool.common.agent.AgentRunConfig
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.TestRepository
@@ -121,7 +121,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<AgentRunConfig>()
+            .expectBody<com.saveourtool.common.agent.AgentRunConfig>()
             .consumeWith { entityExchangeResult ->
                 val batch = entityExchangeResult.responseBody!!
                 log.debug { batch.toString() }
@@ -134,7 +134,7 @@ class TestInitializeControllerTest {
             .exchange()
             .expectStatus()
             .isOk
-            .expectBody<AgentRunConfig>()
+            .expectBody<com.saveourtool.common.agent.AgentRunConfig>()
             .consumeWith { entityExchangeResult ->
                 val body = entityExchangeResult.responseBody!!
                 assertTrue(body.cliArgs.split(" ").size == 3) { "Expected 3 tests, but got $body instead" }

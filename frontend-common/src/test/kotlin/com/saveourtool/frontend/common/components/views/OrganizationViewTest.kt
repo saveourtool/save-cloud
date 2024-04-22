@@ -1,8 +1,8 @@
 package com.saveourtool.frontend.common.components.views
 
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.views.organization.OrganizationMenuBar
 import com.saveourtool.frontend.common.components.views.organization.OrganizationType
 import com.saveourtool.frontend.common.components.views.organization.organizationView

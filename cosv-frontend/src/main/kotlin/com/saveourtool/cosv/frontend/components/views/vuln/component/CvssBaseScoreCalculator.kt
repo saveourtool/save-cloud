@@ -2,9 +2,9 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.component
 
+import com.saveourtool.common.cvsscalculator.*
+import com.saveourtool.common.cvsscalculator.v3.*
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.cvsscalculator.*
-import com.saveourtool.save.cvsscalculator.v3.*
 
 import js.core.jso
 import react.ChildrenBuilder

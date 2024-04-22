@@ -1,9 +1,10 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.ProjectProblemService
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.ProjectSaveStatus
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
@@ -15,7 +16,6 @@ import com.saveourtool.save.service.LnkUserProjectService
 import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 import com.saveourtool.save.validation.NAMING_MAX_LENGTH
 import com.saveourtool.save.validation.isValidLengthName
 
@@ -38,17 +38,18 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
+
 import java.util.*
 
 /**
  * Controller for working with projects.
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "projects"),
 )
 @RestController
-@RequestMapping(path = ["/api/$v1/projects"])
+@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/projects"])
 class ProjectController(
     private val projectService: ProjectService,
     private val projectProblemService: ProjectProblemService,
@@ -57,7 +58,7 @@ class ProjectController(
     private val lnkUserProjectService: LnkUserProjectService,
 ) {
     @GetMapping("/")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "GET",
@@ -121,7 +122,7 @@ class ProjectController(
     }
 
     @PostMapping("/save")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -179,7 +180,7 @@ class ProjectController(
         }
 
     @PostMapping("/update")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",
@@ -211,7 +212,7 @@ class ProjectController(
         }
 
     @PostMapping("/{organizationName}/{projectName}/change-status")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("permitAll()")
     @Operation(
         method = "POST",

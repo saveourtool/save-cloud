@@ -1,9 +1,10 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.service.PermissionService
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
@@ -13,7 +14,6 @@ import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.switchIfEmptyToNotFound
 import com.saveourtool.save.utils.trace
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -40,13 +40,13 @@ import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.core.util.function.component1
 import reactor.kotlin.core.util.function.component2
 
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "projects"),
     Tag(name = "roles"),
 )
 @RestController
-@RequestMapping(path = ["/api/$v1"])
+@RequestMapping(path = ["/api/${com.saveourtool.common.v1}"])
 @Suppress("MISSING_KDOC_TOP_LEVEL")
 class PermissionController(
     private val projectService: ProjectService,
@@ -56,7 +56,7 @@ class PermissionController(
     private val organizationPermissionEvaluator: OrganizationPermissionEvaluator,
 ) {
     @GetMapping("/projects/{organizationName}/{projectName}/users/roles")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Operation(
         method = "GET",
         summary = "Get role for a user on a particular project.",
@@ -91,7 +91,7 @@ class PermissionController(
         .switchIfEmptyToNotFound()
 
     @PostMapping("/projects/{organizationName}/{projectName}/users/roles")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Operation(
         method = "POST",
         summary = "Set role for a user on a particular project",
@@ -128,7 +128,7 @@ class PermissionController(
         }
 
     @DeleteMapping("/projects/{organizationName}/{projectName}/users/roles/{userName}")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Operation(
         method = "DELETE",
         summary = "Removes user's role on a particular project",

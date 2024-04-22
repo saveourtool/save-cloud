@@ -4,16 +4,16 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.ProjectDto
+import com.saveourtool.common.entities.ProjectStatus
+import com.saveourtool.common.filters.ProjectFilter
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.utils.getHighestRole
 import com.saveourtool.frontend.common.components.basic.AVATAR_ORGANIZATION_PLACEHOLDER
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.entities.ProjectStatus
-import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.getHighestRole
 
 import js.core.jso
 import org.w3c.fetch.Headers

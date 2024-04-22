@@ -1,18 +1,18 @@
 package com.saveourtool.cosv.backend.controllers
 
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.domain.UserSaveStatus
+import com.saveourtool.common.entities.User
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.info.UserStatus
+import com.saveourtool.common.repository.UserRepository
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.v1
+import com.saveourtool.common.validation.isValidLengthName
 import com.saveourtool.cosv.backend.configs.ConfigProperties
 import com.saveourtool.save.authservice.utils.SaveUserDetails
 import com.saveourtool.save.authservice.utils.userId
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.domain.UserSaveStatus
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
-import com.saveourtool.save.validation.isValidLengthName
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

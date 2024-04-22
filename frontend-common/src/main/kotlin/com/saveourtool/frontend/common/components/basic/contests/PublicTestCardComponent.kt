@@ -2,11 +2,11 @@
 
 package com.saveourtool.frontend.common.components.basic.contests
 
+import com.saveourtool.common.test.TestFilesContent
+import com.saveourtool.common.testsuite.TestSuiteVersioned
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.externals.markdown.reactMarkdown
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.test.TestFilesContent
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import js.core.jso
 import react.*

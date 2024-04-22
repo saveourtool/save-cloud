@@ -1,5 +1,6 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.username
 import com.saveourtool.save.backend.configs.ConfigProperties
 import com.saveourtool.save.backend.service.*
@@ -16,7 +17,6 @@ import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.spring.utils.applyAll
 import com.saveourtool.save.storage.impl.InternalFileKey
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
@@ -40,7 +40,7 @@ import reactor.core.scheduler.Schedulers
  * Controller for running execution
  */
 @RestController
-@RequestMapping("/api/$v1/run")
+@RequestMapping("/api/${com.saveourtool.common.v1}/run")
 @Suppress("LongParameterList")
 class RunExecutionController(
     private val projectService: ProjectService,

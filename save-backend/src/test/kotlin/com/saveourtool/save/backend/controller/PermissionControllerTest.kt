@@ -18,7 +18,7 @@ import com.saveourtool.save.service.LnkUserProjectService
 import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.BlockingBridge
-import com.saveourtool.save.v1
+import com.saveourtool.common.v1
 import org.junit.jupiter.api.Test
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.kotlin.*
@@ -72,7 +72,7 @@ class PermissionControllerTest {
         given(permissionService.getRole(any(), any())).willReturn(Role.ADMIN)
 
         webTestClient.get()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
             .expectStatus()
             .isOk
@@ -92,7 +92,7 @@ class PermissionControllerTest {
         )
 
         webTestClient.get()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles?userName=admin")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles?userName=admin")
             .exchange()
             .expectStatus()
             .isNotFound
@@ -116,7 +116,7 @@ class PermissionControllerTest {
         given(permissionService.setRole(any(), any(), any())).willReturn(Mono.just(Unit))
 
         webTestClient.post()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -136,7 +136,7 @@ class PermissionControllerTest {
         given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -156,7 +156,7 @@ class PermissionControllerTest {
         given(organizationRepository.findByName(any())).willReturn(Organization.stub(null).apply { name = "Example Org" })
 
         webTestClient.post()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles")
             .bodyValue(SetRoleRequest("admin", Role.ADMIN))
             .exchange()
             .expectStatus()
@@ -174,7 +174,7 @@ class PermissionControllerTest {
             permission = null,
         )
         webTestClient.delete()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isNotFound
@@ -195,7 +195,7 @@ class PermissionControllerTest {
         given(projectPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(true)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isOk
@@ -214,7 +214,7 @@ class PermissionControllerTest {
         given(organizationPermissionEvaluator.canChangeRoles(any(), any(), any(), any())).willReturn(false)
         given(permissionService.removeRole(any(), any(), any())).willReturn(Mono.just(Unit))
         webTestClient.delete()
-            .uri("/api/$v1/projects/Huawei/huaweiName/users/roles/user")
+            .uri("/api/${com.saveourtool.common.v1}/projects/Huawei/huaweiName/users/roles/user")
             .exchange()
             .expectStatus()
             .isForbidden

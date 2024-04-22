@@ -1,14 +1,14 @@
 package com.saveourtool.cosv.backend.controllers
 
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.filters.ProjectFilter
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter

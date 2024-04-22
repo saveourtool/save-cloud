@@ -1,6 +1,6 @@
 package com.saveourtool.cosv.backend.configs
 
-import com.saveourtool.save.s3.S3OperationsProperties
+import com.saveourtool.common.s3.S3OperationsProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.nio.file.Path

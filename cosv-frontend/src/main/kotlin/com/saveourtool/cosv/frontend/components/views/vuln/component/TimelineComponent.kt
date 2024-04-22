@@ -2,10 +2,10 @@
 
 package com.saveourtool.cosv.frontend.components.views.vuln.component
 
+import com.saveourtool.common.entities.cosv.VulnerabilityExt
+import com.saveourtool.common.entities.vulnerability.VulnerabilityDateDto
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.entities.cosv.VulnerabilityExt
-import com.saveourtool.save.entities.vulnerability.VulnerabilityDateDto
 
 import react.*
 import react.dom.html.ReactHTML.div

@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.service
 
-import com.saveourtool.save.agent.Heartbeat
+import com.saveourtool.common.agent.Heartbeat
 import com.saveourtool.save.entities.AgentStatusDto
 import com.saveourtool.save.orchestrator.utils.AgentStatusInMemoryRepository
 
@@ -23,7 +23,7 @@ class HeartBeatInspector(
      *
      * @param heartbeat
      */
-    fun updateAgentHeartbeatTimeStamps(heartbeat: Heartbeat) {
+    fun updateAgentHeartbeatTimeStamps(heartbeat: com.saveourtool.common.agent.Heartbeat) {
         agentStatusInMemoryRepository.upsert(
             executionId = heartbeat.executionProgress.executionId,
             AgentStatusDto(

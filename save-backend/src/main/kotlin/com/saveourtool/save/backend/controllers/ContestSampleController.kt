@@ -1,11 +1,12 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.ContestSampleService
 import com.saveourtool.save.entities.contest.ContestSampleDto
 import com.saveourtool.save.utils.StringResponse
 import com.saveourtool.save.utils.blockingToFlux
 import com.saveourtool.save.utils.blockingToMono
-import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.ResponseEntity
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono
  * Controller for working with contests sample.
  */
 @RestController
-@RequestMapping(path = ["/api/$v1/contests/sample"])
+@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/contests/sample"])
 class ContestSampleController(
     private val contestSampleService: ContestSampleService,
 ) {

@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionResult
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionResult
 import com.saveourtool.save.backend.repository.AgentRepository
 import com.saveourtool.save.backend.repository.ExecutionRepository
 import com.saveourtool.save.backend.repository.TestExecutionRepository
@@ -146,7 +146,7 @@ class TestExecutionService(
         "PARAMETER_NAME_IN_OUTER_LAMBDA",
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun saveTestResult(testExecutionResults: List<TestExecutionResult>): List<TestExecutionResult> {
+    fun saveTestResult(testExecutionResults: List<com.saveourtool.common.agent.TestExecutionResult>): List<com.saveourtool.common.agent.TestExecutionResult> {
         log.debug { "Saving ${testExecutionResults.size} test results from agent ${testExecutionResults.first().agentContainerId}" }
         // we take agent id only from first element, because all test executions have same execution
         val agentContainerId = requireNotNull(testExecutionResults.first().agentContainerId) {
@@ -157,7 +157,7 @@ class TestExecutionService(
         }
 
         val executionId = agentService.getExecution(agent).requiredId()
-        val lostTests: MutableList<TestExecutionResult> = mutableListOf()
+        val lostTests: MutableList<com.saveourtool.common.agent.TestExecutionResult> = mutableListOf()
         val counters = Counters()
         testExecutionResults.forEach { testExecutionResult ->
             val foundTestExec = testExecutionRepository.findByExecutionIdAndTestPluginNameAndTestFilePath(

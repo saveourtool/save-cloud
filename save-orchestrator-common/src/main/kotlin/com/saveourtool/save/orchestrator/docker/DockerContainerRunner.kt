@@ -1,6 +1,6 @@
 package com.saveourtool.save.orchestrator.docker
 
-import com.saveourtool.save.agent.AgentEnvName
+import com.saveourtool.common.agent.AgentEnvName
 import com.saveourtool.save.orchestrator.DOCKER_METRIC_PREFIX
 import com.saveourtool.save.orchestrator.config.ConfigProperties
 import com.saveourtool.save.orchestrator.config.ConfigProperties.DockerSettings
@@ -137,7 +137,7 @@ class DockerContainerRunner(
         val runCmd = configuration.runCmd
         val envFileTargetPath = "$SAVE_AGENT_USER_HOME/.env"
         val envVariables = configuration.env.mapToEnvs() +
-                AgentEnvName.CONTAINER_NAME.toEnv(containerName) +
+                com.saveourtool.common.agent.AgentEnvName.CONTAINER_NAME.toEnv(containerName) +
                 kubernetesEnv
 
         // createContainerCmd accepts image name, not id, so we retrieve it from tags
@@ -182,7 +182,7 @@ class DockerContainerRunner(
         val containerId = createContainerCmdResponse.id
         val envFile = createTempDirectory("orchestrator").resolve(envFileTargetPath.substringAfterLast("/")).apply {
             writeText("""
-                ${AgentEnvName.CONTAINER_ID.name}=$containerId
+                ${com.saveourtool.common.agent.AgentEnvName.CONTAINER_ID.name}=$containerId
                 """.trimIndent()
             )
         }
@@ -218,10 +218,10 @@ class DockerContainerRunner(
     companion object {
         private val log: Logger = getLogger<DockerContainerRunner>()
         private const val RUNNING_STATUS = "running"
-        private val kubernetesEnv: String = AgentEnvName.KUBERNETES.toEnv(false)
+        private val kubernetesEnv: String = com.saveourtool.common.agent.AgentEnvName.KUBERNETES.toEnv(false)
 
-        private fun Map<AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
+        private fun Map<com.saveourtool.common.agent.AgentEnvName, Any>.mapToEnvs(): List<String> = entries.map { (key, value) -> key.toEnv(value) }
 
-        private fun AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
+        private fun com.saveourtool.common.agent.AgentEnvName.toEnv(value: Any): String = "${this.name}=$value"
     }
 }

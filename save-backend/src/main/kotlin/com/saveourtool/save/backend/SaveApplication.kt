@@ -1,7 +1,8 @@
 package com.saveourtool.save.backend
 
+import com.saveourtool.common.s3.DefaultS3Configuration
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.s3.DefaultS3Configuration
+
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -11,13 +12,13 @@ import org.springframework.context.annotation.Import
  * An entrypoint for spring for save-backend
  */
 @SpringBootApplication(scanBasePackages = [
-    "com.saveourtool.save.configs",
-    "com.saveourtool.save.backend",
-    "com.saveourtool.save.service",
-    "com.saveourtool.save.storage",
-    "com.saveourtool.save.security",
-    "com.saveourtool.save.utils",
-    "com.saveourtool.save.repository",
+    "com.saveourtool.common.configs",
+    "com.saveourtool.common.backend",
+    "com.saveourtool.common.service",
+    "com.saveourtool.common.storage",
+    "com.saveourtool.common.security",
+    "com.saveourtool.common.utils",
+    "com.saveourtool.common.repository",
 ])
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(

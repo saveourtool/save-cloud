@@ -1,5 +1,12 @@
 package com.saveourtool.cosv.backend.service
 
+import com.saveourtool.common.entities.Organization
+import com.saveourtool.common.entities.User
+import com.saveourtool.common.entities.cosv.*
+import com.saveourtool.common.entitiescosv.CosvGeneratedId
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.*
 import com.saveourtool.cosv.backend.processor.CosvProcessor
 import com.saveourtool.cosv.backend.repository.CosvGeneratedIdRepository
 import com.saveourtool.cosv.backend.repository.CosvRepository
@@ -8,13 +15,6 @@ import com.saveourtool.cosv.backend.repository.LnkVulnerabilityMetadataTagReposi
 import com.saveourtool.cosv.backend.storage.RawCosvFileStorage
 import com.saveourtool.osv4k.*
 import com.saveourtool.osv4k.RawOsvSchema as RawCosvSchema
-import com.saveourtool.save.entities.Organization
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.entities.cosv.*
-import com.saveourtool.save.entitiescosv.CosvGeneratedId
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.*
 
 import org.slf4j.Logger
 import org.springframework.stereotype.Service

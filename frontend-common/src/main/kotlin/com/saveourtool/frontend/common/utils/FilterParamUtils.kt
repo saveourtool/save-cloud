@@ -5,7 +5,7 @@
 
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.filters.VulnerabilityFilter
+import com.saveourtool.common.filters.VulnerabilityFilter
 import org.w3c.dom.url.URLSearchParams
 
 /**

@@ -2,11 +2,11 @@
 
 package com.saveourtool.frontend.common.components.inputform
 
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.frontend.common.components.basic.renderAvatar
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
 
 import js.core.jso
 import org.w3c.fetch.Response

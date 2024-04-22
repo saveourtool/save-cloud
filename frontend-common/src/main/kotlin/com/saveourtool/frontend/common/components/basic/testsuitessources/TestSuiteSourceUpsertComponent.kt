@@ -2,6 +2,10 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuitessources
 
+import com.saveourtool.common.domain.EntitySaveStatus
+import com.saveourtool.common.entities.GitDto
+import com.saveourtool.common.testsuite.TestSuitesSourceDto
+import com.saveourtool.common.v1
 import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextDisabled
@@ -13,10 +17,6 @@ import com.saveourtool.frontend.common.externals.fontawesome.faTimesCircle
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.externals.modal.Styles
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.EntitySaveStatus
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.v1
 
 import react.*
 import react.dom.aria.AriaRole
@@ -256,7 +256,7 @@ private fun prepareRequest(
 ) = useDeferredRequest {
     val (_, setEntitySaveStatus) = entitySaveStatusState
     val response = post(
-        url = "/api/$v1/test-suites-sources/${id?.let { "update?id=$it" } ?: "create"}",
+        url = "/api/${com.saveourtool.common.v1}/test-suites-sources/${id?.let { "update?id=$it" } ?: "create"}",
         headers = jsonHeaders,
         body = testSuiteSource.toJsonBody(),
         loadingHandler = ::loadingHandler,

@@ -2,13 +2,14 @@
 
 package com.saveourtool.frontend.common.components.views.userprofile
 
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.basic.renderUserAvatarWithName
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
 import com.saveourtool.frontend.common.components.tables.tableComponent
 import com.saveourtool.frontend.common.components.tables.value
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.info.UserInfo
+
 import react.FC
 import react.Fragment
 import react.Props

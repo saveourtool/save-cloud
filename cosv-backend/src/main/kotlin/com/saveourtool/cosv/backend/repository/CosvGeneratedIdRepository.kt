@@ -1,7 +1,7 @@
 package com.saveourtool.cosv.backend.repository
 
-import com.saveourtool.save.entitiescosv.CosvGeneratedId
-import com.saveourtool.save.spring.repository.BaseEntityRepository
+import com.saveourtool.common.entitiescosv.CosvGeneratedId
+import com.saveourtool.common.spring.repository.BaseEntityRepository
 import org.springframework.stereotype.Repository
 
 /**

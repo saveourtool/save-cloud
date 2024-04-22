@@ -1,9 +1,9 @@
 package com.saveourtool.save.backend.controller
 
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExtDto
-import com.saveourtool.save.agent.TestExecutionResult
-import com.saveourtool.save.agent.TestSuiteExecutionStatisticDto
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionExtDto
+import com.saveourtool.common.agent.TestExecutionResult
+import com.saveourtool.common.agent.TestSuiteExecutionStatisticDto
 import com.saveourtool.save.backend.SaveApplication
 import com.saveourtool.save.backend.controllers.ProjectController
 import com.saveourtool.save.backend.repository.AgentRepository
@@ -15,7 +15,7 @@ import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.domain.TestResultStatus
 import com.saveourtool.save.utils.secondsToJLocalDateTime
-import com.saveourtool.save.v1
+import com.saveourtool.common.v1
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -81,7 +81,7 @@ class TestExecutionControllerTest {
         mutateMockedUser(id = 99)
 
         webClient.get()
-            .uri("/api/$v1/testExecution/count?executionId=1")
+            .uri("/api/${com.saveourtool.common.v1}/testExecution/count?executionId=1")
             .exchange()
             .expectBody<Int>()
             .isEqualTo(28)
@@ -94,9 +94,9 @@ class TestExecutionControllerTest {
 
         val expectedExecutionCount = 20
         webClient.post()
-            .uri("/api/$v1/test-executions?executionId=1&page=0&size=$expectedExecutionCount")
+            .uri("/api/${com.saveourtool.common.v1}/test-executions?executionId=1&page=0&size=$expectedExecutionCount")
             .exchange()
-            .expectBody<List<TestExecutionExtDto>>()
+            .expectBody<List<com.saveourtool.common.agent.TestExecutionExtDto>>()
             .consumeWith {
                 assertEquals(expectedExecutionCount, it.responseBody!!.size)
             }
@@ -108,9 +108,9 @@ class TestExecutionControllerTest {
         mutateMockedUser(id = 99)
 
         webClient.get()
-            .uri("/api/$v1/testLatestExecutions?executionId=3&status=${TestResultStatus.PASSED}&page=0&size=10")
+            .uri("/api/${com.saveourtool.common.v1}/testLatestExecutions?executionId=3&status=${TestResultStatus.PASSED}&page=0&size=10")
             .exchange()
-            .expectBody<List<TestSuiteExecutionStatisticDto>>()
+            .expectBody<List<com.saveourtool.common.agent.TestSuiteExecutionStatisticDto>>()
             .consumeWith {
                 assertEquals(1, it.responseBody!!.size)
             }
@@ -125,7 +125,7 @@ class TestExecutionControllerTest {
     @WithMockUser
     @Suppress("UnsafeCallOnNullableType", "TOO_LONG_FUNCTION")
     fun `should save TestExecutionDto into the DB`() {
-        val testExecutionDtoFirst = TestExecutionResult(
+        val testExecutionDtoFirst = com.saveourtool.common.agent.TestExecutionResult(
             "testPath29",
             "WarnPlugin",
             "container-3",
@@ -138,7 +138,7 @@ class TestExecutionControllerTest {
             expected = 0,
             unexpected = 0,
         )
-        val testExecutionDtoSecond = TestExecutionResult(
+        val testExecutionDtoSecond = com.saveourtool.common.agent.TestExecutionResult(
             "testPath30",
             "WarnPlugin",
             "container-3",
@@ -184,7 +184,7 @@ class TestExecutionControllerTest {
     @Test
     @WithMockUser
     fun `should not save data if provided fields are invalid`() {
-        val testExecutionDto = TestExecutionResult(
+        val testExecutionDto = com.saveourtool.common.agent.TestExecutionResult(
             "test-not-exists",
             "WarnPlugin",
             "container-1",
@@ -217,7 +217,7 @@ class TestExecutionControllerTest {
         webClient.post()
             .uri("/internal/saveTestResult")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(emptyList<TestExecutionDto>()))
+            .body(BodyInserters.fromValue(emptyList<com.saveourtool.common.agent.TestExecutionDto>()))
             .exchange()
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)

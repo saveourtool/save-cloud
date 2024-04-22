@@ -6,7 +6,7 @@
 
 package com.saveourtool.save.orchestrator.config
 
-import com.saveourtool.save.domain.supportTestStatus
+import com.saveourtool.common.domain.supportTestStatus
 import com.saveourtool.save.utils.supportJLocalDateTime
 import com.saveourtool.save.utils.supportKLocalDateTime
 

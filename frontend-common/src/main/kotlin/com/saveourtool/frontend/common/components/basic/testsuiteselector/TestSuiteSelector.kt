@@ -6,13 +6,13 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuiteselector
 
+import com.saveourtool.common.testsuite.TestSuiteVersioned
 import com.saveourtool.frontend.common.components.modal.largeTransparentModalStyle
 import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.WindowOpenness
 import com.saveourtool.frontend.common.utils.buttonWithIcon
 import com.saveourtool.frontend.common.utils.useTooltip
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.*
 import react.dom.aria.ariaLabel

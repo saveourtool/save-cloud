@@ -1,12 +1,13 @@
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.v1
 import com.saveourtool.save.backend.service.AgentService
-import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.utils.StringListResponse
 import com.saveourtool.save.utils.blockingToMono
 import com.saveourtool.save.utils.toInstantAtDefaultZone
-import com.saveourtool.save.v1
+
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.Parameters
@@ -19,17 +20,18 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
+
 import java.time.LocalDateTime
 
 /**
  * Controller to fetch logs
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "logs"),
 )
 @RestController
-@RequestMapping(path = ["/api/$v1/logs"])
+@RequestMapping(path = ["/api/${com.saveourtool.common.v1}/logs"])
 class ContainerLogController(
     private val logService: LogService,
     private val agentService: AgentService,

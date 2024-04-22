@@ -21,8 +21,8 @@ import com.saveourtool.frontend.common.http.getDebugInfoFor
 import com.saveourtool.frontend.common.http.getExecutionInfoFor
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.agent.TestExecutionDto
-import com.saveourtool.save.agent.TestExecutionExtDto
+import com.saveourtool.common.agent.TestExecutionDto
+import com.saveourtool.common.agent.TestExecutionExtDto
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.domain.TestResultDebugInfo
@@ -130,7 +130,7 @@ external interface StatusProps<D : Any> : TableProps<D> {
 class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LIGHT) {
     @Suppress("TYPE_ALIAS")
     private val additionalInfo: MutableMap<String, AdditionalRowInfo> = mutableMapOf()
-    private val testExecutionsTable: FC<StatusProps<TestExecutionExtDto>> = tableComponent(
+    private val testExecutionsTable: FC<StatusProps<com.saveourtool.common.agent.TestExecutionExtDto>> = tableComponent(
         columns = {
             columns {
                 column(id = "index", header = "#") {
@@ -313,7 +313,7 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
         }
     } ?: ""
 
-    private suspend fun getAdditionalInfoFor(testExecution: TestExecutionDto, id: String) {
+    private suspend fun getAdditionalInfoFor(testExecution: com.saveourtool.common.agent.TestExecutionDto, id: String) {
         val trDebugInfoResponse = getDebugInfoFor(testExecution.requiredId())
         // FixMe: invalid setup of execution because of the invalid propagated ID
         val trExecutionInfoResponse = getExecutionInfoFor(testExecution)
@@ -429,10 +429,10 @@ class ExecutionView : AbstractView<ExecutionProps, ExecutionState>(Style.SAVE_LI
                     body = Json.encodeToString(filters),
                     loadingHandler = ::classLoadingHandler,
                 ).unsafeMap {
-                    Json.decodeFromString<Array<TestExecutionExtDto>>(
+                    Json.decodeFromString<Array<com.saveourtool.common.agent.TestExecutionExtDto>>(
                         it.text().await()
                     )
-                }.onEach { (testExecution: TestExecutionDto) ->
+                }.onEach { (testExecution: com.saveourtool.common.agent.TestExecutionDto) ->
                     /*
                      * Add empty debug info to each test execution.
                      */

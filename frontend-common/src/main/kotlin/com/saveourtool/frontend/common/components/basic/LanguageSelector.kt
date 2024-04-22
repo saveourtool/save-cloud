@@ -2,13 +2,13 @@
 
 package com.saveourtool.frontend.common.components.basic
 
+import com.saveourtool.common.frontend.PlatformLanguages
 import com.saveourtool.frontend.common.externals.cookie.cookie
 import com.saveourtool.frontend.common.externals.cookie.getLanguageCode
 import com.saveourtool.frontend.common.externals.cookie.isAccepted
 import com.saveourtool.frontend.common.externals.i18next.changeLanguage
 import com.saveourtool.frontend.common.externals.i18next.language
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
-import com.saveourtool.save.frontend.PlatformLanguages
 
 import js.core.jso
 import react.FC

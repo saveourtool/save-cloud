@@ -1,6 +1,6 @@
 package com.saveourtool.save.demo.cpg.controller
 
-import com.saveourtool.save.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.save.demo.cpg.*
 import com.saveourtool.save.demo.cpg.config.ConfigProperties
 import com.saveourtool.save.demo.cpg.repository.CpgRepository
@@ -35,7 +35,7 @@ const val FILE_NAME_SEPARATOR = "==="
  * @property cpgRepository
  * @property treeSitterService
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "cpg-demo"),
 )

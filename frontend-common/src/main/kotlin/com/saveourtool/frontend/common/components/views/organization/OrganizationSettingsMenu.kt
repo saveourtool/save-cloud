@@ -2,21 +2,20 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.OrganizationStatus
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.basic.manageUserRoleCardComponent
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.isSuperAdmin
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
 import com.saveourtool.frontend.common.utils.noopResponseHandler
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import org.w3c.fetch.Response
 import react.*
 import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.label
 import react.router.useNavigate
 import web.cssom.ClassName
 

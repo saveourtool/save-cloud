@@ -6,12 +6,12 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings
 
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.components.views.usersettings.right.SettingsInputFields
 import com.saveourtool.frontend.common.externals.i18next.TranslationFunction
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import react.*

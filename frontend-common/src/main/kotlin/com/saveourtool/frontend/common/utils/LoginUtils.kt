@@ -6,9 +6,9 @@
 
 package com.saveourtool.frontend.common.utils
 
+import com.saveourtool.common.info.OauthProviderInfo
 import com.saveourtool.frontend.common.externals.fontawesome.faSignInAlt
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.info.OauthProviderInfo
 
 import js.core.jso
 import react.ChildrenBuilder

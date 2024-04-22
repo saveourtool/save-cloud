@@ -6,11 +6,11 @@
 
 package com.saveourtool.frontend.common.utils
 
+import com.saveourtool.common.info.UserStatus
+import com.saveourtool.common.utils.DEFAULT_DEBOUNCE_PERIOD
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.requestStatusContext
 import com.saveourtool.frontend.common.externals.lodash.debounce
-import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.utils.DEFAULT_DEBOUNCE_PERIOD
-import com.saveourtool.save.validation.FrontendRoutes
 
 import js.core.jso
 import org.w3c.dom.EventSource

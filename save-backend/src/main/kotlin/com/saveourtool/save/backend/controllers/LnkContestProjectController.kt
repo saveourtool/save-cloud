@@ -7,10 +7,11 @@
 
 package com.saveourtool.save.backend.controllers
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
+import com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
+import com.saveourtool.common.v1
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.service.*
-import com.saveourtool.save.configs.ApiSwaggerSupport
-import com.saveourtool.save.configs.RequiresAuthorizationSourceHeader
 import com.saveourtool.save.entities.LnkContestProject
 import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.execution.ExecutionDto
@@ -18,7 +19,6 @@ import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.service.LnkUserProjectService
 import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.*
-import com.saveourtool.save.v1
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -42,12 +42,12 @@ import reactor.kotlin.core.util.function.component2
 /**
  * Controller for processing links between projects and contests with scores
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "contests"),
 )
 @RestController
-@RequestMapping("/api/$v1/contests")
+@RequestMapping("/api/${com.saveourtool.common.v1}/contests")
 class LnkContestProjectController(
     private val lnkContestProjectService: LnkContestProjectService,
     private val lnkContestExecutionService: LnkContestExecutionService,
@@ -98,7 +98,7 @@ class LnkContestProjectController(
         }
 
     @GetMapping("/{contestName}/eligible-projects")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "GET",
@@ -123,7 +123,7 @@ class LnkContestProjectController(
         }
 
     @GetMapping("/{organizationName}/{projectName}/eligible-contests")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "GET",
@@ -182,7 +182,7 @@ class LnkContestProjectController(
         }
 
     @GetMapping("/{contestName}/executions/{organizationName}/{projectName}/latest")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @PreAuthorize("isAuthenticated()")
     @Operation(
         method = "GET",
@@ -224,7 +224,7 @@ class LnkContestProjectController(
 
     @GetMapping("/{contestName}/enroll")
     @PreAuthorize("isAuthenticated()")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Operation(
         method = "GET",
         summary = "Register for a contest.",
@@ -276,7 +276,7 @@ class LnkContestProjectController(
 
     @GetMapping("/{contestName}/my-results")
     @PreAuthorize("isAuthenticated()")
-    @RequiresAuthorizationSourceHeader
+    @com.saveourtool.common.configs.RequiresAuthorizationSourceHeader
     @Operation(
         method = "GET",
         summary = "Get your best results in contest.",

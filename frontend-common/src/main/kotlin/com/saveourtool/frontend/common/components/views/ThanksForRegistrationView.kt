@@ -6,9 +6,10 @@
 
 package com.saveourtool.frontend.common.components.views
 
+import com.saveourtool.common.info.UserStatus
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.info.UserStatus
+
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.a

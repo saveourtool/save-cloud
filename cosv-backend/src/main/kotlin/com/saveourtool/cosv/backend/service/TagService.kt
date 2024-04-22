@@ -1,15 +1,15 @@
 package com.saveourtool.cosv.backend.service
 
+import com.saveourtool.common.entities.Tag
+import com.saveourtool.common.entitiescosv.LnkVulnerabilityMetadataTag
+import com.saveourtool.common.repository.TagRepository
+import com.saveourtool.common.utils.error
+import com.saveourtool.common.utils.getLogger
+import com.saveourtool.common.utils.orNotFound
+import com.saveourtool.common.validation.TAG_ERROR_MESSAGE
+import com.saveourtool.common.validation.isValidTag
 import com.saveourtool.cosv.backend.repository.LnkVulnerabilityMetadataTagRepository
 import com.saveourtool.cosv.backend.repository.VulnerabilityMetadataRepository
-import com.saveourtool.save.entities.Tag
-import com.saveourtool.save.entitiescosv.LnkVulnerabilityMetadataTag
-import com.saveourtool.save.repository.TagRepository
-import com.saveourtool.save.utils.error
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.orNotFound
-import com.saveourtool.save.validation.TAG_ERROR_MESSAGE
-import com.saveourtool.save.validation.isValidTag
 
 import org.slf4j.Logger
 import org.springframework.data.domain.Pageable

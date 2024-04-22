@@ -1,6 +1,6 @@
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.domain.Role
+import com.saveourtool.common.domain.Role
 import react.State
 
 /**

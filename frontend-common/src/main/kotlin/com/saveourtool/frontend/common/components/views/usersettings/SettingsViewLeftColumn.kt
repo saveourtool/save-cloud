@@ -4,13 +4,14 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings
 
+import com.saveourtool.common.validation.FrontendCosvRoutes
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.components.views.userprofile.shortenLoginWithTooltipIfNecessary
 import com.saveourtool.frontend.common.components.views.userprofile.shortenRealNameWithTooltipIfNecessary
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.validation.FrontendCosvRoutes
+
 import js.core.jso
 import react.*
 import react.dom.html.ReactHTML.div

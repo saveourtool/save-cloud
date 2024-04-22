@@ -2,8 +2,8 @@
 
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.validation.FrontendRoutes
-import com.saveourtool.save.validation.SETTINGS
+import com.saveourtool.common.validation.FrontendRoutes
+import com.saveourtool.common.validation.SETTINGS
 import remix.run.router.Location
 
 /**

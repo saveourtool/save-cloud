@@ -4,8 +4,8 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings.right
 
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.inputform.InputTypes
-import com.saveourtool.save.info.UserInfo
 
 /**
  * This Data class is used to STORE all input from input view.

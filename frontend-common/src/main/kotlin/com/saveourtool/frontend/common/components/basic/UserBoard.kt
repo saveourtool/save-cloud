@@ -6,8 +6,8 @@
 
 package com.saveourtool.frontend.common.components.basic
 
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendCosvRoutes
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendCosvRoutes
 
 import react.FC
 import react.Props

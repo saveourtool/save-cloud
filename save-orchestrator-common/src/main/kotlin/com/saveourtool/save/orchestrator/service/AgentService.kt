@@ -1,7 +1,7 @@
 package com.saveourtool.save.orchestrator.service
 
 import com.saveourtool.save.agent.*
-import com.saveourtool.save.agent.AgentState.*
+import com.saveourtool.common.agent.AgentState.*
 import com.saveourtool.save.entities.AgentDto
 import com.saveourtool.save.entities.AgentStatus
 import com.saveourtool.save.entities.AgentStatusDto
@@ -40,9 +40,9 @@ class AgentService(
      * @param containerId
      * @return [Mono] of [InitResponse]
      */
-    internal fun getInitConfig(containerId: String): Mono<HeartbeatResponse> =
+    internal fun getInitConfig(containerId: String): Mono<com.saveourtool.common.agent.HeartbeatResponse> =
             orchestratorAgentService.getInitConfig(containerId)
-                .map { InitResponse(it) }
+                .map { com.saveourtool.common.agent.InitResponse(it) }
 
     /**
      * Sets new tests ids
@@ -50,9 +50,9 @@ class AgentService(
      * @param containerId
      * @return [Mono] of [NewJobResponse] if there is some job to do or [Mono.empty]
      */
-    internal fun getNextRunConfig(containerId: String): Mono<HeartbeatResponse> =
+    internal fun getNextRunConfig(containerId: String): Mono<com.saveourtool.common.agent.HeartbeatResponse> =
             orchestratorAgentService.getNextRunConfig(containerId)
-                .map { NewJobResponse(it) }
+                .map { com.saveourtool.common.agent.NewJobResponse(it) }
 
     /**
      * Save new agent to the DB
@@ -233,7 +233,7 @@ class AgentService(
 
     private fun Collection<AgentStatusDto>.areFinishedOrStopped() = areAllStatesIn(*finishedOrStoppedStates)
 
-    private fun Collection<AgentStatusDto>.areAllStatesIn(vararg states: AgentState) = all { it.state in states }
+    private fun Collection<AgentStatusDto>.areAllStatesIn(vararg states: com.saveourtool.common.agent.AgentState) = all { it.state in states }
 
     companion object {
         private val log = LoggerFactory.getLogger(AgentService::class.java)

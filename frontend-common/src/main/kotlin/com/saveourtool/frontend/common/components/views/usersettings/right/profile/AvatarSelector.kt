@@ -6,16 +6,16 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings.right.profile
 
+import com.saveourtool.common.utils.AVATARS_PACKS_DIR
+import com.saveourtool.common.utils.AvatarType.USER
+import com.saveourtool.common.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.common.utils.FILE_PART_NAME
 import com.saveourtool.frontend.common.components.basic.avatarForm
 import com.saveourtool.frontend.common.components.views.usersettings.AVATAR_TITLE
 import com.saveourtool.frontend.common.externals.fontawesome.faCamera
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.UserInfoAwareMutablePropsWithChildren
-import com.saveourtool.save.utils.AVATARS_PACKS_DIR
-import com.saveourtool.save.utils.AvatarType.USER
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
-import com.saveourtool.save.utils.FILE_PART_NAME
 
 import js.core.jso
 import org.w3c.fetch.Headers

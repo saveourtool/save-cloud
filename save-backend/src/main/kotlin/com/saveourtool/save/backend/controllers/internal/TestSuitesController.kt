@@ -1,7 +1,7 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.common.configs.ApiSwaggerSupport
 import com.saveourtool.save.backend.service.TestSuitesService
-import com.saveourtool.save.configs.ApiSwaggerSupport
 import com.saveourtool.save.entities.TestSuite
 import com.saveourtool.save.testsuite.TestSuiteDto
 import com.saveourtool.save.utils.blockingToMono
@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono
 /**
  * Controller for test suites
  */
-@ApiSwaggerSupport
+@com.saveourtool.common.configs.ApiSwaggerSupport
 @Tags(
     Tag(name = "test-suites"),
     Tag(name = "internal"),

@@ -1,7 +1,8 @@
 package com.saveourtool.cosv.backend
 
+import com.saveourtool.common.s3.DefaultS3Configuration
 import com.saveourtool.cosv.backend.configs.ConfigProperties
-import com.saveourtool.save.s3.DefaultS3Configuration
+
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.domain.EntityScan

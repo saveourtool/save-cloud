@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.agent
 
+import com.saveourtool.common.agent.*
+import com.saveourtool.common.domain.TestResultDebugInfo
+import com.saveourtool.common.utils.*
 import com.saveourtool.save.agent.utils.*
 import com.saveourtool.save.agent.utils.processRequestToBackend
 import com.saveourtool.save.core.config.resolveSaveOverridesTomlConfig
@@ -13,10 +16,8 @@ import com.saveourtool.save.core.result.CountWarnings
 import com.saveourtool.save.core.utils.ExecutionResult
 import com.saveourtool.save.core.utils.ProcessBuilder
 import com.saveourtool.save.core.utils.runIf
-import com.saveourtool.save.domain.TestResultDebugInfo
 import com.saveourtool.save.plugins.fix.FixPlugin
 import com.saveourtool.save.reporter.Report
-import com.saveourtool.save.utils.*
 
 import io.ktor.client.*
 import io.ktor.client.call.body

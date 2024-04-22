@@ -4,11 +4,11 @@
 
 package com.saveourtool.frontend.common.utils
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.domain.Role.SUPER_ADMIN
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.externals.fontawesome.FontAwesomeIconModule
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.domain.Role.SUPER_ADMIN
-import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
 import org.w3c.files.Blob

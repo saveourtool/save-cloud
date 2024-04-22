@@ -15,7 +15,7 @@ import com.saveourtool.save.repository.OrganizationRepository
 import com.saveourtool.save.repository.ProjectRepository
 import com.saveourtool.save.security.ProjectPermissionEvaluator
 import com.saveourtool.save.utils.DATABASE_DELIMITER
-import com.saveourtool.save.v1
+import com.saveourtool.common.v1
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -142,14 +142,14 @@ class DeleteEntitiesTest {
 
     private fun deleteExecutionsAndAssert(executionIds: List<Long>, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/$v1/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
+            uri = "/api/${com.saveourtool.common.v1}/execution/delete?executionIds=${executionIds.joinToString(DATABASE_DELIMITER)}",
             assert = assert
         )
     }
 
     private fun deleteAllExecutionsAndAssert(name: String, organizationName: String, assert: ResponseSpec.() -> Unit) {
         webClient.postJsonAndAssert(
-            uri = "/api/$v1/execution/delete-all-except-contest?name=$name&organizationName=$organizationName",
+            uri = "/api/${com.saveourtool.common.v1}/execution/delete-all-except-contest?name=$name&organizationName=$organizationName",
             assert = assert
         )
     }
