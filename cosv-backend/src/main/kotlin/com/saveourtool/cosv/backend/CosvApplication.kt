@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Import
  */
 @SpringBootApplication(scanBasePackages = [
     "com.saveourtool.common",
+    "com.saveourtool.save",
     "com.saveourtool.cosv",
 ])
 @EnableConfigurationProperties(ConfigProperties::class)
