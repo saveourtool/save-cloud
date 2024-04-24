@@ -13,14 +13,14 @@ import org.springframework.context.annotation.Import
  * An entrypoint for spring for cosv-backend
  */
 @SpringBootApplication(scanBasePackages = [
-    "com.saveourtool.save",
+    "com.saveourtool.common",
     "com.saveourtool.cosv",
 ])
 @EnableConfigurationProperties(ConfigProperties::class)
 @Import(
     DefaultS3Configuration::class,
 )
-@EntityScan(basePackages = ["com.saveourtool.save.entities", "com.saveourtool.save.entitiescosv"])
+@EntityScan(basePackages = ["com.saveourtool.common.entities", "com.saveourtool.common.entitiescosv"])
 class CosvApplication
 
 fun main(args: Array<String>) {
