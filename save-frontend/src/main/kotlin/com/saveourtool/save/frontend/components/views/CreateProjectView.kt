@@ -6,6 +6,10 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.validation.FrontendRoutes
+import com.saveourtool.common.validation.isValidLengthName
+import com.saveourtool.common.validation.isValidName
 import com.saveourtool.frontend.common.components.basic.SelectFormRequiredProps
 import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.frontend.common.components.inputform.InputTypes
@@ -21,10 +25,6 @@ import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.frontend.common.utils.particles
 import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.frontend.common.utils.useDeferredRequest
-import com.saveourtool.common.entities.*
-import com.saveourtool.common.validation.FrontendRoutes
-import com.saveourtool.common.validation.isValidLengthName
-import com.saveourtool.common.validation.isValidName
 
 import react.*
 import react.dom.*

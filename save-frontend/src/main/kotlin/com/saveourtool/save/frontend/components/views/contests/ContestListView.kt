@@ -6,9 +6,9 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.utils.Style
 import com.saveourtool.frontend.common.utils.useBackground
-import com.saveourtool.common.info.UserInfo
 
 import react.*
 import react.dom.html.ReactHTML.div

@@ -4,11 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
+import com.saveourtool.common.entities.contest.ContestSampleDto
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.tables.*
 import com.saveourtool.frontend.common.externals.fontawesome.faCode
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.common.entities.contest.ContestSampleDto
-import com.saveourtool.common.validation.FrontendRoutes
 
 import react.FC
 import react.Fragment

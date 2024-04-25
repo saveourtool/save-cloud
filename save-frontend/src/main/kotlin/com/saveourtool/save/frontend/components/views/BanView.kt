@@ -6,11 +6,12 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.info.UserStatus
 import com.saveourtool.frontend.common.utils.Style
 import com.saveourtool.frontend.common.utils.UserInfoAwareProps
 import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.frontend.common.utils.useRedirectToIndexIf
-import com.saveourtool.common.info.UserStatus
+
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.a

@@ -2,13 +2,13 @@
 
 package com.saveourtool.save.frontend.components.views.contests
 
-import com.saveourtool.frontend.common.components.inputform.InputTypes
-import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
-import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.common.entities.contest.ContestSampleDto
 import com.saveourtool.common.entities.contest.ContestSampleFieldDto
 import com.saveourtool.common.entities.contest.ContestSampleFieldType
 import com.saveourtool.common.validation.FrontendRoutes
+import com.saveourtool.frontend.common.components.inputform.InputTypes
+import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
+import com.saveourtool.frontend.common.utils.*
 
 import react.FC
 import react.Props

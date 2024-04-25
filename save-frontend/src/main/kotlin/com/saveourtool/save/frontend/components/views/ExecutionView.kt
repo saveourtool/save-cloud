@@ -6,6 +6,12 @@ package com.saveourtool.save.frontend.components.views
 
 import com.saveourtool.common.agent.TestExecutionDto
 import com.saveourtool.common.agent.TestExecutionExtDto
+import com.saveourtool.common.domain.TestResultDebugInfo
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionUpdateDto
+import com.saveourtool.common.filters.TestExecutionFilter
+import com.saveourtool.common.utils.ELLIPSIS
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.components.requestStatusContext
@@ -25,11 +31,6 @@ import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
-import com.saveourtool.common.domain.TestResultDebugInfo
-import com.saveourtool.common.domain.TestResultStatus
-import com.saveourtool.common.execution.ExecutionDto
-import com.saveourtool.common.execution.ExecutionUpdateDto
-import com.saveourtool.common.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.displayExecutionInfoHeader
 import com.saveourtool.save.frontend.components.basic.displayTestNotFound
 import com.saveourtool.save.frontend.components.basic.executionStatusComponent
@@ -37,7 +38,6 @@ import com.saveourtool.save.frontend.components.basic.table.filters.testExecutio
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.views.test.analysis.analysisResultsView
 import com.saveourtool.save.frontend.components.views.test.analysis.testMetricsView
-import com.saveourtool.common.utils.ELLIPSIS
 
 import js.core.jso
 import org.w3c.fetch.Headers

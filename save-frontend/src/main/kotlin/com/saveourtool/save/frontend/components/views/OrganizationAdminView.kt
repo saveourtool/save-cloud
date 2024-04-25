@@ -2,6 +2,9 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.OrganizationStatus
+import com.saveourtool.common.filters.OrganizationFilter
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
 import com.saveourtool.frontend.common.components.tables.tableComponent
@@ -13,9 +16,6 @@ import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.http.responseChangeOrganizationStatus
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.classLoadingHandler
-import com.saveourtool.common.entities.OrganizationDto
-import com.saveourtool.common.entities.OrganizationStatus
-import com.saveourtool.common.filters.OrganizationFilter
 
 import react.ChildrenBuilder
 import react.FC
