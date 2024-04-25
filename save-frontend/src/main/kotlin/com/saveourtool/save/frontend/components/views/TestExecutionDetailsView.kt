@@ -11,7 +11,7 @@ import com.saveourtool.save.core.result.Crash
 import com.saveourtool.save.core.result.Fail
 import com.saveourtool.save.core.result.Ignored
 import com.saveourtool.save.core.result.Pass
-import com.saveourtool.save.domain.TestResultDebugInfo
+import com.saveourtool.common.domain.TestResultDebugInfo
 
 import react.*
 import react.dom.html.ReactHTML.br

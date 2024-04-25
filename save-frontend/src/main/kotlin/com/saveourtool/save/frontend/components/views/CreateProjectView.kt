@@ -21,10 +21,10 @@ import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.frontend.common.utils.particles
 import com.saveourtool.frontend.common.utils.useBackground
 import com.saveourtool.frontend.common.utils.useDeferredRequest
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.validation.FrontendRoutes
-import com.saveourtool.save.validation.isValidLengthName
-import com.saveourtool.save.validation.isValidName
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.validation.FrontendRoutes
+import com.saveourtool.common.validation.isValidLengthName
+import com.saveourtool.common.validation.isValidName
 
 import react.*
 import react.dom.*

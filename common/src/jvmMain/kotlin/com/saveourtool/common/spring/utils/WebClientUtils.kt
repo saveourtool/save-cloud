@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.web.reactive.function.client.WebClientCustomizer
 import org.springframework.web.reactive.function.client.WebClient
 
-private val logger = LoggerFactory.getLogger("com.saveourtool.save.spring.utils.WebClientUtils")
+private val logger = LoggerFactory.getLogger("com.saveourtool.common.spring.utils.WebClientUtils")
 
 /**
  * Applies all [WebClientCustomizer]s from [customizers] to [this] [WebClient.Builder].

@@ -25,11 +25,11 @@ import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.save.core.logging.describe
 import com.saveourtool.save.core.result.CountWarnings
-import com.saveourtool.save.domain.TestResultDebugInfo
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionUpdateDto
-import com.saveourtool.save.filters.TestExecutionFilter
+import com.saveourtool.common.domain.TestResultDebugInfo
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionUpdateDto
+import com.saveourtool.common.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.displayExecutionInfoHeader
 import com.saveourtool.save.frontend.components.basic.displayTestNotFound
 import com.saveourtool.save.frontend.components.basic.executionStatusComponent
@@ -37,7 +37,7 @@ import com.saveourtool.save.frontend.components.basic.table.filters.testExecutio
 import com.saveourtool.save.frontend.components.basic.testStatusComponent
 import com.saveourtool.save.frontend.components.views.test.analysis.analysisResultsView
 import com.saveourtool.save.frontend.components.views.test.analysis.testMetricsView
-import com.saveourtool.save.utils.ELLIPSIS
+import com.saveourtool.common.utils.ELLIPSIS
 
 import js.core.jso
 import org.w3c.fetch.Headers

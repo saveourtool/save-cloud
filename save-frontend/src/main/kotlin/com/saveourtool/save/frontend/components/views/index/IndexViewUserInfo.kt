@@ -8,9 +8,9 @@ import com.saveourtool.frontend.common.components.basic.markdown
 import com.saveourtool.frontend.common.externals.fontawesome.faTimes
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.noopLoadingHandler
-import com.saveourtool.save.entities.NotificationDto
+import com.saveourtool.common.entities.NotificationDto
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.utils.toUnixCalendarFormat
+import com.saveourtool.common.utils.toUnixCalendarFormat
 
 import js.core.jso
 import react.ChildrenBuilder

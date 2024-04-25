@@ -8,7 +8,7 @@ import com.saveourtool.frontend.common.externals.fontawesome.faGithub
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.buttonBuilder
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.common.validation.FrontendRoutes
 
 import js.core.jso
 import react.FC

@@ -9,9 +9,9 @@ import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.OauthProvidersFeConfig
 import com.saveourtool.frontend.common.utils.processRegistrationId
 import com.saveourtool.save.frontend.externals.i18next.TranslationFunction
-import com.saveourtool.save.info.OauthProviderInfo
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.common.info.OauthProviderInfo
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendRoutes
 
 import js.core.jso
 import react.ChildrenBuilder

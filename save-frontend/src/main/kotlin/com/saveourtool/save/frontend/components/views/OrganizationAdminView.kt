@@ -13,9 +13,9 @@ import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.http.responseChangeOrganizationStatus
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.classLoadingHandler
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationStatus
-import com.saveourtool.save.filters.OrganizationFilter
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.OrganizationStatus
+import com.saveourtool.common.filters.OrganizationFilter
 
 import react.ChildrenBuilder
 import react.FC

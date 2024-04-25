@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Import
  */
 @SpringBootApplication(scanBasePackages = [
     "com.saveourtool.common.configs",
-    "com.saveourtool.common.backend",
+    "com.saveourtool.save.backend",
     "com.saveourtool.common.service",
     "com.saveourtool.common.storage",
     "com.saveourtool.common.security",

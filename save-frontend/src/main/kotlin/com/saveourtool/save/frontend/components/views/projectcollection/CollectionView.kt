@@ -11,9 +11,9 @@ import com.saveourtool.frontend.common.components.tables.value
 import com.saveourtool.frontend.common.components.views.AbstractView
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.classLoadingHandler
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.filters.ProjectFilter
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.common.entities.ProjectDto
+import com.saveourtool.common.filters.ProjectFilter
+import com.saveourtool.common.info.UserInfo
 
 import react.*
 import react.dom.html.ReactHTML.div

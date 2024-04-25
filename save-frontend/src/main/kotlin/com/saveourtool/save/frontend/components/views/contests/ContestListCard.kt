@@ -12,10 +12,10 @@ import com.saveourtool.frontend.common.externals.fontawesome.faArrowRight
 import com.saveourtool.frontend.common.externals.fontawesome.faCode
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.common.entities.contest.ContestDto
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.common.validation.FrontendRoutes
 
 import js.core.jso
 import react.*

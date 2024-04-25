@@ -6,11 +6,11 @@ package com.saveourtool.save.frontend.components.views.index
 
 import com.saveourtool.frontend.common.components.basic.renderAvatar
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.OrganizationStatus
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.OrganizationStatus
 import com.saveourtool.save.frontend.externals.i18next.useTranslation
-import com.saveourtool.save.validation.FrontendCosvRoutes
-import com.saveourtool.save.validation.FrontendRoutes
+import com.saveourtool.common.validation.FrontendCosvRoutes
+import com.saveourtool.common.validation.FrontendRoutes
 
 import io.ktor.util.*
 import js.core.jso

@@ -7,12 +7,12 @@ import com.saveourtool.frontend.common.externals.fontawesome.faCheckCircle
 import com.saveourtool.frontend.common.externals.fontawesome.faDice
 import com.saveourtool.frontend.common.externals.fontawesome.faPoo
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
-import com.saveourtool.save.test.analysis.results.AnalysisResult
-import com.saveourtool.save.test.analysis.results.FlakyTest
-import com.saveourtool.save.test.analysis.results.IrregularTest
-import com.saveourtool.save.test.analysis.results.PermanentFailure
-import com.saveourtool.save.test.analysis.results.Regression
-import com.saveourtool.save.test.analysis.results.RegularTest
+import com.saveourtool.common.test.analysis.results.AnalysisResult
+import com.saveourtool.common.test.analysis.results.FlakyTest
+import com.saveourtool.common.test.analysis.results.IrregularTest
+import com.saveourtool.common.test.analysis.results.PermanentFailure
+import com.saveourtool.common.test.analysis.results.Regression
+import com.saveourtool.common.test.analysis.results.RegularTest
 
 import js.core.jso
 import react.ChildrenBuilder

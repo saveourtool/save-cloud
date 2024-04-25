@@ -10,7 +10,7 @@ import com.saveourtool.frontend.common.components.modal.mediumTransparentModalSt
 import com.saveourtool.frontend.common.externals.fontawesome.faArrowRight
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.contest.ContestDto
+import com.saveourtool.common.entities.contest.ContestDto
 import com.saveourtool.save.frontend.components.basic.ContestNameProps
 import com.saveourtool.save.frontend.components.basic.showContestEnrollerModal
 
