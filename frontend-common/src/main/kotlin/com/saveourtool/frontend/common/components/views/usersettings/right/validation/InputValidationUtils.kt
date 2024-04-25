@@ -4,8 +4,8 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings.right.validation
 
+import com.saveourtool.common.validation.*
 import com.saveourtool.frontend.common.utils.UsefulUrls
-import com.saveourtool.save.validation.*
 
 private val namingAllowedSymbols = setOf('-', '_', '.', ' ')
 private val extendedNamingAllowedSymbols = namingAllowedSymbols + setOf(',', '\'')

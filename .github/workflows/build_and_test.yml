@@ -24,7 +24,7 @@ jobs:
       save-api: ${{ steps.calculate-dependencies.outputs.save-api }}
       save-api-cli: ${{ steps.calculate-dependencies.outputs.save-api-cli }}
       save-backend: ${{ steps.calculate-dependencies.outputs.save-backend }}
-      save-cloud-common: ${{ steps.calculate-dependencies.outputs.save-cloud-common }}
+      common: ${{ steps.calculate-dependencies.outputs.common }}
       cosv-backend: ${{ steps.calculate-dependencies.outputs.cosv-backend }}
       cosv-frontend: ${{ steps.calculate-dependencies.outputs.cosv-frontend }}
       save-demo: ${{ steps.calculate-dependencies.outputs.save-demo }}
@@ -64,8 +64,8 @@ jobs:
               - save-api-cli/**
             save-backend:
               - save-backend/**
-            save-cloud-common:
-              - save-cloud-common/**
+            common:
+              - common/**
             cosv-backend:
               - cosv-backend/**
             cosv-frontend:
@@ -94,27 +94,27 @@ jobs:
         run: |
           set -x
           all=$(( ${{ steps.git-changed-files.outputs.root_gradle_all_changed_files_count }} ))
-          save_cloud_common=$(( $all + ${{ steps.git-changed-files.outputs.save-cloud-common_all_changed_files_count }} ))
-          frontend_common=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.frontend-common_all_changed_files_count }} ))
-          save_orchestrator_common=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-orchestrator-common_all_changed_files_count }} ))
+          common=$(( $all + ${{ steps.git-changed-files.outputs.common_all_changed_files_count }} ))
+          frontend_common=$(( $common + ${{ steps.git-changed-files.outputs.frontend-common_all_changed_files_count }} ))
+          save_orchestrator_common=$(( $common + ${{ steps.git-changed-files.outputs.save-orchestrator-common_all_changed_files_count }} ))
 
-          authentication_service=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.authentication-service_all_changed_files_count }} ))
-          save_api=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-api_all_changed_files_count }} ))
-          cosv_backend=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.cosv-backend_all_changed_files_count }} ))
-          test_analysis_core=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.test-analysis-core_all_changed_files_count }} ))
+          authentication_service=$(( $common + ${{ steps.git-changed-files.outputs.authentication-service_all_changed_files_count }} ))
+          save_api=$(( $common + ${{ steps.git-changed-files.outputs.save-api_all_changed_files_count }} ))
+          cosv_backend=$(( $common + ${{ steps.git-changed-files.outputs.cosv-backend_all_changed_files_count }} ))
+          test_analysis_core=$(( $common + ${{ steps.git-changed-files.outputs.test-analysis-core_all_changed_files_count }} ))
           test_utils=$(( ${{ steps.git-changed-files.outputs.test-utils_all_changed_files_count }} ))
 
-          api_gateway=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.api-gateway_all_changed_files_count }} ))
-          save_agent=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-agent_all_changed_files_count }} ))
-          save_api_cli=$(( $save_cloud_common + $save_api + ${{ steps.git-changed-files.outputs.save-api-cli_all_changed_files_count }} ))
-          save_backend=$(( $save_cloud_common + $authentication_service + $test_analysis_core + $cosv_backend + $test_utils + ${{ steps.git-changed-files.outputs.save-backend_all_changed_files_count }} ))
-          cosv_frontend=$(( $save_cloud_common + $frontend_common + ${{ steps.git-changed-files.outputs.cosv-frontend_all_changed_files_count }} ))
-          save_demo=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-demo_all_changed_files_count }} ))
-          save_demo_agent=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-demo-agent_all_changed_files_count }} ))
-          save_demo_cpg=$(( $save_cloud_common + ${{ steps.git-changed-files.outputs.save-demo-cpg_all_changed_files_count }} ))
-          save_frontend=$(( $save_cloud_common + $frontend_common + ${{ steps.git-changed-files.outputs.save-frontend_all_changed_files_count }} ))
-          save_orchestrator=$(( $save_cloud_common + $save_orchestrator_common + $test_utils + ${{ steps.git-changed-files.outputs.save-orchestrator_all_changed_files_count }} ))
-          save_preprocessor=$(( $save_cloud_common + $test_utils + ${{ steps.git-changed-files.outputs.save-preprocessor_all_changed_files_count }} ))
+          api_gateway=$(( $common + ${{ steps.git-changed-files.outputs.api-gateway_all_changed_files_count }} ))
+          save_agent=$(( $common + ${{ steps.git-changed-files.outputs.save-agent_all_changed_files_count }} ))
+          save_api_cli=$(( $common + $save_api + ${{ steps.git-changed-files.outputs.save-api-cli_all_changed_files_count }} ))
+          save_backend=$(( $common + $authentication_service + $test_analysis_core + $cosv_backend + $test_utils + ${{ steps.git-changed-files.outputs.save-backend_all_changed_files_count }} ))
+          cosv_frontend=$(( $common + $frontend_common + ${{ steps.git-changed-files.outputs.cosv-frontend_all_changed_files_count }} ))
+          save_demo=$(( $common + ${{ steps.git-changed-files.outputs.save-demo_all_changed_files_count }} ))
+          save_demo_agent=$(( $common + ${{ steps.git-changed-files.outputs.save-demo-agent_all_changed_files_count }} ))
+          save_demo_cpg=$(( $common + ${{ steps.git-changed-files.outputs.save-demo-cpg_all_changed_files_count }} ))
+          save_frontend=$(( $common + $frontend_common + ${{ steps.git-changed-files.outputs.save-frontend_all_changed_files_count }} ))
+          save_orchestrator=$(( $common + $save_orchestrator_common + $test_utils + ${{ steps.git-changed-files.outputs.save-orchestrator_all_changed_files_count }} ))
+          save_preprocessor=$(( $common + $test_utils + ${{ steps.git-changed-files.outputs.save-preprocessor_all_changed_files_count }} ))
 
           echo "api-gateway=$api_gateway" >> "$GITHUB_OUTPUT"
           echo "authentication-service=$authentication_service" >> "$GITHUB_OUTPUT"
@@ -122,7 +122,7 @@ jobs:
           echo "save-api=$save_api" >> "$GITHUB_OUTPUT"
           echo "save-api-cli=$save_api_cli" >> "$GITHUB_OUTPUT"
           echo "save-backend=$save_backend" >> "$GITHUB_OUTPUT"
-          echo "save-cloud-common=$save_cloud_common" >> "$GITHUB_OUTPUT"
+          echo "common=$common" >> "$GITHUB_OUTPUT"
           echo "cosv-backend=$cosv_backend" >> "$GITHUB_OUTPUT"
           echo "cosv-frontend=$cosv_frontend" >> "$GITHUB_OUTPUT"
           echo "save-demo=$save_demo" >> "$GITHUB_OUTPUT"
@@ -135,17 +135,17 @@ jobs:
           echo "save-preprocessor=$save_preprocessor" >> "$GITHUB_OUTPUT"
           echo "test-analysis-core=$test_analysis_core" >> "$GITHUB_OUTPUT"
           echo "test-utils=$test_utils" >> "$GITHUB_OUTPUT"
-  build_save-cloud-common:
-    name: 'Build and test (save-cloud-common)'
+  build_common:
+    name: 'Build and test (common)'
     needs: [ calculate_build_flags ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
-      do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-cloud-common > 0 }}
-      module: save-cloud-common
+      do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.common > 0 }}
+      module: common
       gradle-cache-read-only: ${{ github.ref != 'refs/heads/master' && github.event_name != 'pull_request' }}
   build_save-orchestrator-common:
     name: 'Build and test (save-orchestrator-common)'
-    needs: [ calculate_build_flags, build_save-cloud-common ]
+    needs: [ calculate_build_flags, build_common ]
     uses: ./.github/workflows/build_and_test_reusable.yml
     with:
       do-build: ${{ github.event_name == 'push' || needs.calculate_build_flags.outputs.save-orchestrator-common > 0 }}

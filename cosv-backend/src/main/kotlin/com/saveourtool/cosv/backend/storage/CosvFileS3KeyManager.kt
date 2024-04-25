@@ -1,12 +1,13 @@
 package com.saveourtool.cosv.backend.storage
 
+import com.saveourtool.common.entitiescosv.CosvFile
+import com.saveourtool.common.entitiescosv.VulnerabilityMetadata
+import com.saveourtool.common.s3.S3OperationsProperties
+import com.saveourtool.common.storage.concatS3Key
+import com.saveourtool.common.storage.key.AbstractS3KeyEntityManager
+import com.saveourtool.common.utils.BlockingBridge
 import com.saveourtool.cosv.backend.repository.CosvFileRepository
-import com.saveourtool.save.entitiescosv.CosvFile
-import com.saveourtool.save.entitiescosv.VulnerabilityMetadata
-import com.saveourtool.save.s3.S3OperationsProperties
-import com.saveourtool.save.storage.concatS3Key
-import com.saveourtool.save.storage.key.AbstractS3KeyEntityManager
-import com.saveourtool.save.utils.BlockingBridge
+
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 

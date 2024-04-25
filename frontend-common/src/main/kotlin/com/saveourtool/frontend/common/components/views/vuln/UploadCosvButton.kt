@@ -2,10 +2,11 @@
 
 package com.saveourtool.frontend.common.components.views.vuln
 
+import com.saveourtool.common.validation.FrontendCosvRoutes
 import com.saveourtool.frontend.common.externals.fontawesome.faFile
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.validation.FrontendCosvRoutes
+
 import react.FC
 import react.Props
 import react.router.useNavigate

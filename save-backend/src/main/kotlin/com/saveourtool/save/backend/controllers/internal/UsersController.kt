@@ -1,8 +1,8 @@
 package com.saveourtool.save.backend.controllers.internal
 
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.blockingToMono
 import com.saveourtool.save.authservice.utils.SaveUserDetails
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.blockingToMono
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping

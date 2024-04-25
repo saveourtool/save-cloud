@@ -2,7 +2,7 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
-import com.saveourtool.save.entities.OrganizationDto
+import com.saveourtool.common.entities.OrganizationDto
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

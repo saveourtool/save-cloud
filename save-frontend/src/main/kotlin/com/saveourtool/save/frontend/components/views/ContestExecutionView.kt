@@ -4,6 +4,9 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionStatus
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
 import com.saveourtool.frontend.common.components.tables.enableExpanding
@@ -15,15 +18,12 @@ import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.Style
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
 import com.saveourtool.save.frontend.components.RequestStatusContext
 import com.saveourtool.save.frontend.components.basic.*
 import com.saveourtool.save.frontend.components.requestStatusContext
 import com.saveourtool.save.frontend.externals.chart.DataPieChart
 import com.saveourtool.save.frontend.externals.chart.PieChartColors
 import com.saveourtool.save.frontend.externals.chart.pieChart
-import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
 import react.*

@@ -6,12 +6,12 @@
 
 package com.saveourtool.save.frontend.components.basic
 
+import com.saveourtool.common.entities.ProjectDto
 import com.saveourtool.frontend.common.externals.fontawesome.faCheck
 import com.saveourtool.frontend.common.externals.fontawesome.faEdit
 import com.saveourtool.frontend.common.externals.fontawesome.faTimesCircle
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.ProjectDto
 
 import react.FC
 import react.Props

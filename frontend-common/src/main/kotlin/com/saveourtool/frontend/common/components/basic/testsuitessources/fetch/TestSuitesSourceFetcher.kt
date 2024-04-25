@@ -6,6 +6,8 @@
 
 package com.saveourtool.frontend.common.components.basic.testsuitessources.fetch
 
+import com.saveourtool.common.testsuite.TestSuitesSourceDto
+import com.saveourtool.common.testsuite.TestSuitesSourceFetchMode
 import com.saveourtool.frontend.common.components.basic.selectFormRequired
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.inputform.inputTextFormRequired
@@ -14,8 +16,6 @@ import com.saveourtool.frontend.common.components.modal.modal
 import com.saveourtool.frontend.common.components.modal.modalBuilder
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.testsuite.TestSuitesSourceDto
-import com.saveourtool.save.testsuite.TestSuitesSourceFetchMode
 
 import js.core.jso
 import react.*

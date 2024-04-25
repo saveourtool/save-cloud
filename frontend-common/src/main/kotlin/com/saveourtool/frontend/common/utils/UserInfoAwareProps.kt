@@ -4,7 +4,7 @@
 
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.info.UserInfo
+import com.saveourtool.common.info.UserInfo
 import react.FC
 import react.Props
 import react.PropsWithChildren

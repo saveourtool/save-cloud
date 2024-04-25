@@ -2,10 +2,10 @@
 
 package com.saveourtool.frontend.common.components.basic.contests
 
+import com.saveourtool.common.entities.contest.ContestDto
 import com.saveourtool.frontend.common.components.basic.cardComponent
 import com.saveourtool.frontend.common.components.basic.markdown
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.contest.ContestDto
 
 import react.*
 import react.dom.html.ReactHTML.div

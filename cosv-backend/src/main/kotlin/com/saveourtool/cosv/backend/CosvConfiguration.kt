@@ -45,7 +45,7 @@ class CosvConfiguration {
         @Qualifier("dataSource") dataSource: DataSource?
     ): LocalContainerEntityManagerFactoryBean? = builder
         .dataSource(dataSource)
-        .packages("com.saveourtool.save.entitiescosv")
+        .packages("com.saveourtool.common.entitiescosv")
         .persistenceUnit("cosv")
         .build()
 

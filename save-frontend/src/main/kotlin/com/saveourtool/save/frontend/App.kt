@@ -4,6 +4,8 @@
 
 package com.saveourtool.save.frontend
 
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.basic.cookieBanner
 import com.saveourtool.frontend.common.components.basic.scrollToTopButton
 import com.saveourtool.frontend.common.components.footer
@@ -13,8 +15,6 @@ import com.saveourtool.save.frontend.components.*
 import com.saveourtool.save.frontend.components.topbar.topBarComponent
 import com.saveourtool.save.frontend.externals.i18next.initI18n
 import com.saveourtool.save.frontend.routing.basicRouting
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
 import react.dom.client.createRoot

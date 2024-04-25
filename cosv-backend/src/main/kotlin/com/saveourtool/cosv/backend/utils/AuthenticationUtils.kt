@@ -2,7 +2,7 @@
 
 package com.saveourtool.cosv.backend.utils
 
-import com.saveourtool.save.domain.Role
+import com.saveourtool.common.domain.Role
 import org.springframework.security.core.Authentication
 
 /**

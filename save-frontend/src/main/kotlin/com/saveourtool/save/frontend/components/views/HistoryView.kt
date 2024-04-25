@@ -4,6 +4,11 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.execution.ExecutionDto
+import com.saveourtool.common.execution.ExecutionStatus
+import com.saveourtool.common.filters.ExecutionFilter
+import com.saveourtool.common.utils.DATABASE_DELIMITER
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
@@ -19,12 +24,7 @@ import com.saveourtool.frontend.common.externals.fontawesome.faSpinner
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.execution.ExecutionDto
-import com.saveourtool.save.execution.ExecutionStatus
-import com.saveourtool.save.filters.ExecutionFilter
 import com.saveourtool.save.frontend.externals.calendar.calendar
-import com.saveourtool.save.utils.DATABASE_DELIMITER
 
 import js.core.jso
 import react.*

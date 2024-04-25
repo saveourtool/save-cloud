@@ -2,11 +2,12 @@
 
 package com.saveourtool.frontend.common.components.basic
 
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.utils.DATABASE_DELIMITER
 import com.saveourtool.frontend.common.components.inputform.inputWithDebounceForUserInfo
 import com.saveourtool.frontend.common.components.inputform.renderUserWithAvatar
 import com.saveourtool.frontend.common.utils.apiUrl
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.DATABASE_DELIMITER
+
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.div

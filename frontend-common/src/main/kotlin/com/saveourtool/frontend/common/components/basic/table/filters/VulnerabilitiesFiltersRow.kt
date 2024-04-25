@@ -2,6 +2,12 @@
 
 package com.saveourtool.frontend.common.components.basic.table.filters
 
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.entities.vulnerability.VulnerabilityLanguage
+import com.saveourtool.common.entities.vulnerability.VulnerabilityStatus
+import com.saveourtool.common.filters.VulnerabilityFilter
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendCosvRoutes
 import com.saveourtool.frontend.common.components.inputform.*
 import com.saveourtool.frontend.common.components.inputform.renderUserWithAvatar
 import com.saveourtool.frontend.common.components.tables.TABLE_HEADERS_LOCALE_NAMESPACE
@@ -11,12 +17,6 @@ import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.externals.slider.multiRangeSlider
 import com.saveourtool.frontend.common.themes.Colors
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.entities.vulnerability.VulnerabilityLanguage
-import com.saveourtool.save.entities.vulnerability.VulnerabilityStatus
-import com.saveourtool.save.filters.VulnerabilityFilter
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.*

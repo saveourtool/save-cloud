@@ -7,8 +7,8 @@
 
 package com.saveourtool.frontend.common.components.basic
 
+import com.saveourtool.common.testsuite.TestSuiteVersioned
 import com.saveourtool.frontend.common.components.basic.testsuiteselector.TestSuiteSelectorMode
-import com.saveourtool.save.testsuite.TestSuiteVersioned
 
 import react.ChildrenBuilder
 import react.dom.html.ReactHTML.a

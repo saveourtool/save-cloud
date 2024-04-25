@@ -1,15 +1,15 @@
 package com.saveourtool.save.backend.security
 
 import com.saveourtool.save.authservice.utils.SaveUserDetails
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.repository.LnkUserOrganizationRepository
-import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.service.LnkUserOrganizationService
-import com.saveourtool.save.service.UserService
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.info.UserStatus
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.repository.LnkUserOrganizationRepository
+import com.saveourtool.common.repository.UserRepository
+import com.saveourtool.common.security.OrganizationPermissionEvaluator
+import com.saveourtool.common.service.LnkUserOrganizationService
+import com.saveourtool.common.service.UserService
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach

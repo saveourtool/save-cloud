@@ -8,20 +8,20 @@ import com.saveourtool.save.backend.controllers.internal.FileInternalController
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.configs.WebConfig
+import com.saveourtool.common.configs.WebConfig
 import com.saveourtool.save.core.result.DebugInfo
 import com.saveourtool.save.core.result.Pass
-import com.saveourtool.save.domain.*
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.permission.Permission
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.OrganizationService
-import com.saveourtool.save.service.ProjectService
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.BlockingBridge
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
-import com.saveourtool.save.utils.collectToInputStream
-import com.saveourtool.save.v1
+import com.saveourtool.common.domain.*
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.permission.Permission
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.OrganizationService
+import com.saveourtool.common.service.ProjectService
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.BlockingBridge
+import com.saveourtool.common.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.common.utils.collectToInputStream
+import com.saveourtool.common.v1
 import org.jetbrains.annotations.Blocking
 
 import org.junit.jupiter.api.Assertions
@@ -141,7 +141,7 @@ class DownloadFilesTest {
             .thenAnswer { Mono.just(testProject) }
 
         webTestClient.get()
-            .uri("/api/$v1/files/download?fileId={fileId}", file1.requiredId())
+            .uri("/api/${v1}/files/download?fileId={fileId}", file1.requiredId())
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .exchange()
             .expectStatus()
@@ -152,7 +152,7 @@ class DownloadFilesTest {
             }
 
         webTestClient.get()
-            .uri("/api/$v1/files/{organizationName}/{projectName}/list", testProject.organization.name, testProject.name)
+            .uri("/api/${v1}/files/{organizationName}/{projectName}/list", testProject.organization.name, testProject.name)
             .exchange()
             .expectStatus()
             .isOk
@@ -168,7 +168,7 @@ class DownloadFilesTest {
     @Test
     fun `should return 404 for non-existent files`() {
         webTestClient.get()
-            .uri("/api/$v1/files/download/invalid-name")
+            .uri("/api/${v1}/files/download/invalid-name")
             .exchange()
             .expectStatus()
             .isNotFound
@@ -200,7 +200,7 @@ class DownloadFilesTest {
             .build()
 
         webTestClient.post()
-            .uri("/api/$v1/files/Huawei/huaweiName/upload")
+            .uri("/api/${v1}/files/Huawei/huaweiName/upload")
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .header(CONTENT_LENGTH_CUSTOM, file.fileSize().toString())

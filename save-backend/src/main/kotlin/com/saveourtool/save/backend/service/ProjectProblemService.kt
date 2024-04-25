@@ -1,14 +1,15 @@
 package com.saveourtool.save.backend.service
 
+import com.saveourtool.common.entities.ProjectProblem
+import com.saveourtool.common.entities.ProjectProblemDto
+import com.saveourtool.common.filters.ProjectProblemFilter
+import com.saveourtool.common.repository.ProjectRepository
+import com.saveourtool.common.repository.UserRepository
+import com.saveourtool.common.utils.getByIdOrNotFound
+import com.saveourtool.common.utils.orNotFound
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.repository.ProjectProblemRepository
-import com.saveourtool.save.entities.ProjectProblem
-import com.saveourtool.save.entities.ProjectProblemDto
-import com.saveourtool.save.filters.ProjectProblemFilter
-import com.saveourtool.save.repository.ProjectRepository
-import com.saveourtool.save.repository.UserRepository
-import com.saveourtool.save.utils.getByIdOrNotFound
-import com.saveourtool.save.utils.orNotFound
+
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

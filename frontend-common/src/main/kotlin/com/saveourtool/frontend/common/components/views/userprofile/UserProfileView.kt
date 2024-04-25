@@ -4,6 +4,12 @@
 
 package com.saveourtool.frontend.common.components.views.userprofile
 
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.frontend.TabMenuBar
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.info.UserStatus
+import com.saveourtool.common.utils.*
+import com.saveourtool.common.validation.FrontendCosvRoutes
 import com.saveourtool.frontend.common.components.basic.renderAvatar
 import com.saveourtool.frontend.common.components.basic.renderOrganizationAvatar
 import com.saveourtool.frontend.common.components.inputform.InputTypes
@@ -12,12 +18,6 @@ import com.saveourtool.frontend.common.components.modal.mediumTransparentModalSt
 import com.saveourtool.frontend.common.components.views.vuln.vulnerabilityTableComponent
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.frontend.TabMenuBar
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.utils.*
-import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.*

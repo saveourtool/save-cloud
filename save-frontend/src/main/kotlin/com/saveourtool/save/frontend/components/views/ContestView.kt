@@ -2,6 +2,8 @@
 
 package com.saveourtool.save.frontend.components.views
 
+import com.saveourtool.common.entities.contest.ContestDto
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.RequestStatusContext
 import com.saveourtool.frontend.common.components.basic.contests.contestInfoMenu
 import com.saveourtool.frontend.common.components.basic.contests.contestSubmissionsMenu
@@ -13,8 +15,6 @@ import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.apiUrl
 import com.saveourtool.frontend.common.utils.classLoadingHandler
 import com.saveourtool.frontend.common.utils.jsonHeaders
-import com.saveourtool.save.entities.contest.ContestDto
-import com.saveourtool.save.info.UserInfo
 
 import react.*
 import react.dom.html.ReactHTML.div

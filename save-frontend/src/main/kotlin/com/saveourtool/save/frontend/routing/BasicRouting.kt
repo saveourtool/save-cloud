@@ -6,6 +6,10 @@
 
 package com.saveourtool.save.frontend.routing
 
+import com.saveourtool.common.domain.ProjectCoordinates
+import com.saveourtool.common.domain.TestResultStatus
+import com.saveourtool.common.filters.TestExecutionFilter
+import com.saveourtool.common.validation.FrontendRoutes.*
 import com.saveourtool.frontend.common.components.views.AboutUsView
 import com.saveourtool.frontend.common.components.views.FallbackView
 import com.saveourtool.frontend.common.components.views.organization.createOrganizationView
@@ -16,9 +20,6 @@ import com.saveourtool.frontend.common.components.views.userprofile.userProfileV
 import com.saveourtool.frontend.common.components.views.usersettings.*
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.isSuperAdmin
-import com.saveourtool.save.domain.ProjectCoordinates
-import com.saveourtool.save.domain.TestResultStatus
-import com.saveourtool.save.filters.TestExecutionFilter
 import com.saveourtool.save.frontend.components.basic.projects.createProjectProblem
 import com.saveourtool.save.frontend.components.basic.projects.projectProblem
 import com.saveourtool.save.frontend.components.views.*
@@ -32,7 +33,6 @@ import com.saveourtool.save.frontend.components.views.index.indexView
 import com.saveourtool.save.frontend.components.views.projectcollection.CollectionView
 import com.saveourtool.save.frontend.components.views.welcome.saveWelcomeView
 import com.saveourtool.save.frontend.utils.SaveOrganizationType
-import com.saveourtool.save.validation.FrontendRoutes.*
 
 import org.w3c.dom.url.URLSearchParams
 import react.*

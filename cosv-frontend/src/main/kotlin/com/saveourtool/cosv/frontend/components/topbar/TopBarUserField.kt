@@ -4,6 +4,7 @@
 
 package com.saveourtool.cosv.frontend.components.topbar
 
+import com.saveourtool.common.validation.FrontendCosvRoutes
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.components.basic.renderTopBarAvatar
 import com.saveourtool.frontend.common.components.modal.logoutModal
@@ -13,7 +14,6 @@ import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.AVATAR_PROFILE_PLACEHOLDER
 import com.saveourtool.frontend.common.utils.UserInfoAwareProps
 import com.saveourtool.frontend.common.utils.isSuperAdmin
-import com.saveourtool.save.validation.FrontendCosvRoutes
 
 import js.core.jso
 import react.*

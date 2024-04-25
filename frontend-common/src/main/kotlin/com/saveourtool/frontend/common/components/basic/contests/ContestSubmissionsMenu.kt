@@ -2,13 +2,13 @@
 
 package com.saveourtool.frontend.common.components.basic.contests
 
+import com.saveourtool.common.entities.contest.ContestResult
+import com.saveourtool.common.execution.ExecutionStatus
 import com.saveourtool.frontend.common.components.tables.TableProps
 import com.saveourtool.frontend.common.components.tables.columns
 import com.saveourtool.frontend.common.components.tables.tableComponent
 import com.saveourtool.frontend.common.components.tables.value
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.entities.contest.ContestResult
-import com.saveourtool.save.execution.ExecutionStatus
 
 import react.*
 import react.dom.html.ReactHTML.div

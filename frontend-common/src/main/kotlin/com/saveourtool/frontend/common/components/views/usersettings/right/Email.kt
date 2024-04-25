@@ -4,6 +4,7 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings.right
 
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.components.views.usersettings.SettingsProps
 import com.saveourtool.frontend.common.components.views.usersettings.inputForm
@@ -12,7 +13,7 @@ import com.saveourtool.frontend.common.components.views.usersettings.right.valid
 import com.saveourtool.frontend.common.components.views.usersettings.useSaveUser
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.validation.FrontendRoutes
+
 import js.core.jso
 import react.FC
 import react.dom.html.ReactHTML.div

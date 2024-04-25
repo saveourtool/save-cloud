@@ -45,7 +45,7 @@ tasks.register<Copy>("copyLiquibase") {
 }
 
 dependencies {
-    implementation(projects.saveCloudCommon)
+    implementation(projects.common)
     implementation(projects.authenticationService)
     implementation(projects.testAnalysisCore)
     implementation(libs.save.common.jvm)

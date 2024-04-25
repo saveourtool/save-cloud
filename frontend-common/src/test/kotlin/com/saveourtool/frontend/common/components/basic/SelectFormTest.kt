@@ -1,7 +1,7 @@
 package com.saveourtool.frontend.common.components.basic
 
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.v1
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.v1
 import com.saveourtool.frontend.common.components.inputform.InputTypes
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.externals.*

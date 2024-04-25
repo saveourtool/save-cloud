@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    api(projects.saveCloudCommon)
+    api(projects.common)
     implementation(libs.spring.cloud.starter.gateway)
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.oauth2.client)

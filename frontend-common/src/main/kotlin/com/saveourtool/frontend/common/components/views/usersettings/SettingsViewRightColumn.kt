@@ -4,12 +4,12 @@
 
 package com.saveourtool.frontend.common.components.views.usersettings
 
+import com.saveourtool.common.validation.FrontendRoutes.*
 import com.saveourtool.frontend.common.components.views.usersettings.right.deleteSettingsCard
 import com.saveourtool.frontend.common.components.views.usersettings.right.emailSettingsCard
 import com.saveourtool.frontend.common.components.views.usersettings.right.organizationsSettingsCard
 import com.saveourtool.frontend.common.components.views.usersettings.right.profile.profileSettingsCard
 import com.saveourtool.frontend.common.components.views.usersettings.right.tokenSettingsCard
-import com.saveourtool.save.validation.FrontendRoutes.*
 
 import react.FC
 import react.dom.html.ReactHTML.div

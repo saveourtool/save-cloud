@@ -4,15 +4,15 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.OrganizationDto
+import com.saveourtool.common.info.UserInfo
 import com.saveourtool.frontend.common.components.basic.userBoard
 import com.saveourtool.frontend.common.externals.fontawesome.faCheck
 import com.saveourtool.frontend.common.externals.fontawesome.faEdit
 import com.saveourtool.frontend.common.externals.fontawesome.faTimesCircle
 import com.saveourtool.frontend.common.externals.fontawesome.fontAwesomeIcon
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.OrganizationDto
-import com.saveourtool.save.info.UserInfo
 
 import js.core.jso
 import react.*

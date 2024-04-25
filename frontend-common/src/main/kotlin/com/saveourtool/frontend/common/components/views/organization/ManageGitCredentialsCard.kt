@@ -6,14 +6,14 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.GitDto
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.utils.getHighestRole
 import com.saveourtool.frontend.common.components.modal.displayModal
 import com.saveourtool.frontend.common.components.modal.mediumTransparentModalStyle
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.GitDto
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.utils.getHighestRole
 
 import js.core.jso
 import org.w3c.fetch.Response

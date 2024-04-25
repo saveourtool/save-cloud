@@ -13,7 +13,7 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    api(projects.saveCloudCommon)
+    api(projects.common)
     implementation(projects.saveOrchestratorCommon)
     implementation(libs.save.common.jvm)
     implementation(libs.dockerJava.core)

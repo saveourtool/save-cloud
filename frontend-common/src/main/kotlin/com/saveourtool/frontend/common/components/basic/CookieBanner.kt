@@ -2,6 +2,7 @@
 
 package com.saveourtool.frontend.common.components.basic
 
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.modal.MAX_Z_INDEX
 import com.saveourtool.frontend.common.externals.cookie.acceptCookies
 import com.saveourtool.frontend.common.externals.cookie.cookie
@@ -9,7 +10,7 @@ import com.saveourtool.frontend.common.externals.cookie.declineCookies
 import com.saveourtool.frontend.common.externals.cookie.isAccepted
 import com.saveourtool.frontend.common.externals.i18next.useTranslation
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.validation.FrontendRoutes
+
 import js.core.jso
 import react.FC
 import react.Props

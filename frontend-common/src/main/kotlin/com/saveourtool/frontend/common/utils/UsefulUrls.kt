@@ -1,7 +1,7 @@
 package com.saveourtool.frontend.common.utils
 
-import com.saveourtool.save.validation.NAME_FRAGMENT_CLASS
-import com.saveourtool.save.validation.ValidationRegularExpressions.URL_VALIDATOR
+import com.saveourtool.common.validation.NAME_FRAGMENT_CLASS
+import com.saveourtool.common.validation.ValidationRegularExpressions.URL_VALIDATOR
 
 /**
  * Enum only for storing URLs to well-known website

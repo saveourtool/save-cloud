@@ -6,6 +6,16 @@
 
 package com.saveourtool.frontend.common.components.views
 
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.info.UserStatus
+import com.saveourtool.common.utils.AVATARS_PACKS_DIR
+import com.saveourtool.common.utils.AvatarType
+import com.saveourtool.common.utils.CONTENT_LENGTH_CUSTOM
+import com.saveourtool.common.utils.FILE_PART_NAME
+import com.saveourtool.common.validation.FrontendRoutes
+import com.saveourtool.common.validation.isValidLengthName
+import com.saveourtool.common.validation.isValidName
+import com.saveourtool.common.validation.isValidUrl
 import com.saveourtool.frontend.common.components.basic.avatarForm
 import com.saveourtool.frontend.common.components.basic.avatarRenderer
 import com.saveourtool.frontend.common.components.inputform.InputTypes
@@ -15,16 +25,6 @@ import com.saveourtool.frontend.common.components.modal.MAX_Z_INDEX
 import com.saveourtool.frontend.common.components.views.usersettings.AVATAR_TITLE
 import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.UserInfoAwareMutablePropsWithChildren
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.info.UserStatus
-import com.saveourtool.save.utils.AVATARS_PACKS_DIR
-import com.saveourtool.save.utils.AvatarType
-import com.saveourtool.save.utils.CONTENT_LENGTH_CUSTOM
-import com.saveourtool.save.utils.FILE_PART_NAME
-import com.saveourtool.save.validation.FrontendRoutes
-import com.saveourtool.save.validation.isValidLengthName
-import com.saveourtool.save.validation.isValidName
-import com.saveourtool.save.validation.isValidUrl
 
 import js.core.jso
 import org.w3c.fetch.Headers

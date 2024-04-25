@@ -1,10 +1,10 @@
 package com.saveourtool.cosv.backend.repository
 
+import com.saveourtool.common.entities.cosv.CosvFileDto
+import com.saveourtool.common.entitiescosv.CosvFile
+import com.saveourtool.common.utils.*
 import com.saveourtool.cosv.backend.storage.CosvFileS3KeyManager
 import com.saveourtool.cosv.backend.storage.CosvFileStorage
-import com.saveourtool.save.entities.cosv.CosvFileDto
-import com.saveourtool.save.entitiescosv.CosvFile
-import com.saveourtool.save.utils.*
 
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.RequestParam

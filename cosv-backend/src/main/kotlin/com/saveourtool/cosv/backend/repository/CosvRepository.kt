@@ -1,8 +1,8 @@
 package com.saveourtool.cosv.backend.repository
 
+import com.saveourtool.common.entities.cosv.CosvFileDto
+import com.saveourtool.common.entitiescosv.CosvFile
 import com.saveourtool.osv4k.OsvSchema
-import com.saveourtool.save.entities.cosv.CosvFileDto
-import com.saveourtool.save.entitiescosv.CosvFile
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

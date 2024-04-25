@@ -20,7 +20,7 @@ import javax.sql.DataSource
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-    basePackages = ["com.saveourtool.save.repository"],
+    basePackages = ["com.saveourtool.common.repository"],
     entityManagerFactoryRef = "saveEntityManagerFactory",
     transactionManagerRef = "saveTransactionManager")
 class PersistenceSaveAutoConfiguration {
@@ -42,7 +42,7 @@ class PersistenceSaveAutoConfiguration {
         @Qualifier("saveDataSource") saveDataSource: DataSource?
     ): LocalContainerEntityManagerFactoryBean? = builder
         .dataSource(saveDataSource)
-        .packages("com.saveourtool.save.entities")
+        .packages("com.saveourtool.common.entities")
         .persistenceUnit("save")
         .build()
 

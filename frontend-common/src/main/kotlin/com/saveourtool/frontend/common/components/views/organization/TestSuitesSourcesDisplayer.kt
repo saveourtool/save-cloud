@@ -7,12 +7,12 @@
 
 package com.saveourtool.frontend.common.components.views.organization
 
+import com.saveourtool.common.test.TestsSourceVersionInfo
+import com.saveourtool.common.test.TestsSourceVersionInfoList
+import com.saveourtool.common.testsuite.*
+import com.saveourtool.common.utils.prettyPrint
 import com.saveourtool.frontend.common.externals.fontawesome.*
 import com.saveourtool.frontend.common.utils.buttonBuilder
-import com.saveourtool.save.test.TestsSourceVersionInfo
-import com.saveourtool.save.test.TestsSourceVersionInfoList
-import com.saveourtool.save.testsuite.*
-import com.saveourtool.save.utils.prettyPrint
 
 import js.core.jso
 import react.ChildrenBuilder

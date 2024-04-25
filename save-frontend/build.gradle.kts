@@ -17,7 +17,7 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 }
 
 dependencies {
-    implementation(projects.saveCloudCommon)
+    implementation(projects.common)
     implementation(projects.frontendCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))

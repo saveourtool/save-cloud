@@ -7,22 +7,22 @@ import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.S11nTestConfig
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.configs.WebConfig
-import com.saveourtool.save.domain.Role
-import com.saveourtool.save.entities.*
-import com.saveourtool.save.repository.*
-import com.saveourtool.save.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.security.ProjectPermissionEvaluator
-import com.saveourtool.save.service.*
-import com.saveourtool.save.storage.AvatarStorage
+import com.saveourtool.common.configs.WebConfig
+import com.saveourtool.common.domain.Role
+import com.saveourtool.common.entities.*
+import com.saveourtool.common.repository.*
+import com.saveourtool.common.security.OrganizationPermissionEvaluator
+import com.saveourtool.common.security.ProjectPermissionEvaluator
+import com.saveourtool.common.service.*
+import com.saveourtool.common.storage.AvatarStorage
 import com.saveourtool.save.testutils.checkQueues
 import com.saveourtool.save.testutils.cleanup
 import com.saveourtool.save.testutils.createMockWebServer
 import com.saveourtool.save.testutils.enqueue
-import com.saveourtool.save.utils.BlockingBridge
-import com.saveourtool.save.utils.getLogger
-import com.saveourtool.save.utils.info
-import com.saveourtool.save.v1
+import com.saveourtool.common.utils.BlockingBridge
+import com.saveourtool.common.utils.getLogger
+import com.saveourtool.common.utils.info
+import com.saveourtool.common.v1
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
@@ -138,7 +138,7 @@ class OrganizationControllerTest {
     fun `delete organization with owner permission`() {
         mutateMockedUserAndLink(organization, adminUser, Role.OWNER)
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
+            .uri("/api/${v1}/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -149,7 +149,7 @@ class OrganizationControllerTest {
     fun `ban organization with super-admin permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.SUPER_ADMIN)
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.BANNED}")
+            .uri("/api/${v1}/organizations/${organization.name}/change-status?status=${OrganizationStatus.BANNED}")
             .exchange()
             .expectStatus()
             .isOk
@@ -160,7 +160,7 @@ class OrganizationControllerTest {
     fun `delete organization without owner permission`() {
         mutateMockedUserAndLink(organization, johnDoeUser, Role.VIEWER)
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
+            .uri("/api/${v1}/organizations/${organization.name}/change-status?status=${OrganizationStatus.DELETED}")
             .exchange()
             .expectStatus()
             .isForbidden
@@ -175,7 +175,7 @@ class OrganizationControllerTest {
         val git2 = Git("url2", null, null, organization)
         given(gitRepository.findAllByOrganizationId(organization.requiredId())).willReturn(listOf(git1, git2))
         webClient.get()
-            .uri("/api/$v1/organizations/${organization.name}/list-git")
+            .uri("/api/${v1}/organizations/${organization.name}/list-git")
             .exchange()
             .also {
                 it.expectBodyList(GitDto::class.java)
@@ -195,7 +195,7 @@ class OrganizationControllerTest {
         val assertionsToCreate = mockGitCheckConnectivity(true)
         val gitDtoToCreate = GitDto("url")
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/create-git")
+            .uri("/api/${v1}/organizations/${organization.name}/create-git")
             .bodyValue(gitDtoToCreate)
             .exchange()
             .expectStatus()
@@ -214,7 +214,7 @@ class OrganizationControllerTest {
         val assertionsToCreate = mockGitCheckConnectivity(false)
         val gitDtoToCreate = GitDto("invalid-url")
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/create-git")
+            .uri("/api/${v1}/organizations/${organization.name}/create-git")
             .bodyValue(gitDtoToCreate)
             .exchange()
             .expectStatus()
@@ -235,7 +235,7 @@ class OrganizationControllerTest {
         )
         doReturn(gitExisted).whenever(gitRepository).findByOrganizationAndUrl(organization, gitExisted.url)
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/create-git")
+            .uri("/api/${v1}/organizations/${organization.name}/create-git")
             .bodyValue(gitExisted.toDto())
             .exchange()
             .expectStatus()
@@ -264,7 +264,7 @@ class OrganizationControllerTest {
             )
         doReturn(gitExisted).whenever(gitRepository).findByOrganizationAndUrl(organization, gitExisted.url)
         webClient.post()
-            .uri("/api/$v1/organizations/${organization.name}/update-git")
+            .uri("/api/${v1}/organizations/${organization.name}/update-git")
             .bodyValue(gitDtoToUpdate)
             .exchange()
             .expectStatus()
@@ -286,7 +286,7 @@ class OrganizationControllerTest {
         )
         given(gitRepository.findByOrganizationAndUrl(organization, gitExisted.url)).willReturn(gitExisted)
         webClient.delete()
-            .uri("/api/$v1/organizations/${organization.name}/delete-git?url=${gitExisted.url}")
+            .uri("/api/${v1}/organizations/${organization.name}/delete-git?url=${gitExisted.url}")
             .exchange()
             .expectStatus()
             .isOk

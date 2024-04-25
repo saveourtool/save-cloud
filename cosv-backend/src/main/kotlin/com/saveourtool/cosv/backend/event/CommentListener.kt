@@ -1,13 +1,14 @@
 package com.saveourtool.cosv.backend.event
 
+import com.saveourtool.common.entities.Notification
+import com.saveourtool.common.entities.User
+import com.saveourtool.common.evententities.CommentEvent
+import com.saveourtool.common.repository.NotificationRepository
+import com.saveourtool.common.service.UserService
+import com.saveourtool.common.utils.orNotFound
 import com.saveourtool.cosv.backend.repository.LnkVulnerabilityMetadataUserRepository
 import com.saveourtool.cosv.backend.service.VulnerabilityMetadataService
-import com.saveourtool.save.entities.Notification
-import com.saveourtool.save.entities.User
-import com.saveourtool.save.evententities.CommentEvent
-import com.saveourtool.save.repository.NotificationRepository
-import com.saveourtool.save.service.UserService
-import com.saveourtool.save.utils.orNotFound
+
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 

@@ -2,6 +2,10 @@
 
 package com.saveourtool.save.frontend.components.basic.projects
 
+import com.saveourtool.common.entities.ProjectDto
+import com.saveourtool.common.entities.contest.ContestResult
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.frontend.common.components.basic.*
 import com.saveourtool.frontend.common.components.basic.userBoard
 import com.saveourtool.frontend.common.externals.fontawesome.faCalendarAlt
@@ -11,11 +15,7 @@ import com.saveourtool.frontend.common.utils.*
 import com.saveourtool.frontend.common.utils.get
 import com.saveourtool.frontend.common.utils.unsafeMap
 import com.saveourtool.frontend.common.utils.useRequest
-import com.saveourtool.save.entities.ProjectDto
-import com.saveourtool.save.entities.contest.ContestResult
 import com.saveourtool.save.frontend.components.basic.projectInfo
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
 import react.dom.html.ReactHTML.button

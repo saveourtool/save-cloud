@@ -4,6 +4,8 @@
 
 package com.saveourtool.cosv.frontend
 
+import com.saveourtool.common.info.UserInfo
+import com.saveourtool.common.validation.FrontendRoutes
 import com.saveourtool.cosv.frontend.components.ErrorBoundary
 import com.saveourtool.cosv.frontend.components.requestModalHandler
 import com.saveourtool.cosv.frontend.components.topbar.topBarComponent
@@ -14,8 +16,6 @@ import com.saveourtool.frontend.common.components.basic.scrollToTopButton
 import com.saveourtool.frontend.common.externals.i18next.initI18n
 import com.saveourtool.frontend.common.externals.modal.ReactModal
 import com.saveourtool.frontend.common.utils.*
-import com.saveourtool.save.info.UserInfo
-import com.saveourtool.save.validation.FrontendRoutes
 
 import react.*
 import react.dom.client.createRoot
