@@ -6,6 +6,7 @@ import com.saveourtool.common.entities.OrganizationDto
 import com.saveourtool.common.info.UserInfo
 import com.saveourtool.common.utils.DEFAULT_DEBOUNCE_PERIOD
 import com.saveourtool.frontend.common.components.basic.renderAvatar
+import com.saveourtool.frontend.common.components.basic.renderFilterAvatar
 import com.saveourtool.frontend.common.utils.*
 
 import js.core.jso
@@ -142,7 +143,7 @@ fun renderOrganizationWithAvatar(childrenBuilder: ChildrenBuilder, organizationD
             style = jso {
                 fontSize = 1.2.rem
             }
-            renderAvatar(organizationDto) {
+            renderFilterAvatar(organizationDto) {
                 width = 2.rem
                 height = 2.rem
             }
