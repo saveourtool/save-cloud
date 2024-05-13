@@ -258,6 +258,26 @@ fun ChildrenBuilder.renderTopBarAvatar(
     }
 }
 
+/**
+ * Render organization avatar or placeholder
+ *
+ * @param organizationDto organization to render avatar
+ * @param classes classes applied to [img] html tag
+ * @param link link to redirect to if clicked
+ * @param styleBuilder [CSSProperties] builder
+ */
+fun ChildrenBuilder.renderFilterAvatar(
+    organizationDto: OrganizationDto,
+    classes: String = "",
+    link: String? = null,
+    styleBuilder: CSSProperties.() -> Unit = {},
+) = renderFilterAvatar(
+    organizationDto.avatar?.avatarRenderer() ?: AVATAR_ORGANIZATION_PLACEHOLDER,
+    classes,
+    link ?: "/${organizationDto.name}",
+    styleBuilder
+)
+
 private fun ChildrenBuilder.renderAvatar(
     avatarLink: String,
     classes: String,
@@ -274,6 +294,27 @@ private fun ChildrenBuilder.renderAvatar(
             onError = {
                 setAvatar(AVATAR_PROFILE_PLACEHOLDER)
             }
+        }
+    }
+    link?.let {
+        Link {
+            to = it
+            renderImg()
+        }
+    } ?: renderImg()
+}
+
+private fun ChildrenBuilder.renderFilterAvatar(
+    avatarLink: String,
+    classes: String,
+    link: String?,
+    styleBuilder: CSSProperties.() -> Unit,
+) {
+    val renderImg: ChildrenBuilder.() -> Unit = {
+        img {
+            className = ClassName("avatar avatar-user border color-bg-default rounded-circle $classes")
+            src = avatarLink
+            style = jso { styleBuilder() }
         }
     }
     link?.let {
