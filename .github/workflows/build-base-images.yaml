@@ -57,7 +57,7 @@ jobs:
       - name: Prepare formatted tags
         run: |
           echo FORMATTED_TAG=${{ matrix.base_image_tag }} | sed -e "s/-focal$//" | sed -e "s/20.04$/latest/" >> $GITHUB_ENV
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           context: save-deploy/base-images
           push: true
@@ -83,7 +83,7 @@ jobs:
           registry: ghcr.io
           username: saveourtool
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           context: save-demo-cpg/builder
           push: true
