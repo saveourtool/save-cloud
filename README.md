@@ -48,4 +48,10 @@ For more detailed instructions, including **deployment instructions**, see [save
   proxied as configured in [dev-server.js](../save-frontend/webpack.config.d/dev-server.js). User will be hardcoded with `admin` user. 
 
 ## Architecture and design
-<img src="/info/img/save-diagram.png" width="512px"/>
+Save:
+
+<img src="/info/img/save-diagram.png" width="768px"/>
+
+COSV:
+
+<img src="/info/img/cosv-diagram.PNG" width="768px"/>
