@@ -42,10 +42,10 @@ jobs:
         name: Prepare to build from branch
         run: |
           git switch --force-create ${{ inputs.branch }} origin/${{ inputs.branch }}
-      - uses: gittools/actions/gitversion/setup@v1.1.1
+      - uses: gittools/actions/gitversion/setup@v1.2.0
         with:
           versionSpec: 5.x
-      - uses: gittools/actions/gitversion/execute@v1.1.1
+      - uses: gittools/actions/gitversion/execute@v1.2.0
         id: calculate-semver
         with:
           targetPath: ${{ env.CHARTS_DIR }}
