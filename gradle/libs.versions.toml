@@ -18,7 +18,7 @@ diktat = "2.0.0"
 detekt = "1.23.3"
 liquibase-core = "4.24.0"
 docker-java = "3.3.4"
-jgit = "6.7.0.202309050840-r"
+jgit = "7.0.0.202409031743-r"
 mockito = "5.3.1"
 mockito-kotlin = "5.0.0"
 # only in save-cli
