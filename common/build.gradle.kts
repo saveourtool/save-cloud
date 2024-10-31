@@ -32,7 +32,6 @@ kotlin {
 
     // setup native compilation
     linuxX64()
-    macosX64()
 
     sourceSets {
         sourceSets.all {
@@ -109,13 +108,11 @@ kotlin {
         }
 
         val linuxX64Main by getting
-        val macosX64Main by getting
 
         @Suppress("UNUSED_VARIABLE")
         val nativeMain by creating {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
 
             dependencies {
                 implementation(libs.ktoml.core)
