@@ -16,13 +16,11 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.tasks.TaskCollection
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Failure
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Success
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.withType
@@ -73,11 +71,6 @@ fun Project.configureSigning() {
 
 @Suppress("TOO_LONG_FUNCTION")
 internal fun Project.configurePublications() {
-    val dokkaJar: Jar = tasks.create<Jar>("dokkaJar") {
-        group = "documentation"
-        archiveClassifier.set("javadoc")
-        from(tasks.findByName("dokkaHtml"))
-    }
     configure<PublishingExtension> {
         repositories {
             mavenLocal()
@@ -87,7 +80,6 @@ internal fun Project.configurePublications() {
              * The content of this section will get executed only if
              * a particular module has a `publishing {}` section.
              */
-            this.artifact(dokkaJar)
             this.pom {
                 name.set(project.name)
                 description.set(project.description ?: project.name)
