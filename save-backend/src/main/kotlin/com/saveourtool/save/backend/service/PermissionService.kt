@@ -1,10 +1,12 @@
 package com.saveourtool.save.backend.service
 
-import com.saveourtool.save.backend.repository.UserRepository
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.User
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.ProjectService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono

@@ -4,6 +4,7 @@ import com.saveourtool.save.spring.entity.BaseEntityWithDto
 import javax.persistence.Entity
 import javax.persistence.JoinColumn
 import javax.persistence.ManyToOne
+import javax.persistence.Table
 
 /**
  * Data class with repository information
@@ -15,6 +16,7 @@ import javax.persistence.ManyToOne
  * @property organization
  */
 @Entity
+@Table(schema = "save_cloud", name = "git")
 class Git(
     var url: String,
     var username: String? = null,

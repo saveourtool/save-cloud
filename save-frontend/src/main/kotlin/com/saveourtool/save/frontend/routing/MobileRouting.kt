@@ -4,8 +4,8 @@
 
 package com.saveourtool.save.frontend.routing
 
-import com.saveourtool.save.frontend.common.components.mobile.AboutUsMobileView
-import com.saveourtool.save.frontend.common.components.mobile.saveWelcomeMobileView
+import com.saveourtool.frontend.common.components.mobile.AboutUsMobileView
+import com.saveourtool.frontend.common.components.mobile.saveWelcomeMobileView
 import com.saveourtool.save.validation.FrontendRoutes
 import react.FC
 import react.Props

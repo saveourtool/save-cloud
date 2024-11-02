@@ -2,18 +2,21 @@ package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.authservice.config.WebSecurityConfig
 import com.saveourtool.save.backend.controllers.PermissionController
-import com.saveourtool.save.backend.repository.OrganizationRepository
-import com.saveourtool.save.backend.repository.OriginalLoginRepository
-import com.saveourtool.save.backend.repository.UserRepository
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
-import com.saveourtool.save.backend.security.ProjectPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.utils.mutateMockedUser
-import com.saveourtool.save.cosv.repository.*
 import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.permission.Permission
 import com.saveourtool.save.permission.SetRoleRequest
+import com.saveourtool.save.repository.OrganizationRepository
+import com.saveourtool.save.repository.OriginalLoginRepository
+import com.saveourtool.save.repository.UserRepository
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.security.ProjectPermissionEvaluator
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.OrganizationService
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.utils.BlockingBridge
 import com.saveourtool.save.v1
 import org.junit.jupiter.api.Test
@@ -44,15 +47,7 @@ import reactor.util.function.Tuples
     MockBean(LnkUserOrganizationService::class),
     MockBean(OriginalLoginRepository::class),
     MockBean(NamedParameterJdbcTemplate::class),
-    MockBean(IBackendService::class),
-    MockBean(VulnerabilityMetadataRepository::class),
-    MockBean(LnkVulnerabilityMetadataTagRepository::class),
-    MockBean(LnkVulnerabilityMetadataUserRepository::class),
-    MockBean(VulnerabilityMetadataProjectRepository::class),
-    MockBean(RawCosvFileRepository::class),
-    MockBean(CosvFileRepository::class),
     MockBean(BlockingBridge::class),
-    MockBean(CosvGeneratedIdRepository::class),
 )
 @AutoConfigureWebTestClient
 class PermissionControllerTest {

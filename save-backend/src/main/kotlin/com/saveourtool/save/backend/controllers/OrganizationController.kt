@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.controllers
 
 import com.saveourtool.save.authservice.utils.userId
 import com.saveourtool.save.backend.configs.ConfigProperties
-import com.saveourtool.save.backend.security.OrganizationPermissionEvaluator
 import com.saveourtool.save.backend.service.*
 import com.saveourtool.save.backend.storage.TestsSourceSnapshotStorage
 import com.saveourtool.save.configs.ApiSwaggerSupport
@@ -12,6 +11,10 @@ import com.saveourtool.save.domain.Role
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.OrganizationFilter
 import com.saveourtool.save.permission.Permission
+import com.saveourtool.save.security.OrganizationPermissionEvaluator
+import com.saveourtool.save.service.GitService
+import com.saveourtool.save.service.LnkUserOrganizationService
+import com.saveourtool.save.service.OrganizationService
 import com.saveourtool.save.utils.*
 import com.saveourtool.save.v1
 

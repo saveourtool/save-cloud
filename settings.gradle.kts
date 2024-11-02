@@ -31,11 +31,12 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version "3.15.1"
+    id("com.gradle.enterprise") version "3.16.2"
 }
 
 includeBuild("gradle/plugins")
 include("api-gateway")
+include("cosv-frontend")
 include("save-backend")
 include("save-orchestrator-common")
 include("save-orchestrator")
@@ -46,15 +47,13 @@ include("save-preprocessor")
 include("test-utils")
 include("save-api")
 include("save-api-cli")
-include("save-sandbox")
 include("authentication-service")
 include("save-demo")
 include("save-demo-cpg")
 include("test-analysis-core")
 include("save-demo-agent")
-include("save-cosv")
-include("save-cosv-frontend")
-include("save-frontend-common")
+include("cosv-backend")
+include("frontend-common")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

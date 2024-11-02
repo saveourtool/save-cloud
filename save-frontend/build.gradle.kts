@@ -18,7 +18,7 @@ rootProject.plugins.withType<NodeJsRootPlugin> {
 
 dependencies {
     implementation(projects.saveCloudCommon)
-    implementation(projects.saveFrontendCommon)
+    implementation(projects.frontendCommon)
 
     implementation(enforcedPlatform(libs.kotlin.wrappers.bom))
     implementation("org.jetbrains.kotlin-wrappers:kotlin-react")
@@ -28,7 +28,7 @@ dependencies {
     implementation("org.jetbrains.kotlin-wrappers:kotlin-tanstack-react-table")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui-icons")
     implementation("org.jetbrains.kotlin-wrappers:kotlin-mui")
-    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.4.0")
+    implementation("io.github.petertrr:kotlin-multiplatform-diff-js:0.5.0")
 
     implementation(libs.save.common)
     implementation(libs.kotlinx.coroutines.core)

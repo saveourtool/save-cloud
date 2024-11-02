@@ -1,18 +1,21 @@
 package com.saveourtool.save.backend.controller
 
 import com.saveourtool.save.backend.SaveApplication
-import com.saveourtool.save.backend.repository.OrganizationRepository
-import com.saveourtool.save.backend.repository.ProjectRepository
-import com.saveourtool.save.backend.service.LnkUserProjectService
 import com.saveourtool.save.backend.utils.InfraExtension
 import com.saveourtool.save.backend.utils.mutateMockedUser
 import com.saveourtool.save.entities.*
 import com.saveourtool.save.filters.ProjectFilter
+import com.saveourtool.save.repository.OrganizationRepository
+import com.saveourtool.save.repository.ProjectRepository
+import com.saveourtool.save.service.LnkUserProjectService
+import com.saveourtool.save.service.UserService
 import com.saveourtool.save.v1
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.kotlin.any
+import org.mockito.kotlin.given
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -41,10 +44,12 @@ class ProjectControllerTest {
     @Autowired
     lateinit var webClient: WebTestClient
 
+    @MockBean private lateinit var userDetailsService: UserService
+
     @Test
     @WithMockUser
     fun `should return all public projects`() {
-        mutateMockedUser(id = 99)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
 
         webClient
             .post()
@@ -81,8 +86,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 200 if project is public`() {
-        mutateMockedUser(id = 99)
-
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
         getProjectAndAssert("huaweiName", "Huawei") {
             expectStatus().isOk
         }
@@ -91,7 +95,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "MrBruh", roles = ["VIEWER"])
     fun `should return 404 if user doesn't have access to a private project`() {
-        mutateMockedUser(id = 99)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(99))
 
         getProjectAndAssert("TheProject", "Example.com") {
             expectStatus().isNotFound
@@ -155,7 +159,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(value = "JohnDoe", roles = ["VIEWER"])
     fun `delete project without owner permission`() {
-        mutateMockedUser(id = 3)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(3))
         val organization: Organization = organizationRepository.getOrganizationById(2)
         val project = Project(
             "ToDelete1",
@@ -182,6 +186,7 @@ class ProjectControllerTest {
     @Test
     @WithMockUser(username = "JohnDoe", roles = ["VIEWER"])
     fun `check save new project`() {
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(2))
         mutateMockedUser(id = 2)
 
         // `project` references an existing user from test data
@@ -214,7 +219,7 @@ class ProjectControllerTest {
             organization = organizationRepository.findById(1).get()
         }
         projectRepository.save(project)
-        mutateMockedUser(id = 3)
+        given(userDetailsService.getUserByName(any())).willReturn(mockUser(3))
 
         webClient.post()
             .uri("/api/$v1/projects/update")
@@ -255,4 +260,6 @@ class ProjectControllerTest {
             .exchange()
             .let { getAssertion(it) }
     }
+
+    private fun mockUser(id: Long) = User("mocked", null, null, "").apply { this.id = id }
 }

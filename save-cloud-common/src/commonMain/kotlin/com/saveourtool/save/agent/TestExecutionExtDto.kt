@@ -21,6 +21,6 @@ import kotlinx.serialization.Serializable
 data class TestExecutionExtDto(
     val testExecution: TestExecutionDto,
     val hasDebugInfo: Boolean? = null,
-    val testMetrics: TestMetrics = NoDataAvailable.instance,
+    val testMetrics: TestMetrics = NoDataAvailable,
     val analysisResults: List<AnalysisResult> = emptyList(),
 )

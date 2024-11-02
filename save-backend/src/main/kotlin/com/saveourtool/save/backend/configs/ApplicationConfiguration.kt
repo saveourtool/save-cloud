@@ -2,7 +2,6 @@ package com.saveourtool.save.backend.configs
 
 import com.saveourtool.save.service.LogService
 import com.saveourtool.save.service.LokiLogService
-import com.saveourtool.save.utils.BlockingBridge
 import org.springframework.boot.actuate.autoconfigure.metrics.orm.jpa.HibernateMetricsAutoConfiguration
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -13,7 +12,7 @@ import org.springframework.web.reactive.config.EnableWebFlux
 
 @Configuration
 @EnableWebFlux
-@EnableJpaRepositories(basePackages = ["com.saveourtool.save.backend.repository"])
+@EnableJpaRepositories(basePackages = ["com.saveourtool.save.backend.repository", "com.saveourtool.save.repository"])
 @EntityScan("com.saveourtool.save.entities")
 @ImportAutoConfiguration(HibernateMetricsAutoConfiguration::class)
 @Suppress("MISSING_KDOC_TOP_LEVEL")
@@ -24,10 +23,4 @@ class ApplicationConfiguration {
      */
     @Bean
     fun logService(configProperties: ConfigProperties): LogService = LokiLogService.createOrStub(configProperties.loki)
-
-    /**
-     * @return [BlockingBridge]
-     */
-    @Bean
-    fun blockingBridge(): BlockingBridge = BlockingBridge.default
 }

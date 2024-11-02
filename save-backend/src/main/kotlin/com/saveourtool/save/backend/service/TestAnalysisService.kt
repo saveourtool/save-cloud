@@ -8,6 +8,8 @@ import com.saveourtool.save.backend.repository.TestExecutionRepository
 import com.saveourtool.save.entities.Execution
 import com.saveourtool.save.entities.Project
 import com.saveourtool.save.entities.TestExecution
+import com.saveourtool.save.service.OrganizationService
+import com.saveourtool.save.service.ProjectService
 import com.saveourtool.save.test.analysis.api.TestId
 import com.saveourtool.save.test.analysis.api.TestIdGenerator
 import com.saveourtool.save.test.analysis.api.TestRun
