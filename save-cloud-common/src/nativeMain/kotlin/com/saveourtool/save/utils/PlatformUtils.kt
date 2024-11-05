@@ -8,7 +8,7 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 
 actual class AtomicLong actual constructor(value: Long) {
-    private val kotlinAtomicLong = kotlin.native.concurrent.AtomicLong(value)
+    private val kotlinAtomicLong = kotlin.concurrent.AtomicLong(value)
 
     actual fun get(): Long = kotlinAtomicLong.value
 
