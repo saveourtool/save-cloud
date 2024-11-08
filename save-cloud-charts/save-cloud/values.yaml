@@ -201,9 +201,22 @@ neo4j:
       memory: "2Gi"
   volumes:
     data:
-      mode: selector
-      selector:
+      # REQUIRED: specify a volume mode to use for data
+      # Valid values are share|selector|defaultStorageClass|volume|volumeClaimTemplate|dynamic
+      # To get up-and-running quickly, for development or testing, use "defaultStorageClass" for a dynamically provisioned volume of the default storage class.
+      mode: "volume"
 
+      # Only used if mode is set to "volume"
+      # Provide an explicit volume to use
+      volume:
+        # If set an init container (running as root) will be added that runs:
+        #   `chown -R <securityContext.fsUser>:<securityContext.fsGroup>` AND `chmod -R g+rwx`
+        # on the volume. This is useful for some filesystems (e.g. NFS) where Kubernetes fsUser or fsGroup settings are not respected
+        setOwnerAndGroupWritableFilePermissions: false
+
+        # Example (using a specific Persistent Volume Claim)
+        persistentVolumeClaim:
+          claimName: data-neo4j-0
 demo_cpg:
   name: demo-cpg
   profile: dev
