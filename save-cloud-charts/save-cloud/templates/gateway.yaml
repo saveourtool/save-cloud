@@ -55,16 +55,16 @@ spec:
             - mountPath: /home/cnb/cacerts
               name: cacerts
             - mountPath: /security
-              name: his-certs
+              name: ca-certs
       {{ end }}
       volumes:
         - {{ include "spring-boot.config-volume" (dict "service" .Values.gateway) | indent 10 | trim }}
         - name: oauth-credentials
           secret:
             secretName: oauth-credentials
-        - name: his-certs
+        - name: ca-certs
           secret:
-            secretName: his-certs
+            secretName: ca-certs
         - name: cacerts
           emptyDir: {}
 ---
