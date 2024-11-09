@@ -96,10 +96,11 @@ fun S3Operations.deleteUnexpectedKeys(
 )
 
 private fun AbstractS3KeyDatabaseManager<*, *, *>.asS3KeyValidator(): (String) -> Boolean = { s3Key ->
-    val s3KeyWithoutPrefix = s3Key.removePrefix(commonPrefix)
-    s3KeyWithoutPrefix.toLongOrNull().let { id ->
-        findKeyByEntityId(id) == null
-    } == true
+    s3Key.removePrefix(commonPrefix)
+        .toLongOrNull()
+        ?.let { id ->
+            findKeyByEntityId(id) == null
+        } == true
 }
 
 private fun S3Operations.doBackupUnexpectedKeys(
