@@ -97,7 +97,7 @@ config.devServer = Object.assign(
 `historyApiFallback` makes `webpack-dev-server` return `index.html` in case of `404 Not Found`.
 
 Sometimes it is useful to add authorization headers when proxying to some Spring services e.g. `save-backend`.
-It can be done with setting `onPorxyReq`:
+It can be done with setting `onProxyReq`:
 ```javascript
 onProxyReq: (proxyReq, req, res) => {
     proxyReq.setHeader("X-Authorization-Id", "1");

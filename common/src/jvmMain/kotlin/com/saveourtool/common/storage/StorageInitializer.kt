@@ -57,7 +57,7 @@ class StorageInitializer(
         }
         doInitReactively()
             .map { true }  // doInit worked
-            .defaultIfEmpty(false)  // doInit is emtpy
+            .defaultIfEmpty(false)  // doInit is empty
             .doOnNext { wasDoInitCalled ->
                 require(isInitFinishedCount.decrementAndGet() >= 0) {
                     "Init method cannot be called more than 1 time. Initialization $storageName already finished by another run"
