@@ -36,9 +36,8 @@ class CosvFileStorage(
      * Init method to remove deleted (unexpected) ids which are detected in storage, but missed in database
      */
     override fun doInit(underlying: DefaultStorageProjectReactor<CosvFile>): Mono<Unit> = Mono.fromFuture {
-        runAsync(
-            { log.info { "COSV file storage: deleting unexpected keys..." } },
-            Executor(Runnable::run)
+        runAsync({ log.info { "COSV file storage: deleting unexpected keys..." } },
+            Executor(Runnable::run),
         ).thenCompose {
             s3Operations.deleteUnexpectedKeys(
                 storageName = "${this::class.simpleName}",
