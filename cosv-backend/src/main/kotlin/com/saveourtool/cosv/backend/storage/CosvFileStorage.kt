@@ -7,11 +7,15 @@ import com.saveourtool.common.storage.ReactiveStorageWithDatabase
 import com.saveourtool.common.storage.deleteUnexpectedKeys
 import com.saveourtool.common.utils.blockingToFlux
 import com.saveourtool.common.utils.blockingToMono
+import com.saveourtool.common.utils.getLogger
+import com.saveourtool.common.utils.info
 import com.saveourtool.common.utils.switchIfEmptyToNotFound
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.nio.ByteBuffer
+import java.util.concurrent.CompletableFuture.runAsync
+import java.util.concurrent.Executor
 
 /**
  * Storage for COSV files.
@@ -31,10 +35,17 @@ class CosvFileStorage(
      * Init method to remove deleted (unexpected) ids which are detected in storage, but missed in database
      */
     override fun doInit(underlying: DefaultStorageProjectReactor<CosvFile>): Mono<Unit> = Mono.fromFuture {
-        s3Operations.deleteUnexpectedKeys(
-            storageName = "${this::class.simpleName}",
-            s3KeyManager = s3KeyManager,
-        )
+        runAsync(
+            { log.info { "COSV file storage: deleting unexpected keys..." } },
+            Executor(Runnable::run)
+        ).thenCompose {
+            s3Operations.deleteUnexpectedKeys(
+                storageName = "${this::class.simpleName}",
+                s3KeyManager = s3KeyManager,
+            )
+        }.thenApply {
+            log.info { "COSV file storage: unexpected keys deleted (if any)." }
+        }
     }.publishOn(s3Operations.scheduler)
 
     /**
@@ -54,4 +65,8 @@ class CosvFileStorage(
             "Not found CosvFile by id $keyId"
         }
         .flatMapMany { download(it) }
+
+    private companion object {
+        private val log = getLogger<CosvFileStorage>()
+    }
 }

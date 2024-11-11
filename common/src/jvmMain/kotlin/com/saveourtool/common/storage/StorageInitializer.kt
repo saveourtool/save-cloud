@@ -3,18 +3,16 @@ package com.saveourtool.common.storage
 import com.saveourtool.common.utils.getLogger
 import com.saveourtool.common.utils.info
 import com.saveourtool.common.utils.isNotNull
-import io.ktor.client.utils.*
-
 import org.slf4j.Logger
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Scheduler
 import reactor.core.scheduler.Schedulers
-
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-
 import kotlin.reflect.KClass
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactor.asCoroutineDispatcher
 
 /**
@@ -64,7 +62,7 @@ class StorageInitializer(
                 }
                 if (wasDoInitCalled) {
                     log.info {
-                        "Initialization $storageName is done (reactive part)"
+                        "Initialization of $storageName done (reactive part); started: $isInitStarted; finished: ${isDone()}; pending steps: ${pendingStepsCount()}."
                     }
                 }
             }
@@ -76,10 +74,13 @@ class StorageInitializer(
             require(isInitFinishedCount.decrementAndGet() >= 0) {
                 "Init method cannot be called more than 1 time. Initialization $storageName already finished by another run"
             }
-            if (initResult.isNotNull()) {
-                log.info {
-                    "Initialization $storageName is done (suspending part)"
+            log.info {
+                val status = when {
+                    initResult.isNotNull() -> "done"
+                    else -> "ignored"
                 }
+
+                "Initialization of $storageName $status (suspending part); started: $isInitStarted; finished: ${isDone()}; pending steps: ${pendingStepsCount()}."
             }
         }
     }
@@ -121,6 +122,15 @@ class StorageInitializer(
         }
         return action()
     }
+
+    /**
+     * @return the value of [isInitFinishedCount] in a human-readable format.
+     */
+    private fun pendingStepsCount(): String =
+            when (val pendingStepsCount = isInitFinishedCount.get()) {
+                0 -> "0"
+                else -> "\u2264 $pendingStepsCount"
+            }
 
     companion object {
         private val log: Logger = getLogger<StorageInitializer>()
