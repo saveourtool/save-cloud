@@ -26,7 +26,7 @@ private val log = getLogger {}
  *
  * @param storageName
  * @param commonPrefix
- * @param s3KeyValidator
+ * @param s3KeyValidator accepts S3 keys and returns `true` for **unexpected** ones.
  * @return [CompletableFuture] without body
  */
 fun S3Operations.backupUnexpectedKeys(
@@ -63,7 +63,7 @@ fun S3Operations.backupUnexpectedKeys(
  *
  * @param storageName
  * @param commonPrefix
- * @param s3KeyValidator
+ * @param s3KeyValidator accepts S3 keys and returns `true` for **unexpected** ones.
  * @return [CompletableFuture] without body
  */
 fun S3Operations.deleteUnexpectedKeys(
@@ -95,9 +95,27 @@ fun S3Operations.deleteUnexpectedKeys(
     s3KeyValidator = s3KeyManager.asS3KeyValidator(),
 )
 
+/**
+ * @return the lambda, which accepts an _S3 key_ (in the form of `path/to/data/<id>`)
+ *  and returns `true` if the key is _invalid_.
+ */
 private fun AbstractS3KeyDatabaseManager<*, *, *>.asS3KeyValidator(): (String) -> Boolean = { s3Key ->
-    val id = s3Key.removePrefix(commonPrefix).toLong()
-    findKeyByEntityId(id) == null
+    /*-
+     * S3 "folders", similarly to "files", also have keys.
+     *
+     * In our case, such a folder name may be the same as the prefix (e.g.:
+     * `path/to/data/`), that's why we use `toLongOrNull()` rather than
+     * `toLong()` here.
+     *
+     * The key to a folder which has the same name as the prefix (basically,
+     * the containing folder) is considered to be a *valid* key (the validator
+     * returning `false`).
+     */
+    s3Key.removePrefix(commonPrefix)
+        .toLongOrNull()
+        ?.let { id ->
+            findKeyByEntityId(id) == null
+        } == true
 }
 
 private fun S3Operations.doBackupUnexpectedKeys(
@@ -146,6 +164,9 @@ private fun S3Operations.doDeleteUnexpectedKeys(
         }
 }
 
+/**
+ * @param s3KeyValidator accepts S3 keys and returns `true` for **unexpected** ones.
+ */
 private fun S3Operations.detectUnexpectedKeys(
     commonPrefix: String,
     s3KeyValidator: (String) -> Boolean,
