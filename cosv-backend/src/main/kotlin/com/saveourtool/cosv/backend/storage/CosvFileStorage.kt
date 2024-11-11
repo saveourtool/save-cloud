@@ -10,6 +10,7 @@ import com.saveourtool.common.utils.blockingToMono
 import com.saveourtool.common.utils.getLogger
 import com.saveourtool.common.utils.info
 import com.saveourtool.common.utils.switchIfEmptyToNotFound
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -67,6 +68,6 @@ class CosvFileStorage(
         .flatMapMany { download(it) }
 
     private companion object {
-        private val log = getLogger<CosvFileStorage>()
+        private val log: Logger = getLogger<CosvFileStorage>()
     }
 }
