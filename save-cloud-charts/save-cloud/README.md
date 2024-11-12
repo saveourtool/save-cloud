@@ -14,7 +14,7 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
   These secrets are then mounted under the path specified as `DATABASE_SECRETS_PATH` environment variable.
 
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic db-secrets --from_literal=spring.datasource.username=<...> <...>`
-* **save-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
+* **save-backend** , **cosv-backend** and **save-demo** expects the following secrets to be set under the secret `s3-secrets` (`kubectl create secret generic s3-secrets <...>`)
   * `s3-storage.endpoint`
   * `s3-storage.bucketName`
   * `s3-storage.credentials.accessKeyId`
@@ -25,6 +25,11 @@ api-gateway acts as an entrypoint and svc/gateway is actually a LoadBalancer.
   For example, for minikube and dev profile run `kubectl --context=minikube --namespace=save-cloud create secret generic s3-secrets --from_literal=<property name>=<property value> <...>`
 * `kubectl create secret generic oauth-credentials ...` this secret should contain properties recognizable by spring security OAuth;
   it's used by api-gateway.
+* **ca-certs** is required for gateway it contains CA Roots certificates for Huawei
+* **ca-pemstore** configmap contains ca-certificates.crt which is crt storage containing both ca root huawei certificates. 
+it is used both backend and cosv-backend 
+* **ingress-certificate** is required by ingress cluster configuration for incoming requests
+* **oauth-credentials** is required for external authentication services like gitgub
 
 ## Versions of the chart
 On each commit that contains changes in the directory with save-cloud chart, the chart is packaged and published to 
